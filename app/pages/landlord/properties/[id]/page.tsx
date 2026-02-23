@@ -70,6 +70,10 @@ export default function ViewPropertyDetailedPage() {
     tourId: "property_units",
     steps: isMobile ? propertyUnitsTourStepsMobile : propertyUnitsTourSteps,
     autoStart: true,
+    config: {
+      allowClose: false, // don't exit on outside click
+      showEndTourButton: true, // show End Tour button on every step
+    },
   });
 
   // 🆕 Generate QR Codes (FUNCTION)
