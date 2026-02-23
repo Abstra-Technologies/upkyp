@@ -53,8 +53,7 @@ export const propertyUnitsTourSteps = [
     element: "#prop-nav-units",
     popover: {
       title: "🏠 Units",
-      description:
-        "Your default view. Add, edit, and manage all units under this property. You can also bulk import units or invite tenants directly from here.",
+      description: "View and manage all units under this property.",
       side: "right",
       align: "start",
     },
@@ -64,7 +63,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "✏️ Edit Property",
       description:
-        "Update your property details — name, address, type, amenities, description, and photos.",
+        "Update your property's name, address, amenities, and photos.",
       side: "right",
       align: "start",
     },
@@ -74,7 +73,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "📋 House Policy",
       description:
-        "Write and save the house rules and guidelines for this property using the rich text editor. Tenants currently renting in this property will be able to see these rules. Supports formatting like bold, italic, bullet lists, and more.",
+        "Write the house rules tenants of this property must follow.",
       side: "right",
       align: "start",
     },
@@ -85,8 +84,7 @@ export const propertyUnitsTourSteps = [
     element: "#prop-nav-active-lease",
     popover: {
       title: "📜 Active Lease",
-      description:
-        "See all active lease agreements with stats for Total, Active (Healthy), Expiring (Action required), and Pending (Awaiting tenant). Each record shows the unit, tenant, start/end dates, status, and EKYP ID. Use Go to Billing or View Payments at the top to jump directly to related pages.",
+      description: "See all active lease agreements and their current status.",
       side: "right",
       align: "start",
     },
@@ -96,7 +94,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "👥 Prospectives",
       description:
-        "Manage tenants who applied for units in this property. View Active and Archived applicants with their contact details, assigned unit, and approval status. Click View on any applicant to see their AI-powered Tenant Screening Report — showing Rental History, Payment Reliability, Profile Completeness scores, overall applicant grade, submitted documents, and Application Decision.",
+        "Review tenant applicants and their AI-powered screening reports.",
       side: "right",
       align: "start",
     },
@@ -106,7 +104,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "🔧 Assets",
       description:
-        "Track all physical assets for this property. Filter by All, Property-level, or Unit-assigned assets. Each asset record includes name, category, model, warranty, and status. Click Add Asset to log a new item — enter the name, category, model, manufacturer, serial number, images, purchase date, warranty expiry, condition, status, and optionally assign it to a specific unit.",
+        "Track physical assets assigned to this property or its units.",
       side: "right",
       align: "start",
     },
@@ -117,8 +115,7 @@ export const propertyUnitsTourSteps = [
     element: "#prop-nav-billing",
     popover: {
       title: "💳 Billing",
-      description:
-        "View billing stats across all units — total units, units with/without bills, paid count, total amount due, and billing completion. Use Set Rates to configure utility rates (electricity and water) by entering the concessionaire's total consumption and amount — the per-unit rate is computed automatically. Click Open on any bill to manage it.",
+      description: "Manage unit bills and set water & electricity rates.",
       side: "right",
       align: "start",
     },
@@ -127,8 +124,7 @@ export const propertyUnitsTourSteps = [
     element: "#prop-nav-payments",
     popover: {
       title: "💰 Payments",
-      description:
-        "Complete payment history for this property. Shows each transaction's tenant, unit, payment type, amount, method, status, and date paid. Use the column filters and view toggles to sort and organize records.",
+      description: "Full payment history for all units in this property.",
       side: "right",
       align: "start",
     },
@@ -137,8 +133,7 @@ export const propertyUnitsTourSteps = [
     element: "#prop-nav-pdc-management",
     popover: {
       title: "🧾 PDC Management",
-      description:
-        "Manage post-dated checks submitted by tenants. Filter by All, Pending, Cleared, Bounced, or Replaced. Each record shows the check number, bank, tenant, unit, amount, issue date, and status. Use Upload PDCs to add new check records.",
+      description: "Track post-dated checks submitted by tenants.",
       side: "right",
       align: "start",
     },
@@ -148,7 +143,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "📊 Financials",
       description:
-        "Track your property's financial performance. See Gross Operating Income (GOI) and Net Operating Income (NOI) broken down by Month-to-Month, Year-to-Date, and Year-over-Year — with monthly trend charts for each.",
+        "Monitor gross and net operating income with monthly trends.",
       side: "right",
       align: "start",
     },
@@ -160,7 +155,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "⚡ Utilities",
       description:
-        "View historical utility costs for this property. Shows total water consumption (m³) and electricity consumption (kWh) at a glance. The table breaks down each billing period's water volume, water rate, water total, electricity consumption, electricity rate, and electricity total. Filter by Water or Electricity using the top-right toggle.",
+        "View historical water and electricity costs per billing period.",
       side: "right",
       align: "start",
     },
@@ -170,7 +165,7 @@ export const propertyUnitsTourSteps = [
     popover: {
       title: "⚙️ Configuration",
       description:
-        "Control property-level billing rules in three sections. Property Notifications — set the reminder day, billing due date (day of month), and notification channels (Email/SMS). Utility Billing — choose the billing type for water and electricity (e.g. Submetered). Late Payment Penalty — configure penalty type (fixed or percentage), penalty application (one-time or per day), penalty amount, and grace period in days.",
+        "Set billing due dates, utility types, and late payment penalties.",
       side: "right",
       align: "start",
     },
@@ -178,21 +173,11 @@ export const propertyUnitsTourSteps = [
 
   // ─── UNITS PAGE SECTIONS ───────────────────────────────────────────────
   {
-    element: "#units-header",
-    popover: {
-      title: "🏠 Unit Overview",
-      description:
-        "This is the main units page for this property. You can add units manually, bulk import them, or invite a tenant directly.",
-      side: "bottom",
-      align: "start",
-    },
-  },
-  {
     element: "#units-action-buttons",
     popover: {
       title: "⚡ Unit Actions",
       description:
-        "Add a single unit, bulk import multiple units at once, or invite a tenant directly to a specific unit.",
+        "Add a unit, bulk import, or invite an existing tenant directly.",
       side: "bottom",
       align: "end",
     },
