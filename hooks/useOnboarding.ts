@@ -12,24 +12,6 @@ interface OnboardingOptions {
     showEndTourButton?: boolean;
   };
 }
-
-/**
- * Inject ALL custom Driver.js styles from a single source.
- *
- * IMPORTANT — globals.css must NOT contain any .driver-* or
- * .driverjs-theme-upkyp rules. All onboarding CSS lives here.
- *
- * Driver.js v1.4 internals (from source inspection):
- *   - Overlay is an <svg> with a single <path> using even-odd fill.
- *     The "cutout" is a gap in the path — NOT a separate element.
- *     Never set background on .driver-overlay; it covers the cutout.
- *     Use overlayColor in the JS config instead.
- *   - Popover is rebuilt every step. The factory sets inline
- *     display:none on title if falsy, then display:block if truthy.
- *   - popoverClass from step gets concatenated after global popoverClass.
- *   - Popover object properties: wrapper, arrow, title, description,
- *     footer, previousButton, nextButton, closeButton, footerButtons, progress
- */
 const injectCustomStyles = () => {
   const styleId = "upkyp-driver-styles";
 
@@ -67,6 +49,8 @@ const injectCustomStyles = () => {
 
     .driver-popover.driverjs-theme-upkyp.driverjs-welcome .driver-popover-description {
       padding: 0 !important;
+      -webkit-text-fill-color: initial !important;
+      color: initial !important;
     }
 
     .driver-popover.driverjs-theme-upkyp.driverjs-welcome .driver-popover-close-btn {
