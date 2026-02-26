@@ -22,14 +22,6 @@ export default function PropertyConfigurationPage() {
           params: { property_id },
         }
       );
-
-      Swal.fire({
-        icon: "success",
-        title: "Updated!",
-        text: "Utility settings updated.",
-        timer: 1500,
-        showConfirmButton: false,
-      });
     } catch (error) {
       console.error("Failed to reload property details after update:", error);
       Swal.fire({
