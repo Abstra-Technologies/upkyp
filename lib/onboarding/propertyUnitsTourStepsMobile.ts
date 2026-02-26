@@ -74,21 +74,11 @@ export const propertyUnitsTourStepsMobile = [
 
   // ─── UNITS PAGE SECTIONS ───────────────────────────────────────────────
   {
-    element: "#units-header",
-    popover: {
-      title: "🏠 Unit Overview",
-      description:
-        "This is the main units page. Add units manually, bulk import them, or invite a tenant directly.",
-      side: "bottom",
-      align: "start",
-    },
-  },
-  {
     element: "#units-action-buttons",
     popover: {
       title: "⚡ Unit Actions",
       description:
-        "Add a single unit, bulk import multiple units at once, or invite a tenant directly to a specific unit.",
+        "Add a unit, bulk import, or invite an existing tenant directly.",
       side: "bottom",
       align: "end",
     },
