@@ -66,7 +66,7 @@ export default function AdminPlansPage() {
                 await axios.put(`/api/admin/plans/${editingId}`, form);
                 Swal.fire("Updated", "Plan updated successfully", "success");
             } else {
-                await axios.post("/api/admin/plans", form);
+                await axios.post("/api/systemadmin/subscription_programs/add-plan", form);
                 Swal.fire("Created", "Plan created successfully", "success");
             }
 
