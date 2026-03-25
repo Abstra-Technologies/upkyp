@@ -165,13 +165,6 @@ export async function GET(req: NextRequest) {
 
         const leases = await getTenantActiveLeases(tenantId);
 
-        if (!leases.length) {
-            return NextResponse.json(
-                { message: "No active leases found" },
-                { status: 404 }
-            );
-        }
-
         return NextResponse.json(leases, { status: 200 });
 
     } catch (error) {

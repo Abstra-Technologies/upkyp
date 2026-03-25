@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import TenantPayables from "@/components/tenant/analytics-insights/consolidated-analytics/totalPayables";
 import AnnouncementFeeds from "@/components/tenant/feeds/announcement";
 import TenantMaintenanceWidget from "@/components/tenant/feeds/TenantMaintenanceWidget";
@@ -10,6 +10,28 @@ import {
     CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
 import TenantCalendar from "@/components/tenant/feeds/TenantCalendar";
+
+/* ===============================
+    Greeting Component
+   =============================== */
+const Greeting = ({ user }: { user: any }) => {
+    const greeting = useMemo(() => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 18) return "Good afternoon";
+        return "Good evening";
+    }, []);
+
+    const firstName = user?.firstName || "there";
+
+    return (
+        <div className="bg-gradient-to-r from-blue-600 to-emerald-600 rounded-xl p-4 text-white shadow-lg">
+            <p className="text-sm font-medium opacity-90">{greeting},</p>
+            <h1 className="text-xl font-bold mt-0.5">{firstName}!</h1>
+            <p className="text-xs mt-1 opacity-80">Welcome to your dashboard</p>
+        </div>
+    );
+};
 
 /* ===============================
    Skeletons
@@ -46,7 +68,7 @@ const MaintenanceSkeleton = () => (
     </div>
 );
 
-export default function MobileFeedsPage({ user }) {
+export default function MobileFeedsPage({ user }: { user: any }) {
     return (
         <div className="block lg:hidden w-full min-h-screen">
             {/* Safe area for top navbar */}
@@ -55,6 +77,9 @@ export default function MobileFeedsPage({ user }) {
             {/* Content */}
             <div className="w-full px-3 sm:px-4 py-4 pb-24 safe-bottom">
                 <div className="w-full max-w-[480px] mx-auto space-y-4">
+                    {/* GREETING */}
+                    <Greeting user={user} />
+
                     {/* PAYABLES */}
                     <Suspense fallback={<PayablesSkeleton />}>
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

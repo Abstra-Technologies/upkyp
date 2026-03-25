@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Home, Plus, Sparkles, Search, QrCode, HelpCircle } from "lucide-react";
+import { Home, Plus, Sparkles, Search, QrCode, HelpCircle, FileSpreadsheet, Users, CreditCard, ScrollText } from "lucide-react";
 import { Pagination } from "@mui/material";
 import Swal from "sweetalert2";
+import Link from "next/link";
 
 import useSubscription from "@/hooks/landlord/useSubscription";
 import UnitLimitsCard from "@/components/landlord/subscriptions-limitations/UnitLimitsCard";
@@ -162,36 +163,101 @@ export default function ViewPropertyDetailedPage() {
             </button>
           </div>
 
-          {/* Row 2: Action Buttons */}
-          <div id="units-action-buttons" className="flex flex-wrap gap-2 mb-4">
+          {/* Row 2: Quick Action Buttons */}
+          <div id="units-action-buttons" className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {/* Add Unit */}
             <button
               onClick={handleAddUnitClick}
               disabled={unitActionsDisabled}
-              className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all active:scale-95 ${
+              className={`group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${
                 unitActionsDisabled
-                  ? "bg-gray-300 text-gray-600"
-                  : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-md"
+                  ? "bg-gray-100 border border-gray-200"
+                  : "bg-gradient-to-br from-blue-500 to-blue-600 border border-blue-400"
               }`}
             >
-              <Plus className="w-4 h-4" />
-              Add Unit
+              <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <Plus className="w-4 h-4 text-white" />
+              </div>
+              <div className={`flex flex-col items-start gap-1 ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>
+                <span className="text-xs font-medium opacity-90">Add New</span>
+                <span className="text-sm font-bold">Unit</span>
+              </div>
+              {unitActionsDisabled && (
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-300">
+                  <div className="h-full bg-red-500" style={{ width: "100%" }} />
+                </div>
+              )}
             </button>
 
+            {/* Bulk Import */}
             <button
               onClick={() => setBulkImportModal(true)}
-              className="px-4 py-2 rounded-lg font-semibold text-sm bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-md active:scale-95 flex items-center gap-2"
+              className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border border-emerald-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
-              <Sparkles className="w-4 h-4" />
-              Bulk Import
+              <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <FileSpreadsheet className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex flex-col items-start gap-1 text-white">
+                <span className="text-xs font-medium opacity-90">Import</span>
+                <span className="text-sm font-bold">Bulk Units</span>
+              </div>
             </button>
 
+            {/* Invite Tenant */}
             <button
               onClick={() => setInviteModalOpen(true)}
-              className="px-4 py-2 rounded-lg font-semibold text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-md active:scale-95 flex items-center gap-2"
+              className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-violet-500 to-violet-600 border border-violet-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
-              <Sparkles className="w-4 h-4" />
-              Invite Tenant
+              <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <Users className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex flex-col items-start gap-1 text-white">
+                <span className="text-xs font-medium opacity-90">Invite</span>
+                <span className="text-sm font-bold">Tenant</span>
+              </div>
             </button>
+
+            {/* Active Lease */}
+            <Link
+              href={`/pages/landlord/properties/${property_id}/activeLease`}
+              className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            >
+              <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <ScrollText className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex flex-col items-start gap-1 text-white">
+                <span className="text-xs font-medium opacity-90">View</span>
+                <span className="text-sm font-bold">Active Lease</span>
+              </div>
+            </Link>
+
+            {/* Billing */}
+            <Link
+              href={`/pages/landlord/properties/${property_id}/billing`}
+              className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+            >
+              <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                <CreditCard className="w-4 h-4 text-white" />
+              </div>
+              <div className="flex flex-col items-start gap-1 text-white">
+                <span className="text-xs font-medium opacity-90">Manage</span>
+                <span className="text-sm font-bold">Billing</span>
+              </div>
+            </Link>
+
+            {/* Generate QR */}
+            {/*<button*/}
+            {/*  onClick={handleGenerateQRCodes}*/}
+            {/*  className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-cyan-500 to-blue-600 border border-cyan-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"*/}
+            {/*>*/}
+            {/*  <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">*/}
+            {/*    <QrCode className="w-4 h-4 text-white" />*/}
+            {/*  </div>*/}
+            {/*  <div className="flex flex-col items-start gap-1 text-white">*/}
+            {/*    <span className="text-xs font-medium opacity-90">Generate</span>*/}
+            {/*    <span className="text-sm font-bold">QR Codes</span>*/}
+            {/*  </div>*/}
+            {/*</button>*/}
           </div>
 
           {/* SEARCH */}

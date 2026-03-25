@@ -136,13 +136,13 @@ export default function PropertyLayout({
           href: `/pages/landlord/properties/${id}/payments`,
           icon: Wallet,
         },
-        {
-          id: "pdc-management",
-          navId: "prop-nav-pdc-management",
-          label: "PDC Management",
-          href: `/pages/landlord/properties/${id}/pdcManagement`,
-          icon: FileText,
-        },
+        // {
+        //   id: "pdc-management",
+        //   navId: "prop-nav-pdc-management",
+        //   label: "PDC Management",
+        //   href: `/pages/landlord/properties/${id}/pdcManagement`,
+        //   icon: FileText,
+        // },
         {
           id: "finance",
           navId: "prop-nav-finance",

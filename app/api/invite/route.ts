@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import crypto from "crypto";
 import { sendInviteTenantEmail } from "@/lib/email/sendInviteTenantEmail";
+import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 
-//  api to send ivbite current occupied tenant. not hrough application process.
+//  api to send ivbite current occupied tenant.
 
 export async function POST(req: NextRequest) {
     try {
@@ -143,7 +144,7 @@ export async function POST(req: NextRequest) {
             await conn.commit();
 
             /* ===============================
-               Send email (Resend)
+                Send email (Resend)
             =============================== */
             await sendInviteTenantEmail({
                 email,
@@ -152,6 +153,32 @@ export async function POST(req: NextRequest) {
                 inviteCode,
                 datesDeferred,
             });
+
+            /* ===============================
+                Send push notification to existing user
+            =============================== */
+            const emailHash = crypto
+                .createHash("sha256")
+                .update(email.toLowerCase())
+                .digest("hex");
+
+            const [existingUser]: any = await conn.query(
+                `SELECT user_id FROM User WHERE emailHashed = ? LIMIT 1`,
+                [emailHash]
+            );
+
+            if (existingUser.length > 0) {
+                const notificationBody = datesDeferred
+                    ? `You've been invited to ${propertyName} - Unit ${unitName}. Accept to get started!`
+                    : `You've been invited to ${propertyName} - Unit ${unitName}. Lease period: ${startDate} to ${endDate}`;
+
+                sendUserNotification({
+                    userId: existingUser[0].user_id,
+                    title: "New Tenant Invitation",
+                    body: notificationBody,
+                    url: "/pages/auth/login",
+                }).catch((err) => console.error("Push notification failed:", err));
+            }
 
             return NextResponse.json({
                 success: true,
