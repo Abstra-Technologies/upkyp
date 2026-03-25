@@ -29,7 +29,10 @@ interface Props {
     landlord_id?: string;
     search?: string;
     paymentType?: string;
+    paymentStatus?: string;
+    payoutStatus?: string;
     dateRange?: string;
+    refreshKey?: number;
 }
 
 /* =========================
@@ -52,7 +55,10 @@ export default function PaymentList({
                                         landlord_id,
                                         search = "",
                                         paymentType = "all",
+                                        paymentStatus = "all",
+                                        payoutStatus = "all",
                                         dateRange = "30",
+                                        refreshKey = 0,
                                     }: Props) {
     /* =========================
           STATE
@@ -72,9 +78,11 @@ export default function PaymentList({
         const params = new URLSearchParams();
         if (search) params.set("search", search);
         if (paymentType !== "all") params.set("paymentType", paymentType);
+        if (paymentStatus !== "all") params.set("paymentStatus", paymentStatus);
+        if (payoutStatus !== "all") params.set("payoutStatus", payoutStatus);
         if (dateRange) params.set("dateRange", dateRange);
         return params.toString();
-    }, [search, paymentType, dateRange]);
+    }, [search, paymentType, paymentStatus, payoutStatus, dateRange]);
 
     const {
         data: payments = [],
@@ -82,10 +90,10 @@ export default function PaymentList({
         error,
     } = useSWR(
         landlord_id
-            ? `/api/landlord/payments/getPaymentList?landlord_id=${landlord_id}&${query}`
+            ? `/api/landlord/payments/getPaymentList?landlord_id=${landlord_id}&${query}&_t=${refreshKey}`
             : null,
         fetcher,
-        { revalidateOnFocus: false, dedupingInterval: 30_000 },
+        { revalidateOnFocus: false, dedupingInterval: 0 },
     );
 
     /* =========================

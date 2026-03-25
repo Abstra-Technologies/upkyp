@@ -10,6 +10,30 @@ const sha256 = (value: string) =>
     crypto.createHash("sha256").update(value).digest("hex");
 
 /* -------------------------------------------------------
+   CACHE KEY GENERATOR
+------------------------------------------------------- */
+const generateCacheKey = (
+    landlordId: string,
+    propertyId?: string | null,
+    search?: string | null,
+    paymentType?: string | null,
+    paymentStatus?: string | null,
+    payoutStatus?: string | null,
+    dateRange?: string | null
+) => {
+    return [
+        "payments",
+        landlordId,
+        propertyId || "all",
+        search || "none",
+        paymentType || "all",
+        paymentStatus || "all",
+        payoutStatus || "all",
+        dateRange || "30"
+    ].join("-");
+};
+
+/* -------------------------------------------------------
    CACHED QUERY FUNCTION (ENHANCED)
 ------------------------------------------------------- */
 const getPaymentsCached = unstable_cache(
@@ -19,6 +43,8 @@ const getPaymentsCached = unstable_cache(
         _month?: string | null,
         search?: string | null,
         paymentType?: string | null,
+        paymentStatus?: string | null,
+        payoutStatus?: string | null,
         dateRange?: string | null
     ) => {
         let query = `
@@ -71,7 +97,6 @@ const getPaymentsCached = unstable_cache(
         JOIN Property pr ON u.property_id = pr.property_id
 
       WHERE pr.landlord_id = ?
-        AND p.payment_status = 'confirmed'
     `;
 
         const params: any[] = [landlordId];
@@ -88,19 +113,60 @@ const getPaymentsCached = unstable_cache(
             params.push(paymentType);
         }
 
+        /* ---------- Payment Status ---------- */
+        if (paymentStatus && paymentStatus !== "all") {
+            query += ` AND p.payment_status = ?`;
+            params.push(paymentStatus);
+        }
+
+        /* ---------- Payout Status ---------- */
+        if (payoutStatus && payoutStatus !== "all") {
+            query += ` AND p.payout_status = ?`;
+            params.push(payoutStatus);
+        }
+
         /* ---------- Date Range ---------- */
-        if (dateRange === "7") {
-            query += ` AND p.payment_date >= NOW() - INTERVAL 7 DAY`;
-        } else if (dateRange === "30") {
-            query += ` AND p.payment_date >= NOW() - INTERVAL 30 DAY`;
-        } else if (dateRange === "month") {
-            query += `
-        AND MONTH(p.payment_date) = MONTH(CURDATE())
-        AND YEAR(p.payment_date) = YEAR(CURDATE())
-      `;
-        } else if (dateRange?.startsWith("year:")) {
-            query += ` AND YEAR(p.payment_date) = ?`;
-            params.push(Number(dateRange.split(":")[1]));
+        if (dateRange) {
+            if (dateRange === "7") {
+                query += ` AND p.payment_date >= NOW() - INTERVAL 7 DAY`;
+            } else if (dateRange === "30") {
+                query += ` AND p.payment_date >= NOW() - INTERVAL 30 DAY`;
+            } else if (dateRange === "90") {
+                query += ` AND p.payment_date >= NOW() - INTERVAL 90 DAY`;
+            } else if (dateRange === "month") {
+                query += `
+                    AND MONTH(p.payment_date) = MONTH(CURDATE())
+                    AND YEAR(p.payment_date) = YEAR(CURDATE())
+                `;
+            } else if (dateRange === "last_month") {
+                query += `
+                    AND MONTH(p.payment_date) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+                    AND YEAR(p.payment_date) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH))
+                `;
+            } else if (dateRange.startsWith("year:")) {
+                query += ` AND YEAR(p.payment_date) = ?`;
+                params.push(Number(dateRange.split(":")[1]));
+            } else if (dateRange.startsWith("month:")) {
+                const parts = dateRange.split(":");
+                if (parts.length === 3) {
+                    const year = Number(parts[1]);
+                    const month = Number(parts[2]);
+                    query += ` AND YEAR(p.payment_date) = ? AND MONTH(p.payment_date) = ?`;
+                    params.push(year, month);
+                }
+            } else if (dateRange.startsWith("range:")) {
+                const parts = dateRange.split(":");
+                if (parts.length === 3) {
+                    const fromDate = parts[1];
+                    const toDate = parts[2];
+                    query += ` AND DATE(p.payment_date) >= ? AND DATE(p.payment_date) <= ?`;
+                    params.push(fromDate, toDate);
+                }
+            } else if (dateRange.startsWith("from:")) {
+                const fromDate = dateRange.replace("from:", "");
+                query += ` AND DATE(p.payment_date) >= ?`;
+                params.push(fromDate);
+            }
         }
 
         /* ---------- SEARCH ---------- */
@@ -114,14 +180,14 @@ const getPaymentsCached = unstable_cache(
                 .map(sha256);
 
             query += `
-        AND (
-          pr.property_name LIKE ?
-          OR u.unit_name LIKE ?
-          OR p.receipt_reference LIKE ?
-          OR usr.nameHashed = ?
-          OR JSON_CONTAINS(usr.nameTokens, ?)
-        )
-      `;
+                AND (
+                  pr.property_name LIKE ?
+                  OR u.unit_name LIKE ?
+                  OR p.receipt_reference LIKE ?
+                  OR usr.nameHashed = ?
+                  OR JSON_CONTAINS(usr.nameTokens, ?)
+                )
+            `;
 
             params.push(
                 `%${search}%`,
@@ -134,7 +200,7 @@ const getPaymentsCached = unstable_cache(
 
         query += ` ORDER BY p.created_at DESC`;
 
-        const [rows]: any = await db.query(query, params);
+        const [rows] = await db.query(query, params) as [any[], any];
 
         /* ---------- DECRYPT DISPLAY NAME ONLY ---------- */
         return rows.map((row: any) => {
@@ -143,10 +209,12 @@ const getPaymentsCached = unstable_cache(
 
             try {
                 if (row.firstName) {
-                    firstName = decryptData(JSON.parse(row.firstName), SECRET);
+                    const decrypted = decryptData(JSON.parse(row.firstName), SECRET);
+                    if (typeof decrypted === "string") firstName = decrypted;
                 }
                 if (row.lastName) {
-                    lastName = decryptData(JSON.parse(row.lastName), SECRET);
+                    const decrypted = decryptData(JSON.parse(row.lastName), SECRET);
+                    if (typeof decrypted === "string") lastName = decrypted;
                 }
             } catch (err) {
                 console.error(
@@ -162,22 +230,26 @@ const getPaymentsCached = unstable_cache(
         });
     },
 
-    /* ---------- CACHE KEY ---------- */
-    (
-        landlordId,
-        propertyId,
-        _month,
-        search,
-        paymentType,
-        dateRange
-    ) => [
-        "payments",
-        landlordId,
-        propertyId ?? "all",
-        search ?? "all",
-        paymentType ?? "all",
-        dateRange ?? "all",
-    ],
+    ((
+        landlordId: string,
+        propertyId?: string | null,
+        _month?: string | null,
+        search?: string | null,
+        paymentType?: string | null,
+        paymentStatus?: string | null,
+        payoutStatus?: string | null,
+        dateRange?: string | null
+    ) => {
+        return [generateCacheKey(
+            landlordId,
+            propertyId,
+            search,
+            paymentType,
+            paymentStatus,
+            payoutStatus,
+            dateRange
+        )];
+    }) as any,
 
     {
         revalidate: 60,
@@ -196,6 +268,8 @@ export async function GET(req: NextRequest) {
         const propertyId = searchParams.get("property_id");
         const search = searchParams.get("search");
         const paymentType = searchParams.get("paymentType");
+        const paymentStatus = searchParams.get("paymentStatus");
+        const payoutStatus = searchParams.get("payoutStatus");
         const dateRange = searchParams.get("dateRange");
 
         if (!landlordId) {
@@ -211,6 +285,8 @@ export async function GET(req: NextRequest) {
             null,
             search,
             paymentType,
+            paymentStatus,
+            payoutStatus,
             dateRange
         );
 

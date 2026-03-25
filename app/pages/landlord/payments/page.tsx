@@ -16,6 +16,7 @@ import {
     Calendar,
     Wallet,
     Download,
+    RotateCcw,
 } from "lucide-react";
 
 import {
@@ -56,12 +57,27 @@ export default function PaymentsPage() {
     const [paymentType, setPaymentType] = useState("all");
     const [paymentStatus, setPaymentStatus] = useState("all");
     const [payoutStatus, setPayoutStatus] = useState("all");
-    const [dateRange, setDateRange] = useState("30");
+    const [dateRange, setDateRange] = useState("all");
+
+    const [customFrom, setCustomFrom] = useState("");
+    const [customTo, setCustomTo] = useState("");
 
     const [years, setYears] = useState<number[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
     const [openReportModal, setOpenReportModal] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    const clearFilters = () => {
+        setSearch("");
+        setPaymentType("all");
+        setPaymentStatus("all");
+        setPayoutStatus("all");
+        setDateRange("30");
+        setCustomFrom("");
+        setCustomTo("");
+        setRefreshKey((prev) => prev + 1);
+    };
 
     /* =========================
        AUTH
@@ -299,10 +315,12 @@ export default function PaymentsPage() {
                        bg-gray-50
                        text-xs sm:text-sm"
                         >
-                            <option value="all">All Transactions</option>
+                            <option value="all">All Time</option>
                             <option value="7">Last 7 Days</option>
                             <option value="30">Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
                             <option value="month">This Month</option>
+                            <option value="last_month">Last Month</option>
 
                             {years.length > 0 && (
                                 <optgroup label="By Year">
@@ -315,6 +333,71 @@ export default function PaymentsPage() {
                             )}
                         </select>
                     </div>
+
+                    {/* Custom Date Range */}
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="date"
+                            value={customFrom}
+                            onChange={(e) => {
+                                setCustomFrom(e.target.value);
+                                if (customTo && e.target.value) {
+                                    setDateRange(`range:${e.target.value}:${customTo}`);
+                                }
+                            }}
+                            className="px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
+                        />
+                        <span className="text-gray-400 text-xs">to</span>
+                        <input
+                            type="date"
+                            value={customTo}
+                            onChange={(e) => {
+                                setCustomTo(e.target.value);
+                                if (customFrom && e.target.value) {
+                                    setDateRange(`range:${customFrom}:${e.target.value}`);
+                                }
+                            }}
+                            className="px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
+                        />
+                    </div>
+
+                    {/* Month Filter */}
+                    <div className="w-full sm:w-auto relative">
+                        <select
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                if (val) setDateRange(`month:${new Date().getFullYear()}:${val}`);
+                            }}
+                            className="w-full appearance-none
+                       px-4 py-2.5 sm:py-3
+                       border border-gray-200
+                       rounded-lg sm:rounded-xl
+                       bg-gray-50
+                       text-xs sm:text-sm"
+                        >
+                            <option value="">Select Month</option>
+                            <option value="01">January</option>
+                            <option value="02">February</option>
+                            <option value="03">March</option>
+                            <option value="04">April</option>
+                            <option value="05">May</option>
+                            <option value="06">June</option>
+                            <option value="07">July</option>
+                            <option value="08">August</option>
+                            <option value="09">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={clearFilters}
+                        className="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        Clear Filters
+                    </button>
 
                 </div>
             </motion.div>
@@ -333,6 +416,7 @@ export default function PaymentsPage() {
                         paymentStatus={paymentStatus}
                         payoutStatus={payoutStatus}
                         dateRange={dateRange}
+                        refreshKey={refreshKey}
                     />
                 </motion.div>
             </div>
