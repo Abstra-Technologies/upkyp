@@ -1,10 +1,10 @@
 "use client";
 
-import useRoleStore from "../../../../zustand/store";
-import { logEvent } from "../../../../utils/gtag";
+import useRoleStore from "@/zustand/store";
+import { logEvent } from "@/utils/gtag";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { UserIcon, HomeIcon } from "@heroicons/react/24/solid";
+import { Building2, User, ArrowRight } from "lucide-react";
 
 export default function RegisterAs() {
     const setRole = useRoleStore((state) => state.setRole);
@@ -22,100 +22,107 @@ export default function RegisterAs() {
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-white px-4 py-6 sm:px-6 sm:py-10">
+        <div className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white">
             {/* Background Image */}
             <Image
                 src="https://res.cloudinary.com/dpukdla69/image/upload/v1765966152/Whisk_mtnhzwyxajzmdtyw0yn2mtotijzhrtllbjzh1sn_wpw850.jpg"
                 alt="City background"
                 fill
                 priority
-                className="absolute inset-0 object-cover opacity-30"
+                className="absolute inset-0 object-cover"
             />
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
 
             {/* Main Card */}
-            <div
-                className="
-          relative z-10 w-full
-          max-w-sm
-          sm:max-w-md
-          bg-white
-          border border-gray-200
-          rounded-3xl
-          shadow-lg
-          p-6 sm:p-8
-        "
-            >
-                {/* Logo */}
-                <div className="mb-6 text-center sm:mb-8">
-                    <div
-                        className="typographica text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent"
+            <div className="relative z-10 w-full max-w-sm mx-4">
+                {/* Logo Section */}
+                <div className="text-center mb-8">
+
+                    <h1
+                        className="text-3xl font-extrabold text-gray-900"
                         style={{
-                            backgroundImage: "linear-gradient(90deg, #60A5FA, #34D399)",
-                            textShadow: "0 1px 3px rgba(0,0,0,0.25)",
+                            background: "linear-gradient(90deg, #2563EB, #10B981)",
+                            WebkitBackgroundClip: "text",
+                            WebkitTextFillColor: "transparent",
                         }}
                     >
                         Upkyp
-                    </div>
-                    <p className="mt-1 sm:mt-2 text-xs sm:text-sm tracking-wide text-gray-500">
-                        Connect more. Manage less.
-                    </p>
+                    </h1>
+                    <p className="text-sm text-gray-600 mt-1">Connect more. Manage less.</p>
                 </div>
 
-                {/* Title */}
-                <h2 className="mb-6 sm:mb-8 text-center text-xl sm:text-2xl font-semibold text-gray-800">
-                    Register As
-                </h2>
+                {/* Role Selection Card */}
+                <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-5 text-center">
+                        <h2 className="text-xl font-bold text-white">Create Account</h2>
+                        <p className="text-sm text-white/80 mt-1">Choose how you want to use Upkyp</p>
+                    </div>
 
-                {/* Role Buttons */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
-                    {/* Tenant */}
-                    <button
-                        onClick={() => handleSelectRole("tenant")}
-                        className="
-              group relative flex-1 overflow-hidden
-              rounded-2xl bg-blue-600 py-3 sm:py-4
-              text-white shadow-md
-              transition-all hover:scale-[1.03] hover:shadow-lg
-            "
-                    >
-                        <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-20" />
-                        <div className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                            <UserIcon className="h-6 w-6 sm:h-7 sm:w-7" />
-                            <span className="text-sm sm:text-base font-medium">
-                Tenant
-              </span>
-                        </div>
-                    </button>
+                    {/* Role Options */}
+                    <div className="p-6 space-y-4">
+                        {/* Tenant */}
+                        <button
+                            onClick={() => handleSelectRole("tenant")}
+                            className="group w-full p-5 rounded-2xl border-2 border-gray-100 hover:border-blue-500 hover:bg-blue-50/50 transition-all duration-200 text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-blue-500 transition-colors">
+                                    <User className="w-7 h-7 text-blue-600 group-hover:text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-gray-900">Tenant</h3>
+                                    <p className="text-sm text-gray-500">Find and rent your perfect place</p>
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                            </div>
+                        </button>
 
-                    {/* Landlord */}
-                    <button
-                        onClick={() => handleSelectRole("landlord")}
-                        className="
-              group relative flex-1 overflow-hidden
-              rounded-2xl bg-emerald-600 py-3 sm:py-4
-              text-white shadow-md
-              transition-all hover:scale-[1.03] hover:shadow-lg
-            "
-                    >
-                        <div className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-20" />
-                        <div className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                            <HomeIcon className="h-6 w-6 sm:h-7 sm:w-7" />
-                            <span className="text-sm sm:text-base font-medium">
-                Landlord
-              </span>
+                        {/* Landlord */}
+                        <button
+                            onClick={() => handleSelectRole("landlord")}
+                            className="group w-full p-5 rounded-2xl border-2 border-gray-100 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all duration-200 text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-emerald-500 transition-colors">
+                                    <Building2 className="w-7 h-7 text-emerald-600 group-hover:text-white" />
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="font-bold text-gray-900">Landlord</h3>
+                                    <p className="text-sm text-gray-500">Manage properties and tenants</p>
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-gray-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                            </div>
+                        </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="px-6 pb-4">
+                        <div className="relative flex py-2 items-center">
+                            <div className="flex-grow border-t border-gray-200"></div>
+                            <span className="flex-shrink mx-4 text-xs text-gray-400">or</span>
+                            <div className="flex-grow border-t border-gray-200"></div>
                         </div>
-                    </button>
+                    </div>
+
+                    {/* Login Link */}
+                    <div className="px-6 pb-6 text-center">
+                        <p className="text-sm text-gray-600">
+                            Already have an account?{" "}
+                            <button
+                                onClick={() => router.push("/pages/auth/login")}
+                                className="font-semibold text-blue-600 hover:text-blue-700"
+                            >
+                                Sign in
+                            </button>
+                        </p>
+                    </div>
                 </div>
 
                 {/* Footer */}
-                <p className="mt-5 sm:mt-6 text-center text-xs sm:text-sm text-gray-600">
-                    Already have an account?{" "}
-                    <button
-                        onClick={() => router.push("/pages/auth/login")}
-                        className="font-medium text-gray-900 underline-offset-4 transition hover:underline"
-                    >
-                        Sign in here
-                    </button>
+                <p className="text-center text-xs text-gray-500 mt-6">
+                    By continuing, you agree to our Terms of Service
                 </p>
             </div>
         </div>
