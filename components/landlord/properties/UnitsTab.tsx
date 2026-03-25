@@ -98,6 +98,23 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
     /* ------------------------------------------------------------------ */
     /* DESKTOP TABLE COLUMNS                                              */
     /* ------------------------------------------------------------------ */
+    const getStatusBadge = (status: string) => {
+        const statusColors: Record<string, string> = {
+            available: "bg-emerald-100 text-emerald-700 border-emerald-200",
+            occupied: "bg-blue-100 text-blue-700 border-blue-200",
+            maintenance: "bg-amber-100 text-amber-700 border-amber-200",
+            unavailable: "bg-red-100 text-red-700 border-red-200",
+            reserved: "bg-purple-100 text-purple-700 border-purple-200",
+        };
+        const colorClass = statusColors[status?.toLowerCase()] || "bg-gray-100 text-gray-700 border-gray-200";
+        
+        return (
+            <span className={`px-2 py-1 rounded-full text-[10px] font-semibold border capitalize ${colorClass}`}>
+                {status || "Unknown"}
+            </span>
+        );
+    };
+
     const columns = useMemo<MRT_ColumnDef<any>[]>(
         () => [
             {
@@ -113,9 +130,9 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                             <p className="font-semibold text-gray-900 truncate">
                                 {row.original.unit_name || "Untitled Unit"}
                             </p>
-                            <p className="text-xs text-gray-500 capitalize">
-                                {row.original.status}
-                            </p>
+                            <div className="mt-1">
+                                {getStatusBadge(row.original.status)}
+                            </div>
                         </div>
                     </div>
                 ),
@@ -258,10 +275,12 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                             <p className="text-sm font-semibold text-gray-900 truncate">
                                 {unit.unit_name || "Untitled Unit"}
                             </p>
-                            <p className="text-[11px] text-gray-500">
-                                ₱{Number(unit.rent_amount || 0).toLocaleString()} •{" "}
-                                <span className="capitalize">{unit.status}</span>
-                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[11px] text-gray-500">
+                                    ₱{Number(unit.rent_amount || 0).toLocaleString()}
+                                </span>
+                                {getStatusBadge(unit.status)}
+                            </div>
 
                             {/* ACTIONS */}
                             <div className="flex gap-3 mt-1 text-[11px] font-semibold">

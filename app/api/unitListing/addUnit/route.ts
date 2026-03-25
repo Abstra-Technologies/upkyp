@@ -84,7 +84,7 @@ export async function POST(req: Request) {
                 rentAmt,
                 furnish,
                 amenities || "",
-                status,
+                'unoccupied',
                 unitType,
             ]
         );
