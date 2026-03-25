@@ -23,6 +23,7 @@ export async function GET(
             `
         SELECT
             t.tenant_id,
+            t.user_id,
             t.employment_type,
             t.monthly_income,
             u.occupation,

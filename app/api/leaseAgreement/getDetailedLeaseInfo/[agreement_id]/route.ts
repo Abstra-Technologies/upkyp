@@ -29,6 +29,7 @@ export async function GET(
             `
       SELECT
         la.agreement_id AS lease_id,
+        la.tenant_id,
         la.start_date,
         la.end_date,
         la.status AS lease_status,
@@ -150,6 +151,7 @@ export async function GET(
                 property_name: lease.property_name,
                 unit_name: lease.unit_name,
 
+                tenant_id: lease.tenant_id,
                 tenant_name: `${safeDecrypt(lease.enc_firstName)} ${safeDecrypt(
                     lease.enc_lastName
                 )}`,

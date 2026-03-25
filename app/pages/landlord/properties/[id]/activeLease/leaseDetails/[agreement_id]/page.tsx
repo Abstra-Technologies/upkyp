@@ -26,6 +26,7 @@ import LeaseBilling from "@/components/landlord/activeLease/LeaseBilling";
 import { usePropertyLeases } from "@/hooks/landlord/activeLease/usePropertyLeases";
 import EKypModal from "@/components/landlord/activeLease/EKypModal";
 import ModifyLeaseDatesModal from "@/components/landlord/activeLease/ModifyLeaseDatesModal";
+import TenantInfoModal from "@/components/landlord/activeLease/TenantInfoModal";
 
 interface LeaseDetails {
   lease_id: string;
@@ -33,6 +34,7 @@ interface LeaseDetails {
   property_name: string;
   unit_name: string;
   tenant_name: string;
+  tenant_id?: string;
   start_date: string;
   end_date: string;
   lease_status: string;
@@ -51,6 +53,8 @@ export default function LeaseDetailsPage() {
   const [kypOpen, setKypOpen] = useState(false);
   const [selectedKypLease, setSelectedKypLease] = useState<any | null>(null);
   const [modifyDatesOpen, setModifyDatesOpen] = useState(false);
+  const [tenantModalOpen, setTenantModalOpen] = useState(false);
+  const [selectedTenantId, setSelectedTenantId] = useState<string>("");
 
   const { handleEndLease } = usePropertyLeases(
     lease?.property_id ? String(lease.property_id) : "",
@@ -184,6 +188,13 @@ export default function LeaseDetailsPage() {
     setLease(data);
   };
 
+  const handleViewTenant = () => {
+    if (lease?.tenant_id) {
+      setSelectedTenantId(lease.tenant_id);
+      setTenantModalOpen(true);
+    }
+  };
+
   const tabs = [
     { key: "info", label: "Info", icon: Info },
     { key: "billing", label: "Billing", icon: Receipt },
@@ -238,7 +249,7 @@ export default function LeaseDetailsPage() {
                         className="w-full px-4 py-2.5 text-left text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-3"
                       >
                         <Edit3 className="w-4 h-4" />
-                        Modify Dates
+                        Modify Lease Dates
                       </button>
                       <button
                         onClick={() => handleEndLease(lease)}
@@ -312,7 +323,12 @@ export default function LeaseDetailsPage() {
                   </span>
                   <span className="flex items-center gap-1.5">
                     <User className="w-4 h-4 text-gray-400" />
-                    {lease.tenant_name}
+                    <button
+                      onClick={handleViewTenant}
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {lease.tenant_name}
+                    </button>
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-gray-400" />
@@ -464,6 +480,15 @@ export default function LeaseDetailsPage() {
         lease={lease}
         onClose={() => setModifyDatesOpen(false)}
         onSuccess={handleModifyDatesSuccess}
+      />
+
+      <TenantInfoModal
+        isOpen={tenantModalOpen}
+        tenantId={selectedTenantId}
+        onClose={() => {
+          setTenantModalOpen(false);
+          setSelectedTenantId("");
+        }}
       />
     </div>
   );
