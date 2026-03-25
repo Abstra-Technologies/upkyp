@@ -1,5 +1,5 @@
 /* -------------------------------------------------------------------------- */
-/* XENDIT INVOICE.PAID WEBHOOK (WITH TRANSFER TO SUBACCOUNT)                  */
+/* XENDIT INVOICE.PAID WEBHOOK (TRANSACTION-BASED SETTLEMENT + TRANSFER)      */
 /* -------------------------------------------------------------------------- */
 
 export const runtime = "nodejs";
@@ -20,7 +20,8 @@ const {
     DB_NAME,
     XENDIT_WEBHOOK_TOKEN,
     XENDIT_TRANSBAL_KEY,
-    XENDIT_SECRET_KEY, // 🔥 added for transfer
+    XENDIT_SECRET_KEY,
+    XENDIT_MAIN_ACCOUNT_ID,
 } = process.env;
 
 /* -------------------------------------------------------------------------- */
@@ -37,43 +38,10 @@ async function getDbConnection() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* FETCH TRANSACTION                                                          */
+/* FETCH TRANSACTION (UPDATED BASED ON YOUR SAMPLE)                            */
 /* -------------------------------------------------------------------------- */
 
-// async function fetchTransactionDetails(
-//     transactionId: string,
-//     subAccountId: string
-// ) {
-//     const response = await fetch(
-//         `https://api.xendit.co/transactions?product_id=${transactionId}`,
-//         {
-//             method: "GET",
-//             headers: {
-//                 Authorization:
-//                     "Basic " +
-//                     Buffer.from(`${XENDIT_TRANSBAL_KEY}:`).toString("base64"),
-//                 "for-user-id": subAccountId,
-//             },
-//         }
-//     );
-//
-//     if (!response.ok) {
-//         const errText = await response.text();
-//         throw new Error(`Transaction API error: ${errText}`);
-//     }
-//
-//     const tx = await response.json();
-//
-//     return {
-//         gatewayFee: Number(tx.fee?.xendit_fee || 0),
-//         gatewayVAT: Number(tx.fee?.value_added_tax || 0),
-//         netAmount: Number(tx.net_amount || 0),
-//     };
-// }
-
-async function fetchTransactionDetails(
-    transactionId: string
-) {
+async function fetchTransactionDetails(transactionId: string, grossAmount: number) {
     const response = await fetch(
         `https://api.xendit.co/transactions?product_id=${transactionId}`,
         {
@@ -93,17 +61,27 @@ async function fetchTransactionDetails(
 
     const tx = await response.json();
 
+    const xenditFee = Number(tx.fee?.xendit_fee || 0);
+    const vat = Number(tx.fee?.value_added_tax || 0);
+    const withholdingTax = Number(tx.fee?.xendit_withholding_tax || 0);
+    const thirdPartyWithholding = Number(tx.fee?.third_party_withholding_tax || 0);
+    const totalFees = xenditFee + vat + withholdingTax + thirdPartyWithholding;
+    const netAmount = grossAmount - totalFees;
+
     return {
-        gatewayFee: Number(tx.fee?.xendit_fee || 0),
-        gatewayVAT: Number(tx.fee?.value_added_tax || 0),
-        netAmount: Number(tx.net_amount || 0),
+        grossAmount,
+        gatewayFee: xenditFee,
+        gatewayVAT: vat,
+        gatewayWithholdingTax: withholdingTax,
+        gatewayThirdPartyWithholding: thirdPartyWithholding,
+        netAmount: netAmount > 0 ? netAmount : 0,
+        settlementStatus: tx.settlement_status || "PENDING",
+        transactionStatus: tx.status || "UNKNOWN",
     };
 }
 
-
-
 /* -------------------------------------------------------------------------- */
-/* 🔥 TRANSFER FUNCTION                                                       */
+/* TRANSFER FUNCTION                                                          */
 /* -------------------------------------------------------------------------- */
 
 async function transferToSubaccount({
@@ -121,14 +99,12 @@ async function transferToSubaccount({
             "Content-Type": "application/json",
             Authorization:
                 "Basic " +
-                Buffer.from(`${process.env.XENDIT_SECRET_KEY}:`).toString("base64"),
+                Buffer.from(`${XENDIT_SECRET_KEY}:`).toString("base64"),
         },
         body: JSON.stringify({
             reference,
             amount,
-
-            // 🔥 REQUIRED NOW
-            source_user_id: process.env.XENDIT_MAIN_ACCOUNT_ID,
+            source_user_id: XENDIT_MAIN_ACCOUNT_ID,
             destination_user_id: destinationUserId,
         }),
     });
@@ -170,35 +146,37 @@ export async function POST(req: Request) {
             external_id,
             paid_at,
             payment_id,
-            user_id,
             paid_amount,
             amount,
             id: invoice_id,
             payment_channel,
             ewallet_type,
             payment_method,
-            payment_method_id,
-            description,
         } = payload;
 
-        if (!payment_id || !user_id) {
-            throw new Error("Missing payment_id or user_id");
-        }
-
-        if (!external_id || !external_id.startsWith("billing-")) {
-            throw new Error("Invalid external_id");
-        }
+        if (!payment_id) throw new Error("Missing payment_id");
+        if (!external_id?.startsWith("billing-")) throw new Error("Invalid external_id");
 
         const billing_id = external_id.replace("billing-", "");
         const paidAmount = Number(paid_amount || amount);
         const paidAt = new Date(paid_at);
 
-        /* ---------------- FETCH TRANSACTION DETAILS ---------------- */
+        /* ---------------- FETCH TRANSACTION ---------------- */
 
-        const { gatewayFee, gatewayVAT, netAmount } =
-            await fetchTransactionDetails(payment_id, user_id);
+        const {
+            grossAmount,
+            gatewayFee,
+            gatewayVAT,
+            gatewayWithholdingTax,
+            gatewayThirdPartyWithholding,
+            netAmount,
+            settlementStatus,
+            transactionStatus,
+        } = await fetchTransactionDetails(payment_id, paidAmount);
 
-        /* ---------------- DB TRANSACTION ---------------- */
+        const isSettled = settlementStatus === "SETTLED";
+
+        /* ---------------- DB ---------------- */
 
         conn = await getDbConnection();
         await conn.beginTransaction();
@@ -211,7 +189,7 @@ export async function POST(req: Request) {
                 p.property_id,
                 p.property_name,
                 un.unit_name,
-                l.xendit_account_id, -- 🔥 added
+                l.xendit_account_id,
                 landlordUser.user_id AS landlord_user_id,
                 tenantUser.firstName AS tenant_first_name,
                 tenantUser.lastName AS tenant_last_name
@@ -236,29 +214,18 @@ export async function POST(req: Request) {
 
         const billing = rows[0];
 
-        const destinationUserId = billing.xendit_account_id;
-
-        if (!destinationUserId) {
-            throw new Error("Missing landlord subaccount ID");
-        }
-
-        /* ---------------- DECRYPT TENANT NAME ---------------- */
-
-        const decryptedFirstName = safeDecrypt(billing.tenant_first_name);
-        const decryptedLastName = safeDecrypt(billing.tenant_last_name);
-
-        const tenantFullName = `${decryptedFirstName} ${decryptedLastName}`;
-
-        /* ---------------- PREVENT DUPLICATE ---------------- */
+        /* ---------------- DUPLICATE CHECK ---------------- */
 
         const [existing]: any = await conn.execute(
-            `SELECT payment_id FROM Payment WHERE gateway_transaction_ref = ? LIMIT 1`,
+            `SELECT transfer_reference_id 
+             FROM Payment 
+             WHERE gateway_transaction_ref = ? LIMIT 1`,
             [payment_id]
         );
 
-        if (existing.length) {
+        if (existing.length && existing[0].transfer_reference_id) {
             await conn.rollback();
-            return NextResponse.json({ message: "Already processed" });
+            return NextResponse.json({ message: "Already transferred" });
         }
 
         /* ---------------- UPDATE BILLING ---------------- */
@@ -271,9 +238,9 @@ export async function POST(req: Request) {
         /* ---------------- INSERT PAYMENT ---------------- */
 
         const paymentType = JSON.stringify({
-            payment_channel: payment_channel || null,
-            ewallet_type: ewallet_type || null,
-            payment_method: payment_method || null,
+            payment_channel,
+            ewallet_type,
+            payment_method,
         });
 
         await conn.execute(
@@ -283,47 +250,73 @@ export async function POST(req: Request) {
                 bill_id,
                 payment_type,
                 amount_paid,
+                gross_amount,
                 payment_method_id,
                 payment_status,
                 receipt_reference,
                 payment_date,
                 raw_gateway_payload,
                 gateway_transaction_ref,
+                gateway_fee,
+                gateway_vat,
+                gateway_withholding_tax,
+                gateway_third_party_withholding,
+                net_amount,
+                gateway_settlement_status,
+                gateway_settled_at,
                 created_at,
                 updated_at
             )
-            VALUES (?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, NOW(), NOW())
+            VALUES (?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NOW(), NOW())
             `,
             [
                 billing.lease_id,
                 billing_id,
                 paymentType,
                 paidAmount,
+                grossAmount,
                 payment_channel || null,
                 invoice_id,
                 paidAt,
                 JSON.stringify(payload),
                 payment_id,
+                gatewayFee,
+                gatewayVAT,
+                gatewayWithholdingTax,
+                gatewayThirdPartyWithholding,
+                netAmount,
+                settlementStatus,
             ]
         );
 
-        /* ---------------- 🔥 TRANSFER TO SUBACCOUNT ---------------- */
+        /* ---------------- CONDITIONAL TRANSFER ---------------- */
 
-        await transferToSubaccount({
-            amount: paidAmount,
-            destinationUserId,
-            reference: `transfer-bill-id-${billing_id}`,
-        });
+        if (isSettled) {
+            const transfer = await transferToSubaccount({
+                amount: netAmount || paidAmount,
+                destinationUserId: billing.xendit_account_id,
+                reference: `transfer-${billing_id}`,
+            });
+
+            await conn.execute(
+                `UPDATE Payment 
+                 SET transfer_reference_id = ?, payout_status='paid'
+                 WHERE gateway_transaction_ref = ?`,
+                [transfer.reference || transfer.id, payment_id]
+            );
+        } else {
+            console.log("⏳ Settlement not ready → skipping transfer");
+        }
 
         /* ---------------- NOTIFICATION ---------------- */
+
+        const first = safeDecrypt(billing.tenant_first_name);
+        const last = safeDecrypt(billing.tenant_last_name);
 
         await sendUserNotification({
             userId: billing.landlord_user_id,
             title: "💰 Rent Payment Received",
-            body: `${tenantFullName} from ${billing.property_name} - ${billing.unit_name} paid ₱${paidAmount.toLocaleString(
-                "en-PH",
-                { minimumFractionDigits: 2 }
-            )}.`,
+            body: `${first} ${last} paid ₱${paidAmount.toLocaleString("en-PH")}`,
             url: `/pages/landlord/properties/${billing.property_id}/payments?id=${billing.property_id}`,
             conn,
         });
@@ -331,7 +324,9 @@ export async function POST(req: Request) {
         await conn.commit();
 
         return NextResponse.json({
-            message: "Invoice reconciliation + transfer complete",
+            message: isSettled
+                ? "Payment + transfer completed"
+                : "Payment recorded (awaiting settlement)",
         });
 
     } catch (err: any) {
