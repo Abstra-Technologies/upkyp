@@ -162,9 +162,9 @@ export default function PaymentList({
                     <div>Date Paid</div>
                     <div>Tenant</div>
                     <div>Property / Unit</div>
-                    <div>Type</div>
-                    <div className="text-right">Gross</div>
-                    <div className="text-right">Net</div>
+                    {/*<div>Type</div>*/}
+                    <div className="text-right">Amount Paid</div>
+                    {/*<div className="text-right">Net</div>*/}
                     <div className="text-center">Status</div>
                     <div className="text-center">Action</div>
                 </div>
@@ -205,7 +205,7 @@ export default function PaymentList({
                             </div>
 
                             {/* Type */}
-                            <PaymentTypeBadge type={payment.payment_type} />
+                            {/*<PaymentTypeBadge type={payment.payment_type} />*/}
 
                             {/* Gross Amount (Tenant Paid) */}
                             <div className="text-right font-semibold text-gray-900">
@@ -216,12 +216,12 @@ export default function PaymentList({
                             </div>
 
                             {/* Net Amount (Landlord Receives) */}
-                            <div className="text-right font-bold text-emerald-600">
-                                {formatCurrency(payment.net_amount || payment.amount_paid)}
-                                <p className="text-[11px] text-gray-400 font-normal">
-                                    After Fees
-                                </p>
-                            </div>
+                            {/*<div className="text-right font-bold text-emerald-600">*/}
+                            {/*    {formatCurrency(payment.net_amount || payment.amount_paid)}*/}
+                            {/*    <p className="text-[11px] text-gray-400 font-normal">*/}
+                            {/*        After Fees*/}
+                            {/*    </p>*/}
+                            {/*</div>*/}
 
                             {/* Status */}
                             <div className="text-center">

@@ -67,6 +67,8 @@ const getPaymentsCached = unstable_cache(
         p.gateway_vat,
         p.net_amount,
         p.gateway_fee,
+        p.gateway_transaction_ref,
+        p.raw_gateway_payload,
         p.created_at,
 
         /* ================= BILLING ================= */

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+//  use in the payment pages scorecard grids.
 
 export async function GET(req: NextRequest) {
     try {
@@ -15,11 +16,11 @@ export async function GET(req: NextRequest) {
 
         /* ===============================
            TOTAL COLLECTED (YTD)
-           → USE NET AMOUNT
+           → USE NET AMOUNT (FALLBACK TO AMOUNT_PAID)
         ================================ */
         const [[collected]]: any = await db.query(
             `
-      SELECT COALESCE(SUM(p.net_amount), 0) AS totalCollected
+      SELECT COALESCE(SUM(COALESCE(NULLIF(p.net_amount, 0), p.amount_paid)), 0) AS totalCollected
       FROM Payment p
       INNER JOIN LeaseAgreement la ON la.agreement_id = p.agreement_id
       INNER JOIN Unit u ON la.unit_id = u.unit_id
@@ -48,11 +49,11 @@ export async function GET(req: NextRequest) {
         /* ===============================
            PENDING DISBURSEMENTS
            → CONFIRMED + NOT YET PAID
-           → USE NET_AMOUNT
+           → USE NET AMOUNT (FALLBACK TO AMOUNT_PAID)
         ================================ */
         const [[pending]]: any = await db.query(
             `
-      SELECT COALESCE(SUM(p.net_amount), 0) AS pendingPayouts
+      SELECT COALESCE(SUM(COALESCE(NULLIF(p.net_amount, 0), p.amount_paid)), 0) AS pendingPayouts
       FROM Payment p
       INNER JOIN LeaseAgreement la ON la.agreement_id = p.agreement_id
       INNER JOIN Unit u ON u.unit_id = la.unit_id

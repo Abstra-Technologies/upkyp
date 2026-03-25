@@ -17,6 +17,9 @@ import {
     Wallet,
     Download,
     RotateCcw,
+    ChevronDown,
+    ChevronUp,
+    SlidersHorizontal,
 } from "lucide-react";
 
 import {
@@ -67,6 +70,7 @@ export default function PaymentsPage() {
     const [openReportModal, setOpenReportModal] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [showFilters, setShowFilters] = useState(false);
 
     const clearFilters = () => {
         setSearch("");
@@ -221,7 +225,19 @@ export default function PaymentsPage() {
                 </div>
 
                 {/* ================= FILTERS ================= */}
-                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+                
+                {/* Mobile Filter Toggle */}
+                <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="sm:hidden flex items-center justify-center gap-2 w-full py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 mb-3"
+                >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    {showFilters ? "Hide Filters" : "Show Filters"}
+                    {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+
+                {/* Filter Section - Desktop always visible, Mobile collapsible */}
+                <div className={`${showFilters ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3`}>
 
                     {/* Search */}
                     <div className="w-full sm:flex-1 relative">
@@ -239,165 +255,160 @@ export default function PaymentsPage() {
                         />
                     </div>
 
-                    {/* Payment Type */}
-                    <div className="w-full sm:w-auto relative">
-                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                        <select
-                            value={paymentType}
-                            onChange={(e) => setPaymentType(e.target.value)}
-                            className="w-full appearance-none
-                       pl-9 sm:pl-10 pr-8
-                       py-2.5 sm:py-3
-                       border border-gray-200
-                       rounded-lg sm:rounded-xl
-                       bg-gray-50
-                       text-xs sm:text-sm"
+                    {/* Filter Row 1 - Mobile: 2 columns */}
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+                        {/* Payment Type */}
+                        <div className="w-full sm:w-auto relative">
+                            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <select
+                                value={paymentType}
+                                onChange={(e) => setPaymentType(e.target.value)}
+                                className="w-full appearance-none
+                           pl-9 pr-8 py-2.5 sm:py-3
+                           border border-gray-200 rounded-lg sm:rounded-xl
+                           bg-gray-50 text-xs sm:text-sm"
+                            >
+                                {PAYMENT_TYPE_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Payment Status */}
+                        <div className="w-full sm:w-auto relative">
+                            <select
+                                value={paymentStatus}
+                                onChange={(e) => setPaymentStatus(e.target.value)}
+                                className="w-full appearance-none
+                           px-4 py-2.5 sm:py-3
+                           border border-gray-200 rounded-lg sm:rounded-xl
+                           bg-gray-50 text-xs sm:text-sm"
+                            >
+                                {PAYMENT_STATUS_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Payout Status */}
+                        <div className="w-full sm:w-auto relative">
+                            <select
+                                value={payoutStatus}
+                                onChange={(e) => setPayoutStatus(e.target.value)}
+                                className="w-full appearance-none
+                           px-4 py-2.5 sm:py-3
+                           border border-gray-200 rounded-lg sm:rounded-xl
+                           bg-gray-50 text-xs sm:text-sm"
+                            >
+                                {PAYOUT_STATUS_OPTIONS.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Date Filter */}
+                        <div className="w-full sm:w-auto relative">
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <select
+                                value={dateRange}
+                                onChange={(e) => setDateRange(e.target.value)}
+                                className="w-full appearance-none
+                           pl-9 pr-8 py-2.5 sm:py-3
+                           border border-gray-200 rounded-lg sm:rounded-xl
+                           bg-gray-50 text-xs sm:text-sm"
+                            >
+                                <option value="all">All Time</option>
+                                <option value="7">Last 7 Days</option>
+                                <option value="30">Last 30 Days</option>
+                                <option value="90">Last 90 Days</option>
+                                <option value="month">This Month</option>
+                                <option value="last_month">Last Month</option>
+
+                                {years.length > 0 && (
+                                    <optgroup label="By Year">
+                                        {years.map((year) => (
+                                            <option key={year} value={`year:${year}`}>
+                                                {year}
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                )}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Filter Row 2 - Mobile: Custom dates & Month */}
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+                        {/* Custom Date Range */}
+                        <div className="col-span-2 sm:flex sm:items-center gap-2">
+                            <input
+                                type="date"
+                                value={customFrom}
+                                onChange={(e) => {
+                                    setCustomFrom(e.target.value);
+                                    if (customTo && e.target.value) {
+                                        setDateRange(`range:${e.target.value}:${customTo}`);
+                                    }
+                                }}
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
+                            />
+                            <span className="hidden sm:inline text-gray-400 text-xs">to</span>
+                            <input
+                                type="date"
+                                value={customTo}
+                                onChange={(e) => {
+                                    setCustomTo(e.target.value);
+                                    if (customFrom && e.target.value) {
+                                        setDateRange(`range:${customFrom}:${e.target.value}`);
+                                    }
+                                }}
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
+                            />
+                        </div>
+
+                        {/* Month Filter */}
+                        <div className="w-full sm:w-auto relative">
+                            <select
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val) setDateRange(`month:${new Date().getFullYear()}:${val}`);
+                                }}
+                                className="w-full appearance-none
+                           px-4 py-2.5 sm:py-3
+                           border border-gray-200 rounded-lg sm:rounded-xl
+                           bg-gray-50 text-xs sm:text-sm"
+                            >
+                                <option value="">Select Month</option>
+                                <option value="01">January</option>
+                                <option value="02">February</option>
+                                <option value="03">March</option>
+                                <option value="04">April</option>
+                                <option value="05">May</option>
+                                <option value="06">June</option>
+                                <option value="07">July</option>
+                                <option value="08">August</option>
+                                <option value="09">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+
+                        {/* Clear Filters */}
+                        <button
+                            onClick={clearFilters}
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
                         >
-                            {PAYMENT_TYPE_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
+                            <RotateCcw className="w-4 h-4" />
+                            Clear
+                        </button>
                     </div>
-
-                    {/* Payment Status */}
-                    <div className="w-full sm:w-auto relative">
-                        <select
-                            value={paymentStatus}
-                            onChange={(e) => setPaymentStatus(e.target.value)}
-                            className="w-full appearance-none
-                       px-4 py-2.5 sm:py-3
-                       border border-gray-200
-                       rounded-lg sm:rounded-xl
-                       bg-gray-50
-                       text-xs sm:text-sm"
-                        >
-                            {PAYMENT_STATUS_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Payout Status */}
-                    <div className="w-full sm:w-auto relative">
-                        <select
-                            value={payoutStatus}
-                            onChange={(e) => setPayoutStatus(e.target.value)}
-                            className="w-full appearance-none
-                       px-4 py-2.5 sm:py-3
-                       border border-gray-200
-                       rounded-lg sm:rounded-xl
-                       bg-gray-50
-                       text-xs sm:text-sm"
-                        >
-                            {PAYOUT_STATUS_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Date Filter */}
-                    <div className="w-full sm:w-auto relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                        <select
-                            value={dateRange}
-                            onChange={(e) => setDateRange(e.target.value)}
-                            className="w-full appearance-none
-                       pl-9 sm:pl-10 pr-8
-                       py-2.5 sm:py-3
-                       border border-gray-200
-                       rounded-lg sm:rounded-xl
-                       bg-gray-50
-                       text-xs sm:text-sm"
-                        >
-                            <option value="all">All Time</option>
-                            <option value="7">Last 7 Days</option>
-                            <option value="30">Last 30 Days</option>
-                            <option value="90">Last 90 Days</option>
-                            <option value="month">This Month</option>
-                            <option value="last_month">Last Month</option>
-
-                            {years.length > 0 && (
-                                <optgroup label="By Year">
-                                    {years.map((year) => (
-                                        <option key={year} value={`year:${year}`}>
-                                            {year}
-                                        </option>
-                                    ))}
-                                </optgroup>
-                            )}
-                        </select>
-                    </div>
-
-                    {/* Custom Date Range */}
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="date"
-                            value={customFrom}
-                            onChange={(e) => {
-                                setCustomFrom(e.target.value);
-                                if (customTo && e.target.value) {
-                                    setDateRange(`range:${e.target.value}:${customTo}`);
-                                }
-                            }}
-                            className="px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
-                        />
-                        <span className="text-gray-400 text-xs">to</span>
-                        <input
-                            type="date"
-                            value={customTo}
-                            onChange={(e) => {
-                                setCustomTo(e.target.value);
-                                if (customFrom && e.target.value) {
-                                    setDateRange(`range:${customFrom}:${e.target.value}`);
-                                }
-                            }}
-                            className="px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
-                        />
-                    </div>
-
-                    {/* Month Filter */}
-                    <div className="w-full sm:w-auto relative">
-                        <select
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val) setDateRange(`month:${new Date().getFullYear()}:${val}`);
-                            }}
-                            className="w-full appearance-none
-                       px-4 py-2.5 sm:py-3
-                       border border-gray-200
-                       rounded-lg sm:rounded-xl
-                       bg-gray-50
-                       text-xs sm:text-sm"
-                        >
-                            <option value="">Select Month</option>
-                            <option value="01">January</option>
-                            <option value="02">February</option>
-                            <option value="03">March</option>
-                            <option value="04">April</option>
-                            <option value="05">May</option>
-                            <option value="06">June</option>
-                            <option value="07">July</option>
-                            <option value="08">August</option>
-                            <option value="09">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
-                        </select>
-                    </div>
-
-                    <button
-                        onClick={clearFilters}
-                        className="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
-                    >
-                        <RotateCcw className="w-4 h-4" />
-                        Clear Filters
-                    </button>
 
                 </div>
             </motion.div>

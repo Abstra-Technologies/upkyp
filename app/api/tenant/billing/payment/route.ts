@@ -186,10 +186,6 @@ export async function POST(req: NextRequest) {
         const failureRedirectUrl =
             `${redirectUrl.failure}?billing_id=${billing.billing_id}`;
 
-        debug("REDIRECT URLS", {
-            successRedirectUrl,
-            failureRedirectUrl,
-        });
 
         /* ---------------- PAYLOAD ---------------- */
 
@@ -205,8 +201,6 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
             success_redirect_url: successRedirectUrl,
             failure_redirect_url: failureRedirectUrl,
         };
-
-        debug("INVOICE PAYLOAD", invoicePayload);
 
         /* ---------------- HEADERS ---------------- */
 
