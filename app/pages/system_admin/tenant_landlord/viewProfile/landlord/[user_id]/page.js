@@ -20,7 +20,7 @@ export default function LandlordDetails() {
     useEffect(() => {
         const fetchLandlordDetails = async () => {
             try {
-                const response = await fetch(`/api/landlord/details/${user_id}`);
+                const response = await fetch(`/api/systemadmin/users/getAllLandlords/getLandlordDetailed/${user_id}`);
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch landlord details.');
@@ -59,8 +59,6 @@ export default function LandlordDetails() {
     
     return (
         <div className="flex">
-            <SideNavAdmin />
-
         <div className="max-w-3xl mx-auto p-6 bg-gray-50 min-h-screen">
             <button 
                 onClick={handleGoBack}
