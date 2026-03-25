@@ -489,7 +489,7 @@ export default function TenantLayout({ children }) {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-emerald-50/20">
         {/* Desktop: Content with sidebar offset */}
         {/* Mobile: Content with top header and bottom nav padding */}
-        <main className="lg:pl-72 pt-14 lg:pt-0 pb-20 lg:pb-0">{children}</main>
+        <main className="lg:pl-72 pt-10 lg:pt-0 pb-20 lg:pb-0">{children}</main>
       </div>
     </>
   );

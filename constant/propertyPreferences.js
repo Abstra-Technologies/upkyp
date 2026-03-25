@@ -10,6 +10,4 @@ export const PROPERTY_PREFERENCES = [
     { key: "maleOnly", label: "Male Only", icon: FaMale   },
     { key: "studentsOnly", label: "Students Only", icon: PiStudentBold  },
 
-    { key: "visitorsAllowed", label: "Visitors Allowed", icon: FaUserFriends },
-
 ];

@@ -57,7 +57,7 @@ const getTenantActiveLeases = unstable_cache(
       LEFT JOIN UnitPhoto up ON u.unit_id = up.unit_id
 
       WHERE la.tenant_id = ?
-        AND la.status IN ('draft', 'active', 'expired', 'pending_signature')
+        AND la.status IN ('draft', 'active', 'expired', 'pending_signature', 'invited', 'accepted', 'pending')
 
       GROUP BY la.agreement_id
       ORDER BY la.updated_at DESC

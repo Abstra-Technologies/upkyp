@@ -369,38 +369,38 @@ export default function MyUnit() {
                     )}
 
                     {/* NO ACTIVE LEASE STATE */}
-                    {((!hasActiveLease && units.length > 0 && !searchQuery) || (units.length === 0 && !loading && !searchQuery)) && (
-                        <div className="bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200 rounded-2xl p-8 mb-6">
-                            <div className="flex flex-col sm:flex-row items-center gap-6">
-                                <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center shrink-0">
-                                    <DocumentTextIcon className="w-10 h-10 text-amber-600" />
-                                </div>
-                                <div className="text-center sm:text-left">
-                                    <h3 className="text-lg font-bold text-amber-900 mb-1">
-                                        No Active Lease Found
-                                    </h3>
-                                    <p className="text-amber-700 text-sm mb-3">
-                                        You don't have any active leases at the moment. 
-                                        Browse available properties or accept an invitation to get started.
-                                    </p>
-                                    <div className="flex flex-wrap justify-center sm:justify-start gap-3">
-                                        <button
-                                            onClick={() => router.push("/pages/tenant/property-search")}
-                                            className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 transition-colors"
-                                        >
-                                            Browse Properties
-                                        </button>
-                                        <button
-                                            onClick={() => router.push("/pages/tenant/viewInvites")}
-                                            className="px-4 py-2 bg-white text-amber-700 border border-amber-300 rounded-lg font-semibold text-sm hover:bg-amber-50 transition-colors"
-                                        >
-                                            View Invitations
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/*{((!hasActiveLease && units.length > 0 && !searchQuery) || (units.length === 0 && !loading && !searchQuery)) && (*/}
+                    {/*    <div className="bg-gradient-to-br from-amber-50 to-orange-100 border border-amber-200 rounded-2xl p-8 mb-6">*/}
+                    {/*        <div className="flex flex-col sm:flex-row items-center gap-6">*/}
+                    {/*            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center shrink-0">*/}
+                    {/*                <DocumentTextIcon className="w-10 h-10 text-amber-600" />*/}
+                    {/*            </div>*/}
+                    {/*            <div className="text-center sm:text-left">*/}
+                    {/*                <h3 className="text-lg font-bold text-amber-900 mb-1">*/}
+                    {/*                    No Active Lease Found*/}
+                    {/*                </h3>*/}
+                    {/*                <p className="text-amber-700 text-sm mb-3">*/}
+                    {/*                    You don't have any active leases at the moment. */}
+                    {/*                    Browse available properties or accept an invitation to get started.*/}
+                    {/*                </p>*/}
+                    {/*                <div className="flex flex-wrap justify-center sm:justify-start gap-3">*/}
+                    {/*                    <button*/}
+                    {/*                        onClick={() => router.push("/pages/tenant/property-search")}*/}
+                    {/*                        className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 transition-colors"*/}
+                    {/*                    >*/}
+                    {/*                        Browse Properties*/}
+                    {/*                    </button>*/}
+                    {/*                    <button*/}
+                    {/*                        onClick={() => router.push("/pages/tenant/viewInvites")}*/}
+                    {/*                        className="px-4 py-2 bg-white text-amber-700 border border-amber-300 rounded-lg font-semibold text-sm hover:bg-amber-50 transition-colors"*/}
+                    {/*                    >*/}
+                    {/*                        View Invitations*/}
+                    {/*                    </button>*/}
+                    {/*                </div>*/}
+                    {/*            </div>*/}
+                    {/*        </div>*/}
+                    {/*    </div>*/}
+                    {/*)}*/}
 
                     {filteredUnits.length === 0 ? (
                         <EmptyState

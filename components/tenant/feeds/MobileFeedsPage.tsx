@@ -8,8 +8,11 @@ import {
     MegaphoneIcon,
     WrenchScrewdriverIcon,
     CalendarDaysIcon,
+    HomeIcon,
+    MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import TenantCalendar from "@/components/tenant/feeds/TenantCalendar";
+import Link from "next/link";
 
 /* ===============================
     Greeting Component
@@ -79,6 +82,35 @@ export default function MobileFeedsPage({ user }: { user: any }) {
                 <div className="w-full max-w-[480px] mx-auto space-y-4">
                     {/* GREETING */}
                     <Greeting user={user} />
+
+                    {/* QUICK ACTIONS */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <Link
+                            href="/pages/tenant/my-unit"
+                            className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center shrink-0">
+                                <HomeIcon className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-xs font-semibold text-gray-900">My Units</h3>
+                                <p className="text-[9px] text-gray-500">View rentals</p>
+                            </div>
+                        </Link>
+
+                        <Link
+                            href="/pages/tenant/property-search"
+                            className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center shrink-0">
+                                <MagnifyingGlassIcon className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <h3 className="text-xs font-semibold text-gray-900">Find Rent</h3>
+                                <p className="text-[9px] text-gray-500">Browse properties</p>
+                            </div>
+                        </Link>
+                    </div>
 
                     {/* PAYABLES */}
                     <Suspense fallback={<PayablesSkeleton />}>
