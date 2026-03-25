@@ -128,7 +128,7 @@ async function transferToSubaccount({
             amount,
 
             // 🔥 REQUIRED NOW
-            source_user_id: process.env.XENDIT_MAIN_ACCOUNT_ID, // 👈 ADD THIS
+            source_user_id: process.env.XENDIT_MAIN_ACCOUNT_ID,
             destination_user_id: destinationUserId,
         }),
     });
@@ -312,7 +312,7 @@ export async function POST(req: Request) {
         await transferToSubaccount({
             amount: paidAmount,
             destinationUserId,
-            reference: `transfer-${billing_id}`,
+            reference: `transfer-bill-id-${billing_id}`,
         });
 
         /* ---------------- NOTIFICATION ---------------- */
