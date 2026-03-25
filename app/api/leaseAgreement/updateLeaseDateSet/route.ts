@@ -1,21 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import webpush from "web-push";
-
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!;
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY!;
-
-webpush.setVapidDetails(
-    "mailto:upkyp-notify@example.com",
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-);
+import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 
 export async function PUT(req: NextRequest) {
     const connection = await db.getConnection();
 
     try {
         const body = await req.json();
+        console.log('modify end date data: ', body);
+
         const {
             agreement_id,
             start_date,
@@ -27,25 +20,15 @@ export async function PUT(req: NextRequest) {
         console.log('body', body);
         console.log('agreement_id', agreement_id);
 
-        if (!agreement_id || !start_date || !end_date) {
+        if (!agreement_id || !start_date) {
             return NextResponse.json(
-                { error: "Agreement ID, start date, and end date are required" },
-                { status: 400 }
-            );
-        }
-
-        const startDate = new Date(start_date);
-        const endDate = new Date(end_date);
-        if (endDate <= startDate) {
-            return NextResponse.json(
-                { error: "End date must be after start date" },
+                { error: "Agreement ID and start date are required" },
                 { status: 400 }
             );
         }
 
         await connection.beginTransaction();
 
-        // ✅ Step 1: Retrieve lease details
         const [leaseRows]: any = await connection.execute(
             `
         SELECT tenant_id, unit_id
@@ -65,7 +48,6 @@ export async function PUT(req: NextRequest) {
 
         const { tenant_id, unit_id } = leaseRows[0];
 
-        // ✅ Step 2: Update lease details
         await connection.execute(
             `
         UPDATE LeaseAgreement
@@ -73,8 +55,6 @@ export async function PUT(req: NextRequest) {
           start_date = ?,
           end_date = ?,
           status = 'active',
-          is_security_deposit_paid = 1,
-          is_advance_payment_paid = 1,
           security_deposit_amount = ?,
           advance_payment_amount = ?,
           grace_period_days = 3
@@ -89,13 +69,11 @@ export async function PUT(req: NextRequest) {
             ]
         );
 
-        // ✅ Step 3: Mark unit as occupied
         await connection.execute(
             `UPDATE Unit SET status = 'occupied' WHERE unit_id = ?`,
             [unit_id]
         );
 
-        // ✅ Step 4: Notify tenant
         const [tenantRow]: any = await connection.execute(
             `
                 SELECT
@@ -119,56 +97,27 @@ export async function PUT(req: NextRequest) {
         const propertyName = tenantRow?.[0]?.property_name || "Property";
         const unitName = tenantRow?.[0]?.unit_name || "Unit";
 
-        const notificationBody = `🏠 Your lease for ${propertyName} - ${unitName} has been activated. Lease period: ${start_date} to ${end_date}.`;
+        const isOpenEnded = !end_date;
+        const leasePeriodText = isOpenEnded
+            ? `Lease period: ${start_date} until further notice (open-ended)`
+            : `Lease period: ${start_date} to ${end_date}`;
 
-        // ✅ Step 5: Save notification in DB
-        await connection.execute(
-            `
-                INSERT INTO Notification (user_id, title, body, is_read, created_at)
-                VALUES (?, ?, ?, 0, CURRENT_TIMESTAMP)
-            `,
-            [user_id, "Lease Activated", notificationBody]
-        );
+        const notificationTitle = "Lease Dates Updated";
+        const notificationBody = `🏠 Your lease for ${propertyName} - ${unitName} has been updated. ${leasePeriodText}.`;
 
-        // ✅ Step 6: Send push notification if subscribed
-        const [subs]: any = await connection.execute(
-            `SELECT endpoint, p256dh, auth FROM user_push_subscriptions WHERE user_id = ?`,
-            [user_id]
-        );
-
-        if (subs.length > 0) {
-            const payload = JSON.stringify({
-                title: "Lease Activated",
-                body: notificationBody,
-                url: "/pages/tenant/activeLease",
-            });
-
-            for (const sub of subs) {
-                const subscription = {
-                    endpoint: sub.endpoint,
-                    keys: { p256dh: sub.p256dh, auth: sub.auth },
-                };
-
-                try {
-                    await webpush.sendNotification(subscription, payload);
-                } catch (err: any) {
-                    console.error("Push notification failed:", err);
-                    if (err.statusCode === 404 || err.statusCode === 410) {
-                        await connection.execute(
-                            `DELETE FROM user_push_subscriptions WHERE endpoint = ?`,
-                            [sub.endpoint]
-                        );
-                    }
-                }
-            }
-        }
+        await sendUserNotification({
+            userId: user_id,
+            title: notificationTitle,
+            body: notificationBody,
+            url: "/pages/tenant/activeLease",
+            conn: connection,
+        });
 
         await connection.commit();
 
         return NextResponse.json(
             {
-                message:
-                    "Lease updated successfully and tenant notified (marked as active).",
+                message: "Lease updated successfully and tenant notified.",
                 start_date,
                 end_date,
                 security_deposit_amount,

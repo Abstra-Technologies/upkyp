@@ -90,42 +90,55 @@ export default function ChecklistSetupModal({
         });
 
         try {
-            const payload = {
-                agreement_id,
-                lease_agreement: selectedOption === "agreement",
-                move_in_checklist: false,
-                move_out_checklist: false,
-                // security_deposit: false,
-                // advance_payment: false,
-                security_deposit: !!form.lease_agreement,
-                advance_payment: !!form.lease_agreement,
-                lease_start_date: form.set_lease_dates
-                    ? form.lease_start_date || null
-                    : null,
-                lease_end_date: form.set_lease_dates
-                    ? form.lease_end_date || null
-                    : null,
-            };
+            if (selectedOption === "dates") {
+                await axios.put("/api/leaseAgreement/updateLeaseDateSet", {
+                    agreement_id,
+                    start_date: form.lease_start_date,
+                    end_date: form.lease_end_date || null,
+                });
 
-            await axios.post(
-                "/api/landlord/activeLease/saveChecklistRequirements",
-                payload
-            );
+                await axios.post(
+                    "/api/landlord/activeLease/saveChecklistRequirements",
+                    {
+                        agreement_id,
+                        lease_agreement: false,
+                        move_in_checklist: false,
+                        move_out_checklist: false,
+                        security_deposit: false,
+                        advance_payment: false,
+                        lease_start_date: form.lease_start_date,
+                        lease_end_date: form.lease_end_date || null,
+                    }
+                );
 
-            Swal.close();
-
-            if (selectedOption === "agreement") {
-                Swal.fire({
-                    icon: "success",
-                    title: "Lease setup saved",
-                    text: "Continue setting up the lease.",
-                }).then(() => onContinue(payload));
-            } else {
+                Swal.close();
                 Swal.fire({
                     icon: "success",
                     title: "Dates saved",
                     text: "Lease dates have been updated.",
                 }).then(onClose);
+            } else {
+                const payload = {
+                    agreement_id,
+                    lease_agreement: selectedOption === "agreement",
+                    move_in_checklist: false,
+                    move_out_checklist: false,
+                    security_deposit: !!form.lease_agreement,
+                    advance_payment: !!form.lease_agreement,
+                };
+
+                await axios.post(
+                    "/api/landlord/activeLease/saveChecklistRequirements",
+                    payload
+                );
+
+                Swal.close();
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Lease setup saved",
+                    text: "Continue setting up the lease.",
+                }).then(() => onContinue(payload));
             }
         } catch {
             Swal.close();

@@ -16,6 +16,7 @@ import {
   Building2,
   Shield,
   RefreshCw,
+  Edit3,
 } from "lucide-react";
 
 import LeaseInfo from "@/components/landlord/activeLease/leaseInfo";
@@ -24,6 +25,7 @@ import LeasePDCs from "@/components/landlord/activeLease/LeasePDCs";
 import LeaseBilling from "@/components/landlord/activeLease/LeaseBilling";
 import { usePropertyLeases } from "@/hooks/landlord/activeLease/usePropertyLeases";
 import EKypModal from "@/components/landlord/activeLease/EKypModal";
+import ModifyLeaseDatesModal from "@/components/landlord/activeLease/ModifyLeaseDatesModal";
 
 interface LeaseDetails {
   lease_id: string;
@@ -48,6 +50,7 @@ export default function LeaseDetailsPage() {
 
   const [kypOpen, setKypOpen] = useState(false);
   const [selectedKypLease, setSelectedKypLease] = useState<any | null>(null);
+  const [modifyDatesOpen, setModifyDatesOpen] = useState(false);
 
   const { handleEndLease } = usePropertyLeases(
     lease?.property_id ? String(lease.property_id) : "",
@@ -169,11 +172,23 @@ export default function LeaseDetailsPage() {
     setKypOpen(true);
   };
 
+  const handleModifyDates = () => {
+    setModifyDatesOpen(true);
+  };
+
+  const handleModifyDatesSuccess = async () => {
+    const res = await fetch(
+      `/api/leaseAgreement/getDetailedLeaseInfo/${agreement_id}`,
+    );
+    const data = await res.json();
+    setLease(data);
+  };
+
   const tabs = [
     { key: "info", label: "Info", icon: Info },
     { key: "billing", label: "Billing", icon: Receipt },
     { key: "payments", label: "Payments", icon: CreditCard },
-    { key: "pdcs", label: "PDCs", icon: CheckSquare },
+    // { key: "pdcs", label: "PDCs", icon: CheckSquare },
   ];
 
   /* ===============================
@@ -217,6 +232,13 @@ export default function LeaseDetailsPage() {
                       >
                         <Shield className="w-4 h-4 text-indigo-600" />
                         View eKYP ID
+                      </button>
+                      <button
+                        onClick={handleModifyDates}
+                        className="w-full px-4 py-2.5 text-left text-sm text-amber-600 hover:bg-amber-50 flex items-center gap-3"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        Modify Dates
                       </button>
                       <button
                         onClick={() => handleEndLease(lease)}
@@ -326,6 +348,13 @@ export default function LeaseDetailsPage() {
                         View eKYP ID
                       </button>
                       <button
+                        onClick={handleModifyDates}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-amber-600 text-white rounded-xl hover:bg-amber-700 transition-colors shadow-sm"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        Modify Dates
+                      </button>
+                      <button
                         onClick={() => handleEndLease(lease)}
                         className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-sm"
                       >
@@ -428,6 +457,13 @@ export default function LeaseDetailsPage() {
           setKypOpen(false);
           setSelectedKypLease(null);
         }}
+      />
+
+      <ModifyLeaseDatesModal
+        isOpen={modifyDatesOpen}
+        lease={lease}
+        onClose={() => setModifyDatesOpen(false)}
+        onSuccess={handleModifyDatesSuccess}
       />
     </div>
   );
