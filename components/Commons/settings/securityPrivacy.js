@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { logEvent } from "../../../utils/gtag";
@@ -15,6 +15,8 @@ import {
   KeyRound,
   Fingerprint,
   Info,
+  Bell,
+  BellOff,
 } from "lucide-react";
 
 // ============================================
@@ -47,6 +49,110 @@ const itemVariants = {
 export default function SecurityPage() {
   const { user, loading, error } = useAuthStore();
   const router = useRouter();
+  const [pushLoading, setPushLoading] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+
+  const setupWebPush = async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      Swal.fire({
+        icon: "error",
+        title: "Not Supported",
+        text: "Push notifications are not supported in this browser.",
+      });
+      return;
+    }
+
+    setPushLoading(true);
+
+    try {
+      const registration = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+
+      let permission = Notification.permission;
+      if (permission === "default") {
+        permission = await Notification.requestPermission();
+      }
+
+      if (permission !== "granted") {
+        Swal.fire({
+          icon: "warning",
+          title: "Permission Denied",
+          text: "Please enable notifications in your browser settings.",
+        });
+        setPushLoading(false);
+        return;
+      }
+
+      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!vapidKey) {
+        Swal.fire({
+          icon: "error",
+          title: "Configuration Error",
+          text: "VAPID key not configured.",
+        });
+        setPushLoading(false);
+        return;
+      }
+
+      const appServerKey = urlBase64ToUint8Array(vapidKey);
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: appServerKey,
+      });
+
+      const response = await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.user_id,
+          subscription,
+          userAgent: navigator.userAgent,
+        }),
+      });
+
+      if (response.ok) {
+        localStorage.setItem("push_endpoint", subscription.endpoint);
+        setPushEnabled(true);
+        Swal.fire({
+          icon: "success",
+          title: "Enabled!",
+          text: "Push notifications have been enabled.",
+          timer: 2000,
+        });
+      } else {
+        throw new Error("Failed to save subscription");
+      }
+    } catch (err) {
+      console.error("Web Push setup failed:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Setup Failed",
+        text: "Unable to enable push notifications. Please try again.",
+      });
+    } finally {
+      setPushLoading(false);
+    }
+  };
+
+  const checkPushStatus = async () => {
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPushEnabled(Notification.permission === "granted");
+    }
+  };
+
+  useEffect(() => {
+    checkPushStatus();
+  }, []);
+
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
 
   // ============================================
   // LOADING STATE
@@ -226,6 +332,72 @@ export default function SecurityPage() {
             {/* Card Content */}
             <div className="p-4 lg:p-6">
               <ChangePasswordModal userId={user?.user_id} />
+            </div>
+          </motion.div>
+
+          {/* Push Notifications Section */}
+          <motion.div
+            variants={itemVariants}
+            className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+          >
+            {/* Card Header */}
+            <div className="px-4 lg:px-6 py-4 lg:py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-violet-100 to-purple-100 rounded-xl flex items-center justify-center">
+                  {pushEnabled ? (
+                    <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-violet-600" />
+                  ) : (
+                    <BellOff className="w-5 h-5 lg:w-6 lg:h-6 text-gray-400" />
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-base lg:text-lg font-bold text-gray-900">
+                    Push Notifications
+                  </h2>
+                  <p className="text-xs lg:text-sm text-gray-500">
+                    Receive real-time alerts for important updates
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Content */}
+            <div className="p-4 lg:p-6">
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  Enable push notifications to receive instant alerts about:
+                </p>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• New messages and inquiries</li>
+                  <li>• Lease agreement updates</li>
+                  <li>• Payment notifications</li>
+                  <li>• Maintenance requests</li>
+                </ul>
+                <button
+                  onClick={setupWebPush}
+                  disabled={pushLoading || pushEnabled || !user}
+                  className={`w-full mt-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+                    pushEnabled
+                      ? "bg-green-100 text-green-700 cursor-default"
+                      : pushLoading || !user
+                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                      : "bg-gradient-to-r from-violet-600 to-purple-600 text-white hover:shadow-lg hover:shadow-purple-500/25"
+                  }`}
+                >
+                  {pushLoading
+                    ? "Enabling..."
+                    : pushEnabled
+                    ? "Notifications Enabled"
+                    : !user
+                    ? "Loading..."
+                    : "Enable Push Notifications"}
+                </button>
+                {!pushEnabled && (
+                  <p className="text-[10px] text-gray-400 text-center">
+                    If blocked by browser, click the icon in your address bar to allow
+                  </p>
+                )}
+              </div>
             </div>
           </motion.div>
 
