@@ -411,12 +411,14 @@ Floor Area: ${p.floorArea} sqm
                     subtitle="Select all amenities available"
                 />
 
-                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200">
+                <div className="bg-gray-50 p-3 rounded-xl border border-gray-200
+                max-h-[300px] overflow-y-auto">
                     <AmenitiesSelector
                         selectedAmenities={property.amenities || []}
                         onAmenityChange={toggleAmenity}
                     />
                 </div>
+
             </div>
 
             {/* ===================================================== */}
