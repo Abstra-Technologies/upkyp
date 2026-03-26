@@ -24,14 +24,6 @@ const PARTNERS = [
         logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696384/JCB-logo-EmblemColor_whnqrc.png",
     },
     {
-        name: "Cebuana",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696446/4a4e8b120176061.Y3JvcCwxMDgwLDg0NCwwLDExNw_ntlgku.png",
-    },
-    {
-        name: "LBC",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696489/LBC_Express_2013_Logo_b8hpzw.svg",
-    },
-    {
         name: "Grab Pay",
         logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696520/grabpay_horizontal-logo_brandlogos.net_cdivk-scaled_q6pia1.png",
     },
@@ -78,10 +70,6 @@ const PARTNERS = [
     {
         name: "PNB",
         logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770697071/328-3289781_philippine-national-bank-president-reynaldo-a-pnb-life-insurance-logo_ft8jrc.jpg",
-    },
-    {
-        name: "BillEase",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770697151/4d8384b16a113f08362f5815b5b5d35adcef8b73-512x200_ulv518.png",
     },
 ];
 

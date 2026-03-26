@@ -258,7 +258,7 @@ export default function PaymentList({
 
                             {/* Gross Amount (Tenant Paid) */}
                             <div className="text-right font-semibold text-gray-900">
-                                {formatCurrency(payment.gross_amount || payment.amount_paid)}
+                                {formatCurrency(payment.amount_paid)}
                                 <p className="text-[11px] text-gray-400 font-normal">
                                     Tenant Paid
                                 </p>

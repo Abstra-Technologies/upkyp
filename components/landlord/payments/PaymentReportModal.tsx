@@ -122,8 +122,8 @@ export default function PaymentReportModal({
                         exit={{ opacity: 0, y: 40 }}
                         className="
               fixed z-50 inset-x-4 bottom-6
-              sm:inset-x-0 sm:bottom-auto sm:top-1/2
-              sm:-translate-y-1/2 sm:mx-auto sm:max-w-md
+              lg:inset-auto lg:top-24 lg:right-8 lg:left-auto lg:bottom-auto
+              lg:w-96 lg:max-w-none
               bg-white rounded-2xl shadow-xl p-5
             "
                     >
