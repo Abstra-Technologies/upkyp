@@ -15,6 +15,11 @@ import {
     Clock,
     CheckCircle,
     AlertCircle,
+    Info,
+    X,
+    Banknote,
+    CreditCard,
+    Shield,
 } from "lucide-react";
 
 const PayoutsSkeleton = () => (
@@ -34,10 +39,10 @@ export default function PayoutsPage() {
     const [loading, setLoading] = useState(true);
     const [payouts, setPayouts] = useState<any[]>([]);
     const [pendingPayments, setPendingPayments] = useState<any[]>([]);
-    const [pendingTotal, setPendingTotal] = useState(0);
     const [error, setError] = useState<string | null>(null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
+    const [showInfoModal, setShowInfoModal] = useState(false);
 
     const { user } = useAuthStore();
     const landlordId = user?.landlord_id;
@@ -51,7 +56,6 @@ export default function PayoutsPage() {
             const data = await res.json();
             setPayouts(data.payouts || []);
             setPendingPayments(data.pending_payments || []);
-            setPendingTotal(data.pending_total || 0);
             setError(null);
         } catch (err: any) {
             setError(err.message || "Something went wrong");
@@ -69,6 +73,10 @@ export default function PayoutsPage() {
     useEffect(() => {
         if (landlordId) fetchPayouts();
     }, [landlordId]);
+
+    const calculatedPendingTotal = pendingPayments.reduce((sum, p) => {
+        return sum + Number(p.net_amount || 0);
+    }, 0);
 
     const processingAmount = pendingPayments
         .filter((p) => p.payout_status === "in_payout")
@@ -117,13 +125,22 @@ export default function PayoutsPage() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
-                        className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-blue-600 transition shrink-0"
-                    >
-                        <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? "animate-spin" : ""}`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowInfoModal(true)}
+                            className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium hover:bg-blue-100 transition"
+                        >
+                            <Info className="w-4 h-4" />
+                            How Payouts Work
+                        </button>
+                        <button
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                            className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-gray-50 border border-gray-200 text-gray-600 hover:bg-gray-100 hover:text-blue-600 transition shrink-0"
+                        >
+                            <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${isRefreshing ? "animate-spin" : ""}`} />
+                        </button>
+                    </div>
                 </div>
 
                 {error && (
@@ -136,7 +153,7 @@ export default function PayoutsPage() {
                 <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0">
                     <SummaryCard
                         label="Pending Disbursement"
-                        amount={pendingTotal}
+                        amount={calculatedPendingTotal}
                         color="emerald"
                         icon={ArrowDownCircle}
                     />
@@ -209,35 +226,63 @@ export default function PayoutsPage() {
                                     </div>
                                 ) : (
                                     <div className="divide-y divide-gray-50 max-h-[400px] overflow-y-auto">
-                                        {pendingPayments.map((p, i) => (
-                                            <motion.div
-                                                key={p.payment_id}
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: i * 0.03 }}
-                                                className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50/50 transition"
-                                            >
-                                                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
-                                                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-sm font-semibold text-gray-900 truncate">
-                                                        {p.property_name} • {p.unit_name}
-                                                    </p>
-                                                    <p className="text-xs text-gray-500 capitalize">
-                                                        {p.payment_type?.replaceAll("_", " ")}
-                                                    </p>
-                                                </div>
-                                                <div className="text-right shrink-0">
-                                                    <p className="text-sm sm:text-base font-bold text-emerald-600">
-                                                        ₱{Number(p.net_amount).toLocaleString()}
-                                                    </p>
-                                                    <p className="text-[10px] sm:text-xs text-gray-400">
-                                                        {new Date(p.created_at).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </motion.div>
-                                        ))}
+                                        {pendingPayments.map((p, i) => {
+                                            const isSettled = p.gateway_settlement_status === "settled";
+                                            const grossAmount = Number(p.gross_amount || p.amount_paid || 0);
+                                            const netAmount = Number(p.net_amount || 0);
+                                            
+                                            return (
+                                                <motion.div
+                                                    key={p.payment_id}
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: i * 0.03 }}
+                                                    className="p-3 sm:p-4 flex items-center gap-3 sm:gap-4 hover:bg-gray-50/50 transition"
+                                                >
+                                                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+                                                        <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-semibold text-gray-900 truncate">
+                                                            {p.property_name} • {p.unit_name}
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 capitalize">
+                                                            {p.payment_type?.replaceAll("_", " ")}
+                                                        </p>
+                                                        {!isSettled && (
+                                                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-amber-50 border border-amber-200 rounded-full text-[10px] font-medium text-amber-700">
+                                                                <Clock className="w-3 h-3" />
+                                                                Settlement pending
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        {isSettled ? (
+                                                            <>
+                                                                <p className="text-sm sm:text-base font-bold text-emerald-600">
+                                                                    ₱{netAmount.toLocaleString()}
+                                                                </p>
+                                                                <p className="text-[10px] sm:text-xs text-gray-400">
+                                                                    {new Date(p.created_at).toLocaleDateString()}
+                                                                </p>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <p className="text-sm sm:text-base font-bold text-amber-600">
+                                                                    ₱{netAmount.toLocaleString()}
+                                                                </p>
+                                                                <p className="text-[10px] text-gray-400">
+                                                                    Gross: ₱{grossAmount.toLocaleString()}
+                                                                </p>
+                                                                <p className="text-[10px] text-amber-600 mt-0.5">
+                                                                    Settlement pending
+                                                                </p>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </>
@@ -324,6 +369,108 @@ export default function PayoutsPage() {
                         Back to Payments
                     </Link>
                 </div>
+
+                {/* Mobile Info Button */}
+                <button
+                    onClick={() => setShowInfoModal(true)}
+                    className="sm:hidden fixed bottom-6 right-6 z-40 w-14 h-14 bg-blue-600 rounded-full shadow-lg flex items-center justify-center text-white"
+                >
+                    <Info className="w-6 h-6" />
+                </button>
+
+                {/* Info Modal */}
+                {showInfoModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div 
+                            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                            onClick={() => setShowInfoModal(false)}
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-hidden"
+                        >
+                            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+                                    <Banknote className="w-5 h-5 text-emerald-600" />
+                                    How Payouts Work
+                                </h2>
+                                <button
+                                    onClick={() => setShowInfoModal(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+
+                            <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-5">
+                                {/* Fee Structure */}
+                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                    <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                        <Shield className="w-4 h-4 text-blue-600" />
+                                        Fee Structure
+                                    </h3>
+                                    <p className="text-sm text-gray-700">
+                                        <span className="font-semibold">₱10 per disbursement</span> via Xendit. This fee is deducted from your payout.
+                                    </p>
+                                </div>
+
+                                {/* Settlement Times */}
+                                <div>
+                                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                        <Clock className="w-4 h-4 text-emerald-600" />
+                                        Settlement Time
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <div className="flex items-start gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                            <CreditCard className="w-5 h-5 text-emerald-600 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">E-wallets & Over-the-Counter</p>
+                                                <p className="text-xs text-gray-600">Settlement within the same day or next business day</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                            <CreditCard className="w-5 h-5 text-amber-600 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-900">Credit Cards</p>
+                                                <p className="text-xs text-gray-600">Settlement may take 2-3 business days</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Process Flow */}
+                                <div>
+                                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                        <RefreshCw className="w-4 h-4 text-blue-600" />
+                                        Disbursement Process
+                                    </h3>
+                                    <ol className="space-y-2">
+                                        {[
+                                            "Tenant makes payment via any channel",
+                                            "Payment is confirmed and recorded",
+                                            "Xendit processes settlement (1-3 days)",
+                                            "Once settled, payout is initiated",
+                                            "Funds are transferred to your account (₱10 fee applies)"
+                                        ].map((step, i) => (
+                                            <li key={i} className="flex items-start gap-3 text-sm text-gray-600">
+                                                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-medium shrink-0">
+                                                    {i + 1}
+                                                </span>
+                                                {step}
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </div>
+
+                                {/* Note */}
+                                <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                                    Note: Settlement status is checked automatically. You can also manually check for updates from the Payments page.
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
             </div>
         </div>
     );
