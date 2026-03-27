@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
+import { createXenditCustomer } from "@/lib/payments/xenditCustomer";
+import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
+
+// Use for LeaseDate Set only. and modify lease date.
 
 export async function PUT(req: NextRequest) {
     const connection = await db.getConnection();
@@ -17,9 +21,6 @@ export async function PUT(req: NextRequest) {
             advance_payment_amount = 0,
         } = body;
 
-        console.log('body', body);
-        console.log('agreement_id', agreement_id);
-
         if (!agreement_id || !start_date) {
             return NextResponse.json(
                 { error: "Agreement ID and start date are required" },
@@ -31,7 +32,7 @@ export async function PUT(req: NextRequest) {
 
         const [leaseRows]: any = await connection.execute(
             `
-        SELECT tenant_id, unit_id
+        SELECT tenant_id, unit_id, xendit_customer_id
         FROM LeaseAgreement
         WHERE agreement_id = ?
         LIMIT 1
@@ -46,7 +47,55 @@ export async function PUT(req: NextRequest) {
             );
         }
 
-        const { tenant_id, unit_id } = leaseRows[0];
+        const { tenant_id, unit_id, xendit_customer_id: existingCustomerId } = leaseRows[0];
+
+        const [landlordRow]: any = await connection.execute(
+            `
+                SELECT l.xendit_account_id
+                FROM Landlord l
+                JOIN Property p ON p.landlord_id = l.landlord_id
+                JOIN Unit un ON un.property_id = p.property_id
+                WHERE un.unit_id = ?
+                LIMIT 1
+            `,
+            [unit_id]
+        );
+
+        const xenditAccountId = landlordRow?.[0]?.xendit_account_id;
+
+        let xenditCustomerId = existingCustomerId;
+        
+        if (xenditAccountId && !existingCustomerId) {
+            const [tenantRow]: any = await connection.execute(
+                `
+                    SELECT u.email, u.firstName, u.lastName
+                    FROM Tenant t
+                    JOIN User u ON t.user_id = u.user_id
+                    WHERE t.tenant_id = ?
+                    LIMIT 1
+                `,
+                [tenant_id]
+            );
+
+            const tenant = tenantRow?.[0];
+
+            if (tenant?.email) {
+                const decryptedFirstName = safeDecrypt(tenant.firstName) || undefined;
+                const decryptedLastName = safeDecrypt(tenant.lastName) || undefined;
+                const decryptedEmail = safeDecrypt(tenant.email) || undefined;
+
+                if (decryptedEmail) {
+                    xenditCustomerId = await createXenditCustomer({
+                        referenceId: `tenant-${tenant_id}`,
+                        email: decryptedEmail,
+                        firstName: decryptedFirstName,
+                        lastName: decryptedLastName,
+                        secretKey: process.env.XENDIT_SECRET_KEY!,
+                        forUserId: xenditAccountId,
+                    });
+                }
+            }
+        }
 
         await connection.execute(
             `
@@ -57,7 +106,8 @@ export async function PUT(req: NextRequest) {
           status = 'active',
           security_deposit_amount = ?,
           advance_payment_amount = ?,
-          grace_period_days = 3
+          grace_period_days = 3,
+          xendit_customer_id = ?
         WHERE agreement_id = ?
       `,
             [
@@ -65,6 +115,7 @@ export async function PUT(req: NextRequest) {
                 end_date,
                 security_deposit_amount,
                 advance_payment_amount,
+                xenditCustomerId,
                 agreement_id,
             ]
         );

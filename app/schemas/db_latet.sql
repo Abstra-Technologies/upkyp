@@ -1010,6 +1010,7 @@ create table LeaseAgreement
     created_at              timestamp                                                                                                                                 default CURRENT_TIMESTAMP null,
     updated_at              timestamp                                                                                                                                 default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     grace_period_days       int                                                                                                                                       default 3                 null,
+    xendit_customer_id      varchar(100)                                                                                                                                 null,
     late_penalty_amount     decimal(10, 2)                                                                                                                            default 1000.00           null,
     constraint uq_lease_agreement_id
         unique (agreement_id),

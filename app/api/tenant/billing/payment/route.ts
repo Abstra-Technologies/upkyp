@@ -8,7 +8,6 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import crypto from "crypto";
-import { createXenditCustomer } from "@/lib/payments/xenditCustomer";
 
 /* -------------------------------------------------------------------------- */
 /* Environment                                                                */
@@ -76,16 +75,12 @@ export async function POST(req: NextRequest) {
         const {
             amount,
             billing_id,
-            tenant_id,
             redirectUrl,
-            firstName,
-            lastName,
-            emailAddress,
         } = body;
 
         /* ---------------- VALIDATION ---------------- */
 
-        if (!amount || !billing_id || !tenant_id) {
+        if (!amount || !billing_id) {
             return httpError(400, "Missing required fields.");
         }
 
@@ -145,28 +140,15 @@ export async function POST(req: NextRequest) {
 
         /* ---------------- CUSTOMER ---------------- */
 
-        const [tenantRows]: any = await conn.execute(
-            `SELECT xendit_customer_id FROM Tenant WHERE tenant_id = ? LIMIT 1`,
-            [tenant_id]
+        const [leaseRows]: any = await conn.execute(
+            `SELECT xendit_customer_id FROM LeaseAgreement WHERE agreement_id = ? LIMIT 1`,
+            [billing.agreement_id]
         );
 
-        let xenditCustomerId = tenantRows?.[0]?.xendit_customer_id ?? null;
+        const xenditCustomerId = leaseRows?.[0]?.xendit_customer_id ?? null;
 
         if (!xenditCustomerId) {
-            debug("CREATING XENDIT CUSTOMER");
-
-            xenditCustomerId = await createXenditCustomer({
-                referenceId: `tenant-${tenant_id}`,
-                firstName,
-                lastName,
-                email: emailAddress,
-                secretKey: XENDIT_SECRET_KEY,
-            });
-
-            await conn.execute(
-                `UPDATE Tenant SET xendit_customer_id = ? WHERE tenant_id = ?`,
-                [xenditCustomerId, tenant_id]
-            );
+            return httpError(400, "Tenant Xendit customer not found.");
         }
 
         /* ---------------- IDEMPOTENCY ---------------- */

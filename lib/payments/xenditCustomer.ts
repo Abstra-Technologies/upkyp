@@ -11,19 +11,25 @@ export async function createXenditCustomer({
                                                firstName,
                                                lastName,
                                                secretKey,
+                                               forUserId,
                                            }: {
     referenceId: string; // e.g. tenant-123 | landlord-456
     email?: string;
     firstName?: string;
     lastName?: string;
     secretKey: string;
+    forUserId: string; // landlord's xendit_account_id
 }) {
+
     const resp = await fetch("https://api.xendit.co/customers", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization:
                 "Basic " + Buffer.from(`${secretKey}:`).toString("base64"),
+
+            // ✅ MOVE IT HERE (if you REALLY want subaccount)
+            ...(forUserId && { "for-user-id": forUserId }),
         },
         body: JSON.stringify({
             reference_id: referenceId,
@@ -33,6 +39,8 @@ export async function createXenditCustomer({
                 surname: lastName || referenceId,
             },
             email,
+            // ❌ REMOVE THIS
+            // for_user_id: forUserId
         }),
     });
 
