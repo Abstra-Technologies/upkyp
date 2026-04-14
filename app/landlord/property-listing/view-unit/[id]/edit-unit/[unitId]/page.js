@@ -5,10 +5,10 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import Image from "next/image";
 import { Edit2, Upload, X, Loader2, ArrowLeft } from "lucide-react";
-import furnishingTypes from "../../../../constant/furnishingTypes";
-import unitTypes from "../../../../constant/unitTypes";
-import AmenitiesSelector from "../../../../components/landlord/properties/unitAmenities";
-import DisableNavigation from "../../../../components/navigation/DisableNavigation";
+import furnishingTypes from "@/constant/furnishingTypes";
+import unitTypes from "@/constant/unitTypes";
+import AmenitiesSelector from "@/components/landlord/properties/unitAmenities";
+import DisableNavigation from "@/components/navigation/DisableNavigation";
 
 const EditUnit = () => {
   const router = useRouter();

@@ -29,7 +29,7 @@ import { MdVerified, MdPayment } from "react-icons/md";
 import { HiLocationMarker } from "react-icons/hi";
 import { RiShoppingBag3Fill } from "react-icons/ri";
 import { SiZcash } from "react-icons/si";
-import ReviewsList from "../../../../../components/tenant/reviewList";
+import ReviewsList from "@/components/tenant/reviewList";
 import { UnitDetails } from "@/types/units";
 import LandlordCard from "@/components/landlord/properties/LandlordCard";
 import useAuthStore from "@/zustand/authStore";

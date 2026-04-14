@@ -2,11 +2,10 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { BUG_REPORT_STATUSES } from "../../../../constant/bugStatus";
-import useAuthStore from "../../../../zustand/authStore";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
-import { FaBug, FaUser, FaCalendarAlt, FaExclamationTriangle, FaCheckCircle, FaClock, FaArrowLeft } from "react-icons/fa";
-import LoadingScreen from "../../../../components/loadingScreen";
+import { BUG_REPORT_STATUSES } from "@/constant/bugStatus";
+import useAuthStore from "@/zustand/authStore";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
+import LoadingScreen from "@/components/loadingScreen";
 
 
 const maskUserID = (userID) => {

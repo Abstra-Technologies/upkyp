@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import ResubmitVerification from "../../../../components/property/ResubmitVerification";
+import ResubmitVerification from "@/components/property/ResubmitVerification";
 import { Suspense, useEffect, useState } from "react";
 
 export default function ResubmitVerificationPage() {

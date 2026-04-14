@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FaEdit, FaEye } from "react-icons/fa";
 import { MdPersonAddDisabled } from "react-icons/md";
-import authStore from "../../../../zustand/authStore";
-import EditModal from "../../../../components/systemAdmin/editAdmin";
-import { logEvent } from "../../../..//utils/gtag";
-import LoadingScreen from "../../../../components/loadingScreen";
+import authStore from "@/zustand/authStore";
+import EditModal from "@/components/systemAdmin/editAdmin";
+import { logEvent } from "@/utils/gtag";
+import LoadingScreen from "@/components/loadingScreen";
 import Swal from "sweetalert2";
 
 export default function CoAdminDashboard() {

@@ -1,8 +1,8 @@
 "use client";
 
-import useAuth from "../../../../hooks/useSession";
-import BugReportForm from "../../../../components/Commons/bugreport";
-import useAuthStore from "../../../../zustand/authStore";
+import useAuth from "@/hooks/useSession";
+import BugReportForm from "@/components/Commons/bugreport";
+import useAuthStore from "@/zustand/authStore";
 
 
 export default function BugReports() {

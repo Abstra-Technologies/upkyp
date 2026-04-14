@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import useAuthStore from "../../../../zustand/authStore";
+import useAuthStore from "@/zustand/authStore";
 import {
   Bell,
   CheckCircle,

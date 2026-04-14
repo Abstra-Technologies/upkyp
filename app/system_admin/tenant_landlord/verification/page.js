@@ -1,12 +1,12 @@
 "use client"
 import { useRouter, useParams } from "next/navigation";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Typography, CircularProgress, Box
 } from "@mui/material";
 import {useEffect, useState} from "react";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
 
 export default function LandlordVerificationList(){
     const [landlords, setLandlords] = useState([]);

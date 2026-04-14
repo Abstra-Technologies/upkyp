@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { roles } from "../../../../constant/adminroles";
-import useAuthStore from "../../../../zustand/authStore";
-import { availablePermissions } from "../../../../constant/adminPermission";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import { roles } from "@/constant/adminroles";
+import useAuthStore from "@/zustand/authStore";
+import { availablePermissions } from "@/constant/adminPermission";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 
 const CreateCoAdmin = () => {
   const [formData, setFormData] = useState({

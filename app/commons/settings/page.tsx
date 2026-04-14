@@ -1,9 +1,9 @@
 "use client"; // make sure this is a client component
 
 import React, { useEffect } from "react";
-import SideNavProfile from "../../../../components/navigation/sidebar-profile";
-import useAuthStore from "../../../../zustand/authStore";
-import NotificationManager from "../../../../components/Commons/setttings/notification";
+import SideNavProfile from "@/components/navigation/sidebar-profile";
+import useAuthStore from "@/zustand/authStore";
+import NotificationManager from "@/components/Commons/setttings/notification";
 import CookiePermissionStatus from "@/components/Commons/setttings/cookieStatus";
 
 const UserSettingsPage = () => {

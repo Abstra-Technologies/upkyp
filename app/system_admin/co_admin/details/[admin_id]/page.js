@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 
 function AdminDetailsPage() {
     const { admin_id } = useParams();

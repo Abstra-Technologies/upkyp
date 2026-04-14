@@ -1,23 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useAuthStore from "../../../../zustand/authStore";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    TextField,
-    TableSortLabel,
-    CircularProgress,
-    Button,
-} from "@mui/material";
-import { Eye } from "lucide-react";
-import LoadingScreen from "../../../../components/loadingScreen";
+import useAuthStore from "@/zustand/authStore";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
+import LoadingScreen from "@/components/loadingScreen";
 import Swal from "sweetalert2";
 import axios from "axios";
 

@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import useAuth from "../../../../hooks/useSession";
-import PropertyPhotos from "../../../../components/propertyVerification/PropertyPhotos";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import useAuth from "@/hooks/useSession";
+import PropertyPhotos from "@/components/propertyVerification/PropertyPhotos";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 import LoadingScreen from "@/components/loadingScreen";
 import Swal from 'sweetalert2';
 

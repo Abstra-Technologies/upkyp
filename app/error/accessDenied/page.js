@@ -1,7 +1,7 @@
 'use client'
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import useAuth from "../../../../hooks/useSession";
+import useAuth from "@/hooks/useSession";
 
 const AccessDenied = () => {
     const router = useRouter();

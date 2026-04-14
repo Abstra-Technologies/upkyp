@@ -11,7 +11,7 @@ import {
     TextField,
     Button
 } from '@mui/material';
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 
 export default function DeactivatedAccounts() {
     const [accounts, setAccounts] = useState([]);

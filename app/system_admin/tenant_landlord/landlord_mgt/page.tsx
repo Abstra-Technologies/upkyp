@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useAuthStore from "../../../../zustand/authStore";
+import useAuthStore from "@/zustand/authStore";
 import {
     Table,
     TableBody,
@@ -16,7 +16,7 @@ import {
     Button,
 } from "@mui/material";
 import { Eye } from "lucide-react";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
 import axios from "axios";
 import Swal from "sweetalert2";
 

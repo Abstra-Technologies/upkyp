@@ -13,7 +13,7 @@ import {
     Button,
 } from "@mui/material";
 import Swal from "sweetalert2";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
 
 type SuspendedAccount = {
     user_id: string;

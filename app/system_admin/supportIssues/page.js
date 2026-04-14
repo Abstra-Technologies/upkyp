@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useRouter} from "next/navigation";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 
 const STATUS_OPTIONS = ["Pending", "In Progress", "Resolved", "Closed"];
 

@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FaEdit, FaTrash, FaBullhorn, FaSearch, FaFilter } from "react-icons/fa";
-import EditAnnoucementModal from "../../../../components/systemAdmin/editAnnoucement";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import EditAnnoucementModal from "@/components/systemAdmin/editAnnoucement";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 import Swal from "sweetalert2";
 
 export default function AnnouncementsList() {

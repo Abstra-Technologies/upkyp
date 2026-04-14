@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import LandlordSubscriptionCurrent from "../../../../components/landlord/Landlordubscription";
-import PropertyListUser from "../../../../components/landlord/PropertyLists";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LandlordSubscriptionCurrent from "@/components/landlord/Landlordubscription";
+import PropertyListUser from "@/components/landlord/PropertyLists";
+import LoadingScreen from "@/components/loadingScreen";
 import { FaArrowLeft, FaUser, FaEnvelope, FaPhone, FaIdCard, FaCalendarAlt, FaCheckCircle, FaTimesCircle, FaWallet, FaPlus, FaCopy, FaBuilding, FaList, FaHistory } from "react-icons/fa";
 import axios from "axios";
 import Swal from "sweetalert2";

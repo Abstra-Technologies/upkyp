@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import axios from "axios";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
 import Swal from "sweetalert2";
 
 export default function ViewUnits() {

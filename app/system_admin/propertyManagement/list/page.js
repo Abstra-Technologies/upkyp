@@ -14,8 +14,8 @@ import {
     TableSortLabel,
     CircularProgress,
 } from "@mui/material";
-import LoadingScreen from "../../../../components/loadingScreen";
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
+import LoadingScreen from "@/components/loadingScreen";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
 
 export default function PropertyList() {
     const [properties, setProperties] = useState([]);

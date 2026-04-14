@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import useAuth from "../../../../hooks/useSession";
-import LoadingScreen from "../../../../components/loadingScreen";
+import useAuth from "@/hooks/useSession";
+import LoadingScreen from "@/components/loadingScreen";
 import {
   ChevronLeft,
   User,

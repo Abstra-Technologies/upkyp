@@ -1,10 +1,10 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import useAuthStore from "../../../../zustand/authStore";
+import useAuthStore from "@/zustand/authStore";
 import { useEffect } from "react";
 import axios from "axios";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
 
 const PropertyListPage = () => {
   const { fetchSession, user, admin } = useAuthStore();

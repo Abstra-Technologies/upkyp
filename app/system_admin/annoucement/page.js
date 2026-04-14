@@ -1,6 +1,6 @@
 'use client';
-import SideNavAdmin from "../../../../components/navigation/sidebar-admin";
-import CreateAnnouncement from "../../../../components/systemAdmin/CreateAnnouncement";
+import SideNavAdmin from "@/components/navigation/sidebar-admin";
+import CreateAnnouncement from "@/components/systemAdmin/CreateAnnouncement";
 import { useRouter } from "next/navigation";
 
 const AnnouncementPage = () => {

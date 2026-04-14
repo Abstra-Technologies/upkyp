@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import useAuthStore from "../../../../zustand/authStore";
+import useAuthStore from "@/zustand/authStore";
 import {
   CalendarDaysIcon,
   ClockIcon,
