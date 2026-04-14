@@ -43,14 +43,14 @@ const PARTNERS = [
         name: "BPI",
         logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696743/BPI-New-Logo-2024-Insert-v2_ydabxb.jpg",
     },
-    {
-        name: "Union Bank",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696800/UnionBank-jpg_xoqkb3.webp",
-    },
-    {
-        name: "China Bank",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696849/Chinabank_hnkog3.png",
-    },
+    // {
+    //     name: "Union Bank",
+    //     logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696800/UnionBank-jpg_xoqkb3.webp",
+    // },
+    // {
+    //     name: "China Bank",
+    //     logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696849/Chinabank_hnkog3.png",
+    // },
     {
         name: "RCBC",
         logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696901/RCBC-3-scaled-1_gvpwvq.jpg",
@@ -63,14 +63,14 @@ const PARTNERS = [
         name: "MetroBank",
         logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770696989/Metrobank_2018_02_01_18_46_06_euomsy.jpg",
     },
-    {
-        name: "Security Bank",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770697031/The_Security_Bank_Logo_1_dntncm.jpg",
-    },
-    {
-        name: "PNB",
-        logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770697071/328-3289781_philippine-national-bank-president-reynaldo-a-pnb-life-insurance-logo_ft8jrc.jpg",
-    },
+    // {
+    //     name: "Security Bank",
+    //     logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770697031/The_Security_Bank_Logo_1_dntncm.jpg",
+    // },
+    // {
+    //     name: "PNB",
+    //     logo: "https://res.cloudinary.com/dptmeluy0/image/upload/v1770697071/328-3289781_philippine-national-bank-president-reynaldo-a-pnb-life-insurance-logo_ft8jrc.jpg",
+    // },
 ];
 
 export default function PaymentPartnersMarquee() {
