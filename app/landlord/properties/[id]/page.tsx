@@ -222,7 +222,7 @@ export default function ViewPropertyDetailedPage() {
 
             {/* Active Lease */}
             <Link
-              href={`/pages/landlord/properties/${property_id}/activeLease`}
+              href={`/landlord/properties/${property_id}/activeLease`}
               className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -236,7 +236,7 @@ export default function ViewPropertyDetailedPage() {
 
             {/* Billing */}
             <Link
-              href={`/pages/landlord/properties/${property_id}/billing`}
+              href={`/landlord/properties/${property_id}/billing`}
               className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
             >
               <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">

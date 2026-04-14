@@ -164,7 +164,7 @@ const AssetsManagementPage = () => {
 
           <button
             onClick={() =>
-              router.push("/pages/landlord/subsciption_plan/pricing")
+              router.push("/landlord/subsciption_plan/pricing")
             }
             className="w-full px-5 py-2.5 rounded-xl font-semibold text-white
           bg-gradient-to-r from-blue-600 to-emerald-600
@@ -385,7 +385,7 @@ const AssetsManagementPage = () => {
                       <button
                         onClick={() =>
                           router.push(
-                            `/pages/landlord/properties/${property_id}/assets/${asset.asset_id}`,
+                            `/landlord/properties/${property_id}/assets/${asset.asset_id}`,
                           )
                         }
                         className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm transition-colors"
@@ -396,7 +396,7 @@ const AssetsManagementPage = () => {
                       <button
                         onClick={() =>
                           router.push(
-                            `/pages/landlord/properties/${property_id}/assets_management/${asset.asset_id}/edit`,
+                            `/landlord/properties/${property_id}/assets_management/${asset.asset_id}/edit`,
                           )
                         }
                         className="flex items-center justify-center p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors"
@@ -516,7 +516,7 @@ const AssetsManagementPage = () => {
                             <button
                               onClick={() =>
                                 router.push(
-                                  `/pages/landlord/properties/${property_id}/assets/${asset.asset_id}`,
+                                  `/landlord/properties/${property_id}/assets/${asset.asset_id}`,
                                 )
                               }
                               className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -527,7 +527,7 @@ const AssetsManagementPage = () => {
                             <button
                               onClick={() =>
                                 router.push(
-                                  `/pages/landlord/properties/${property_id}/assets_management/${asset.asset_id}/edit`,
+                                  `/landlord/properties/${property_id}/assets_management/${asset.asset_id}/edit`,
                                 )
                               }
                               className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"

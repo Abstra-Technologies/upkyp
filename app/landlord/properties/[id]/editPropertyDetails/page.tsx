@@ -39,7 +39,7 @@ export default function EditProperty() {
             text: "Property does not exist.",
             icon: "warning",
           });
-          router.push("/pages/landlord/property-listing");
+          router.push("/landlord/property-listing");
         }
       })
       .catch((err) => {
@@ -49,7 +49,7 @@ export default function EditProperty() {
           text: "Unable to load property details.",
           icon: "error",
         });
-        router.push(`/pages/landlord/properties/${propertyId}`);
+        router.push(`/landlord/properties/${propertyId}`);
       });
   }, [propertyId]);
 
@@ -136,7 +136,7 @@ export default function EditProperty() {
       cancelButtonText: "Keep editing",
     }).then((res) => {
       if (res.isConfirmed)
-        router.push(`/pages/landlord/properties/${propertyId}`);
+        router.push(`/landlord/properties/${propertyId}`);
     });
   };
 

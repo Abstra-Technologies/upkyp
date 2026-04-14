@@ -104,7 +104,7 @@ export default function usePropertyListingPage() {
             event.stopPropagation();
 
             router.push(
-                `/pages/landlord/properties/${property.property_id}`
+                `/landlord/properties/${property.property_id}`
             );
         },
         [router]
@@ -114,7 +114,7 @@ export default function usePropertyListingPage() {
         (propertyId: string | number, event: React.MouseEvent) => {
             event.stopPropagation();
             router.push(
-                `/pages/landlord/properties/${propertyId}/editPropertyDetails`
+                `/landlord/properties/${propertyId}/editPropertyDetails`
             );
         },
         [router]

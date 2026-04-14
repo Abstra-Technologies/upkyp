@@ -50,7 +50,7 @@ export default function PDCPerPropertyPage() {
 
                     <button
                         onClick={() =>
-                            window.location.href = "/pages/landlord/subsciption_plan/pricing"
+                            window.location.href = "/landlord/subsciption_plan/pricing"
                         }
                         className="w-full px-5 py-2.5 rounded-xl font-semibold text-white
           bg-gradient-to-r from-blue-600 to-emerald-600

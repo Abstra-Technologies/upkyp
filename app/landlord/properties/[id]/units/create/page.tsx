@@ -355,7 +355,7 @@ export default function UnitListingForm() {
                 allowEscapeKey: false,
             });
 
-            router.replace(`/pages/landlord/properties/${propertyId}`);
+            router.replace(`/landlord/properties/${propertyId}`);
         } catch (error: any) {
             /* ================= FAILURE ================= */
             await Swal.fire({
@@ -385,7 +385,7 @@ export default function UnitListingForm() {
       cancelButtonText: "Keep editing",
     }).then((res) => {
       if (res.isConfirmed)
-        router.replace(`/pages/landlord/properties/${propertyId}`);
+        router.replace(`/landlord/properties/${propertyId}`);
     });
   };
 

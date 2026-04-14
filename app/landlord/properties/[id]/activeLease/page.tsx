@@ -49,13 +49,13 @@ export default function PropertyLeasesPage() {
 
   const handleExtendLease = (lease: any) => {
     router.push(
-      `/pages/landlord/properties/${id}/activeLease/extend/${lease.lease_id}`,
+      `/landlord/properties/${id}/activeLease/extend/${lease.lease_id}`,
     );
   };
 
   const handleAuthenticateLease = (lease: any) => {
     router.push(
-      `/pages/landlord/properties/${id}/activeLease/authenticate/${lease.lease_id}`,
+      `/landlord/properties/${id}/activeLease/authenticate/${lease.lease_id}`,
     );
   };
 
@@ -156,7 +156,7 @@ export default function PropertyLeasesPage() {
                 {/* Go to Billing */}
                 <button
                     onClick={() =>
-                        router.push(`/pages/landlord/properties/${id}/billing`)
+                        router.push(`/landlord/properties/${id}/billing`)
                     }
                     className="
       w-full
@@ -176,7 +176,7 @@ export default function PropertyLeasesPage() {
                 {/* View Payments */}
                 <button
                     onClick={() =>
-                        router.push(`/pages/landlord/properties/${id}/payments`)
+                        router.push(`/landlord/properties/${id}/payments`)
                     }
                     className="
       w-full
@@ -251,7 +251,7 @@ export default function PropertyLeasesPage() {
             onClose={() => setSetupModalLease(null)}
             onContinue={() => {
               router.push(
-                `/pages/landlord/properties/${id}/activeLease/initialSetup/${setupModalLease?.lease_id}`,
+                `/landlord/properties/${id}/activeLease/initialSetup/${setupModalLease?.lease_id}`,
               );
               setSetupModalLease(null);
             }}

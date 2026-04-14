@@ -162,7 +162,7 @@ export default function CreateUnitBill() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
           <BackButton
             label="Back to Units"
-            fallback={`/pages/landlord/property-listing/view-unit/${property.property_id}`}
+            fallback={`/landlord/property-listing/view-unit/${property.property_id}`}
           />
 
           <div className="flex items-center gap-4 mt-4">

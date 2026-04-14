@@ -68,21 +68,21 @@ export default function PropertyLayout({
           id: "edit",
           navId: "prop-nav-edit",
           label: "Edit Property",
-          href: `/pages/landlord/properties/${id}/editPropertyDetails?${id}`,
+          href: `/landlord/properties/${id}/editPropertyDetails?${id}`,
           icon: CopyMinus,
         },
         {
           id: "policy",
           navId: "prop-nav-policy",
           label: "House Policy",
-          href: `/pages/landlord/properties/${id}/house-policy?${id}`,
+          href: `/landlord/properties/${id}/house-policy?${id}`,
           icon: NotebookText,
         },
         {
           id: "units",
           navId: "prop-nav-units",
           label: "Units",
-          href: `/pages/landlord/properties/${id}`,
+          href: `/landlord/properties/${id}`,
           icon: Home,
         },
       ],
@@ -94,27 +94,27 @@ export default function PropertyLayout({
           id: "active-lease",
           navId: "prop-nav-active-lease",
           label: "Active Lease",
-          href: `/pages/landlord/properties/${id}/activeLease`,
+          href: `/landlord/properties/${id}/activeLease`,
           icon: ScrollText,
         },
         {
           id: "prospectives",
           navId: "prop-nav-prospectives",
           label: "Prospectives",
-          href: `/pages/landlord/properties/${id}/prospectives`,
+          href: `/landlord/properties/${id}/prospectives`,
           icon: Users,
         },
         {
           id: "assets",
           navId: "prop-nav-assets",
           label: "Assets",
-          href: `/pages/landlord/properties/${id}/assets_management`,
+          href: `/landlord/properties/${id}/assets_management`,
           icon: Videotape,
         },
         // {
         //   id: "documents",
         //   label: "Documents",
-        //   href: `/pages/landlord/properties/${id}/documents`,
+        //   href: `/landlord/properties/${id}/documents`,
         //   icon: FileText,
         // },
       ],
@@ -126,28 +126,28 @@ export default function PropertyLayout({
           id: "billing",
           navId: "prop-nav-billing",
           label: "Billing",
-          href: `/pages/landlord/properties/${id}/billing`,
+          href: `/landlord/properties/${id}/billing`,
           icon: CreditCard,
         },
         {
           id: "payments",
           navId: "prop-nav-payments",
           label: "Payments",
-          href: `/pages/landlord/properties/${id}/payments`,
+          href: `/landlord/properties/${id}/payments`,
           icon: Wallet,
         },
         // {
         //   id: "pdc-management",
         //   navId: "prop-nav-pdc-management",
         //   label: "PDC Management",
-        //   href: `/pages/landlord/properties/${id}/pdcManagement`,
+        //   href: `/landlord/properties/${id}/pdcManagement`,
         //   icon: FileText,
         // },
         {
           id: "finance",
           navId: "prop-nav-finance",
           label: "Financials",
-          href: `/pages/landlord/properties/${id}/financials`,
+          href: `/landlord/properties/${id}/financials`,
           icon: HandCoins,
         },
       ],
@@ -159,14 +159,14 @@ export default function PropertyLayout({
           id: "utilities",
           navId: "prop-nav-utilities",
           label: "Utilities",
-          href: `/pages/landlord/properties/${id}/utilities`,
+          href: `/landlord/properties/${id}/utilities`,
           icon: Zap,
         },
         {
           id: "configuration",
           navId: "prop-nav-configuration",
           label: "Configuration",
-          href: `/pages/landlord/properties/${id}/configurations`,
+          href: `/landlord/properties/${id}/configurations`,
           icon: SlidersHorizontal,
         },
       ],
@@ -197,7 +197,7 @@ export default function PropertyLayout({
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-5 py-4">
         <button
-          onClick={() => router.push("/pages/landlord/property-listing")}
+          onClick={() => router.push("/landlord/property-listing")}
           className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors group mb-4"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -302,7 +302,7 @@ export default function PropertyLayout({
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
-            onClick={() => router.push("/pages/landlord/property-listing")}
+            onClick={() => router.push("/landlord/property-listing")}
             className="p-1.5 rounded-lg hover:bg-white/10 transition-colors shrink-0"
           >
             <ChevronLeft className="w-5 h-5 text-white" />

@@ -90,7 +90,7 @@ export default function PropertyBillingPage() {
                                     <button
                                         onClick={() =>
                                             billing.router.push(
-                                                "/pages/landlord/settings/payout"
+                                                "/landlord/settings/payout"
                                             )
                                         }
                                         className="mt-3 px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg"

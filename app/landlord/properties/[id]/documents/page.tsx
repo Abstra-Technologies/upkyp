@@ -173,7 +173,7 @@ export default function PropertyDocumentsPage() {
             {folders.map((folder, idx) => (
               <Link
                 key={idx}
-                href={`/pages/landlord/properties/${property_id}/documents/${folder.id}`}
+                href={`/landlord/properties/${property_id}/documents/${folder.id}`}
                 className="group bg-white border rounded-xl p-5 hover:shadow-md transition"
               >
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-600 flex items-center justify-center mb-4">

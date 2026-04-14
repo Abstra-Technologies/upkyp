@@ -98,7 +98,7 @@ export default function SubscriptionPlans() {
         }
 
         router.push(
-            `/pages/landlord/subsciption_plan/payment/review?planId=${selectedPlan.id}` +
+            `/landlord/subsciption_plan/payment/review?planId=${selectedPlan.id}` +
             `&amount=${finalTotal}` +
             `&prorated=${finalPlanAmount}` +
             `&addons=${encodeURIComponent(JSON.stringify(selectedAddOns))}`
