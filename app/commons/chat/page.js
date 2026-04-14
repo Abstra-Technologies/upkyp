@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { io } from "socket.io-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import useAuth from "../../../../hooks/useSession";
+import useAuth from "@/hooks/useSession";
 import axios from "axios";
 
 const SearchParamsWrapper = ({ setLandlordId }) => {

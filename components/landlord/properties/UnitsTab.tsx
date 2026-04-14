@@ -175,17 +175,6 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                 Cell: ({ row }) => (
                     <div className="flex justify-end gap-2">
                         <button
-                            onClick={() =>
-                                router.push(
-                                    `/pages/landlord/properties/${propertyId}/units/details/${row.original.unit_id}`
-                                )
-                            }
-                            className="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm"
-                        >
-                            <Eye className="inline w-4 h-4 mr-1" />
-                            View
-                        </button>
-                        <button
                             onClick={() => handleEditUnit(row.original.unit_id)}
                             className="px-3 py-1.5 rounded-lg text-sm text-orange-600 hover:bg-orange-50"
                         >
@@ -284,16 +273,6 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
 
                             {/* ACTIONS */}
                             <div className="flex gap-3 mt-1 text-[11px] font-semibold">
-                                <button
-                                    onClick={() =>
-                                        router.push(
-                                            `/pages/landlord/properties/${propertyId}/units/details/${unit.unit_id}`
-                                        )
-                                    }
-                                    className="text-blue-600"
-                                >
-                                    View
-                                </button>
                                 <button
                                     onClick={() => handleEditUnit(unit.unit_id)}
                                     className="text-orange-600"

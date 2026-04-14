@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
-import LoadingScreen from "../../../../components/loadingScreen";
+import LoadingScreen from "@/components/loadingScreen";
 
 export default function LogsPage() {
     const [logs, setLogs] = useState("");
