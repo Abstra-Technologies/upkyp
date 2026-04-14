@@ -192,7 +192,7 @@ export default function SetupLeasePage() {
       });
 
       // Redirect to active lease view
-      router.push(`/pages/landlord/properties/${property_id}/activeLease`);
+      router.push(`/landlord/properties/${property_id}/activeLease`);
     } catch (error: any) {
       console.error("Upload error:", error);
       const errMsg =

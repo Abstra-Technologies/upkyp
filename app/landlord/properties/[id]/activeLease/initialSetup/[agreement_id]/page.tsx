@@ -111,7 +111,7 @@ export default function LeaseSetupWizard() {
                     <button
                         onClick={() =>
                             router.push(
-                                `/pages/landlord/properties/${property_id}/activeLease/setup?agreement_id=${agreement_id}`
+                                `/landlord/properties/${property_id}/activeLease/setup?agreement_id=${agreement_id}`
                             )
                         }
                         className="
@@ -266,7 +266,7 @@ export default function LeaseSetupWizard() {
                         <button
                             onClick={() =>
                                 router.push(
-                                    `/pages/landlord/properties/${property_id}/activeLease`
+                                    `/landlord/properties/${property_id}/activeLease`
                                 )
                             }
                             className="w-full mt-5 py-2.5 rounded-xl bg-green-600 text-white hover:bg-green-700 transition"

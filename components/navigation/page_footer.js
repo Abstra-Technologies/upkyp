@@ -71,7 +71,7 @@ const Page_footer = () => {
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <Link
-                  href="/pages/find-rent"
+                  href="/find-rent"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Find Rent
@@ -79,7 +79,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/partner"
+                  href="/partner"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Become a Partner
@@ -87,7 +87,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/public/download"
+                  href="/public/download"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Download App
@@ -95,7 +95,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/about-us"
+                  href="/about-us"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   About Us
@@ -112,7 +112,7 @@ const Page_footer = () => {
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <Link
-                  href="/pages/about-us"
+                  href="/about-us"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   About
@@ -120,7 +120,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/contact-us"
+                  href="/contact-us"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Contact
@@ -128,7 +128,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/public/support"
+                  href="/public/support"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Support
@@ -145,7 +145,7 @@ const Page_footer = () => {
             <ul className="space-y-1.5 sm:space-y-2">
               <li>
                 <Link
-                  href="/pages/public/privacy"
+                  href="/public/privacy"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Privacy Policy
@@ -153,7 +153,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/public/terms-services"
+                  href="/public/terms-services"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Terms of Service
@@ -161,7 +161,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/public/eula"
+                  href="/public/eula"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   EULA
@@ -169,7 +169,7 @@ const Page_footer = () => {
               </li>
               <li>
                 <Link
-                  href="/pages/public/refund"
+                  href="/public/refund"
                   className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
                 >
                   Refund Policy
@@ -201,14 +201,14 @@ const Page_footer = () => {
 
             <div className="flex items-center space-x-4 sm:space-x-6">
               <Link
-                href="/pages/privacy-policy"
+                href="/privacy-policy"
                 className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
               >
                 Privacy Policy
               </Link>
               <span className="text-white/40">·</span>
               <Link
-                href="/pages/public/terms-services"
+                href="/public/terms-services"
                 className="text-white/80 hover:text-white text-xs sm:text-sm transition-colors duration-150"
               >
                 Terms of Service

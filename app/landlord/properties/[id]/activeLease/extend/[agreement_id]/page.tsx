@@ -106,7 +106,7 @@ export default function ExtendOrRenewLeasePage() {
                 icon: "success",
                 confirmButtonColor: "#059669",
             }).then(() => {
-                router.push(`/pages/landlord/properties/${id}/activeLease`);
+                router.push(`/landlord/properties/${id}/activeLease`);
             });
         } catch {
             Swal.fire("Error", "Failed to process lease.", "error");
@@ -147,7 +147,7 @@ export default function ExtendOrRenewLeasePage() {
                 {/* BACK */}
                 <button
                     onClick={() =>
-                        router.push(`/pages/landlord/properties/${id}/activeLease`)
+                        router.push(`/landlord/properties/${id}/activeLease`)
                     }
                     className="flex items-center text-sm text-gray-600 mb-4 hover:text-gray-900"
                 >
@@ -238,7 +238,7 @@ export default function ExtendOrRenewLeasePage() {
 
                     <button
                         onClick={() =>
-                            router.push(`/pages/landlord/properties/${id}/activeLease`)
+                            router.push(`/landlord/properties/${id}/activeLease`)
                         }
                         className="w-full px-6 py-3 border rounded-lg text-gray-700 hover:bg-gray-100"
                     >

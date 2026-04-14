@@ -110,7 +110,7 @@ export default function EditProperty() {
         icon: "success",
         confirmButtonColor: "#10b981",
       }).then(() => {
-        router.replace(`/pages/landlord/properties/${propertyId}`);
+        router.replace(`/landlord/properties/${propertyId}`);
       });
     } catch (error) {
       console.error("Error updating property:", error);

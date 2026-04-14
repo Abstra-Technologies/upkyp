@@ -166,7 +166,7 @@ export default function LeaseDetailsPage() {
   ================================ */
   const handleExtendLease = () => {
     router.push(
-      `/pages/landlord/properties/${lease.property_id}/activeLease/extend/${lease.lease_id}`,
+      `/landlord/properties/${lease.property_id}/activeLease/extend/${lease.lease_id}`,
     );
   };
 
