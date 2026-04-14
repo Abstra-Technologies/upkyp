@@ -10,6 +10,7 @@ import PushInit from "@/components/notification/pushNotifMobile";
 import GoogleTranslateProvider from "@/components/GoogleTranslateProvider";
 import "leaflet/dist/leaflet.css";
 import "leaflet-geosearch/dist/geosearch.css";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -80,7 +81,7 @@ export default function RootLayout({
         </Head>
         <body>
         <ClientLayout>
-
+            <SpeedInsights/>
             {children}
       
             <CookiesPermission />
