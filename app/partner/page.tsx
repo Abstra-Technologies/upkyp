@@ -10,7 +10,7 @@ import {
   Building2,
   MapPin,
 } from "lucide-react";
-import Page_footer from "../../../components/navigation/page_footer";
+import Page_footer from "@/components/navigation/page_footer";
 import { useState } from "react";
 
 export default function Partner() {
