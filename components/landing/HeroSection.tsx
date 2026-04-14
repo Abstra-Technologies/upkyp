@@ -26,9 +26,9 @@ export default function HeroSection() {
         <div className="absolute bottom-1/4 right-[10%] w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-float" />
       </div>
 
-        <div className="absolute top-2 left-0 right-0 z-30">
-            <PaymentPartnersMarquee />
-        </div>
+        {/*<div className="absolute top-2 left-0 right-0 z-30">*/}
+        {/*    <PaymentPartnersMarquee />*/}
+        {/*</div>*/}
 
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
