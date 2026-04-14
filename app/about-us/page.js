@@ -6,7 +6,7 @@ import {
   LightbulbIcon,
   ArrowRightIcon,
 } from "lucide-react";
-import Page_footer from "../../../components/navigation/page_footer";
+import Page_footer from "@/components/navigation/page_footer";
 import Image from "next/image";
 import Link from "next/link";
 
