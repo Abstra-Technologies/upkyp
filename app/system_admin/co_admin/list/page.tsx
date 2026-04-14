@@ -163,7 +163,7 @@ export default function CoAdminDashboard() {
             <button
                 onClick={() => {
                     logEvent("page_view", "Navigation", "Add Co-Admin");
-                    router.push("/pages/system_admin/co_admin/create");
+                    router.push("/system_admin/co_admin/create");
                 }}
                 className="mb-6 px-4 py-2 bg-blue-600 text-white rounded"
             >
@@ -222,7 +222,7 @@ export default function CoAdminDashboard() {
                                 <button
                                     onClick={() =>
                                         router.push(
-                                            `/pages/system_admin/co_admin/details/${a.admin_id}`
+                                            `/system_admin/co_admin/details/${a.admin_id}`
                                         )
                                     }
                                     className="bg-blue-600 text-white px-3 py-1 rounded flex items-center"

@@ -34,7 +34,7 @@ export default function AnnouncementsList() {
                       title: "Session Expired",
                       text: "Please log in again.",
                     }).then(() => {
-                      router.push("/pages/system_admin/login");
+                      router.push("/system_admin/login");
                     });
                     return;
                   }
@@ -217,7 +217,7 @@ export default function AnnouncementsList() {
                         </div>
                         
                         <button 
-                            onClick={() => router.push("/pages/system_admin/annoucement")}
+                            onClick={() => router.push("/system_admin/annoucement")}
                             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
                         >
                             + New Announcement

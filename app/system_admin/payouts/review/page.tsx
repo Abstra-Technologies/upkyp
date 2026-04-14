@@ -46,7 +46,7 @@ function ReviewPayoutContent() {
             });
 
             alert("Disbursement initiated successfully.");
-            router.push("/pages/system_admin/payouts/payments_list");
+            router.push("/system_admin/payouts/payments_list");
         } catch (err) {
             console.error(err);
             alert("Failed to initiate disbursement.");

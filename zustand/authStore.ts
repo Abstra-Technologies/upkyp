@@ -167,7 +167,7 @@ const useAuthStore = create<AuthState>()(
                 });
 
                 useAuthStore.persist.clearStorage();
-                window.location.replace("/pages/auth/login");
+                window.location.replace("/auth/login");
             },
 
             /* =========================
@@ -188,7 +188,7 @@ const useAuthStore = create<AuthState>()(
                 });
 
                 useAuthStore.persist.clearStorage();
-                window.location.replace("/pages/admin_login");
+                window.location.replace("/admin_login");
             },
         }),
         {

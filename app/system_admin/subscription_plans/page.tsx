@@ -232,7 +232,7 @@ export default function AdminPlansPage() {
 
                                     <td className="p-3 flex justify-end gap-2">
                                         <button
-                                            onClick={() => router.push(`/pages/system_admin/subscription_plans/${plan?.plan_id}`)}
+                                            onClick={() => router.push(`/system_admin/subscription_plans/${plan?.plan_id}`)}
                                             className="text-blue-600"
                                         >
                                             <Pencil size={16} />

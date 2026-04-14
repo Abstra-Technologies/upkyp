@@ -33,77 +33,77 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {
             title: "User Management",
             items: [
-                { label: "Tenant Management", href: "/pages/system_admin/tenant_landlord/tenant_mgt", icon: Users },
-                { label: "Suspended Accounts", href: "/pages/system_admin/tenant_landlord/suspendedAccounts", icon: Users },
-                { label: "Deactivated Accounts", href: "/pages/system_admin/deactivatedAccounts", icon: Users },
+                { label: "Tenant Management", href: "/system_admin/tenant_landlord/tenant_mgt", icon: Users },
+                { label: "Suspended Accounts", href: "/system_admin/tenant_landlord/suspendedAccounts", icon: Users },
+                { label: "Deactivated Accounts", href: "/system_admin/deactivatedAccounts", icon: Users },
 
             ],
         },
         {
             title: "Landlord Management",
             items: [
-                { label: "Landlord Verification", href: "/pages/system_admin/tenant_landlord/verification", icon: Users },
-                { label: "Landlord UserList", href: "/pages/system_admin/tenant_landlord/landlord_mgt", icon: Users },
-                { label: "Beta Program", href: "/pages/system_admin/beta_programs", icon: Users },
+                { label: "Landlord Verification", href: "/system_admin/tenant_landlord/verification", icon: Users },
+                { label: "Landlord UserList", href: "/system_admin/tenant_landlord/landlord_mgt", icon: Users },
+                { label: "Beta Program", href: "/system_admin/beta_programs", icon: Users },
 
             ],
         },
         {
             title: "Subscription Plan",
             items: [
-                { label: "Split Rules", href: "/pages/system_admin/split_rules", icon: Users },
+                { label: "Split Rules", href: "/system_admin/split_rules", icon: Users },
 
             ],
         },
         {
             title: "Payments & Payouts",
             items: [
-                { label: "Payment Channels", href: "/pages/system_admin/payouts/payment_channels", icon: Banknote },
-                { label: "Payments List", href: "/pages/system_admin/payouts/payments_list", icon: Banknote },
-                { label: "Payout History", href: "/pages/system_admin/payouts/history", icon: History },
+                { label: "Payment Channels", href: "/system_admin/payouts/payment_channels", icon: Banknote },
+                { label: "Payments List", href: "/system_admin/payouts/payments_list", icon: Banknote },
+                { label: "Payout History", href: "/system_admin/payouts/history", icon: History },
             ],
         },
         {
             title: "Subscription Programs",
             items: [
-                { label: "Beta Users List", href: "/pages/system_admin/beta_programs", icon: Users },
-                { label: "Plan List", href: "/pages/system_admin/subscription_plans", icon: Users },
+                { label: "Beta Users List", href: "/system_admin/beta_programs", icon: Users },
+                { label: "Plan List", href: "/system_admin/subscription_plans", icon: Users },
 
             ],
         },
         {
             title: "System Administration",
             items: [
-                { label: "Add Co-admin", href: "/pages/system_admin/co_admin/list", icon: Users2 },
+                { label: "Add Co-admin", href: "/system_admin/co_admin/list", icon: Users2 },
             ],
         },
         {
             title: "Property Management",
             items: [
-                { label: "Property Verification", href: "/pages/system_admin/propertyManagement/list", icon: Building2 },
-                { label: "Content Management", href: "/pages/system_admin/cms", icon: Users2 },
+                { label: "Property Verification", href: "/system_admin/propertyManagement/list", icon: Building2 },
+                { label: "Content Management", href: "/system_admin/cms", icon: Users2 },
             ],
         },
 
         {
             title: "Activity & Logs",
             items: [
-                { label: "Activity Log", href: "/pages/system_admin/activiyLog", icon: ScrollText },
-                { label: "Bug Reports", href: "/pages/system_admin/bug_report/list", icon: Bug },
+                { label: "Activity Log", href: "/system_admin/activiyLog", icon: ScrollText },
+                { label: "Bug Reports", href: "/system_admin/bug_report/list", icon: Bug },
             ],
         },
 
         {
             title: "System Configuration",
             items: [
-                { label: "IP Configurations", href: "/pages/system_admin/ip_restrict", icon: EthernetPort },
+                { label: "IP Configurations", href: "/system_admin/ip_restrict", icon: EthernetPort },
             ],
         },
 
         {
             title: "Announcements",
             items: [
-                { label: "Announcements", href: "/pages/system_admin/annoucement", icon: ScrollText },
+                { label: "Announcements", href: "/system_admin/annoucement", icon: ScrollText },
             ],
         },
     ];

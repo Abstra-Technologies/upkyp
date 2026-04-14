@@ -41,7 +41,7 @@ function Login() {
 
     return (
         <div
-            className="relative h-screen w-screen overflow-hidden"
+            className="fixed inset-0 overflow-hidden"
             style={{
                 backgroundImage:
                     "url('https://res.cloudinary.com/dptmeluy0/image/upload/v1767326297/f2aa6c44-eb73-41ea-9d68-5c11237a7cd5_uwielr.jpg')",
@@ -51,10 +51,10 @@ function Login() {
         >
             <div className="absolute inset-0 bg-black/30" />
 
-            <div className="relative z-10 h-full flex items-center justify-center p-4">
-                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16">
+            <div className="relative z-10 h-full w-full flex items-center justify-center p-4">
+                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16 max-w-full">
                     {/* Hero Text */}
-                    <div className="hidden lg:block max-w-md text-center">
+                    <div className="hidden lg:block max-w-md text-center flex-shrink-0">
                         <h1
                             className="text-3xl lg:text-4xl font-extrabold leading-tight text-white"
                             style={{
@@ -84,7 +84,7 @@ function Login() {
                     </div>
 
                     {/* Forms */}
-                    <div className="w-full max-w-sm">
+                    <div className="w-full max-w-sm flex-shrink-0">
                         <div className="hidden sm:block">
                             <LoginForm callbackUrl={callbackUrl} />
                         </div>

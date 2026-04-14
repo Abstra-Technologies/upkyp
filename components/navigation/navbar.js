@@ -47,7 +47,7 @@ const Navbar = () => {
   const isInPortalMode = pathname?.includes("/rentalPortal/");
 
   // Check if we're on profile/settings pages (hide navbar on mobile for tenants)
-  const isProfilePage = pathname?.includes("/pages/commons/");
+  const isProfilePage = pathname?.includes("/commons/");
 
   // Handle scroll effect
   useEffect(() => {
@@ -115,10 +115,10 @@ const Navbar = () => {
   const handleLogout = async () => {
     if (admin) {
       await signOutAdmin();
-      router.push("/pages/admin_login");
+      router.push("/admin_login");
     } else {
       await signOut();
-      router.push("/pages/auth/login");
+      router.push("/auth/login");
     }
     setDropdownOpen(false);
     setMobileMenuOpen(false);
@@ -127,21 +127,21 @@ const Navbar = () => {
   // Main navbar links (shown in header)
   const getMainNavLinks = () => {
     if (admin) {
-      return [{ href: "/pages/system_admin/dashboard", label: "Dashboard" }];
+      return [{ href: "/system_admin/dashboard", label: "Dashboard" }];
     }
 
     if (!user) {
       return [
-        { href: "/pages/public/how-it-works", label: "How It Works" },
-        { href: "/pages/find-rent", label: "Find Rent" },
-        // { href: "/pages/public/pricing", label: "Pricing" },
+        { href: "/public/how-it-works", label: "How It Works" },
+        { href: "/find-rent", label: "Find Rent" },
+        // { href: "/public/pricing", label: "Pricing" },
       ];
     } else if (user?.userType === "tenant") {
       return [
-        { href: "/pages/tenant/feeds", label: "Feeds" },
-        { href: "/pages/find-rent", label: "Find Rent" },
-        { href: "/pages/tenant/my-unit", label: "My Units" },
-        { href: "/pages/tenant/chat", label: "Chats" },
+        { href: "/tenant/feeds", label: "Feeds" },
+        { href: "/find-rent", label: "Find Rent" },
+        { href: "/tenant/my-unit", label: "My Units" },
+        { href: "/tenant/chat", label: "Chats" },
       ];
     }
 
@@ -153,7 +153,7 @@ const Navbar = () => {
     if (admin) {
       return [
         {
-          href: "/pages/system_admin/dashboard",
+          href: "/system_admin/dashboard",
           label: "Dashboard",
           icon: Building2,
         },
@@ -163,38 +163,38 @@ const Navbar = () => {
     if (!user) {
       return [
         {
-          href: "/pages/public/how-it-works",
+          href: "/public/how-it-works",
           label: "How It Works",
           icon: HelpCircle,
         },
-        { href: "/pages/find-rent", label: "Find Rent", icon: Search },
+        { href: "/find-rent", label: "Find Rent", icon: Search },
         {
-          href: "/pages/public/download",
+          href: "/public/download",
           label: "Download App",
           icon: Download,
         },
-        { href: "/pages/public/blogs", label: "Blogs", icon: BookOpen },
-        { href: "/pages/public/pricing", label: "Pricing", icon: CreditCard },
+        { href: "/public/blogs", label: "Blogs", icon: BookOpen },
+        { href: "/public/pricing", label: "Pricing", icon: CreditCard },
       ];
     } else if (user?.userType === "tenant") {
       return [
-        { href: "/pages/tenant/feeds", label: "Feeds", icon: Rss },
-        { href: "/pages/find-rent", label: "Find Rent", icon: Search },
-        { href: "/pages/tenant/my-unit", label: "My Units", icon: Building2 },
-        { href: "/pages/tenant/chat", label: "Chats", icon: MessageCircle },
+        { href: "/tenant/feeds", label: "Feeds", icon: Rss },
+        { href: "/find-rent", label: "Find Rent", icon: Search },
+        { href: "/tenant/my-unit", label: "My Units", icon: Building2 },
+        { href: "/tenant/chat", label: "Chats", icon: MessageCircle },
         {
-          href: "/pages/tenant/myApplications",
+          href: "/tenant/myApplications",
           label: "My Applications",
           icon: FileText,
           badge: undecidedApplications > 0 ? undecidedApplications : null,
         },
         {
-          href: "/pages/tenant/visit-history",
+          href: "/tenant/visit-history",
           label: "Visit History",
           icon: MapPin,
         },
         {
-          href: "/pages/tenant/unitHistory",
+          href: "/tenant/unitHistory",
           label: "Unit History",
           icon: Clock,
         },
@@ -208,21 +208,21 @@ const Navbar = () => {
   const getDropdownLinks = () => {
     if (user?.userType === "tenant") {
       return [
-        { href: "/pages/tenant/my-unit", label: "My Units", icon: Building2 },
-          // { href: "/pages/tenant/kypId", label: "My Kyp ID", icon: IdCardLanyard  },
+        { href: "/tenant/my-unit", label: "My Units", icon: Building2 },
+          // { href: "/tenant/kypId", label: "My Kyp ID", icon: IdCardLanyard  },
           {
-          href: "/pages/tenant/myApplications",
+          href: "/tenant/myApplications",
           label: "My Applications",
           icon: FileText,
           badge: undecidedApplications > 0 ? undecidedApplications : null,
         },
         {
-          href: "/pages/tenant/visit-history",
+          href: "/tenant/visit-history",
           label: "Visit History",
           icon: MapPin,
         },
         {
-          href: "/pages/tenant/unitHistory",
+          href: "/tenant/unitHistory",
           label: "Unit History",
           icon: Clock,
         },
@@ -262,7 +262,7 @@ const Navbar = () => {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link
-              href={user?.userType === "tenant" ? "/pages/tenant/feeds" : "/"}
+              href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
               className="flex items-center space-x-2 transition-opacity hover:opacity-80"
             >
              <span
@@ -322,7 +322,7 @@ const Navbar = () => {
               ) : !user && !admin ? (
                 <div className="flex items-center space-x-3">
                   <Link
-                    href="/pages/auth/login"
+                    href="/auth/login"
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                       scrolled
                         ? "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
@@ -332,7 +332,7 @@ const Navbar = () => {
                     Login
                   </Link>
                   <Link
-                    href="/pages/auth/selectRole"
+                    href="/auth/selectRole"
                     className={`group px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-2 ${
                       scrolled
                         ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-blue-500/25"
@@ -503,7 +503,7 @@ const Navbar = () => {
                           <div className="py-2">
                             {user && (
                               <Link
-                                href="/pages/commons/profile"
+                                href="/commons/profile"
                                 onClick={() => setDropdownOpen(false)}
                                 className="px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors group"
                               >
@@ -518,7 +518,7 @@ const Navbar = () => {
 
                             {admin && (
                               <Link
-                                href={`/pages/system_admin/profile/${admin.admin_id}`}
+                                href={`/system_admin/profile/${admin.admin_id}`}
                                 onClick={() => setDropdownOpen(false)}
                                 className="px-4 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors group"
                               >
@@ -571,7 +571,7 @@ const Navbar = () => {
             <div className="flex justify-between items-center h-14 px-4">
               {/* Logo */}
               <Link
-                href={user?.userType === "tenant" ? "/pages/tenant/feeds" : "/"}
+href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
                 className="flex items-center"
               >
              <span
@@ -748,8 +748,8 @@ const Navbar = () => {
                       <Link
                         href={
                           user
-                            ? "/pages/commons/profile"
-                            : `/pages/system_admin/profile/${admin?.admin_id}`
+                            ? "/commons/profile"
+                            : `/system_admin/profile/${admin?.admin_id}`
                         }
                         className="flex items-center gap-3 px-4 py-3.5 text-gray-700 hover:bg-gray-50 transition-colors"
                       >
@@ -777,13 +777,13 @@ const Navbar = () => {
                   {!user && !admin && !loading && (
                     <div className="border-t border-gray-100 p-4 space-y-3">
                       <Link
-                        href="/pages/auth/login"
+                        href="/auth/login"
                         className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                       >
                         Login
                       </Link>
                       <Link
-                        href="/pages/auth/selectRole"
+                        href="/auth/selectRole"
                         className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-emerald-600 hover:shadow-lg hover:shadow-blue-500/25 rounded-xl transition-all"
                       >
                         Get Started Free

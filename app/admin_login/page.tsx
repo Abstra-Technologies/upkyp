@@ -82,7 +82,7 @@ export default function LoginAdmin() {
             if (res.ok) {
                 const data = await res.json().catch(() => ({}));
                 const redirectTo =
-                    data.redirectTo || "/pages/system_admin/dashboard";
+                    data.redirectTo || "/system_admin/dashboard";
 
                 logEvent("Admin Login", "Authentication", "Success", 1);
                 window.location.href = redirectTo;

@@ -46,7 +46,7 @@ export default function AdminCMSPage() {
                 "Manage landing headers, landlord portal banners, and marketing visuals.",
             icon: LayoutDashboard,
             color: "from-purple-500 to-pink-600",
-            path: "/pages/system_admin/cms/headers",
+            path: "/system_admin/cms/headers",
         },
         {
             title: "Content Pages",

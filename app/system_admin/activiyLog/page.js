@@ -286,7 +286,7 @@ export default function ActivityLogs() {
                                                                     : `${log.firstName ?? ''} ${log.lastName ?? ''}`.trim()}
                                                             </div>
                                                             <Link
-                                                                href={`/pages/system_admin/users/${log.user_id || log.admin_id}`}
+                                                                href={`/system_admin/users/${log.user_id || log.admin_id}`}
                                                                 className="text-xs text-indigo-600 font-medium hover:text-indigo-800"
                                                             >
                                                                 {log.user_id || log.admin_id || "N/A"}

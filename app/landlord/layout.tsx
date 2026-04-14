@@ -64,7 +64,7 @@ export default function LandlordLayout({
 
   useEffect(() => {
     if (authReady && user && user.userType !== "landlord") {
-      router.replace("/pages/auth/login");
+      router.replace("/auth/login");
     }
   }, [authReady, user, router]);
 
@@ -81,8 +81,8 @@ export default function LandlordLayout({
 
   const isInsideProperty = useMemo(
     () =>
-      pathname.includes("/pages/landlord/properties/") &&
-      !pathname.includes("/pages/commons/profile"),
+      pathname.includes("/landlord/properties/") &&
+      !pathname.includes("/commons/profile"),
     [pathname],
   );
 
@@ -95,31 +95,31 @@ export default function LandlordLayout({
           {
             id: "nav-dashboard",
             label: "Dashboard",
-            href: "/pages/landlord/dashboard",
+            href: "/landlord/dashboard",
             icon: Home,
           },
           {
             id: "nav-payments",
             label: "Payments",
-            href: "/pages/landlord/payments",
+            href: "/landlord/payments",
             icon: Wallet,
           },
           {
             id: "nav-properties",
             label: "Properties",
-            href: "/pages/landlord/property-listing",
+            href: "/landlord/property-listing",
             icon: Building,
           },
           {
             id: "nav-tenants",
             label: "My Tenants",
-            href: "/pages/landlord/list_of_tenants",
+            href: "/landlord/list_of_tenants",
             icon: Users,
           },
           {
             id: "nav-messages",
             label: "Messages",
-            href: "/pages/landlord/chat",
+            href: "/landlord/chat",
             icon: MessageSquareMore,
           },
 
@@ -131,19 +131,19 @@ export default function LandlordLayout({
           {
             id: "nav-workorders",
             label: "Work Orders",
-            href: "/pages/landlord/maintenance-request",
+            href: "/landlord/maintenance-request",
             icon: Construction,
           },
           {
             id: "nav-calendar",
             label: "Calendar",
-            href: "/pages/landlord/calendar",
+            href: "/landlord/calendar",
             icon: Calendar,
           },
           {
             id: "nav-announcements",
             label: "Announcements",
-            href: "/pages/landlord/announcement",
+            href: "/landlord/announcement",
             icon: Megaphone,
           },
         ],
@@ -154,7 +154,7 @@ export default function LandlordLayout({
           {
             id: "nav-analytics",
             label: "Analytics",
-            href: "/pages/landlord/analytics/performance",
+            href: "/landlord/analytics/performance",
             icon: ChartArea,
           },
         ],
@@ -165,13 +165,13 @@ export default function LandlordLayout({
           {
             id: "nav-help",
             label: "Help & Support",
-            href: "/pages/public/help",
+            href: "/public/help",
             icon: Handshake,
           },
           {
             id: "nav-guide",
             label: "User Guide",
-            href: "/pages/public/guide",
+            href: "/public/guide",
             icon: Handshake,
           },
         ],
@@ -182,7 +182,7 @@ export default function LandlordLayout({
 
   const handleLogout = async () => {
     await signOut();
-    router.push("/pages/auth/login");
+    router.push("/auth/login");
   };
 
   if (!authReady)
@@ -200,7 +200,7 @@ export default function LandlordLayout({
           <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white">
             <div className="flex justify-between items-center">
               {/* ID for tour targeting */}
-              <Link id="nav-brand" href="/pages/landlord/dashboard">
+              <Link id="nav-brand" href="/landlord/dashboard">
                 <h1 className="text-2xl font-bold">Upkyp</h1>
               </Link>
               <NotificationSection user={user} admin={null} />
@@ -225,7 +225,7 @@ export default function LandlordLayout({
                 <p className="font-semibold text-sm truncate">
                   {user.firstName && user.lastName
                     ? `${user.firstName} ${user.lastName}`
-                    : user.companyName || user.email}
+                    : user?.companyName || user.email}
                 </p>
                 <p className="text-xs text-gray-500">Landlord</p>
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -251,7 +251,7 @@ export default function LandlordLayout({
                   </p>
                 )}
               </div>
-              <Link href="/pages/commons/profile">
+              <Link href="/commons/profile">
                 <Settings className="w-5 h-5 text-gray-500 hover:text-blue-600" />
               </Link>
             </div>
@@ -290,7 +290,7 @@ export default function LandlordLayout({
           {/* SUBSCRIPTION UPGRADE BANNER */}
           <div className="p-4 border-t bg-gradient-to-r from-blue-600 to-emerald-600">
             <Link
-              href="/pages/landlord/subsciption_plan/pricing"
+              href="/landlord/subsciption_plan/pricing"
               className="flex items-center justify-center gap-2 px-4 py-3 bg-white rounded-lg hover:bg-gray-50 transition font-semibold text-sm"
             >
               <CreditCard className="w-5 h-5" />
@@ -318,7 +318,7 @@ export default function LandlordLayout({
         id="mobile-header"
         className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
-        <Link href="/pages/landlord/dashboard">
+        <Link href="/landlord/dashboard">
           <h1 className="text-xl font-bold text-white">Upkyp</h1>
         </Link>
         <div className="flex gap-2">

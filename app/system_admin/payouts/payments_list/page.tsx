@@ -141,7 +141,7 @@ export default function PaymentsListPage() {
         }
 
         router.push(
-            `/pages/system_admin/payouts/review?payment_ids=${selectedIds.join(
+            `/system_admin/payouts/review?payment_ids=${selectedIds.join(
                 ","
             )}`
         );

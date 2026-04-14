@@ -122,7 +122,7 @@ export default function SupportDetails() {
 
                         <button
                             className="mt-4 ml-2 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition"
-                            onClick={() => router.push("/pages/system_admin/supportIssues")}
+                            onClick={() => router.push("/system_admin/supportIssues")}
                         >
                             Back to List
                         </button>

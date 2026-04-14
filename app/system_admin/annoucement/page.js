@@ -7,7 +7,7 @@ const AnnouncementPage = () => {
     const router = useRouter();
     
     const handleViewAnnouncements = () => {
-        router.push("/pages/system_admin/annoucement/view");
+        router.push("/system_admin/annoucement/view");
     };
     
     return (

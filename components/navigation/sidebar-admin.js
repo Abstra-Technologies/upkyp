@@ -9,67 +9,67 @@ export default function SideNavAdmin({ admin }) {
 
   const sideNavItems = [
     {
-      href: "/pages/system_admin/activiyLog",
+      href: "/system_admin/activiyLog",
       icon: ScrollText,
       label: "Activity Log",
     },
     {
-      href: "/pages/system_admin/co_admin/list",
+      href: "/system_admin/co_admin/list",
       icon: Users2,
       label: "Add Co-admin",
     },
       {
-          href: "/pages/system_admin/cms",
+          href: "/system_admin/cms",
           icon: Users2,
           label: "Content Management",
       },
     {
-      href: "/pages/system_admin/ip_restrict",
+      href: "/system_admin/ip_restrict",
       icon: EthernetPort ,
       label: "IP Configurations",
     },
     {
-      href: "/pages/system_admin/tenant_landlord/tenant_mgt",
+      href: "/system_admin/tenant_landlord/tenant_mgt",
       icon: Users,
       label: "Tenant Management",
     },
     {
-      href: "/pages/system_admin/tenant_landlord/verification",
+      href: "/system_admin/tenant_landlord/verification",
       icon: Users,
       label: "Landlord Verification",
     },
     {
-      href: "/pages/system_admin/tenant_landlord/landlord_mgt",
+      href: "/system_admin/tenant_landlord/landlord_mgt",
       icon: Users,
       label: "Landlord Management",
     },
     {
-      href: "/pages/system_admin/tenant_landlord/suspendedAccounts",
+      href: "/system_admin/tenant_landlord/suspendedAccounts",
       icon: Users,
       label: "Suspended Accounts",
     },
     {
-      href: "/pages/system_admin/propertyManagement/list",
+      href: "/system_admin/propertyManagement/list",
       icon: Building2,
       label: "Property Verification",
     },
     {
-      href: "/pages/system_admin/annoucement",
+      href: "/system_admin/annoucement",
       icon: ScrollText,
       label: "Announcements",
     },
     {
-      href: "/pages/system_admin/bug_report/list",
+      href: "/system_admin/bug_report/list",
       icon: Bug,
       label: "Bug Reports",
     },
     {
-      href: "/pages/system_admin/deactivatedAccounts",
+      href: "/system_admin/deactivatedAccounts",
       icon: Bug,
       label: "DeActivated Account",
     },
     {
-      href: "/pages/system_admin/supportIssues",
+      href: "/system_admin/supportIssues",
       icon: ScrollText,
       label: "Support",
     },

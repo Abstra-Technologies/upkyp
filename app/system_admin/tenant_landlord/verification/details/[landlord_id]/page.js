@@ -82,7 +82,7 @@ export default function LandlordDetails() {
       const data = await res.json();
       if (res.ok) {
         alert(`Verification ${status} successfully.`);
-        router.push("/pages/system_admin/tenant_landlord/verification");
+        router.push("/system_admin/tenant_landlord/verification");
       } else {
         alert(data.error || "Something went wrong.");
       }
@@ -220,7 +220,7 @@ export default function LandlordDetails() {
               <button
                 onClick={() =>
                   router.push(
-                    "/pages/system_admin/tenant_landlord/verification"
+                    "/system_admin/tenant_landlord/verification"
                   )
                 }
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"

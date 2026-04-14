@@ -44,21 +44,39 @@ function safeRedirect(target: string, req: NextRequest) {
 
 const SYSTEM_ADMIN_ROLES = ["super-admin", "superadmin", "co-admin"];
 
+// Auth pages to hide when logged in (both old /pages/ and new app structure)
 const AUTH_PAGES = [
+    "/auth/login",
+    "/auth/register",
+    "/auth/selectRole",
     "/pages/auth/login",
     "/pages/auth/register",
     "/pages/auth/selectRole",
 ];
 
-const VERIFY_PAGE = "/pages/auth/verify-email";
+const ADMIN_LOGIN_PAGES = [
+    "/admin_login",
+    "/pages/admin_login",
+];
+
+// Public pages that should be accessible even when logged in
+const PUBLIC_PAGES = [
+    "/",
+    "/find-rent",
+    "/public",
+    "/api",
+    "/_next",
+];
+
+const VERIFY_PAGE = "/auth/verify-email";
 
 const permissionMapping: Record<string, string> = {
-    "/pages/system_admin/co_admin": "manage_users",
-    "/pages/system_admin/propertyManagement": "approve_properties",
-    "/pages/system_admin/announcement": "manage_announcements",
-    "/pages/system_admin/bug_report": "view_reports",
-    "/pages/system_admin/activityLog": "view_log",
-    "/pages/system_admin/beta_programs": "beta",
+    "/system_admin/co_admin": "manage_users",
+    "/system_admin/propertyManagement": "approve_properties",
+    "/system_admin/announcement": "manage_announcements",
+    "/system_admin/bug_report": "view_reports",
+    "/system_admin/activityLog": "view_log",
+    "/system_admin/beta_programs": "beta",
 };
 
 /* =====================================================
@@ -68,7 +86,16 @@ const permissionMapping: Record<string, string> = {
 export async function proxy(req: NextRequest) {
     const { pathname, search } = req.nextUrl;
 
-    if (pathname === VERIFY_PAGE) {
+    // Always allow public pages
+    const isPublicPage = PUBLIC_PAGES.some(
+        (page) => pathname === page || pathname.startsWith(page + "/")
+    );
+    
+    if (isPublicPage) {
+        return NextResponse.next();
+    }
+
+    if (pathname === VERIFY_PAGE || pathname === "/pages/auth/verify-email") {
         return NextResponse.next();
     }
 
@@ -79,7 +106,7 @@ export async function proxy(req: NextRequest) {
         (page) => pathname === page || pathname.startsWith(`${page}/`)
     );
 
-    const isAdminLoginPage = pathname === "/pages/admin_login";
+    const isAdminLoginPage = ADMIN_LOGIN_PAGES.includes(pathname);
 
     /* -----------------------------------------------
        ALLOW WEBHOOKS
@@ -97,11 +124,11 @@ export async function proxy(req: NextRequest) {
 
         if (decodedUser) {
             if (decodedUser.userType === "landlord") {
-                return safeRedirect("/pages/landlord/dashboard", req);
+                return safeRedirect("/landlord/dashboard", req);
             }
 
             if (decodedUser.userType === "tenant") {
-                return safeRedirect("/pages/tenant/feeds", req);
+                return safeRedirect("/tenant/feeds", req);
             }
         }
     }
@@ -110,7 +137,7 @@ export async function proxy(req: NextRequest) {
         const decodedAdmin: any = await verifyToken(adminToken);
 
         if (decodedAdmin && SYSTEM_ADMIN_ROLES.includes(decodedAdmin.role)) {
-            return safeRedirect("/pages/system_admin/dashboard", req);
+            return safeRedirect("/system_admin/dashboard", req);
         }
     }
 
@@ -118,9 +145,9 @@ export async function proxy(req: NextRequest) {
        ADMIN FLOW (Protected)
     ===================================================== */
 
-    if (pathname.startsWith("/pages/system_admin")) {
+    if (pathname.startsWith("/system_admin")) {
         if (!adminToken) {
-            const adminLogin = new URL("/pages/admin_login", req.url);
+            const adminLogin = new URL("/admin_login", req.url);
             adminLogin.searchParams.set("callbackUrl", pathname + search);
             return NextResponse.redirect(adminLogin);
         }
@@ -129,7 +156,7 @@ export async function proxy(req: NextRequest) {
 
         if (!decodedAdmin) {
             const res = NextResponse.redirect(
-                new URL("/pages/admin_login", req.url)
+                new URL("/admin_login", req.url)
             );
             res.cookies.delete("admin_token");
             return res;
@@ -139,18 +166,18 @@ export async function proxy(req: NextRequest) {
 
         const validStatuses = ["active", "pending", "unverified"];
         if (status && !validStatuses.includes(status)) {
-            return safeRedirect("/pages/error/accountSuspended", req);
+            return safeRedirect("/error/accountSuspended", req);
         }
 
         if (!SYSTEM_ADMIN_ROLES.includes(role)) {
-            return safeRedirect("/pages/error/accessDenied", req);
+            return safeRedirect("/error/accessDenied", req);
         }
 
         const clientIp = getClientIp(req);
 
         if (!clientIp || !ip_hash || hashIp(clientIp) !== ip_hash) {
             const res = NextResponse.redirect(
-                new URL("/pages/admin_login?reason=ip_changed", req.url)
+                new URL("/admin_login?reason=ip_changed", req.url)
             );
             res.cookies.delete("admin_token");
             return res;
@@ -163,7 +190,7 @@ export async function proxy(req: NextRequest) {
         if (matchedEntry) {
             const [, requiredPermission] = matchedEntry;
             if (!permissions.includes(requiredPermission)) {
-                return safeRedirect("/pages/error/accessDenied", req);
+                return safeRedirect("/error/accessDenied", req);
             }
         }
 
@@ -175,12 +202,15 @@ export async function proxy(req: NextRequest) {
     ===================================================== */
 
     if (
+        pathname.startsWith("/tenant") ||
+        pathname.startsWith("/landlord") ||
+        pathname.startsWith("/commons") ||
         pathname.startsWith("/pages/tenant") ||
         pathname.startsWith("/pages/landlord") ||
         pathname.startsWith("/pages/commons")
     ) {
         if (!userToken) {
-            const loginUrl = new URL("/pages/auth/login", req.url);
+            const loginUrl = new URL("/auth/login", req.url);
             loginUrl.searchParams.set("callbackUrl", pathname + search);
             return NextResponse.redirect(loginUrl);
         }
@@ -189,7 +219,7 @@ export async function proxy(req: NextRequest) {
 
         if (!decodedUser) {
             const res = NextResponse.redirect(
-                new URL("/pages/auth/login", req.url)
+                new URL("/auth/login", req.url)
             );
             res.cookies.delete("token");
             return res;
@@ -198,19 +228,19 @@ export async function proxy(req: NextRequest) {
         const { userType, emailVerified, status } = decodedUser;
 
         if (status && status !== "active") {
-            return safeRedirect("/pages/error/accountSuspended", req);
+            return safeRedirect("/error/accountSuspended", req);
         }
 
         if (emailVerified === false && pathname !== VERIFY_PAGE) {
             return safeRedirect(VERIFY_PAGE, req);
         }
 
-        if (pathname.startsWith("/pages/tenant") && userType !== "tenant") {
-            return safeRedirect("/pages/error/accessDenied", req);
+        if ((pathname.startsWith("/tenant") || pathname.startsWith("/pages/tenant")) && userType !== "tenant") {
+            return safeRedirect("/error/accessDenied", req);
         }
 
-        if (pathname.startsWith("/pages/landlord") && userType !== "landlord") {
-            return safeRedirect("/pages/error/accessDenied", req);
+        if ((pathname.startsWith("/landlord") || pathname.startsWith("/pages/landlord")) && userType !== "landlord") {
+            return safeRedirect("/error/accessDenied", req);
         }
     }
 
@@ -223,11 +253,19 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
     matcher: [
-        "/pages/auth/:path*",        // only for hiding if logged in
+        "/",
+        "/auth/:path*",
+        "/admin_login",
+        "/tenant/:path*",
+        "/landlord/:path*",
+        "/commons/:path*",
+        "/system_admin/:path*",
+        "/find-rent/:path*",
+        "/public/:path*",
+        "/pages/auth/:path*",
         "/pages/admin_login",
         "/pages/tenant/:path*",
         "/pages/landlord/:path*",
-        "/pages/system_admin/:path*",
         "/pages/commons/:path*",
         "/api/webhook/:path*",
     ],

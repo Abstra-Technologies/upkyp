@@ -148,7 +148,7 @@ export default function BugReportDetails() {
                 <span className="block sm:inline">{error}</span>
                 <div className="mt-4 flex space-x-4">
                   <button 
-                    onClick={() => router.push('/pages/system_admin/bug_report/list')} 
+                    onClick={() => router.push('/system_admin/bug_report/list')} 
                     className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
                   >
                     Back to Bug Reports
@@ -174,7 +174,7 @@ export default function BugReportDetails() {
       <div className="flex-1 p-8 overflow-auto">
         <div className="max-w-4xl mx-auto">
           <button 
-            onClick={() => router.push('/pages/system_admin/bug_report/list')}
+            onClick={() => router.push('/system_admin/bug_report/list')}
             className="mb-6 flex items-center text-blue-600 hover:text-blue-800 transition-colors"
           >
             <FaArrowLeft className="mr-2" /> Back to Bug Reports

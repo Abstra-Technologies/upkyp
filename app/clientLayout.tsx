@@ -95,8 +95,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                 const isAdmin = !!admin && !user;
 
                 const loginUrl = isAdmin
-                    ? "/pages/admin_login"
-                    : "/pages/auth/login";
+                    ? "/admin_login"
+                    : "/auth/login";
 
                 window.location.href = loginUrl;
             });
@@ -134,8 +134,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             setSessionExpired(false);
 
             const loginUrl = isAdmin
-                ? `/pages/admin_login?callbackUrl=${encodeURIComponent(callbackUrl)}`
-                : `/pages/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
+                ? `/admin_login?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                : `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`;
 
             window.location.href = loginUrl;
         }, 2500);

@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import useAuthStore from "@/zustand/authStore";
-import PropertyAnalytics from "../../../../components/analytics/PropertyAnalytics";
-import LoadingScreen from "../../../../components/loadingScreen";
+import PropertyAnalytics from "@/components/analytics/PropertyAnalytics";
+import LoadingScreen from "@/components/loadingScreen";
 
 export default function AdminDashboard() {
     const { admin, loading, fetchSession, signOutAdmin } = useAuthStore();
