@@ -5,40 +5,42 @@ import { motion } from "motion/react";
 import Image from "next/image";
 
 export default function FeaturesShowcase() {
-  const features = [
-    {
-      icon: <Building2 className="w-6 h-6" />,
-      title: "Property Portfolio",
-      description:
-        "Manage all your properties in one place—apartments, houses, commercial spaces. Track occupancy, lease terms, and property details effortlessly.",
-      gradient: "from-blue-500 to-blue-600",
-      image: "/images/dashboard.png",
-    },
-    {
-      icon: <Users className="w-6 h-6" />,
-      title: "Tenant Management",
-      description:
-        "Store tenant information, lease agreements, and communication history. Send announcements and handle concerns through a dedicated portal.",
-      gradient: "from-purple-500 to-purple-600",
-      image: "/images/tenantProfile.png", // placeholder
-    },
-    {
-      icon: <Receipt className="w-6 h-6" />,
-      title: "Billing & Payments",
-      description:
-        "Automate rent billing, track payment status, and generate receipts. Get notified instantly when tenants pay—or when they're late.",
-      gradient: "from-emerald-500 to-emerald-600",
-      image: "/images/payment.png", // placeholder
-    },
-    {
-      icon: <Wrench className="w-6 h-6" />,
-      title: "Maintenance Tracking",
-      description:
-        "Receive and manage maintenance requests digitally. Track progress, assign tasks, and keep tenants updated on repair status.",
-      gradient: "from-orange-500 to-orange-600",
-      image: "/images/manage.png", // placeholder
-    },
-  ];
+
+
+    const features = [
+        {
+            icon: <Building2 className="w-6 h-6" />,
+            title: "Property Portfolio",
+            description:
+                "Manage all your properties in one place—apartments, houses, commercial spaces. Track occupancy, lease terms, and property details effortlessly.",
+            gradient: "from-blue-500 to-blue-600",
+            image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226235/dashboard_gesrl5.png",
+        },
+        {
+            icon: <Users className="w-6 h-6" />,
+            title: "Tenant Management",
+            description:
+                "Store tenant information, lease agreements, and communication history. Send announcements and handle concerns through a dedicated portal.",
+            gradient: "from-purple-500 to-purple-600",
+            image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226419/tenantProfile_ljhipv.png",
+        },
+        {
+            icon: <Receipt className="w-6 h-6" />,
+            title: "Billing & Payments",
+            description:
+                "Automate rent billing, track payment status, and generate receipts. Get notified instantly when tenants pay—or when they're late.",
+            gradient: "from-emerald-500 to-emerald-600",
+            image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226442/payment_yddeqw.png", // placeholder
+        },
+        {
+            icon: <Wrench className="w-6 h-6" />,
+            title: "Maintenance Tracking",
+            description:
+                "Receive and manage maintenance requests digitally. Track progress, assign tasks, and keep tenants updated on repair status.",
+            gradient: "from-orange-500 to-orange-600",
+            image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226646/payment_ry5u2a.png", // placeholder
+        },
+    ];
 
   return (
     <section
