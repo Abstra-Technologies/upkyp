@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 /* =========================
-   INITIAL STATE
+   INITIAL PROPERTY STATE
 ========================= */
 const initialEditPropertyState = {
     propertyName: "",
@@ -29,16 +29,29 @@ const initialEditPropertyState = {
    TYPES
 ========================= */
 interface EditPropertyState {
+    propertyId: string | null; // 🔥 NEW
+
     property: typeof initialEditPropertyState;
     photos: any[];
+
     loading: boolean;
     error: any;
 
-    setProperty: (propertyDetails: Partial<typeof initialEditPropertyState>) => void;
-    setFullProperty: (propertyDetails: any) => void;
+    /* ACTIONS */
+    setPropertyId: (id: string) => void;
+
+    setProperty: (
+        propertyDetails: Partial<typeof initialEditPropertyState>
+    ) => void;
+
+    setFullProperty: (data: any) => void;
+
     toggleAmenity: (amenity: string) => void;
-    setPhotos: (photos: any[]) => void;
+
+    setPhotos: (photos: any[] | ((prev: any[]) => any[])) => void;
+
     removePhoto: (photoId: string) => void;
+
     reset: () => void;
 }
 
@@ -46,7 +59,7 @@ interface EditPropertyState {
    HELPERS
 ========================= */
 
-// ✅ safe JSON parser
+// safe parser (handles JSON + string lists)
 const safeParse = (value: any) => {
     if (!value) return [];
 
@@ -66,7 +79,7 @@ const normalizeProperty = (data: any) => ({
     propertyName: data.propertyName ?? data.property_name ?? "",
     propertyType: data.propertyType ?? data.property_type ?? "",
 
-    amenities: safeParse(data.amenities), // 🔥 FIXED
+    amenities: safeParse(data.amenities),
 
     street: data.street ?? "",
     brgyDistrict: data.brgyDistrict ?? data.brgy_district ?? "",
@@ -95,21 +108,31 @@ const normalizeProperty = (data: any) => ({
     lng: data.lng ?? data.longitude ?? null,
 });
 
-
 /* =========================
    STORE
 ========================= */
 const useEditPropertyStore = create<EditPropertyState>()(
     persist(
         (set) => ({
+            /* =======================
+               STATE
+            ======================= */
+            propertyId: null,
+
             property: { ...initialEditPropertyState },
             photos: [],
+
             loading: false,
             error: null,
 
             /* =======================
-               PARTIAL UPDATE
+               ACTIONS
             ======================= */
+
+            /* 🔥 SET PROPERTY ID */
+            setPropertyId: (id) => set({ propertyId: id }),
+
+            /* PARTIAL UPDATE */
             setProperty: (propertyDetails) =>
                 set((state) => ({
                     property: {
@@ -118,20 +141,18 @@ const useEditPropertyStore = create<EditPropertyState>()(
                     },
                 })),
 
-            /* =======================
-               FULL SET (API LOAD)
-            ======================= */
+            /* FULL LOAD (FROM API) */
             setFullProperty: (data) =>
                 set({
                     property: normalizeProperty(data),
                 }),
 
-            /* =======================
-               AMENITIES
-            ======================= */
+            /* AMENITIES TOGGLE */
             toggleAmenity: (amenity) =>
                 set((state) => {
-                    const list = state.property.amenities || [];
+                    const list = Array.isArray(state.property.amenities)
+                        ? state.property.amenities
+                        : [];
 
                     return {
                         property: {
@@ -143,14 +164,18 @@ const useEditPropertyStore = create<EditPropertyState>()(
                     };
                 }),
 
-            /* =======================
-               PHOTOS
-            ======================= */
+            /* 🔥 FIXED PHOTOS SETTER */
             setPhotos: (photos) =>
-                set({
-                    photos: Array.isArray(photos) ? photos : [],
-                }),
+                set((state) => ({
+                    photos:
+                        typeof photos === "function"
+                            ? photos(state.photos)
+                            : Array.isArray(photos)
+                                ? photos
+                                : [],
+                })),
 
+            /* REMOVE PHOTO */
             removePhoto: (photoId) =>
                 set((state) => ({
                     photos: state.photos.filter(
@@ -158,11 +183,10 @@ const useEditPropertyStore = create<EditPropertyState>()(
                     ),
                 })),
 
-            /* =======================
-               RESET
-            ======================= */
+            /* RESET EVERYTHING */
             reset: () =>
                 set({
+                    propertyId: null,
                     property: { ...initialEditPropertyState },
                     photos: [],
                     loading: false,
@@ -172,12 +196,12 @@ const useEditPropertyStore = create<EditPropertyState>()(
         {
             name: "edit-property-store",
 
-            /* 🔥 IMPORTANT FIX */
+            /* 🔥 ONLY PERSIST PHOTOS */
             partialize: (state) => ({
                 photos: state.photos,
             }),
 
-            /* 🔥 PREVENT HYDRATION BUGS */
+            /* 🔥 HYDRATION SAFETY */
             onRehydrateStorage: () => (state) => {
                 if (state) {
                     state.photos = state.photos || [];

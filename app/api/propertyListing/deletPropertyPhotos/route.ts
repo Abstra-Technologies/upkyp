@@ -10,7 +10,7 @@ export async function DELETE(req: Request) {
         const { photo_id, property_id } = await req.json();
 
         console.log('property id photo: ', property_id);
-        console.log('photo if: ', photo_id);
+        console.log('photo id : ', photo_id);
 
         if (!photo_id || !property_id) {
             return NextResponse.json({ error: "photo_id and property_id are required" }, { status: 400 });
@@ -22,10 +22,35 @@ export async function DELETE(req: Request) {
             [photo_id, property_id]
         );
 
+
         // @ts-ignore
         if (!rows.length) {
-            return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+            console.warn("[PropertyPhoto] ❌ No photos found", {
+                property_id,
+                query,
+                params,
+            });
+
+            return NextResponse.json(
+                { error: "Photo not found" },
+                { status: 404 }
+            );
         }
+
+// ✅ BETTER DEBUG
+        console.log("[PropertyPhoto] ✅ Rows fetched:", {
+            count: rows.length,
+            property_id,
+        });
+
+// 🔍 Inspect first row (VERY IMPORTANT)
+        console.log("[PropertyPhoto] Sample row:", {
+            photo_id: rows[0]?.photo_id,
+            property_id: rows[0]?.property_id,
+            raw_photo_url: rows[0]?.photo_url,
+            type: typeof rows[0]?.photo_url,
+        });
+
 
         // @ts-ignore
         const encryptedUrl = rows[0].photo_url;

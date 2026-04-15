@@ -3,19 +3,34 @@
 import { useDropzone } from "react-dropzone";
 import useEditPropertyStore from "@/zustand/property/useEditPropertyStore";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { Camera, X, AlertCircle } from "lucide-react";
+import { filterValidFiles } from "@/utils/file/fileValidation";
 
 export default function PhotosSection() {
-    const { photos, setPhotos } = useEditPropertyStore();
+    const { photos, setPhotos, propertyId } = useEditPropertyStore();
 
-    const onDrop = (acceptedFiles) => {
-        const newFiles = acceptedFiles.map((file) => ({
+    /* =========================
+       DROP HANDLER
+    ========================= */
+    const onDrop = (acceptedFiles: File[]) => {
+        const { valid, invalid } = filterValidFiles(acceptedFiles, 20);
+
+        if (invalid.length > 0) {
+            Swal.fire({
+                icon: "error",
+                title: "File too large",
+                text: `${invalid.length} file(s) exceed 20MB limit`,
+            });
+        }
+
+        const newFiles = valid.map((file) => ({
             file,
             preview: URL.createObjectURL(file),
             isNew: true,
         }));
 
-        setPhotos([...photos, ...newFiles]);
+        setPhotos((prev) => [...prev, ...newFiles]);
     };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -24,29 +39,49 @@ export default function PhotosSection() {
         multiple: true,
     });
 
-    const removePhoto = async (photo) => {
+    /* =========================
+       REMOVE PHOTO
+    ========================= */
+    const removePhoto = async (photo: any) => {
         try {
+            // 🔥 STORED PHOTO (API DELETE)
             if (!photo.isNew && photo.photo_id) {
+
+                if (!propertyId) {
+                    await Swal.fire("Error", "Missing property ID", "error");
+                    return;
+                }
+
                 await axios.delete("/api/propertyListing/deletPropertyPhotos", {
-                    data: { photo_id: photo.photo_id },
+                    data: {
+                        photo_id: photo.photo_id,
+                        property_id: propertyId,
+                    },
                 });
 
                 setPhotos((prev) =>
                     prev.filter((p) => p.photo_id !== photo.photo_id)
                 );
+
                 return;
             }
 
+            // 🔥 NEW PHOTO (LOCAL REMOVE)
             setPhotos((prev) =>
                 prev.filter((p) => p.preview !== photo.preview)
             );
+
         } catch (err) {
             console.error(err);
+            Swal.fire("Error", "Failed to delete photo", "error");
         }
     };
 
+    /* =========================
+       UI
+    ========================= */
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
 
             {/* UPLOAD */}
             <div>
@@ -54,76 +89,100 @@ export default function PhotosSection() {
 
                 <div
                     {...getRootProps()}
-                    className={`mt-2 border-2 border-dashed p-6 rounded-xl text-center cursor-pointer ${
+                    className={`
+            mt-2
+            border border-dashed
+            rounded-lg
+            px-4 py-5
+            text-center
+            cursor-pointer
+            transition-all
+            ${
                         isDragActive
                             ? "border-blue-500 bg-blue-50"
-                            : "border-gray-300 bg-gray-50"
-                    }`}
+                            : "border-gray-300 bg-gray-100 hover:bg-gray-200"
+                    }
+          `}
                 >
                     <input {...getInputProps()} />
 
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
-                            <Camera className="text-white w-6 h-6" />
+                    <div className="flex flex-col items-center gap-1.5">
+                        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <Camera className="text-white w-5 h-5" />
                         </div>
 
-                        <p className="text-sm font-semibold">
-                            {isDragActive ? "Drop images here" : "Upload photos"}
+                        <p className="text-sm font-medium">
+                            {isDragActive ? "Drop images" : "Upload photos"}
                         </p>
 
-                        <p className="text-xs text-gray-500">
-                            Drag & drop or click to browse
+                        <p className="text-[11px] text-gray-500">
+                            Max 20MB per image
                         </p>
                     </div>
                 </div>
             </div>
 
             {/* GRID */}
-            {photos.length > 0 && (
+            {photos.length > 0 ? (
                 <div>
 
                     {/* HEADER */}
-                    <div className="flex justify-between items-center mb-2">
-                        <p className="text-sm font-semibold">
+                    <div className="flex justify-between items-center mb-1">
+                        <p className="text-xs font-semibold">
                             {photos.length} photo{photos.length !== 1 && "s"}
                         </p>
 
                         {photos.length < 3 && (
-                            <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <p className="text-[10px] text-amber-600 flex items-center gap-1">
                                 <AlertCircle className="w-3 h-3" />
-                                Add at least 3 photos
+                                Min 3 photos
                             </p>
                         )}
                     </div>
 
                     {/* GRID */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
                         {photos.map((photo, index) => (
                             <div
                                 key={photo.photo_id ?? photo.preview}
-                                className="relative group aspect-square rounded-xl overflow-hidden border"
+                                className="
+                  relative
+                  group
+                  aspect-square
+                  rounded-md
+                  overflow-hidden
+                  border
+                "
                             >
+                                {/* IMAGE */}
                                 <img
                                     src={photo.preview}
+                                    onError={(e) => (e.currentTarget.style.display = "none")}
                                     className="w-full h-full object-cover"
                                 />
 
-                                {/* DELETE */}
+                                {/* DELETE BUTTON */}
                                 <button
                                     onClick={() => removePhoto(photo)}
-                                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100"
+                                    className="
+                    absolute top-1 right-1
+                    bg-red-500 text-white
+                    p-1
+                    rounded-md
+                    opacity-100 sm:opacity-0 sm:group-hover:opacity-100
+                  "
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3 h-3" />
                                 </button>
 
                                 {/* INDEX */}
-                                <div className="absolute bottom-2 left-2 text-xs bg-black/50 text-white px-2 rounded">
+                                <div className="absolute bottom-1 left-1 text-[9px] bg-black/60 text-white px-1.5 rounded">
                                     {index + 1}
                                 </div>
 
                                 {/* NEW BADGE */}
                                 {photo.isNew && (
-                                    <div className="absolute top-2 left-2 text-xs bg-green-500 text-white px-2 rounded">
+                                    <div className="absolute top-1 left-1 text-[9px] bg-green-500 text-white px-1.5 rounded">
                                         New
                                     </div>
                                 )}
@@ -131,6 +190,10 @@ export default function PhotosSection() {
                         ))}
                     </div>
                 </div>
+            ) : (
+                <p className="text-xs text-gray-400 text-center">
+                    No photos uploaded yet
+                </p>
             )}
         </div>
     );

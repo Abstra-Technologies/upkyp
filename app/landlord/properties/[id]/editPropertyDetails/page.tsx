@@ -34,6 +34,7 @@ export default function EditProperty() {
         if (!propertyId) return;
 
         store.reset();
+        store.setPropertyId(propertyId);
 
         const fetchData = async () => {
             try {
@@ -43,7 +44,7 @@ export default function EditProperty() {
                 ]);
 
                 if (!propRes.data.length) {
-                    Swal.fire("Not Found", "Property does not exist.", "warning");
+                    await Swal.fire("Not Found", "Property does not exist.", "warning");
                     return router.push("/landlord/property-listing");
                 }
 
@@ -64,7 +65,7 @@ export default function EditProperty() {
 
             } catch (err) {
                 console.error(err);
-                Swal.fire("Error", "Failed to load property.", "error");
+                await Swal.fire("Error", "Failed to load property.", "error");
             } finally {
                 setDataLoading(false);
             }
