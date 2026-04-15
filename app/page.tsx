@@ -55,6 +55,7 @@ export default function SplashScreen() {
 
   return (
     <div className="flex flex-col min-h-screen bg-white overflow-hidden">
+
       <HeroSection />
 
       <PainPointsSection />
@@ -65,10 +66,6 @@ export default function SplashScreen() {
 
       <Suspense fallback={<SectionSkeleton />}>
         <FeaturesShowcase />
-      </Suspense>
-
-      <Suspense fallback={<SectionSkeleton />}>
-        <PhilippineMarketSection />
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton />}>
