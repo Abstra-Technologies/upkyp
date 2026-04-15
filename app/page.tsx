@@ -34,12 +34,12 @@ export default function SplashScreen() {
         if (res.ok) {
           const data = await res.json();
           const routes = {
-            tenant: "/pages/tenant/my-unit",
-            landlord: "/pages/landlord/dashboard",
-            admin: "/pages/admin/dashboard",
+            tenant: "/tenant/my-unit",
+            landlord: "/landlord/dashboard",
+            admin: "/admin/dashboard",
           };
           router.replace(
-            routes[data.userType as keyof typeof routes] || "/pages/auth/login"
+            routes[data.userType as keyof typeof routes] || "/auth/login"
           );
           return;
         }

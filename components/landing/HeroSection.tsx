@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ChevronRight, Receipt, Users } from "lucide-react";
