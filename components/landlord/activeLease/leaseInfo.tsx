@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import {
   User,
   Mail,
@@ -10,6 +11,7 @@ import {
   Clock,
   Shield,
   ExternalLink,
+  FileCog,
 } from "lucide-react";
 
 interface LeaseDetails {
@@ -18,6 +20,9 @@ interface LeaseDetails {
   phoneNumber?: string;
   property_name?: string;
   unit_name?: string;
+  property_id?: number;
+  lease_id?: string;
+  agreement_id?: string;
   start_date?: string;
   end_date?: string;
   agreement_url?: string;
@@ -34,6 +39,8 @@ interface LeaseInfoProps {
 }
 
 export default function LeaseInfo({ lease }: LeaseInfoProps) {
+  const router = useRouter();
+
   const formatCurrency = (amount: number | undefined) => {
     if (amount === undefined || amount === null) return "₱0.00";
     return `₱${amount.toLocaleString("en-PH", {
@@ -50,6 +57,15 @@ export default function LeaseInfo({ lease }: LeaseInfoProps) {
       day: "numeric",
     });
   };
+
+  const handleSetupLease = () => {
+    const agreementId = lease.agreement_id || lease.lease_id;
+    router.push(
+      `/landlord/properties/${lease.property_id}/activeLease/setup?agreement_id=${agreementId}`
+    );
+  };
+
+  const hasAgreement = !!lease.agreement_url;
 
   return (
     <div className="w-full space-y-4">
@@ -163,7 +179,7 @@ export default function LeaseInfo({ lease }: LeaseInfoProps) {
               <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1 flex items-center gap-1">
                 <FileText className="w-3 h-3" /> Agreement Document
               </p>
-              {lease.agreement_url ? (
+              {hasAgreement ? (
                 <a
                   href={lease.agreement_url}
                   target="_blank"
@@ -174,7 +190,16 @@ export default function LeaseInfo({ lease }: LeaseInfoProps) {
                   <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                 </a>
               ) : (
-                <span className="text-sm text-gray-400">Not uploaded</span>
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm text-gray-400">Not uploaded</span>
+                  <button
+                    onClick={handleSetupLease}
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-400 hover:bg-gray-500 text-white text-xs font-medium rounded-lg transition-colors w-fit"
+                  >
+                    <FileCog className="w-3.5 h-3.5" />
+                    Setup Lease Agreement
+                  </button>
+                </div>
               )}
             </div>
           </div>

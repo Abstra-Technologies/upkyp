@@ -1,4 +1,4 @@
-import { db } from "../../../../lib/db";
+import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 

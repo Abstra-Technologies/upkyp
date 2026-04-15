@@ -1,10 +1,13 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+/* =========================
+   INITIAL STATE
+========================= */
 const initialEditPropertyState = {
     propertyName: "",
     propertyType: "",
-    amenities: [],
+    amenities: [] as string[],
     street: "",
     brgyDistrict: "",
     city: "",
@@ -16,29 +19,97 @@ const initialEditPropertyState = {
     electricity_billing_type: "",
     minStay: 0,
     flexiPayEnabled: 0,
-    paymentMethodsAccepted: [],
-    propertyPreferences: [],
-    lat: 0,
-    lng: 0,
+    paymentMethodsAccepted: [] as string[],
+    propertyPreferences: [] as string[],
+    lat: null as number | null,
+    lng: null as number | null,
 };
 
-// @ts-ignore
-const useEditPropertyStore = create(
+/* =========================
+   TYPES
+========================= */
+interface EditPropertyState {
+    property: typeof initialEditPropertyState;
+    photos: any[];
+    loading: boolean;
+    error: any;
+
+    setProperty: (propertyDetails: Partial<typeof initialEditPropertyState>) => void;
+    setFullProperty: (propertyDetails: any) => void;
+    toggleAmenity: (amenity: string) => void;
+    setPhotos: (photos: any[]) => void;
+    removePhoto: (photoId: string) => void;
+    reset: () => void;
+}
+
+/* =========================
+   HELPERS
+========================= */
+
+// ✅ safe JSON parser
+const safeParse = (value: any) => {
+    if (!value) return [];
+
+    if (Array.isArray(value)) return value;
+
+    try {
+        return JSON.parse(value);
+    } catch {
+        if (typeof value === "string") {
+            return value.split(",").map((v) => v.trim());
+        }
+        return [];
+    }
+};
+
+const normalizeProperty = (data: any) => ({
+    propertyName: data.propertyName ?? data.property_name ?? "",
+    propertyType: data.propertyType ?? data.property_type ?? "",
+
+    amenities: safeParse(data.amenities), // 🔥 FIXED
+
+    street: data.street ?? "",
+    brgyDistrict: data.brgyDistrict ?? data.brgy_district ?? "",
+    city: data.city ?? "",
+    zipCode: data.zipCode ?? data.zip_code ?? "",
+    province: data.province ?? "",
+
+    description: data.description ?? "",
+    floorArea: Number(data.floorArea ?? data.floor_area ?? 0),
+
+    water_billing_type: data.water_billing_type ?? "",
+    electricity_billing_type: data.electricity_billing_type ?? "",
+
+    minStay: Number(data.minStay ?? data.min_stay ?? 0),
+    flexiPayEnabled: Number(data.flexiPayEnabled ?? data.flexipay_enabled ?? 0),
+
+    paymentMethodsAccepted: safeParse(
+        data.paymentMethodsAccepted ?? data.accepted_payment_methods
+    ),
+
+    propertyPreferences: safeParse(
+        data.propertyPreferences ?? data.property_preferences
+    ),
+
+    lat: data.lat ?? data.latitude ?? null,
+    lng: data.lng ?? data.longitude ?? null,
+});
+
+
+/* =========================
+   STORE
+========================= */
+const useEditPropertyStore = create<EditPropertyState>()(
     persist(
         (set) => ({
-            /* =======================
-               STATE
-            ======================= */
             property: { ...initialEditPropertyState },
             photos: [],
             loading: false,
             error: null,
 
             /* =======================
-               ACTIONS
+               PARTIAL UPDATE
             ======================= */
-
-            // Merge property fields safely
             setProperty: (propertyDetails) =>
                 set((state) => ({
                     property: {
@@ -47,30 +118,39 @@ const useEditPropertyStore = create(
                     },
                 })),
 
-            // Toggle amenity
+            /* =======================
+               FULL SET (API LOAD)
+            ======================= */
+            setFullProperty: (data) =>
+                set({
+                    property: normalizeProperty(data),
+                }),
+
+            /* =======================
+               AMENITIES
+            ======================= */
             toggleAmenity: (amenity) =>
                 set((state) => {
-                    const amenities = Array.isArray(state.property.amenities)
-                        ? state.property.amenities
-                        : [];
+                    const list = state.property.amenities || [];
 
                     return {
                         property: {
                             ...state.property,
-                            amenities: amenities.includes(amenity)
-                                ? amenities.filter((a) => a !== amenity)
-                                : [...amenities, amenity],
+                            amenities: list.includes(amenity)
+                                ? list.filter((a) => a !== amenity)
+                                : [...list, amenity],
                         },
                     };
                 }),
 
-            // ✅ ALWAYS normalize photos to array
+            /* =======================
+               PHOTOS
+            ======================= */
             setPhotos: (photos) =>
                 set({
                     photos: Array.isArray(photos) ? photos : [],
                 }),
 
-            // ✅ Remove single photo safely (for DELETE)
             removePhoto: (photoId) =>
                 set((state) => ({
                     photos: state.photos.filter(
@@ -78,7 +158,9 @@ const useEditPropertyStore = create(
                     ),
                 })),
 
-            // Reset everything
+            /* =======================
+               RESET
+            ======================= */
             reset: () =>
                 set({
                     property: { ...initialEditPropertyState },
@@ -90,11 +172,17 @@ const useEditPropertyStore = create(
         {
             name: "edit-property-store",
 
-            // Persist only what matters
+            /* 🔥 IMPORTANT FIX */
             partialize: (state) => ({
-                property: state.property,
                 photos: state.photos,
             }),
+
+            /* 🔥 PREVENT HYDRATION BUGS */
+            onRehydrateStorage: () => (state) => {
+                if (state) {
+                    state.photos = state.photos || [];
+                }
+            },
         }
     )
 );

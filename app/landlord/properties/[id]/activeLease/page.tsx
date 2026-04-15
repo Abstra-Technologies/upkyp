@@ -3,8 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { FileText } from "lucide-react";
 
-import LeaseDetailsPanel from "@/components/landlord/activeLease/LeaseDetailsPanel";
-import ChecklistSetupModal from "@/components/landlord/activeLease/ChecklistModal";
 import LeaseTable from "@/components/landlord/activeLease/LeaseTable";
 import LeaseStack from "@/components/landlord/activeLease/LeaseStack";
 import LeaseScorecards from "@/components/landlord/activeLease/LeaseScorecards";
@@ -26,10 +24,6 @@ export default function PropertyLeasesPage() {
     search,
     setSearch,
 
-    selectedLease,
-    setSelectedLease,
-    setupModalLease,
-    setSetupModalLease,
     selectedKypLease,
     setSelectedKypLease,
     kypOpen,
@@ -42,9 +36,10 @@ export default function PropertyLeasesPage() {
   } = usePropertyLeases(String(id));
 
   const handlePrimaryAction = (lease: any) => {
-    getStatus(lease) === "draft"
-      ? setSetupModalLease(lease)
-      : setSelectedLease(lease);
+    const agreementId = lease.agreement_id || lease.lease_id;
+    router.push(
+      `/landlord/properties/${id}/activeLease/leaseDetails/${agreementId}`
+    );
   };
 
   const handleExtendLease = (lease: any) => {
@@ -236,27 +231,6 @@ export default function PropertyLeasesPage() {
             setKypOpen(true);
           }}
         />
-
-        {selectedLease && (
-          <LeaseDetailsPanel
-            lease={selectedLease}
-            onClose={() => setSelectedLease(null)}
-          />
-        )}
-
-        {setupModalLease && (
-          <ChecklistSetupModal
-            lease={setupModalLease}
-            agreement_id={setupModalLease.agreement_id}
-            onClose={() => setSetupModalLease(null)}
-            onContinue={() => {
-              router.push(
-                `/landlord/properties/${id}/activeLease/initialSetup/${setupModalLease?.lease_id}`,
-              );
-              setSetupModalLease(null);
-            }}
-          />
-        )}
 
         <EKypModal
           open={kypOpen}

@@ -158,33 +158,33 @@ const PropertyCard = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-wrap gap-1.5 justify-end">
+                <div className="flex flex-wrap gap-2 sm:gap-2.5 justify-end">
                     <button
                         onClick={(e) => handleView(property, e)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-md
-              text-[11px] font-medium bg-gradient-to-r
-              from-blue-500 to-emerald-500 text-white"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg
+              text-xs sm:text-sm font-semibold bg-gradient-to-r
+              from-blue-500 to-emerald-500 text-white shadow-sm hover:shadow-md transition-all"
                     >
-                        <HomeIcon className="w-3.5 h-3.5" />
-                        View
+                        <HomeIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">View</span>
                     </button>
 
                     <button
                         onClick={(e) => handleEdit(property.property_id, e)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-md
-              text-[11px] font-medium bg-orange-50 text-orange-600 border"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg
+              text-xs sm:text-sm font-medium bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors"
                     >
-                        <PencilSquareIcon className="w-3.5 h-3.5" />
-                        Edit
+                        <PencilSquareIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">Edit</span>
                     </button>
 
                     <button
                         onClick={(e) => handleDelete(property.property_id, e)}
-                        className="flex items-center gap-1 px-2.5 py-1 rounded-md
-              text-[11px] font-medium bg-red-50 text-red-600 border"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg
+              text-xs sm:text-sm font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
                     >
-                        <TrashIcon className="w-3.5 h-3.5" />
-                        Delete
+                        <TrashIcon className="w-4 h-4" />
+                        <span className="hidden sm:inline">Delete</span>
                     </button>
                 </div>
             </div>

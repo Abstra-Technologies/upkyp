@@ -1,49 +1,60 @@
+"use client";
+
 import { AMENITIES_LIST } from "@/constant/amenities";
 import { Check } from "lucide-react";
 
 const AmenitiesSelector = ({ selectedAmenities = [], onAmenityChange }) => {
     return (
-        <div className="grid grid-cols-2 gap-2">
-            {AMENITIES_LIST.map(({ name, icon }) => {
-                const isSelected = selectedAmenities.includes(name);
+        <div className="max-h-[280px] overflow-y-auto">
 
-                return (
-                    <button
-                        key={name}
-                        type="button"
-                        onClick={() => onAmenityChange(name)}
-                        className={`
-              flex items-center gap-2
-              px-3 py-2
-              rounded-lg
-              border
-              text-xs font-medium
-              transition-all duration-150
-              active:scale-95
-              ${
-                            isSelected
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white text-gray-700 border-gray-200 hover:border-blue-400"
-                        }
-            `}
-                    >
-                        {/* ICON */}
-                        <span className="text-base">
-              {icon}
-            </span>
+            {/* GRID */}
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-1 mt-1">
+                {AMENITIES_LIST.map(({ name, icon }) => {
+                    const isSelected = selectedAmenities.includes(name);
 
-                        {/* LABEL */}
-                        <span className="truncate">
-              {name}
-            </span>
+                    return (
+                        <button
+                            key={name}
+                            type="button"
+                            onClick={() => onAmenityChange(name)}
+                            className={`
+                relative
+                flex flex-col items-center justify-center
+                h-[64px] sm:h-[70px]
+                px-1 py-1
+                rounded-md
+                border
+                text-[8px] sm:text-[10px]
+                font-medium
+                transition-all duration-150
+                active:scale-95
+                ${
+                                isSelected
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-gray-100 text-gray-700 border-gray-200"
+                            }
+              `}
+                        >
+                            {/* CHECK */}
+                            {isSelected && (
+                                <span className="absolute top-0.5 right-0.5 bg-white text-blue-600 rounded-full p-[1px]">
+                  <Check className="w-2 h-2" />
+                </span>
+                            )}
 
-                        {/* CHECK ICON */}
-                        {isSelected && (
-                            <Check className="w-3.5 h-3.5 ml-auto" />
-                        )}
-                    </button>
-                );
-            })}
+                            {/* ICON */}
+                            <span className="text-sm leading-none">
+                {icon}
+              </span>
+
+                            {/* LABEL */}
+                            <span className="mt-0.5 text-center leading-tight line-clamp-2">
+                {name}
+              </span>
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 };

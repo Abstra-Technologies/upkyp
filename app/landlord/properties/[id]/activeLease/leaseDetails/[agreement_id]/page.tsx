@@ -17,6 +17,7 @@ import {
   Shield,
   RefreshCw,
   Edit3,
+  FileCog,
 } from "lucide-react";
 
 import LeaseInfo from "@/components/landlord/activeLease/leaseInfo";
@@ -144,6 +145,14 @@ export default function LeaseDetailsPage() {
   const status = lease.lease_status?.toLowerCase();
   const isActive = status === "active";
   const isExpired = status === "expired";
+  const isDraft = status === "draft";
+  const hasAgreement = !!lease.agreement_url;
+
+  const handleSetupLease = () => {
+    router.push(
+      `/landlord/properties/${lease.property_id}/activeLease/setup?agreement_id=${lease.agreement_id || lease.lease_id}`
+    );
+  };
 
   const statusConfig: Record<
     string,
@@ -393,6 +402,34 @@ export default function LeaseDetailsPage() {
             </div>
           </div>
         </div>
+
+        {/* Setup Lease Banner - Show when draft with no document */}
+        {isDraft && !hasAgreement && (
+          <div className="bg-gray-100 border border-gray-200 rounded-xl p-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                  <FileCog className="w-5 h-5 text-gray-500" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800">
+                    No Lease Document Setup
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Upload and configure the lease agreement to enable detailed tracking and signing.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleSetupLease}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors shrink-0"
+              >
+                <FileCog className="w-4 h-4" />
+                Setup Lease Agreement
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tabs Card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
