@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     const redirectToLogin = (message: string) => {
         return NextResponse.redirect(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/pages/auth/login?error=${encodeURIComponent(message)}`
+            `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?error=${encodeURIComponent(message)}`
         );
     };
 
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
             await sendOtpEmail(dbUser.email, otp);
 
             const pending2fa = NextResponse.redirect(
-                `${process.env.NEXT_PUBLIC_BASE_URL}/pages/auth/verify-2fa?user_id=${dbUser.user_id}`
+                `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-2fa?user_id=${dbUser.user_id}`
             );
 
             pending2fa.cookies.set("pending_2fa", "true", {
@@ -158,8 +158,8 @@ export async function GET(req: NextRequest) {
         ===================================================== */
         const redirectUrl =
             dbUser.userType === "tenant"
-                ? `${process.env.NEXT_PUBLIC_BASE_URL}/pages/tenant/feeds`
-                : `${process.env.NEXT_PUBLIC_BASE_URL}/pages/landlord/dashboard`;
+                ? `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`
+                : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
 
         const response = NextResponse.redirect(redirectUrl);
         response.cookies.set("token", token, {
