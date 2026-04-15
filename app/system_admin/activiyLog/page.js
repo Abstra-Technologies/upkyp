@@ -4,6 +4,7 @@ import useAuth from "@/hooks/useSession";
 import SideNavAdmin from "@/components/navigation/sidebar-admin";
 import LoadingScreen from "@/components/loadingScreen";
 import { Calendar, Download, Filter, Search, User, Eye } from "lucide-react";
+import {useRouter} from "next/navigation";
 
 export default function ActivityLogs() {
     const [logs, setLogs] = useState([]);
