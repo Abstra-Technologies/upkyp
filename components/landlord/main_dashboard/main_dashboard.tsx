@@ -18,7 +18,7 @@ import HeaderContent from "./headerContent";
 import NewWorkOrderModal from "../maintenance_management/NewWorkOrderModal";
 import LeaseOccupancyCard from "./LeaseOccupancyCard";
 import EndingLeaseCard from "@/components/landlord/main_dashboard/EndingLeaseCard";
-import LandlordSetupBanner from "@/components/landlord/main_dashboard/LandlordSetupBanner";
+import LandlordOnboardingFlow from "@/components/landlord/onboarding/LandlordOnboardingFlow";
 import LandlordPropertyQuickView from "./LandlordPropertyQuickView";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
@@ -129,7 +129,11 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
           />
         </div>
 
-        <LandlordSetupBanner landlordId={landlordId} />
+        <LandlordOnboardingFlow
+            landlordId={landlordId}
+            emailVerified={user?.emailVerified ?? false}
+            isStandalone={false}
+        />
 
         <div id="dashboard-quick-actions" className="flex justify-center">
           <QuickActions

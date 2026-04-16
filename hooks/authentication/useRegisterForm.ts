@@ -72,7 +72,7 @@ export const useRegisterForm = () => {
 
     const setTimezone = useCallback((timezone: string) => {
         setFormData((prev) => {
-            // 🔥 Prevent unnecessary update (THIS prevents infinite loop)
+            //  Prevent unnecessary update ( prevents infinite loop)
             if (prev.timezone === timezone) return prev;
 
             return {
@@ -153,10 +153,10 @@ export const useRegisterForm = () => {
             if (res.ok) {
                 await Swal.fire({
                     title: "Success!",
-                    text: "Account successfully registered! Redirecting...",
+                    text: "Account successfully registered! Redirecting to onboarding...",
                     icon: "success",
                 });
-                window.location.href = "/pages/auth/verify-email";
+                window.location.href = "/auth/landlord-onboarding";
                 return;
             }
 
@@ -167,8 +167,9 @@ export const useRegisterForm = () => {
             });
         } catch (err) {
             if (err instanceof z.ZodError) {
+                // @ts-ignore
                 const errorObj = err.errors.reduce(
-                    (acc, curr) => {
+                    (acc: { [x: string]: any; }, curr: { path: string[]; message: any; }) => {
                         acc[curr.path[0] as string] = curr.message;
                         return acc;
                     },
