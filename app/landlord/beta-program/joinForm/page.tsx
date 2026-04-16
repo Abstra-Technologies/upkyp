@@ -75,7 +75,7 @@ export default function JoinBetaPage() {
                 confirmButtonColor: "#2563eb",
             });
 
-            router.push("/pages/landlord/dashboard");
+            router.push("/landlord/dashboard");
 
         } catch (err: any) {
             await Swal.fire({

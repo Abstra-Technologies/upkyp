@@ -128,8 +128,8 @@ export default function SideNavProfile({
 
   const mainPageUrl =
     user?.userType === "landlord"
-      ? "/pages/landlord/dashboard"
-      : "/pages/tenant/feeds";
+      ? "/landlord/dashboard"
+      : "/tenant/feeds";
 
   const mainPageLabel =
     user?.userType === "landlord" ? "Back to Dashboard" : "Back to Feeds";
@@ -280,7 +280,7 @@ export default function SideNavProfile({
         <div className="flex flex-col h-full">
           {/* HEADER */}
           <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white">
-            <Link href="/pages/landlord/dashboard">
+            <Link href="/landlord/dashboard">
               <h1 className="text-2xl font-bold">Upkyp</h1>
             </Link>
             <p className="text-xs text-white/80">Account Settings</p>
@@ -374,7 +374,7 @@ export default function SideNavProfile({
       {/* MOBILE HEADER - Matching landlord sidebar */}
       {/*---------------------------------------------*/}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50">
-        <Link href="/pages/landlord/dashboard">
+        <Link href="/landlord/dashboard">
           <h1 className="text-xl font-bold text-white">Upkyp</h1>
         </Link>
         <div className="flex gap-2">

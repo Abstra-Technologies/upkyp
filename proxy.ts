@@ -86,11 +86,43 @@ const permissionMapping: Record<string, string> = {
 export async function proxy(req: NextRequest) {
     const { pathname, search } = req.nextUrl;
 
-    // Always allow public pages
+    const isPricingPage = pathname.startsWith("/public/pricing");
+
+// 👇 ONLY pricing should NOT be skipped
     const isPublicPage = PUBLIC_PAGES.some(
         (page) => pathname === page || pathname.startsWith(page + "/")
     );
-    
+
+// ✅ HANDLE PRICING FIRST (before public skip)
+    if (isPricingPage) {
+        const userToken = req.cookies.get("token")?.value;
+
+        if (userToken) {
+            const decodedUser: any = await verifyToken(userToken);
+
+            if (decodedUser) {
+                const callbackUrl = req.nextUrl.searchParams.get("callbackUrl");
+
+                // 👉 if callback exists → go there
+                if (callbackUrl) {
+                    return safeRedirect(callbackUrl, req);
+                }
+
+                // 👉 fallback redirect
+                if (decodedUser.userType === "landlord") {
+                    return safeRedirect("/landlord/dashboard", req);
+                }
+
+                if (decodedUser.userType === "tenant") {
+                    return safeRedirect("/tenant/feeds", req);
+                }
+            }
+        }
+
+        // not logged in → allow access
+        return NextResponse.next();
+    }
+
     if (isPublicPage) {
         return NextResponse.next();
     }

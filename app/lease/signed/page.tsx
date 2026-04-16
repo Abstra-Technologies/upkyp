@@ -62,7 +62,7 @@ function LeaseSignedContent() {
                     </p>
                 ) : (
                     <button
-                        onClick={() => router.push("/pages/landlord/dashboard")}
+                        onClick={() => router.push("/landlord/dashboard")}
                         className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition"
                     >
                         Back to Dashboard

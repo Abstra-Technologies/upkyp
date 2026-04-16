@@ -31,9 +31,9 @@ export default function VerifyOTP() {
 
         if (user.emailVerified) {
             if (user.userType === "tenant") {
-                router.replace("/pages/tenant/feeds");
+                router.replace("/tenant/feeds");
             } else {
-                router.replace("/pages/landlord/dashboard");
+                router.replace("/landlord/dashboard");
             }
         }
     }, [user, router]);
@@ -79,9 +79,9 @@ export default function VerifyOTP() {
 
             setTimeout(() => {
                 if (res.data.userType === "tenant") {
-                    router.replace("/pages/tenant/feeds");
+                    router.replace("/tenant/feeds");
                 } else {
-                    router.replace("/pages/landlord/dashboard");
+                    router.replace("/landlord/dashboard");
                 }
             }, 1200);
 

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
 import { Check } from "lucide-react";
@@ -11,133 +10,107 @@ export default function PricingPage() {
     const router = useRouter();
     const { user } = useAuthStore();
 
-    const isLandlord = user?.landlord_id;
-
-    // useEffect(() => {
-    //     if (!isLandlord) {
-    //         router.push("/pages/auth/login");
-    //     }
-    // }, [isLandlord, router]);
-    //
-    // if (!isLandlord) {
-    //     return null;
-    // }
-
     const handleSelectPlan = (plan: any) => {
-        if (!user?.landlord_id) {
-            localStorage.setItem("pendingPlan", JSON.stringify({
-                planId: plan.id,
-                amount: plan.price,
-                prorated: plan.price,
-                addons: "[]"
-            }));
-            router.push("/pages/auth/login");
+        const intendedUrl = `/landlord/subsciption_plan/payment/review?planId=${plan.id}&amount=${plan.price}&prorated=${plan.price}&addons=${encodeURIComponent("[]")}`;
+
+        const params = new URLSearchParams(window.location.search);
+        const existingCallback = params.get("callbackUrl");
+
+        const finalCallback = existingCallback || intendedUrl;
+
+        if (!user) {
+            router.push(`/auth/login?callbackUrl=${encodeURIComponent(finalCallback)}`);
             return;
         }
 
-        router.push(
-            `/pages/landlord/subsciption_plan/payment/review?planId=${plan.id}&amount=${plan.price}&prorated=${plan.price}&addons=${encodeURIComponent("[]")}`
-        );
+        router.push(finalCallback);
     };
 
     return (
-        <main className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 px-6 py-20">
-            {/* Header */}
-            <section className="max-w-6xl mx-auto text-center mb-16">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">
+        <main className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 px-4 py-12 md:px-6 md:py-16">
+            <section className="max-w-5xl mx-auto text-center mb-10 md:mb-14">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900">
                     Simple, Transparent Pricing
                 </h1>
-                <p className="mt-4 text-lg text-gray-600">
+                <p className="mt-3 text-sm sm:text-base text-gray-600 max-w-lg mx-auto">
                     Built for independent landlords, property managers, and growing portfolios.
                 </p>
             </section>
 
-            {/* Pricing Cards */}
-            <section className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto">
+            <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
                 {SUBSCRIPTION_PLANS.map((plan) => {
-                    const isFree = plan.price === 0 && plan.name !== "Enterprise Plan";
                     const isEnterprise = plan.name === "Enterprise Plan";
 
                     return (
                         <div
                             key={plan.id}
-                            className={`relative flex flex-col rounded-2xl border bg-white shadow-sm transition hover:shadow-xl
-                ${plan.popular ? "border-blue-600 scale-[1.02]" : "border-gray-200"}
-              `}
+                            className={`relative flex flex-col rounded-xl border bg-white shadow-sm transition hover:shadow-md
+                                ${plan.popular ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"}
+                            `}
                         >
-                            {/* Popular Badge */}
                             {plan.popular && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-4 py-1 text-xs font-semibold text-white shadow">
-                                    Most Popular
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-0.5 text-xs font-semibold text-white">
+                                    Popular
                                 </div>
                             )}
 
-                            {/* Card Content */}
-                            <div className="p-6 flex flex-col flex-1">
-                                <h3 className="text-xl font-bold text-gray-900">
+                            <div className="p-4 sm:p-5 flex flex-col flex-1">
+                                <h3 className="text-base sm:text-lg font-bold text-gray-900">
                                     {plan.name}
                                 </h3>
 
-                                {/* Price */}
-                                <div className="mt-4">
+                                <div className="mt-3">
                                     {isEnterprise ? (
-                                        <p className="text-3xl font-extrabold text-gray-900">
+                                        <p className="text-2xl font-extrabold text-gray-900">
                                             Custom
                                         </p>
                                     ) : (
-                                        <p className="text-3xl font-extrabold text-gray-900">
+                                        <p className="text-2xl font-extrabold text-gray-900">
                                             ₱{plan.price.toLocaleString()}
-                                            <span className="text-base font-medium text-gray-500">
-                        {plan.price > 0 && " / month"}
-                      </span>
+                                            <span className="text-sm font-medium text-gray-500">
+                                                {plan.price > 0 && "/mo"}
+                                            </span>
                                         </p>
                                     )}
                                 </div>
 
-                                {/* Features */}
-                                <ul className="mt-6 space-y-3 text-sm text-gray-700">
-                                    {plan.features.map((feature, idx) => (
+                                <ul className="mt-4 space-y-2 text-xs sm:text-sm text-gray-700">
+                                    {plan.features.slice(0, 5).map((feature, idx) => (
                                         <li key={idx} className="flex items-start gap-2">
-                                            <Check className="h-4 w-4 text-emerald-500 mt-0.5" />
-                                            <span>{feature}</span>
+                                            <Check className="h-3.5 w-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                            <span className="line-clamp-2">{feature}</span>
                                         </li>
                                     ))}
+                                    {plan.features.length > 5 && (
+                                        <li className="text-xs text-gray-500">
+                                            +{plan.features.length - 5} more features
+                                        </li>
+                                    )}
                                 </ul>
 
-                                {/* Transaction Fees */}
-                                <div className="mt-6 rounded-lg bg-gray-50 p-3 text-xs text-gray-600">
-                                    <p>
-                                        Transaction Fee:{" "}
-                                        <span className="font-semibold text-gray-800">
-                      {plan.transactionFeeRate}%
-                    </span>
-                                    </p>
-                                    <p>
-                                        Discounted Fee (Promo / Volume):{" "}
-                                        <span className="font-semibold text-gray-800">
-                      {plan.discountedFeeRate}%
-                    </span>
-                                    </p>
-                                </div>
+                                {!isEnterprise && plan.price > 0 && (
+                                    <div className="mt-4 rounded-lg bg-gray-50 p-2 text-xs text-gray-600">
+                                        <div className="flex justify-between">
+                                            <span>Fee:</span>
+                                            <span className="font-semibold">{plan.transactionFeeRate}%</span>
+                                        </div>
+                                    </div>
+                                )}
 
-                                {/* CTA */}
-                                <div className="mt-6">
+                                <div className="mt-4">
                                     {isEnterprise ? (
                                         <Link
                                             href="/contact-sales"
-                                            className="block w-full rounded-xl bg-gray-900 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-gray-800 transition"
+                                            className="block w-full rounded-lg bg-gray-900 px-3 py-2.5 text-center text-xs sm:text-sm font-semibold text-white hover:bg-gray-800 transition"
                                         >
                                             Contact Sales
                                         </Link>
                                     ) : (
                                         <button
                                             onClick={() => handleSelectPlan(plan)}
-                                            className={`w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition
-                        ${
-                                                plan.popular
-                                                    ? "bg-blue-600 hover:bg-blue-700"
-                                                    : "bg-gray-900 hover:bg-gray-800"
-                                            }`}
+                                            className={`w-full rounded-lg px-3 py-2.5 text-xs sm:text-sm font-semibold text-white transition
+                                                ${plan.popular ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-900 hover:bg-gray-800"}
+                                            `}
                                         >
                                             Select Plan
                                         </button>
@@ -149,14 +122,12 @@ export default function PricingPage() {
                 })}
             </section>
 
-            {/* Footer Note */}
-            <section className="mt-16 text-center text-sm text-gray-500 max-w-3xl mx-auto">
+            <section className="mt-12 text-center text-xs sm:text-sm text-gray-500 max-w-2xl mx-auto px-4">
                 <p>
-                    All prices are in Philippine Peso (₱). Transaction fees already include
-                    payment gateway and UPKYP platform fees.
+                    All prices in PHP. Transaction fees include payment gateway + UPKYP platform fees.
                 </p>
                 <p className="mt-2">
-                    Need a custom workflow, condo-wide setup, or PMO-managed billing?
+                    Need custom setup or PMO billing?
                     <Link href="/contact-sales" className="ml-1 text-blue-600 font-medium hover:underline">
                         Talk to us
                     </Link>

@@ -109,7 +109,7 @@ export default function VerificationSuccess() {
           </div>
 
           <Link
-            href="/pages/landlord/dashboard"
+            href="/landlord/dashboard"
             className="inline-flex items-center justify-center gap-2 w-full px-6 py-3.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-semibold rounded-2xl shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
           >
             <span>Go to Dashboard</span>

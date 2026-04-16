@@ -70,9 +70,9 @@ export default function SubscriptionPlans() {
                 confirmButtonText: "Go to Dashboard",
             });
 
-            router.push("/pages/landlord/dashboard");
+            router.push("/landlord/dashboard");
         } catch (err: any) {
-            Swal.fire(
+            await Swal.fire(
                 "Activation Failed",
                 err?.response?.data?.error ||
                 "Unable to activate plan. Please try again.",

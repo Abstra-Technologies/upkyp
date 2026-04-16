@@ -72,8 +72,8 @@ export default function SideNavProfile() {
   // Determine the main page URL based on user type
   const mainPageUrl =
     user?.userType === "landlord"
-      ? "/pages/landlord/dashboard"
-      : "/pages/tenant/feeds";
+      ? "/landlord/dashboard"
+      : "/tenant/feeds";
 
   const mainPageLabel =
     user?.userType === "landlord" ? "Back to Dashboard" : "Back to Feeds";

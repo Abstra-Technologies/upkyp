@@ -244,7 +244,7 @@ function PaymentReceiptPage() {
                     </button>
 
                     <button
-                        onClick={() => router.push("/pages/landlord/dashboard")}
+                        onClick={() => router.push("/landlord/dashboard")}
                         disabled={loading}
                         className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-semibold shadow-md transition-all ${
                             loading

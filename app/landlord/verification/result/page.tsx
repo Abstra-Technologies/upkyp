@@ -31,7 +31,7 @@ export default function LandlordVerificationResultPage() {
 
                 if (newStatus === "approved") {
                     setTimeout(() => {
-                        router.push("/pages/landlord/dashboard");
+                        router.push("/landlord/dashboard");
                     }, 3000);
                     return;
                 }

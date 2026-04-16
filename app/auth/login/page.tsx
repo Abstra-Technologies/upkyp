@@ -28,16 +28,14 @@ function Login() {
 
     useEffect(() => {
         if (user?.landlord_id) {
-            const pendingPlan = localStorage.getItem("pendingPlan");
-            if (pendingPlan) {
-                const plan = JSON.parse(pendingPlan);
-                localStorage.removeItem("pendingPlan");
-                router.push(
-                    `/pages/landlord/subsciption_plan/payment/review?planId=${plan.planId}&amount=${plan.amount}&prorated=${plan.prorated}&addons=${encodeURIComponent(plan.addons)}`
-                );
+            // Priority: 1. callbackUrl from query param, 2. redirectAfterLogin from localStorage
+            const redirectUrl = callbackUrl || localStorage.getItem("redirectAfterLogin");
+            if (redirectUrl) {
+                localStorage.removeItem("redirectAfterLogin");
+                router.push(redirectUrl);
             }
         }
-    }, [user, router]);
+    }, [user, router, callbackUrl]);
 
     return (
         <div

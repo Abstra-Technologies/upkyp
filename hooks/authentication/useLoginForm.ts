@@ -12,8 +12,8 @@ const loginSchema = z.object({
 });
 
 export function useLoginForm({
-                                 callbackUrl,
-                             }: {
+                                  callbackUrl,
+                              }: {
     callbackUrl?: string | null;
 } = {}) {
     const router = useRouter();
@@ -94,25 +94,20 @@ export function useLoginForm({
                     ...formData,
                     captchaToken,
                     rememberMe,
-                    callbackUrl, // ✅ THIS IS THE KEY
+                    callbackUrl,
                 }),
             });
 
-            /* -----------------------------------------------
-               REDIRECT HANDLED BY SERVER
-            ------------------------------------------------ */
             if (res.redirected) {
-                window.location.href = res.url;
+                const redirectUrl = callbackUrl || "/landlord/dashboard";
+                window.location.href = redirectUrl;
                 return;
             }
 
             const data = await res.json();
 
-            /* -----------------------------------------------
-               2FA FLOW
-            ------------------------------------------------ */
             if (res.ok && data?.requires_otp) {
-                const twoFaUrl = `/pages/auth/verify-2fa?user_id=${data.user_id}${
+                const twoFaUrl = `/auth/verify-2fa?user_id=${data.user_id}${
                     callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : ""
                 }`;
                 router.push(twoFaUrl);
@@ -121,13 +116,14 @@ export function useLoginForm({
 
             if (!res.ok) {
                 setErrorMessage(data?.error || "Invalid credentials");
-                if (window.grecaptcha) window.grecaptcha.reset();
+                (window as any).grecaptcha?.reset();
                 setCaptchaToken(null);
+                return;
             }
         } catch (err) {
             console.error(err);
             setErrorMessage("Something went wrong. Please try again.");
-            if (window.grecaptcha) window.grecaptcha.reset();
+            (window as any).grecaptcha?.reset();
             setCaptchaToken(null);
         } finally {
             setIsLoggingIn(false);

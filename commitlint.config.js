@@ -19,6 +19,7 @@ module.exports = {
                 'ci',
                 'chore',
                 'revert',
+                'performance'
             ],
         ],
 
@@ -40,6 +41,7 @@ module.exports = {
                 'ui',
                 'core',
                 'monorepo',
+
             ],
         ],
 

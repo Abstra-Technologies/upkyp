@@ -4,20 +4,39 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import useAuthStore from "@/zustand/authStore";
 import { formatCurrency } from "@/utils/formatter/formatters";
 import { ADD_ON_SERVICES } from "@/constant/subscription/addOns";
 
 function SubscriptionReview() {
+    let initialAddOns: any[] = [];
     const router = useRouter();
     const params = useSearchParams();
-    const { user } = useAuthStore();
+    const { user, fetchSession, isHydrated } = useAuthStore();
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedAddOns, setSelectedAddOns] = useState(initialAddOns);
 
     const planId = params.get("planId");
     const proratedAmount = Number(params.get("prorated") || 0);
+    const bandIndex = params.get("bandIndex");
 
-    let initialAddOns: any[] = [];
+    useEffect(() => {
+        if (!isHydrated) return;
+        
+        if (!user?.landlord_id) {
+            localStorage.setItem("pendingPlan", JSON.stringify({
+                planId,
+                amount: proratedAmount,
+                prorated: proratedAmount,
+                addons: "[]"
+            }));
+            router.push("/auth/login");
+            return;
+        }
+        setIsLoading(false);
+    }, [user, isHydrated, router, planId, proratedAmount]);
+
     try {
         initialAddOns = JSON.parse(params.get("addons") || "[]");
     } catch {
@@ -28,20 +47,34 @@ function SubscriptionReview() {
         (p) => String(p.id) === String(planId)
     );
 
-    if (!selectedPlan) {
+    if (isLoading || !isHydrated) {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <p className="text-gray-600">Invalid subscription request.</p>
+                <p className="text-gray-600">Loading...</p>
             </div>
         );
     }
 
-    const basePrice = selectedPlan.price;
+    if (!selectedPlan) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-gray-600 mb-4">Invalid subscription request.</p>
+                    <button 
+                        onClick={() => router.push('/public/pricing')}
+                        className="text-blue-600 hover:underline"
+                    >
+                        Go to Pricing
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
-    /* ===============================
-       ADD-ONS
-    =============================== */
-    const [selectedAddOns, setSelectedAddOns] = useState(initialAddOns);
+    const basePrice = selectedPlan.unitBands && bandIndex !== null
+        ? selectedPlan.unitBands[parseInt(bandIndex)].monthlyPrice
+        : selectedPlan.price;
+
 
     const toggleAddOn = (addon: any) => {
         const exists = selectedAddOns.some((a) => a.id === addon.id);
@@ -52,16 +85,10 @@ function SubscriptionReview() {
         );
     };
 
-    /* ===============================
-       PRICE COMPUTATION
-    =============================== */
     const proratedDiscount = basePrice - proratedAmount;
     const addOnTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
     const finalTotal = proratedAmount + addOnTotal;
 
-    /* ===============================
-       PAYMENT
-    =============================== */
     const goToPayment = async () => {
         if (!user) return;
 
@@ -92,11 +119,14 @@ function SubscriptionReview() {
         }
     };
 
+    const displayBand = selectedPlan.unitBands && bandIndex !== null
+        ? selectedPlan.unitBands[parseInt(bandIndex)].range
+        : null;
+
     return (
         <div className="min-h-screen bg-gray-50 py-10 px-4">
             <div className="max-w-5xl mx-auto">
 
-                {/* Back */}
                 <button
                     className="flex items-center text-gray-600 hover:text-gray-800 mb-6"
                     onClick={() => router.back()}
@@ -110,14 +140,17 @@ function SubscriptionReview() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                    {/* LEFT */}
                     <div className="lg:col-span-2 space-y-6">
 
-                        {/* PLAN DETAILS */}
                         <div className="bg-white rounded-xl shadow border p-6">
-                            <h2 className="text-xl font-bold mb-4">
+                            <h2 className="text-xl font-bold mb-2">
                                 {selectedPlan.name}
                             </h2>
+                            {displayBand && (
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Unit range: {displayBand} units
+                                </p>
+                            )}
 
                             <div className="space-y-3 text-gray-700">
                                 <div className="flex justify-between">
@@ -145,7 +178,6 @@ function SubscriptionReview() {
                             </div>
                         </div>
 
-                        {/* ADD-ONS */}
                         <div className="bg-white rounded-xl shadow border p-6">
                             <h2 className="text-xl font-bold mb-4">Add-ons</h2>
 
@@ -199,7 +231,6 @@ function SubscriptionReview() {
                         </div>
                     </div>
 
-                    {/* RIGHT */}
                     <div className="bg-white shadow rounded-xl border p-6 h-fit">
                         <h3 className="text-lg font-bold mb-4">
                             Order Summary

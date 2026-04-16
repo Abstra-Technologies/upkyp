@@ -85,9 +85,9 @@ export default function Verify2FA() {
         await Swal.fire("Success", "OTP verified successfully!", "success");
 
         if (data.user.userType === "tenant") {
-          router.push("/pages/tenant/my-unit");
+          router.push("/tenant/my-unit");
         } else if (data.user.userType === "landlord") {
-          router.push("/pages/landlord/dashboard");
+          router.push("/landlord/dashboard");
         } else {
           setMessage("Invalid user type.");
         }
