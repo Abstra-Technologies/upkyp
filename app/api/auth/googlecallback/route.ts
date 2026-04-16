@@ -8,11 +8,23 @@ import { db } from "@/lib/db";
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
+    const state = searchParams.get("state");
+    let callbackUrl = "";
+
+    try {
+        if (state) {
+            const parsedState = JSON.parse(decodeURIComponent(state));
+            callbackUrl = parsedState?.callbackUrl || "";
+        }
+    } catch {
+        callbackUrl = "";
+    }
 
     const redirectToLogin = (message: string) => {
-        return NextResponse.redirect(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?error=${encodeURIComponent(message)}`
-        );
+        const redirectUrl = callbackUrl
+            ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&error=${encodeURIComponent(message)}`
+            : `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?error=${encodeURIComponent(message)}`;
+        return NextResponse.redirect(redirectUrl);
     };
 
     if (!code) {
@@ -79,7 +91,7 @@ export async function GET(req: NextRequest) {
 
         if (rows.length === 0 || !rows[0].google_id) {
             return redirectToLogin(
-                "User not registered with Google. Use email/password to login."
+                "No account found with Google. Please sign up with Google first, or use email/password to login."
             );
         }
 
@@ -188,12 +200,15 @@ export async function GET(req: NextRequest) {
         /* =====================================================
            REDIRECT
         ===================================================== */
-        const redirectUrl =
-            dbUser.userType === "tenant"
+        let finalRedirectUrl = callbackUrl;
+
+        if (!finalRedirectUrl) {
+            finalRedirectUrl = dbUser.userType === "tenant"
                 ? `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`
                 : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+        }
 
-        const response = NextResponse.redirect(redirectUrl);
+        const response = NextResponse.redirect(finalRedirectUrl);
         response.cookies.set("token", token, {
             path: "/",
             httpOnly: true,

@@ -10,6 +10,11 @@ export async function GET(req: NextRequest) {
         );
     }
 
+    const { searchParams } = new URL(req.url);
+    const callbackUrl = searchParams.get("callbackUrl") || "";
+
+    const state = JSON.stringify({ callbackUrl });
+
     const googleAuthUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
 
     googleAuthUrl.searchParams.set("client_id", GOOGLE_CLIENT_ID);
@@ -18,6 +23,7 @@ export async function GET(req: NextRequest) {
     googleAuthUrl.searchParams.set("scope", "openid email profile");
     googleAuthUrl.searchParams.set("access_type", "offline");
     googleAuthUrl.searchParams.set("prompt", "consent");
+    googleAuthUrl.searchParams.set("state", state);
 
     return NextResponse.redirect(googleAuthUrl);
 }

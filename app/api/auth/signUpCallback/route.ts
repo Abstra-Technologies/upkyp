@@ -114,7 +114,6 @@ async function sendOtpEmail(
                 otp,
                 expiry: "10 minutes",
                 timezone: "UTC",
-                registeredAt: new Date().toLocaleString(),
             }),
         })
         .catch((err) =>
