@@ -278,7 +278,7 @@ export async function GET(req: NextRequest) {
                                 ENCRYPTION_SECRET!
                             )
                         )
-                        : null,
+                        : JSON.stringify(await encryptData("", ENCRYPTION_SECRET!)),
                     lastName
                         ? JSON.stringify(
                             await encryptData(
@@ -286,7 +286,7 @@ export async function GET(req: NextRequest) {
                                 ENCRYPTION_SECRET!
                             )
                         )
-                        : null,
+                        : JSON.stringify(await encryptData("", ENCRYPTION_SECRET!)),
                     profilePicture
                         ? JSON.stringify(
                             await encryptData(
