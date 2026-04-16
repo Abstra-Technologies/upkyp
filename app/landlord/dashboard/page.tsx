@@ -115,13 +115,16 @@ export default function LandlordDashboard() {
   }
 
   /* ================= MAIN DASHBOARD ================= */
+  const emailVerified = user?.emailVerified ?? false;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <LandlordBetaBanner />
       <LandlordOnboardingOverlay
         landlordId={landlordId}
-        emailVerified={user?.emailVerified ?? false}
+        emailVerified={emailVerified}
       />
+      
       <LandlordMainDashboard landlordId={landlordId} />
     </div>
   );

@@ -109,7 +109,7 @@ export default function LandlordOnboardingOverlay({
     const hasProperty = Array.isArray(propertiesRes) && propertiesRes.length > 0;
 
     const allCompleted = agreementDone && verificationDone && payoutDone && hasProperty && emailVerified;
-    const canDismiss = emailVerified && allCompleted;
+    const canDismiss = emailVerified;
 
     useEffect(() => {
         if (!landlordId) return;
@@ -120,10 +120,10 @@ export default function LandlordOnboardingOverlay({
         }
 
         const isDismissed = localStorage.getItem(`onboardingDismissed_${landlordId}`) === "true";
-        if (isDismissed) {
+        if (isDismissed && emailVerified) {
             setDismissed(true);
         }
-    }, [landlordId, allCompleted]);
+    }, [landlordId, allCompleted, emailVerified]);
 
     useEffect(() => {
         if (cooldown <= 0) return;
@@ -132,6 +132,30 @@ export default function LandlordOnboardingOverlay({
         }, 1000);
         return () => clearInterval(timer);
     }, [cooldown]);
+
+    useEffect(() => {
+        if (!emailVerified) return;
+        
+        if (currentStep === 1 && agreementDone && STEPS[1]?.key === "agreement") {
+            setCurrentStep(2);
+        }
+    }, [agreementDone, currentStep, emailVerified]);
+
+    useEffect(() => {
+        if (!emailVerified) return;
+        
+        if (currentStep === 2 && verificationDone && STEPS[2]?.key === "verification") {
+            setCurrentStep(3);
+        }
+    }, [verificationDone, currentStep, emailVerified]);
+
+    useEffect(() => {
+        if (!emailVerified) return;
+        
+        if (currentStep === 3 && payoutDone && STEPS[3]?.key === "payout") {
+            setCurrentStep(4);
+        }
+    }, [payoutDone, currentStep, emailVerified]);
 
     const formatTime = (seconds: number) => {
         const min = Math.floor(seconds / 60);
@@ -222,7 +246,20 @@ export default function LandlordOnboardingOverlay({
         }
     };
 
-    if (dismissed) return null;
+    if (dismissed) {
+        return (
+            <button
+                onClick={() => {
+                    setDismissed(false);
+                    localStorage.removeItem(`onboardingDismissed_${landlordId}`);
+                }}
+                className="fixed top-20 right-4 z-[90] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-3 rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-3 animate-pulse"
+            >
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-semibold text-sm">Complete Setup</span>
+            </button>
+        );
+    }
 
     return (
         <>
@@ -366,15 +403,19 @@ export default function LandlordOnboardingOverlay({
             </div>
 
             {showAgreementModal && (
-                <PlatformAgreementModal
-                    landlordId={landlordId}
-                    onClose={() => setShowAgreementModal(false)}
-                    onAccepted={() => {
-                        mutateAgreement();
-                        handleStepComplete("agreement");
-                        setShowAgreementModal(false);
-                    }}
-                />
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50">
+                    <PlatformAgreementModal
+                        landlordId={landlordId}
+                        onClose={() => setShowAgreementModal(false)}
+                        onAccepted={() => {
+                            setShowAgreementModal(false);
+                            mutateAgreement();
+                            setTimeout(() => {
+                                handleStepComplete("agreement");
+                            }, 100);
+                        }}
+                    />
+                </div>
             )}
 
             {showPayoutModal && (
