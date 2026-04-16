@@ -268,8 +268,12 @@ export async function proxy(req: NextRequest) {
             return safeRedirect("/error/accessDenied", req);
         }
 
-        if (!emailVerified && pathname !== "/auth/verify-email") {
+        if (!emailVerified && pathname !== "/auth/verify-email" && !pathname.includes("/verify-email")) {
             return safeRedirect("/auth/verify-email", req);
+        }
+
+        if (pathname === "/auth/verify-email" || pathname.includes("/verify-email")) {
+            return NextResponse.next();
         }
     }
 

@@ -201,6 +201,7 @@ const useAuthStore = create<AuthState>()(
                         landlord_id: state.user.landlord_id,
                         tenant_id: state.user.tenant_id,
                         userType: state.user.userType,
+                        emailVerified: state.user.emailVerified,
                         points: state.user.points,
                         is_verified: state.user.is_verified,
                         is_trial_used: state.user.is_trial_used,

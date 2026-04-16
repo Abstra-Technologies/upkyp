@@ -329,9 +329,9 @@ export async function GET(req: NextRequest) {
 
         sendOtpEmail(email, firstName, otp);
 
-        const response = NextResponse.redirect(
-            `${NEXT_PUBLIC_BASE_URL}/pages/auth/verify-email`
-        );
+        const verifyRedirectUrl = `${NEXT_PUBLIC_BASE_URL}/auth/verify-email`;
+
+        const response = NextResponse.redirect(verifyRedirectUrl);
 
         response.cookies.set("token", jwt, {
             httpOnly: true,

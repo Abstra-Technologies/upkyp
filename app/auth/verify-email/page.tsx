@@ -9,12 +9,12 @@ import "react-toastify/dist/ReactToastify.css";
 
 export default function VerifyOTP() {
     const [otp, setOtp] = useState("");
-    const [cooldown, setCooldown] = useState(60); // 60 seconds cooldown
+    const [cooldown, setCooldown] = useState(60);
     const [verifying, setVerifying] = useState(false);
     const [resending, setResending] = useState(false);
 
     const router = useRouter();
-    const { user, fetchSession } = useAuthStore();
+    const { user, fetchSession, updateUser } = useAuthStore();
 
     /* =========================================
        LOAD SESSION
@@ -76,6 +76,9 @@ export default function VerifyOTP() {
             );
 
             toast.success(res.data.message);
+
+            updateUser({ emailVerified: true });
+            await fetchSession();
 
             setTimeout(() => {
                 if (res.data.userType === "tenant") {

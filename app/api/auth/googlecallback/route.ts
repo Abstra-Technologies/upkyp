@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
         ===================================================== */
         const [rows]: any = await db.execute(
             `
-            SELECT user_id, email, userType, is_2fa_enabled, google_id, status
+            SELECT user_id, email, userType, is_2fa_enabled, google_id, status, emailVerified
             FROM User
             WHERE emailHashed = ?
             `,
@@ -94,6 +94,34 @@ export async function GET(req: NextRequest) {
 
         if (dbUser.status === "suspended") {
             return redirectToLogin("Your account is suspended. Contact support.");
+        }
+
+        /* =====================================================
+           EMAIL VERIFICATION CHECK
+        ===================================================== */
+        if (!dbUser.emailVerified) {
+            const token = await new SignJWT({
+                user_id: dbUser.user_id,
+                userType: dbUser.userType,
+                emailVerified: false,
+                status: dbUser.status,
+            })
+                .setProtectedHeader({ alg: "HS256" })
+                .setIssuedAt()
+                .setExpirationTime("2h")
+                .setSubject(dbUser.user_id.toString())
+                .sign(new TextEncoder().encode(JWT_SECRET));
+
+            const response = NextResponse.redirect(
+                `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email`
+            );
+            response.cookies.set("token", token, {
+                path: "/",
+                httpOnly: true,
+                sameSite: "lax",
+                maxAge: 60 * 60 * 2,
+            });
+            return response;
         }
 
         /* =====================================================
@@ -146,6 +174,8 @@ export async function GET(req: NextRequest) {
             user_id: dbUser.user_id,
             email: dbUser.email,
             userType: dbUser.userType,
+            emailVerified: !!dbUser.emailVerified,
+            status: dbUser.status,
         })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()
