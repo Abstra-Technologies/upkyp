@@ -32,7 +32,7 @@ import LoadingScreen from "@/components/loadingScreen";
 --------------------------------------------- */
 const profileNavLinks = [
   {
-    href: "/pages/commons/profile",
+    href: "/commons/profile",
     label: "Profile",
     shortLabel: "Profile",
     icon: UserIcon,
@@ -40,7 +40,7 @@ const profileNavLinks = [
     exactMatch: true, // Only match exact path
   },
   {
-    href: "/pages/commons/profile/security",
+    href: "/commons/profile/security",
     label: "Security & Privacy",
     shortLabel: "Security",
     icon: ShieldCheckIcon,
@@ -48,7 +48,7 @@ const profileNavLinks = [
     exactMatch: false,
   },
   {
-    href: "/pages/commons/landlord/payoutDetails",
+    href: "/commons/landlord/payoutDetails",
     label: "Payout Account",
     shortLabel: "Payout",
     icon: CreditCardIcon,
@@ -56,7 +56,7 @@ const profileNavLinks = [
     exactMatch: false,
   },
   {
-    href: "/pages/commons/landlord/subscription",
+    href: "/commons/landlord/subscription",
     label: "View Subscription",
     shortLabel: "Subscription",
     icon: CreditCardIcon,

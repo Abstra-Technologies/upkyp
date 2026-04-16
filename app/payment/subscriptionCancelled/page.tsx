@@ -129,7 +129,7 @@ function PaymentCancelledPage() {
                         {isCancelled ? (
                             <button
                                 onClick={() =>
-                                    router.push("/pages/landlord/subsciption_plan/pricing")
+                                    router.push("/public/pricing")
                                 }
                                 className="w-full sm:w-auto px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 shadow-md transition-all duration-300"
                             >

@@ -290,7 +290,7 @@ export default function LandlordLayout({
           {/* SUBSCRIPTION UPGRADE BANNER */}
           <div className="p-4 border-t bg-gradient-to-r from-blue-600 to-emerald-600">
             <Link
-              href="/landlord/subsciption_plan/pricing"
+              href="/public/pricing"
               className="flex items-center justify-center gap-2 px-4 py-3 bg-white rounded-lg hover:bg-gray-50 transition font-semibold text-sm"
             >
               <CreditCard className="w-5 h-5" />

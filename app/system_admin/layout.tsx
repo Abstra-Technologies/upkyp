@@ -51,7 +51,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {
             title: "Subscription Plan",
             items: [
-                { label: "Split Rules", href: "/system_admin/split_rules", icon: Users },
+                // { label: "Split Rules", href: "/system_admin/split_rules", icon: Users },
+                { label: "Plan List", href: "/system_admin/subscription_plans", icon: Users },
 
             ],
         },

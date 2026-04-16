@@ -66,6 +66,7 @@ const PUBLIC_PAGES = [
     "/public",
     "/api",
     "/_next",
+
 ];
 
 const VERIFY_PAGE = "/auth/verify-email";
@@ -109,9 +110,9 @@ export async function proxy(req: NextRequest) {
                 }
 
                 // 👉 fallback redirect
-                if (decodedUser.userType === "landlord") {
-                    return safeRedirect("/landlord/dashboard", req);
-                }
+                // if (decodedUser.userType === "landlord") {
+                //     return safeRedirect("/landlord/dashboard", req);
+                // }
 
                 if (decodedUser.userType === "tenant") {
                     return safeRedirect("/tenant/feeds", req);
