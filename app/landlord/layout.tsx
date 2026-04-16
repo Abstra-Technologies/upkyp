@@ -49,6 +49,7 @@ export default function LandlordLayout({
   const { user, fetchSession, signOut } = useAuthStore();
   const landlordId = user?.landlord_id;
   const { subscription, loadingSubscription } = useSubscription(landlordId);
+  const emailVerified = user?.emailVerified ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -267,6 +268,20 @@ export default function LandlordLayout({
                 {group.items.map(({ id, label, href, icon: Icon }) => {
                   const active =
                     pathname === href || pathname.startsWith(href + "/");
+                  
+                  if (!emailVerified) {
+                    return (
+                      <div
+                        key={href}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition opacity-50 cursor-not-allowed text-gray-400"
+                        title="Verify your email first"
+                      >
+                        <Icon className="w-5 h-5" />
+                        {label}
+                      </div>
+                    );
+                  }
+
                   return (
                     <Link
                       key={href}
@@ -342,6 +357,7 @@ export default function LandlordLayout({
                 // InviteModal={SendTenantInviteModal}
                 onLogoutClick={() => setShowLogoutConfirm(true)}
                 user={user}
+                emailVerified={emailVerified}
             />
 
 
@@ -376,7 +392,7 @@ export default function LandlordLayout({
         </div>
       )}
             {/* MAIN */}
-            <main className="flex-1 lg:pl-72 pt-10 lg:pt-0">{children}</main>
+            <main className="flex-1 lg:pl-72 pt-10 lg:pt-0 min-h-screen">{children}</main>
         </div>
     );
 }

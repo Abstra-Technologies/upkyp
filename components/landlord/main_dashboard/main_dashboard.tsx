@@ -18,7 +18,6 @@ import HeaderContent from "./headerContent";
 import NewWorkOrderModal from "../maintenance_management/NewWorkOrderModal";
 import LeaseOccupancyCard from "./LeaseOccupancyCard";
 import EndingLeaseCard from "@/components/landlord/main_dashboard/EndingLeaseCard";
-import LandlordOnboardingFlow from "@/components/landlord/onboarding/LandlordOnboardingFlow";
 import LandlordPropertyQuickView from "./LandlordPropertyQuickView";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
@@ -116,6 +115,8 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
     autoStart: true,
   });
 
+  const emailVerified = user?.emailVerified ?? false;
+
   return (
     <div className="pb-24 md:pb-6">
       <div className="px-4 md:px-6 pt-4 md:pt-6 space-y-4">
@@ -129,12 +130,6 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
           />
         </div>
 
-        <LandlordOnboardingFlow
-            landlordId={landlordId}
-            emailVerified={user?.emailVerified ?? false}
-            isStandalone={false}
-        />
-
         <div id="dashboard-quick-actions" className="flex justify-center">
           <QuickActions
             onAddProperty={() =>
@@ -146,6 +141,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
             }
             onWorkOrder={() => setShowNewModal(true)}
             onIncome={() => router.push("/pages/landlord/payouts")}
+            emailVerified={emailVerified}
           />
         </div>
 

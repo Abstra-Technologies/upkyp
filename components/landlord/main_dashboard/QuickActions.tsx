@@ -26,60 +26,72 @@ import {
 import ScanUnitModal from "@/components/landlord/properties/units/ScanUnitModal";
 
 export default function QuickActions({
-                                         onAddProperty,
-                                         onInviteTenant,
-                                         onAnnouncement,
-                                         onWorkOrder,
-                                         onIncome,
-                                     }: {
+    onAddProperty,
+    onInviteTenant,
+    onAnnouncement,
+    onWorkOrder,
+    onIncome,
+    emailVerified = false,
+}: {
     onAddProperty: () => void;
     onInviteTenant: () => void;
     onAnnouncement: () => void;
     onWorkOrder: () => void;
     onIncome: () => void;
+    emailVerified?: boolean;
 }) {
     const [scanOpen, setScanOpen] = useState(false);
+
+    const handleAction = (onClick: () => void) => {
+        if (!emailVerified) return;
+        onClick();
+    };
 
     const desktopActions = [
         {
             id: "addProperty",
             label: "Add Property",
             icon: Home,
-            onClick: onAddProperty,
+            onClick: () => handleAction(onAddProperty),
             gradient: "from-blue-500 to-blue-600",
             iconColor: "text-blue-600",
+            disabled: !emailVerified,
         },
         {
             id: "inviteTenant",
             label: "Invite Tenant",
             icon: UserPlus,
-            onClick: onInviteTenant,
+            onClick: () => handleAction(onInviteTenant),
             gradient: "from-emerald-500 to-emerald-600",
             iconColor: "text-emerald-600",
+            disabled: !emailVerified,
         },
         {
             id: "announcement",
             label: "Announcement",
             icon: Megaphone,
-            onClick: onAnnouncement,
+            onClick: () => handleAction(onAnnouncement),
             gradient: "from-purple-500 to-purple-600",
             iconColor: "text-purple-600",
+            disabled: !emailVerified,
         },
         {
             id: "workOrder",
             label: "Work Order",
             icon: List,
-            onClick: onWorkOrder,
+            onClick: () => handleAction(onWorkOrder),
             gradient: "from-orange-500 to-orange-600",
             iconColor: "text-orange-600",
+            disabled: !emailVerified,
         },
         {
             id: "income",
             label: "Payouts",
             icon: Wallet,
-            onClick: onIncome,
+            onClick: () => handleAction(onIncome),
             gradient: "from-cyan-500 to-cyan-600",
             iconColor: "text-cyan-600",
+            disabled: !emailVerified,
         },
     ];
 
@@ -171,24 +183,28 @@ export default function QuickActions({
             <div className="hidden md:flex justify-center">
                 <div className="flex flex-wrap justify-center gap-4 lg:gap-6">
                     {desktopActions.map(
-                        ({ id, label, icon: Icon, onClick, gradient, iconColor }) => (
+                        ({ id, label, icon: Icon, onClick, gradient, iconColor, disabled }) => (
                             <button
                                 key={id}
                                 onClick={onClick}
-                                className="group flex flex-col items-center gap-2 transition-all duration-300 hover:scale-105 active:scale-95"
+                                disabled={disabled}
+                                className={`group flex flex-col items-center gap-2 transition-all duration-300 ${
+                                    disabled ? "opacity-50 cursor-not-allowed" : "hover:scale-105 active:scale-95"
+                                }`}
+                                title={disabled ? "Verify your email first" : label}
                             >
                                 <div className="relative w-12 h-12 lg:w-14 lg:h-14 rounded-2xl">
-                                    <div className="absolute inset-0 bg-white border border-gray-200 rounded-2xl shadow-sm ring-1 ring-gray-100 group-hover:opacity-0 transition-opacity" />
+                                    <div className={`absolute inset-0 bg-white border border-gray-200 rounded-2xl shadow-sm ring-1 ring-gray-100 group-hover:opacity-0 transition-opacity ${disabled ? "" : ""}`} />
                                     <div
                                         className={`absolute inset-0 bg-gradient-to-br ${gradient} rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity`}
                                     />
                                     <div className="relative w-full h-full flex items-center justify-center">
                                         <Icon
-                                            className={`w-5 h-5 lg:w-6 lg:h-6 ${iconColor} group-hover:text-white transition-colors`}
+                                            className={`w-5 h-5 lg:w-6 lg:h-6 ${iconColor} group-hover:text-white transition-colors ${disabled ? "opacity-50" : ""}`}
                                         />
                                     </div>
                                 </div>
-                                <span className="text-xs font-semibold text-gray-700">
+                                <span className={`text-xs font-semibold ${disabled ? "text-gray-400" : "text-gray-700"}`}>
                                     {label}
                                 </span>
                             </button>

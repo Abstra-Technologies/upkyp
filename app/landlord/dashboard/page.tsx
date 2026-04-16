@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import useAuthStore from "@/zustand/authStore";
 import LandlordMainDashboard from "@/components/landlord/main_dashboard/main_dashboard";
 import LandlordBetaBanner from "@/components/beta-release/LandlordBetaBanner";
+import LandlordOnboardingOverlay from "@/components/landlord/onboarding/LandlordOnboardingOverlay";
 import { Home, AlertTriangle } from "lucide-react";
 import { GRADIENT_PRIMARY, GRADIENT_TEXT } from "@/constant/design-constants";
 
@@ -117,6 +118,10 @@ export default function LandlordDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <LandlordBetaBanner />
+      <LandlordOnboardingOverlay
+        landlordId={landlordId}
+        emailVerified={user?.emailVerified ?? false}
+      />
       <LandlordMainDashboard landlordId={landlordId} />
     </div>
   );

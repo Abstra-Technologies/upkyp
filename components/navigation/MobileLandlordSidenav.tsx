@@ -5,14 +5,15 @@ import Image from "next/image";
 import { X, LogOut, Settings } from "lucide-react";
 
 export default function MobileLandlordSidenav({
-                                                  isOpen,
-                                                  onClose,
-                                                  navGroups,
-                                                  onLogoutClick,
-                                                  landlordId,
-                                                  // InviteModal,
-                                                  user,
-                                              }: {
+    isOpen,
+    onClose,
+    navGroups,
+    onLogoutClick,
+    landlordId,
+    // InviteModal,
+    user,
+    emailVerified = false,
+}: {
     isOpen: boolean;
     onClose: () => void;
     navGroups: {
@@ -23,6 +24,7 @@ export default function MobileLandlordSidenav({
     landlordId?: number;
     // InviteModal: any;
     user: any;
+    emailVerified?: boolean;
 }) {
     return (
         <div
@@ -116,18 +118,31 @@ export default function MobileLandlordSidenav({
                                     {group.title}
                                 </p>
 
-                                {group.items.map(({ label, href, icon: Icon }) => (
-                                    <Link
-                                        key={href}
-                                        href={href}
-                                        onClick={onClose}
-                                        className="flex items-center gap-3 px-4 py-3
-                    rounded-xl hover:bg-gray-100"
-                                    >
-                                        <Icon className="w-5 h-5" />
-                                        {label}
-                                    </Link>
-                                ))}
+                                {group.items.map(({ label, href, icon: Icon }) => {
+                                    if (!emailVerified) {
+                                        return (
+                                            <div
+                                                key={href}
+                                                className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-50 cursor-not-allowed text-gray-400"
+                                                title="Verify your email first"
+                                            >
+                                                <Icon className="w-5 h-5" />
+                                                {label}
+                                            </div>
+                                        );
+                                    }
+                                    return (
+                                        <Link
+                                            key={href}
+                                            href={href}
+                                            onClick={onClose}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-100"
+                                        >
+                                            <Icon className="w-5 h-5" />
+                                            {label}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         ))}
                     </nav>

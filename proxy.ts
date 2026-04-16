@@ -258,14 +258,10 @@ export async function proxy(req: NextRequest) {
             return res;
         }
 
-        const { userType, emailVerified, status } = decodedUser;
+        const { userType, status } = decodedUser;
 
         if (status && status !== "active") {
             return safeRedirect("/error/accountSuspended", req);
-        }
-
-        if (emailVerified === false && pathname !== VERIFY_PAGE) {
-            return safeRedirect(VERIFY_PAGE, req);
         }
 
         if ((pathname.startsWith("/tenant") || pathname.startsWith("/pages/tenant")) && userType !== "tenant") {
