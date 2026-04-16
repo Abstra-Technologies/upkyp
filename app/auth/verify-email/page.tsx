@@ -133,29 +133,6 @@ export default function VerifyOTP() {
 
             <ToastContainer />
 
-            {/* ================= HEADER ================= */}
-            <header className="w-full bg-white border-b border-gray-200">
-                <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-
-                    {/* Logo */}
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
-                            U
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-semibold text-gray-900">Upkyp</h1>
-                            <p className="text-xs text-gray-500 -mt-1">
-                                Rental Operating System
-                            </p>
-                        </div>
-                    </div>
-
-                    <span className="text-sm text-gray-500 hidden sm:block">
-          Secure Email Verification
-        </span>
-                </div>
-            </header>
-
             {/* ================= CONTENT ================= */}
             <div className="flex flex-1 items-center justify-center px-4 py-16">
 

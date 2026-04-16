@@ -99,7 +99,7 @@ export function useLoginForm({
             });
 
             if (res.redirected) {
-                const redirectUrl = callbackUrl || "/landlord/dashboard";
+                const redirectUrl = res.url;
                 window.location.href = redirectUrl;
                 return;
             }

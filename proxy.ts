@@ -54,6 +54,12 @@ const AUTH_PAGES = [
     "/pages/auth/selectRole",
 ];
 
+// Pages that should always be accessible even when logged in
+const PUBLIC_AUTH_PAGES = [
+    "/auth/verify-email",
+    "/pages/auth/verify-email",
+];
+
 const ADMIN_LOGIN_PAGES = [
     "/admin_login",
     "/pages/admin_login",
@@ -68,8 +74,6 @@ const PUBLIC_PAGES = [
     "/_next",
 
 ];
-
-const VERIFY_PAGE = "/auth/verify-email";
 
 const permissionMapping: Record<string, string> = {
     "/system_admin/co_admin": "manage_users",
@@ -128,10 +132,6 @@ export async function proxy(req: NextRequest) {
         return NextResponse.next();
     }
 
-    if (pathname === VERIFY_PAGE || pathname === "/pages/auth/verify-email") {
-        return NextResponse.next();
-    }
-
     const userToken = req.cookies.get("token")?.value;
     const adminToken = req.cookies.get("admin_token")?.value;
 
@@ -150,9 +150,13 @@ export async function proxy(req: NextRequest) {
 
     /* =====================================================
        HIDE AUTH PAGES IF LOGGED IN
-    ===================================================== */
+     ===================================================== */
 
-    if (userToken && isAuthPage) {
+    const isPublicAuthPage = PUBLIC_AUTH_PAGES.some(
+        (page) => pathname === page || pathname.startsWith(`${page}/`)
+    );
+
+    if (userToken && isAuthPage && !isPublicAuthPage) {
         const decodedUser: any = await verifyToken(userToken);
 
         if (decodedUser) {
@@ -236,9 +240,42 @@ export async function proxy(req: NextRequest) {
 
     if (
         pathname.startsWith("/tenant") ||
+        pathname.startsWith("/pages/tenant")
+    ) {
+        if (!userToken) {
+            const loginUrl = new URL("/auth/login", req.url);
+            loginUrl.searchParams.set("callbackUrl", pathname + search);
+            return NextResponse.redirect(loginUrl);
+        }
+
+        const decodedUser: any = await verifyToken(userToken);
+
+        if (!decodedUser) {
+            const res = NextResponse.redirect(
+                new URL("/auth/login", req.url)
+            );
+            res.cookies.delete("token");
+            return res;
+        }
+
+        const { userType, emailVerified, status } = decodedUser;
+
+        if (status && status !== "active") {
+            return safeRedirect("/error/accountSuspended", req);
+        }
+
+        if (userType !== "tenant") {
+            return safeRedirect("/error/accessDenied", req);
+        }
+
+        if (!emailVerified && pathname !== "/auth/verify-email") {
+            return safeRedirect("/auth/verify-email", req);
+        }
+    }
+
+    if (
         pathname.startsWith("/landlord") ||
         pathname.startsWith("/commons") ||
-        pathname.startsWith("/pages/tenant") ||
         pathname.startsWith("/pages/landlord") ||
         pathname.startsWith("/pages/commons")
     ) {
@@ -262,10 +299,6 @@ export async function proxy(req: NextRequest) {
 
         if (status && status !== "active") {
             return safeRedirect("/error/accountSuspended", req);
-        }
-
-        if ((pathname.startsWith("/tenant") || pathname.startsWith("/pages/tenant")) && userType !== "tenant") {
-            return safeRedirect("/error/accessDenied", req);
         }
 
         if ((pathname.startsWith("/landlord") || pathname.startsWith("/pages/landlord")) && userType !== "landlord") {
@@ -297,5 +330,6 @@ export const config = {
         "/pages/landlord/:path*",
         "/pages/commons/:path*",
         "/api/webhook/:path*",
+        "/error/:path*",
     ],
 };

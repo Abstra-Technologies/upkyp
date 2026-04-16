@@ -72,6 +72,11 @@ export default function TenantLayout({ children }) {
 
         if (!user || user.userType !== "tenant") {
             router.replace("/pages/auth/login");
+            return;
+        }
+
+        if (!user.emailVerified) {
+            router.replace("/auth/verify-email");
         }
     }, [isAuthChecking, user, router]);
 
