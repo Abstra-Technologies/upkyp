@@ -150,8 +150,11 @@ export async function POST(req: NextRequest) {
                 .setSubject(user.user_id)
                 .sign(new TextEncoder().encode(JWT_SECRET));
 
-            const verifyUrl = new URL("/auth/verify-email", req.url);
-            const response = NextResponse.redirect(verifyUrl, { status: 303 });
+            const redirectUrl = user.userType === "tenant"
+                ? new URL("/auth/verify-email", req.url)
+                : new URL("/landlord/dashboard", req.url);
+
+            const response = NextResponse.redirect(redirectUrl, { status: 303 });
             response.cookies.set("token", token, {
                 httpOnly: true,
                 secure: IS_PROD,

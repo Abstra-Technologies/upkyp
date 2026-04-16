@@ -112,9 +112,11 @@ export async function GET(req: NextRequest) {
                 .setSubject(dbUser.user_id.toString())
                 .sign(new TextEncoder().encode(JWT_SECRET));
 
-            const response = NextResponse.redirect(
-                `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email`
-            );
+            const redirectUrl = dbUser.userType === "tenant"
+                ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email`
+                : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+
+            const response = NextResponse.redirect(redirectUrl);
             response.cookies.set("token", token, {
                 path: "/",
                 httpOnly: true,

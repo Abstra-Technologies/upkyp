@@ -329,9 +329,11 @@ export async function GET(req: NextRequest) {
 
         sendOtpEmail(email, firstName, otp);
 
-        const verifyRedirectUrl = `${NEXT_PUBLIC_BASE_URL}/auth/verify-email`;
+        const redirectUrl = role === "tenant"
+            ? `${NEXT_PUBLIC_BASE_URL}/auth/verify-email`
+            : `${NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
 
-        const response = NextResponse.redirect(verifyRedirectUrl);
+        const response = NextResponse.redirect(redirectUrl);
 
         response.cookies.set("token", jwt, {
             httpOnly: true,
