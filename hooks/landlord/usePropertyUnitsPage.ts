@@ -109,7 +109,7 @@ export function usePropertyUnitsPage() {
 
     const handleEditUnit = (unitId: number) => {
         router.push(
-            `/pages/landlord/properties/${property_id}/units/edit/${unitId}`
+            `/landlord/properties/${property_id}/units/edit/${unitId}`
         );
     };
 
