@@ -8,6 +8,7 @@ import useEditPropertyStore from "@/zustand/property/useEditPropertyStore";
 import useAuthStore from "@/zustand/authStore";
 import EditPropertyForm from "@/components/landlord/properties/editProperty/EditPropertyForm";
 import { Loader2 } from "lucide-react";
+import PropertyPayoutAssignment from "@/components/landlord/finance_accounting/PropertyBankAssignment";
 
 export default function EditProperty() {
     const router = useRouter();
@@ -20,16 +21,11 @@ export default function EditProperty() {
     const [loading, setLoading] = useState(false);
     const [dataLoading, setDataLoading] = useState(true);
 
-    /* =========================
-       SESSION
-    ========================= */
     useEffect(() => {
         if (!user && !admin) fetchSession();
     }, [user, admin]);
 
-    /* =========================
-       FETCH DATA
-    ========================= */
+
     useEffect(() => {
         if (!propertyId) return;
 
@@ -50,10 +46,9 @@ export default function EditProperty() {
 
                 const propertyData = propRes.data[0];
 
-                // 🔥 FIX HERE
                 store.setFullProperty(propertyData);
 
-                // ✅ PHOTOS
+                // PHOTOS
                 const mapped = photoRes.data.map((p: any) => ({
                     file: null,
                     preview: p.photo_url,
@@ -70,13 +65,9 @@ export default function EditProperty() {
                 setDataLoading(false);
             }
         };
-
         fetchData();
     }, [propertyId]);
 
-    /* =========================
-       SUBMIT
-    ========================= */
     const handleSubmit = async () => {
         const { property, photos } = useEditPropertyStore.getState();
 
@@ -109,9 +100,6 @@ export default function EditProperty() {
         setLoading(false);
     };
 
-    /* =========================
-       LOADING
-    ========================= */
     if (dataLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -120,18 +108,18 @@ export default function EditProperty() {
         );
     }
 
-    /* =========================
-       UI
-    ========================= */
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
 
-            {/* HEADER */}
             <div className="px-4 pt-4 pb-2">
                 <h1 className="text-xl font-bold">Edit Property</h1>
                 <p className="text-sm text-gray-500">
                     Update your property details
                 </p>
+            </div>
+
+            <div className="px-3 mb-4">
+                <PropertyPayoutAssignment propertyId={propertyId} />
             </div>
 
             {/* FORM */}
