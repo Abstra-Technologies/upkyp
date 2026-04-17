@@ -28,6 +28,7 @@ import {
   CreditCard,
 } from "lucide-react";
 import useSubscription from "@/hooks/landlord/useSubscription";
+import { IoFileTrayStacked } from "react-icons/io5";
 
 const NotificationSection = dynamic(
   () => import("@/components/notification/notifCenter"),
@@ -160,6 +161,17 @@ export default function LandlordLayout({
           },
         ],
       },
+        {
+            title: "Upkyp Platform",
+            items: [
+                {
+                    id: "nav-upkyp",
+                    label: "Upkyp Stack",
+                    href: "/upkyp_stack",
+                    icon: IoFileTrayStacked ,
+                },
+            ],
+        },
       {
         title: "Support",
         items: [
@@ -268,7 +280,7 @@ export default function LandlordLayout({
                 {group.items.map(({ id, label, href, icon: Icon }) => {
                   const active =
                     pathname === href || pathname.startsWith(href + "/");
-                  
+
                   if (!emailVerified) {
                     return (
                       <div

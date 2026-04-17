@@ -1,9 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 import crypto from "crypto";
-import { SignJWT } from "jose";
 import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
+import {
+    createSecureToken,
+    createSession,
+    getClientIp,
+} from "@/lib/auth/auth";
+
+const IS_PROD = process.env.NODE_ENV === "production";
+const DEFAULT_JWT_EXPIRY = 3600 * 2; // 2 hours
+
+function getSecurityHeaders(): Record<string, string> {
+    return {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        ...(IS_PROD && {
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        }),
+    };
+}
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -21,6 +40,7 @@ export async function GET(req: NextRequest) {
     }
 
     const redirectToLogin = (message: string) => {
+        const securityHeaders = getSecurityHeaders();
         const redirectUrl = callbackUrl
             ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&error=${encodeURIComponent(message)}`
             : `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?error=${encodeURIComponent(message)}`;
@@ -31,12 +51,13 @@ export async function GET(req: NextRequest) {
         return redirectToLogin("Authorization code is required.");
     }
 
+    let response: NextResponse;
+
     try {
         const {
             GOOGLE_CLIENT_ID,
             GOOGLE_CLIENT_SECRET,
             REDIRECT_URI_SIGNIN,
-            JWT_SECRET,
         } = process.env;
 
         /* =====================================================
@@ -81,11 +102,8 @@ export async function GET(req: NextRequest) {
            LOOKUP USER
         ===================================================== */
         const [rows]: any = await db.execute(
-            `
-            SELECT user_id, email, userType, is_2fa_enabled, google_id, status, emailVerified
-            FROM User
-            WHERE emailHashed = ?
-            `,
+            `SELECT user_id, email, userType, is_2fa_enabled, google_id, status, emailVerified
+             FROM User WHERE emailHashed = ?`,
             [emailHash]
         );
 
@@ -112,29 +130,32 @@ export async function GET(req: NextRequest) {
            EMAIL VERIFICATION CHECK
         ===================================================== */
         if (!dbUser.emailVerified) {
-            const token = await new SignJWT({
+            const { token, jti } = await createSecureToken({
                 user_id: dbUser.user_id,
                 userType: dbUser.userType,
                 emailVerified: false,
                 status: dbUser.status,
-            })
-                .setProtectedHeader({ alg: "HS256" })
-                .setIssuedAt()
-                .setExpirationTime("2h")
-                .setSubject(dbUser.user_id.toString())
-                .sign(new TextEncoder().encode(JWT_SECRET));
+            }, DEFAULT_JWT_EXPIRY);
+
+            await createSession(dbUser.user_id, jti, DEFAULT_JWT_EXPIRY);
 
             const redirectUrl = dbUser.userType === "tenant"
                 ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email`
                 : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
 
-            const response = NextResponse.redirect(redirectUrl);
+            response = NextResponse.redirect(redirectUrl);
             response.cookies.set("token", token, {
                 path: "/",
                 httpOnly: true,
-                sameSite: "lax",
-                maxAge: 60 * 60 * 2,
+                secure: IS_PROD,
+                sameSite: "strict",
+                maxAge: DEFAULT_JWT_EXPIRY,
             });
+
+            Object.entries(getSecurityHeaders()).forEach(([key, value]) => {
+                response.headers.set(key, value);
+            });
+
             return response;
         }
 
@@ -145,57 +166,65 @@ export async function GET(req: NextRequest) {
             const otp = Math.floor(100000 + Math.random() * 900000);
 
             await db.execute(
-                `
-                INSERT INTO UserToken (user_id, token_type, token, created_at, expires_at)
-                VALUES (?, '2fa', ?, NOW(), DATE_ADD(NOW(), INTERVAL 10 MINUTE))
-                ON DUPLICATE KEY UPDATE
+                `INSERT INTO UserToken (user_id, token_type, token, created_at, expires_at)
+                 VALUES (?, '2fa', ?, NOW(), DATE_ADD(NOW(), INTERVAL 10 MINUTE))
+                 ON DUPLICATE KEY UPDATE
                     token = VALUES(token),
                     created_at = NOW(),
-                    expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE)
-                `,
+                    expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE)`,
                 [dbUser.user_id, otp]
             );
 
             await sendOtpEmail(dbUser.email, otp);
 
-            const pending2fa = NextResponse.redirect(
+            response = NextResponse.redirect(
                 `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-2fa?user_id=${dbUser.user_id}`
             );
 
-            pending2fa.cookies.set("pending_2fa", "true", {
+            response.cookies.set("pending_2fa", "true", {
                 path: "/",
                 httpOnly: true,
-                sameSite: "none",
+                secure: IS_PROD,
+                sameSite: "strict",
+                maxAge: 600,
             });
 
-            return pending2fa;
+            Object.entries(getSecurityHeaders()).forEach(([key, value]) => {
+                response.headers.set(key, value);
+            });
+
+            return response;
         }
 
         /* =====================================================
-           UPDATE LAST LOGIN TIMESTAMP  ✅
+           UPDATE LAST LOGIN TIMESTAMP
         ===================================================== */
+        const clientIp = await getClientIp();
         await db.execute(
             `UPDATE User SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
             [dbUser.user_id]
         );
 
         /* =====================================================
-           GENERATE JWT
+           LOGIN LOGGING
         ===================================================== */
-        const secret = new TextEncoder().encode(JWT_SECRET);
+        db.query(
+            `INSERT INTO ActivityLog (user_id, action, ip_address, user_agent, timestamp) 
+             VALUES (?, 'User logged in via Google', ?, ?, NOW())`,
+            [dbUser.user_id, clientIp, req.headers.get("user-agent") ?? "unknown"]
+        ).catch(() => {});
 
-        const token = await new SignJWT({
+        /* =====================================================
+           GENERATE SECURE TOKEN
+        ===================================================== */
+        const { token, jti } = await createSecureToken({
             user_id: dbUser.user_id,
-            email: dbUser.email,
             userType: dbUser.userType,
-            emailVerified: !!dbUser.emailVerified,
+            emailVerified: true,
             status: dbUser.status,
-        })
-            .setProtectedHeader({ alg: "HS256" })
-            .setIssuedAt()
-            .setExpirationTime("2h")
-            .setSubject(dbUser.user_id.toString())
-            .sign(secret);
+        }, DEFAULT_JWT_EXPIRY);
+
+        await createSession(dbUser.user_id, jti, DEFAULT_JWT_EXPIRY);
 
         /* =====================================================
            REDIRECT
@@ -208,22 +237,24 @@ export async function GET(req: NextRequest) {
                 : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
         }
 
-        const response = NextResponse.redirect(finalRedirectUrl);
+        response = NextResponse.redirect(finalRedirectUrl);
         response.cookies.set("token", token, {
             path: "/",
             httpOnly: true,
-            sameSite: "lax",
+            secure: IS_PROD,
+            sameSite: "strict",
+            maxAge: DEFAULT_JWT_EXPIRY,
+        });
+
+        Object.entries(getSecurityHeaders()).forEach(([key, value]) => {
+            response.headers.set(key, value);
         });
 
         return response;
+
     } catch (error: any) {
-        console.error(
-            "[Google OAuth] Error:",
-            error.response?.data || error.message
-        );
-        return redirectToLogin(
-            "Failed to authenticate with Google. Please try again."
-        );
+        console.error("[Google OAuth] Error:", error.response?.data || error.message);
+        return redirectToLogin("Failed to authenticate with Google. Please try again.");
     }
 }
 
@@ -231,19 +262,23 @@ export async function GET(req: NextRequest) {
    SEND OTP EMAIL
 ===================================================== */
 async function sendOtpEmail(email: string, otp: number) {
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-        tls: { rejectUnauthorized: false },
-    });
+    try {
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+            tls: { rejectUnauthorized: false },
+        });
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Your 2FA OTP Code",
-        text: `Your OTP code is: ${otp}. It expires in 10 minutes.`,
-    });
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Your 2FA OTP Code",
+            text: `Your OTP code is: ${otp}. It expires in 10 minutes.`,
+        });
+    } catch (err) {
+        console.error("[OTP Email] Failed to send:", err);
+    }
 }
