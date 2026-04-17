@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import useAuthStore from "@/zustand/authStore";
-import { getSessionUser } from "@/lib/auth/auth";
 
 export default function useSubscriptionData() {
     const { user, isAuthenticated } = useAuthStore();
@@ -15,13 +14,6 @@ export default function useSubscriptionData() {
     useEffect(() => {
         async function fetchData() {
             if (!user || !isAuthenticated) {
-                setLoading(false);
-                return;
-            }
-
-            const session = await getSessionUser();
-            if (!session || String(session.landlord_id) !== String(user.landlord_id)) {
-                setError("Unauthorized: Invalid session");
                 setLoading(false);
                 return;
             }

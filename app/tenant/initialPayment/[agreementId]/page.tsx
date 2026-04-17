@@ -117,8 +117,8 @@ export default function InitialPaymentPage() {
                         email: user.email,
                     },
                     redirect_url: {
-                        success: `${window.location.origin}/pages/payment/initialPaymentSuccess`,
-                        failure: `${window.location.origin}/pages/payment/initialPaymentFailed`,
+                        success: `${window.location.origin}/payment/initialPaymentSuccess`,
+                        failure: `${window.location.origin}/payment/initialPaymentFailed`,
                     },
                 }
             );
@@ -217,7 +217,7 @@ export default function InitialPaymentPage() {
                         <CheckCircleIcon className="w-6 h-6 mx-auto mb-2" />
                         Your initial payments are fully settled.
                         <button
-                            onClick={() => router.push("/pages/tenant/my-unit")}
+                            onClick={() => router.push("/tenant/my-unit")}
                             className="mt-4 w-full py-2.5 bg-emerald-600 text-white rounded-lg font-semibold"
                         >
                             Back to My Units

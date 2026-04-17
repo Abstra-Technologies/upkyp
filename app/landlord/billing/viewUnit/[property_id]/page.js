@@ -218,26 +218,26 @@ export default function ViewUnits() {
                 </div>
                 
                 <div className="mt-5 grid grid-cols-2 gap-3">
-                  <Link href={`/pages/landlord/billing/billingHistory/${unit.unit_id}`} className="col-span-2">
+                  <Link href={`/landlord/billing/billingHistory/${unit.unit_id}`} className="col-span-2">
                     <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-200 transition-colors font-medium">
                       Billing History
                     </button>
                   </Link>
                   
-                  <Link href={`/pages/landlord/billing/payments/${unit.unit_id}`} className="col-span-2">
+                  <Link href={`/landlord/billing/payments/${unit.unit_id}`} className="col-span-2">
                     <button className="w-full bg-blue-50 text-blue-700 px-4 py-2 rounded-md border border-blue-200 hover:bg-blue-100 transition-colors font-medium">
                       View Payments
                     </button>
                   </Link>
                   
                   {unit.hasBillForThisMonth ? (
-                    <Link href={`/pages/landlord/billing/editUnitBill/${unit.unit_id}`} className="col-span-2">
+                    <Link href={`/landlord/billing/editUnitBill/${unit.unit_id}`} className="col-span-2">
                       <button className="w-full bg-amber-50 text-amber-700 px-4 py-2 rounded-md border border-amber-200 hover:bg-amber-100 transition-colors font-medium">
                         Edit Unit Bill
                       </button>
                     </Link>
                   ) : (
-                    <Link href={`/pages/landlord/billing/createUnitBill/${unit.unit_id}`} className="col-span-2">
+                    <Link href={`/landlord/billing/createUnitBill/${unit.unit_id}`} className="col-span-2">
                       <button className="w-full bg-green-50 text-green-700 px-4 py-2 rounded-md border border-green-200 hover:bg-green-100 transition-colors font-medium">
                         Create Unit Bill
                       </button>

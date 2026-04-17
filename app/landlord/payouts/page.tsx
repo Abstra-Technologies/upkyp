@@ -362,7 +362,7 @@ export default function PayoutsPage() {
 
                 <div className="flex justify-center pb-8">
                     <Link
-                        href="/pages/landlord/payments"
+                        href="/landlord/payments"
                         className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 hover:text-blue-600 transition"
                     >
                         <ChevronRight className="w-4 h-4 rotate-180" />

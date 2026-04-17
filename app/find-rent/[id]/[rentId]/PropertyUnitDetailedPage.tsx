@@ -211,7 +211,7 @@ export default function PropertyUnitDetailedPage() {
             We couldn't find the property you're looking for.
           </p>
           <button
-            onClick={() => router.push("/pages/find-rent")}
+            onClick={() => router.push("/find-rent")}
             className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-xl"
           >
             Back to Listings

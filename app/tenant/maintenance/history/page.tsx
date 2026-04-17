@@ -104,7 +104,7 @@ export default function MaintenanceHistoryPage() {
           {/* Header */}
           <div className="mb-8">
             <Link
-              href={`/pages/tenant/maintenance${
+              href={`/tenant/maintenance${
                 agreementId ? `?agreement_id=${agreementId}` : ""
               }`}
               className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 font-semibold transition-colors"
@@ -153,7 +153,7 @@ export default function MaintenanceHistoryPage() {
                   they've been resolved.
                 </p>
                 <Link
-                  href={`/pages/tenant/maintenance${
+                  href={`/tenant/maintenance${
                     agreementId ? `?agreement_id=${agreementId}` : ""
                   }`}
                 >

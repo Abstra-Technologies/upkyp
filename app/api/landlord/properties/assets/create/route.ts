@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
         // ✅ QR Code represents the ASSET itself, not its image
         // It links to your platform’s asset view page
-        const qrValue = `${process.env.NEXT_PUBLIC_BASE_URL}/pages/landlord/properties/${property_id}/assets/${asset_id}`;
+        const qrValue = `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/properties/${property_id}/assets/${asset_id}`;
         const qrCodeBuffer = await QRCode.toBuffer(qrValue, {
             width: 300,
             margin: 1,

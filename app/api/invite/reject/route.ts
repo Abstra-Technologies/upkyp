@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
                 userId: landlord.user_id,
                 title: `Invitation Declined – ${landlord.property_name} / ${landlord.unit_name}`,
                 body: "The tenant declined the invitation. The unit is now available.",
-                url: `/pages/landlord/property-listing/view-unit/${landlord.property_id}/unit-details/${landlord.unit_id}`,
+                url: `/landlord/property-listing/view-unit/${landlord.property_id}/unit-details/${landlord.unit_id}`,
                 conn,
             });
         }

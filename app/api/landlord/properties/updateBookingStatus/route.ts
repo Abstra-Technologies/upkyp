@@ -143,7 +143,7 @@ export async function PUT(req: NextRequest) {
                 userId: tenant_user_id,
                 title,
                 body: bodyText,
-                url: "/pages/tenant/visits", // adjust if you have a visit page
+                url: "/tenant/visits", // adjust if you have a visit page
             });
         }
 

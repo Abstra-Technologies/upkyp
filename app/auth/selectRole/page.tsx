@@ -131,7 +131,7 @@ export default function RegisterAs() {
                         <p className="text-sm text-gray-600">
                             Already have an account?{" "}
                             <button
-                                onClick={() => router.push("/pages/auth/login")}
+                                onClick={() => router.push("/auth/login")}
                                 className="font-semibold text-blue-600 hover:text-blue-700"
                             >
                                 Sign in

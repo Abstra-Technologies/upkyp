@@ -122,7 +122,7 @@ const EditUnit = () => {
 
   const handleUpdateUnit = async (e) => {
     e.preventDefault();
-    const viewUnitURL = `/pages/landlord/properties/${unit.property_id}`;
+    const viewUnitURL = `/landlord/properties/${unit.property_id}`;
 
     const result = await Swal.fire({
       title: "Update Unit?",
@@ -211,7 +211,7 @@ const EditUnit = () => {
 
   const handleCancel = () => {
     router.push(
-      `/pages/landlord/properties/${unit.property_id}`
+      `/landlord/properties/${unit.property_id}`
     );
   };
 

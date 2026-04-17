@@ -80,7 +80,7 @@ export default function BetaProgramPage() {
                 {/* CTA */}
                 <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                     <button
-                        onClick={() => router.push("/pages/landlord/beta-program/joinForm")}
+                        onClick={() => router.push("/landlord/beta-program/joinForm")}
                         className="w-full sm:w-auto px-8 py-3 rounded-xl text-white font-semibold
             bg-gradient-to-r from-blue-600 to-emerald-600
             hover:from-blue-700 hover:to-emerald-700

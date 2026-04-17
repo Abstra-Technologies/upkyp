@@ -166,13 +166,13 @@ export default function About() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
-                href="/pages/auth/selectRole"
+                href="/auth/selectRole"
                 className="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
                 Get Started with Upkyp
               </Link>
               <Link
-                href="/pages/find-rent"
+                href="/find-rent"
                 className="bg-transparent text-white border-2 border-white hover:bg-white/10 font-semibold py-3 px-8 rounded-xl transition-all duration-300 hover:scale-105"
               >
                 Browse Properties

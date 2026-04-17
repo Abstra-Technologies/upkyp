@@ -120,7 +120,7 @@ export default function AnnouncementsList() {
   }, [user]);
 
   const handleCreate = () => {
-    router.push(`/pages/landlord/announcement/create-announcement`);
+    router.push(`/landlord/announcement/create-announcement`);
   };
 
   const uniqueProperties: string[] = [
@@ -314,7 +314,7 @@ export default function AnnouncementsList() {
               {filteredAnnouncements.map((announcement, index) => (
                 <motion.div key={announcement.id} variants={fadeInUp}>
                   <Link
-                    href={`/pages/landlord/announcement/${announcement.id}`}
+                    href={`/landlord/announcement/${announcement.id}`}
                     className="group block transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center px-5 sm:px-6 py-4 text-sm">

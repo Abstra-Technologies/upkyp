@@ -106,7 +106,7 @@ export default function TenantApplicationForm() {
                 showConfirmButton: false,
             });
 
-            router.push("/pages/tenant/prospective/success");
+            router.push("/tenant/prospective/success");
         } catch (err: any) {
             Swal.close();
             Swal.fire("Error", err.message || "Submission failed.", "error");

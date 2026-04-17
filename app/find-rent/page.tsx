@@ -93,7 +93,7 @@ function UnitSearchContent() {
 
   const handleUnitClick = useCallback(
     (unitId: string, propertyId: string) => {
-      router.push(`/pages/find-rent/${propertyId}/${unitId}`);
+      router.push(`/find-rent/${propertyId}/${unitId}`);
     },
     [router]
   );

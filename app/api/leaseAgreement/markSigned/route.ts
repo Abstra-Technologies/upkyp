@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         // Prepare notification
         let notifTitle = "";
         let notifBody = "";
-        const url = `/pages/landlord/property-listing/view-unit/${propertyId}/unit-details/${unitId}`;
+        const url = `/landlord/property-listing/view-unit/${propertyId}/unit-details/${unitId}`;
         let notifyUsers: string[] = [];
 
         if (signedCount === total) {

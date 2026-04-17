@@ -139,7 +139,7 @@ function BillFailed() {
                     <button
                         onClick={() =>
                             router.replace(
-                                `/pages/tenant/billing/pay?billing_id=${billing_id}`
+                                `/tenant/billing/pay?billing_id=${billing_id}`
                             )
                         }
                         className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg
@@ -151,7 +151,7 @@ function BillFailed() {
                     <button
                         onClick={() =>
                             router.replace(
-                                `/pages/tenant/rentalPortal/${agreement_id}`
+                                `/tenant/rentalPortal/${agreement_id}`
                             )
                         }
                         className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg

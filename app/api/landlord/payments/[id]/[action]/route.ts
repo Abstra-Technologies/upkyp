@@ -150,8 +150,8 @@ export async function POST(
                     : `Your payment for billing ${payment.bill_id || ""} has been rejected. Please review or re-upload proof.`;
 
             const url = payment.bill_id
-                ? `/pages/tenant/billing/${payment.bill_id}`
-                : `/pages/tenant/billing`;
+                ? `/tenant/billing/${payment.bill_id}`
+                : `/tenant/billing`;
 
             await connection.query(
                 `
@@ -173,8 +173,8 @@ export async function POST(
                         ? `Your payment${payment.bill_id ? ` for billing #${payment.bill_id}` : ""} has been approved and marked as PAID.`
                         : `Your payment${payment.bill_id ? ` for billing #${payment.bill_id}` : ""} has been rejected. Please re-upload proof if needed.`,
                 url: payment.bill_id
-                    ? `/pages/tenant/billing/${payment.bill_id}`
-                    : `/pages/tenant/billing`,
+                    ? `/tenant/billing/${payment.bill_id}`
+                    : `/tenant/billing`,
                 tag: `payment-${paymentId}-${action}`,
                 data: {
                     paymentId,

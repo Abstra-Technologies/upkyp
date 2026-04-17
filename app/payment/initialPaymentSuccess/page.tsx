@@ -192,7 +192,7 @@ function PaymentSuccessContent() {
 
                 <button
                     onClick={() =>
-                        router.push(`/pages/tenant/initialPayment/${agreement_id}`)
+                        router.push(`/tenant/initialPayment/${agreement_id}`)
                     }
                     className="w-full py-3 bg-gray-100 text-gray-700 rounded-lg
           font-semibold hover:bg-gray-200 flex items-center justify-center gap-2"

@@ -167,7 +167,7 @@ export async function POST(req: Request) {
             userId: billing.landlord_user_id,
             title: "💰 Rent Payment Received",
             body: `${first} ${last} paid ₱${paidAmount.toLocaleString("en-PH")}`,
-            url: `/pages/landlord/properties/${billing.property_id}/payments?id=${billing.property_id}`,
+            url: `/landlord/properties/${billing.property_id}/payments?id=${billing.property_id}`,
             conn,
         });
 

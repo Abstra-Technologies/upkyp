@@ -36,7 +36,7 @@ function TenantInviteJoinPage() {
        LOGIN REDIRECT (if not authenticated)
     -------------------------------------------------- */
     const handleLoginRedirect = () => {
-        const callback = `/pages/InviteRegister?invite=${inviteCode}`;
+        const callback = `/InviteRegister?invite=${inviteCode}`;
         router.push(`/login?callback=${encodeURIComponent(callback)}`);
     };
 
@@ -59,7 +59,7 @@ function TenantInviteJoinPage() {
             const data = await res.json();
 
             if (res.ok) {
-                router.push('/pages/tenant/my-unit');
+                router.push('/tenant/my-unit');
             } else {
                 alert(data.error || 'Failed to join unit.');
             }

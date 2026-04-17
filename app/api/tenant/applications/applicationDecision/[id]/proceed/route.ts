@@ -78,7 +78,7 @@ export async function POST(
     const { landlord_user_id, property_name, property_id, unit_name } =
       landlordRows[0];
 
-    const url = `/pages/landlord/properties/${property_id}/activeLease`;
+    const url = `/landlord/properties/${property_id}/activeLease`;
     let notifTitle = "";
     let notifBody = "";
 

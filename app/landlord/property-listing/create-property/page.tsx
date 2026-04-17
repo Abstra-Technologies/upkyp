@@ -43,7 +43,7 @@ export default function AddNewProperty() {
                 icon: "info",
                 confirmButtonText: "Go Back",
             }).then(() => {
-                router.replace("/pages/landlord/property-listing");
+                router.replace("/landlord/property-listing");
             });
         }
     }, [subscription, loadingSubscription, user, router]);
@@ -84,7 +84,7 @@ export default function AddNewProperty() {
         }).then((result) => {
             if (result.isConfirmed) {
                 reset();
-                router.replace("/pages/landlord/property-listing");
+                router.replace("/landlord/property-listing");
             }
         });
     };
@@ -120,7 +120,7 @@ export default function AddNewProperty() {
                 "success"
             ).then(() => {
                 reset();
-                router.replace("/pages/landlord/property-listing");
+                router.replace("/landlord/property-listing");
             });
 
         } catch (error: any) {

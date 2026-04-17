@@ -61,7 +61,7 @@ export default function RentPortalPage() {
                 );
                 setAuthorized(true);
             } catch {
-                window.location.href = "/pages/tenant/not-authorized";
+                window.location.href = "/tenant/not-authorized";
             } finally {
                 setAuthChecked(true);
             }
@@ -236,8 +236,8 @@ export default function RentPortalPage() {
                         <button
                             onClick={() =>
                                 router.push(
-                                    // "/pages/tenant/house-rules-policy"
-                                     `/pages/tenant/rentalPortal/${agreementId}/house-policy`
+                                    // "/tenant/house-rules-policy"
+                                     `/tenant/rentalPortal/${agreementId}/house-policy`
                                 )
                             }
                             className="flex items-center gap-2 px-4 py-2 rounded-lg

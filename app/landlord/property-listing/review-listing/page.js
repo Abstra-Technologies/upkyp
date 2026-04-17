@@ -17,7 +17,7 @@ export default function ReviewingListing() {
       }, 1000);
 
       timer = setTimeout(() => {
-        router.replace("/pages/landlord/property-listing");
+        router.replace("/landlord/property-listing");
       }, countdown * 1000);
     }
 
@@ -29,7 +29,7 @@ export default function ReviewingListing() {
 
   const handleFinished = () => {
     setIsAutoRedirecting(false);
-    router.push("/pages/landlord/property-listing");
+    router.push("/landlord/property-listing");
   };
 
   const handleStayHere = () => {
@@ -190,7 +190,7 @@ export default function ReviewingListing() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={() =>
-                      router.push("/pages/landlord/property-listing/create")
+                      router.push("/landlord/property-listing/create")
                     }
                     className="flex items-center justify-center space-x-2 px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl font-semibold transition-all duration-200 text-sm"
                   >

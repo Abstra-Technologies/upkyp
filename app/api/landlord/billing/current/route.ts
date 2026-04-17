@@ -8,7 +8,7 @@ const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
  * @method GET
  * @route  app/api/landlord/billing/current
  * @desc   Returns all active lease units for the property, even if no billing is created yet for this month.
- * @usedIn app/pages/landlord/properties/[id]/billing/page.tsx
+ * @usedIn app/landlord/properties/[id]/billing/page.tsx
  */
 export async function GET(req: NextRequest) {
     try {

@@ -160,7 +160,7 @@ export async function PUT(req: NextRequest) {
             userId: user_id,
             title: notificationTitle,
             body: notificationBody,
-            url: "/pages/tenant/activeLease",
+            url: "/tenant/activeLease",
             conn: connection,
         });
 

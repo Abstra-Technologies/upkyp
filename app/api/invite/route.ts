@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
                     userId: existingUser[0].user_id,
                     title: "New Tenant Invitation",
                     body: notificationBody,
-                    url: "/pages/tenant/viewInvites",
+                    url: "/tenant/viewInvites",
                 }).catch((err) => console.error("Push notification failed:", err));
             }
 

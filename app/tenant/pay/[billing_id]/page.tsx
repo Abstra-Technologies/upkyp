@@ -102,9 +102,9 @@ export default function TenantBillingPaymentPage() {
                     tenant_id: user?.tenant_id,
                     payment_method_id: 7,
                     redirectUrl: {
-                        success: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/payment/billSuccess`,
-                        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/payment/billFailed`,
-                        cancel: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/payment/billCancelled`,
+                        success: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/billSuccess`,
+                        failure: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/billFailed`,
+                        cancel: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/billCancelled`,
                     },
                 });
 

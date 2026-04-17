@@ -116,7 +116,7 @@ export default function CreateAnnouncement() {
         });
         setFormData({ properties: [], subject: "", description: "" });
         setUploadedImages([]);
-        router.replace("/pages/landlord/announcement");
+        router.replace("/landlord/announcement");
       } else {
         throw new Error(data.message || "Failed to create announcement");
       }
@@ -152,10 +152,10 @@ export default function CreateAnnouncement() {
         confirmButtonText: "Discard",
         cancelButtonText: "Cancel",
       }).then((result) => {
-        if (result.isConfirmed) router.push("/pages/landlord/announcement");
+        if (result.isConfirmed) router.push("/landlord/announcement");
       });
     } else {
-      router.push("/pages/landlord/announcement");
+      router.push("/landlord/announcement");
     }
   };
 
@@ -264,7 +264,7 @@ export default function CreateAnnouncement() {
         {/* Header */}
         <div className="mb-6">
           <Link
-            href="/pages/landlord/announcement"
+            href="/landlord/announcement"
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 text-sm sm:text-base"
           >
             <svg

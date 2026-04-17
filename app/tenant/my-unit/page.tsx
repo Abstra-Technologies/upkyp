@@ -191,7 +191,7 @@ export default function MyUnit() {
             name: landlordName,
         });
 
-        router.push("/pages/tenant/chat");
+        router.push("/tenant/chat");
     };
 
     const handleEndLease = useCallback(
@@ -241,7 +241,7 @@ export default function MyUnit() {
                     );
 
 
-                    router.push(`/pages/tenant/feedback?agreement_id=${agreementId}`);
+                    router.push(`/tenant/feedback?agreement_id=${agreementId}`);
                 } else {
                     await Swal.fire({
                         icon: "error",
@@ -346,7 +346,7 @@ export default function MyUnit() {
                     </button>
 
                     <button
-                        onClick={() => router.push("/pages/tenant/viewInvites")}
+                        onClick={() => router.push("/tenant/viewInvites")}
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold text-sm"
                     >
                         <EnvelopeIcon className="w-4 h-4" />
@@ -385,13 +385,13 @@ export default function MyUnit() {
                     {/*                </p>*/}
                     {/*                <div className="flex flex-wrap justify-center sm:justify-start gap-3">*/}
                     {/*                    <button*/}
-                    {/*                        onClick={() => router.push("/pages/tenant/property-search")}*/}
+                    {/*                        onClick={() => router.push("/tenant/property-search")}*/}
                     {/*                        className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 transition-colors"*/}
                     {/*                    >*/}
                     {/*                        Browse Properties*/}
                     {/*                    </button>*/}
                     {/*                    <button*/}
-                    {/*                        onClick={() => router.push("/pages/tenant/viewInvites")}*/}
+                    {/*                        onClick={() => router.push("/tenant/viewInvites")}*/}
                     {/*                        className="px-4 py-2 bg-white text-amber-700 border border-amber-300 rounded-lg font-semibold text-sm hover:bg-amber-50 transition-colors"*/}
                     {/*                    >*/}
                     {/*                        View Invitations*/}
@@ -418,7 +418,7 @@ export default function MyUnit() {
                                         onEndContract={handleEndLease}
                                         onAccessPortal={(id) =>
                                             router.push(
-                                                `/pages/tenant/rentalPortal/${id}`
+                                                `/tenant/rentalPortal/${id}`
                                             )
                                         }
                                     />

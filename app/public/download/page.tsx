@@ -37,7 +37,7 @@ const openCompatibleBrowser = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
     if (isMobile) {
-        window.location.href = "googlechrome://https://upkyp.com/pages/public/download";
+        window.location.href = "googlechrome://https://upkyp.com/public/download";
         setTimeout(() => {
             window.open("https://play.google.com/store/apps/details?id=com.android.chrome", "_blank");
         }, 2000);
@@ -222,7 +222,7 @@ export default function DownloadPage() {
                 </div>
 
                 <p className="text-center mt-6">
-                    <a href="/pages/auth/login" className="text-white/70 hover:text-white text-sm underline">
+                    <a href="/auth/login" className="text-white/70 hover:text-white text-sm underline">
                         Skip and open web version
                     </a>
                 </p>

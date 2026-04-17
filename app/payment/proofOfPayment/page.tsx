@@ -97,7 +97,7 @@ const PaymentForm = () => {
 
             // redirect after short delay
             setTimeout(() => {
-                router.push(`/pages/tenant/billing?agreement_id=${agreement_id}`);
+                router.push(`/tenant/billing?agreement_id=${agreement_id}`);
             }, 2000);
         } catch (err: any) {
             console.error("Error submitting payment:", err);

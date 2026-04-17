@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
         ================================ */
         const title = "📄 Lease Completed";
         const body = `Your lease for ${lease.property_name} – ${lease.unit_name} has officially ended and your tenant ID has been revoked.`;
-        const redirectUrl = "/pages/tenant/my-unit";
+        const redirectUrl = "/tenant/my-unit";
 
         await sendUserNotification({
             userId: lease.tenant_user_id,

@@ -103,7 +103,7 @@ function PaymentFailedPageContent() {
                     </a>
 
                     <button
-                        onClick={() => router.push("/pages/landlord/subscription_plan/pricing")}
+                        onClick={() => router.push("/landlord/subscription_plan/pricing")}
                         className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold shadow-md hover:shadow-lg transition-all"
                     >
                         <Home className="w-5 h-5" />

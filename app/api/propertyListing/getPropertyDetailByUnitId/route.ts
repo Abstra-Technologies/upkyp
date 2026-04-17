@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { NextResponse, NextRequest } from "next/server";
 import { decryptData } from "@/crypto/encrypt";
 
-// /pages/landlord/properties/UPKYP10IPH4/units/details pages api
+// /landlord/properties/UPKYP10IPH4/units/details pages api
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);

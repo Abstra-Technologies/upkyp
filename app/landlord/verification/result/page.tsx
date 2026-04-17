@@ -108,7 +108,7 @@ export default function LandlordVerificationResultPage() {
 
                         <button
                             onClick={() =>
-                                router.push("/pages/landlord/verification")
+                                router.push("/landlord/verification")
                             }
                             className="mt-4 px-6 py-3 rounded-xl font-semibold
                                        bg-red-600 text-white hover:bg-red-700"

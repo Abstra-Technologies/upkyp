@@ -9,7 +9,7 @@ const SuccessPage = () => {
   useEffect(() => {
     // Automatically redirect after 1 second
     const timer = setTimeout(() => {
-      router.push("/pages/tenant/my-unit");
+      router.push("/tenant/my-unit");
     }, 3000);
 
     return () => clearTimeout(timer); // Cleanup timeout
@@ -26,7 +26,7 @@ const SuccessPage = () => {
         shortly.
       </p>
       <button
-        onClick={() => router.push("/pages/tenant/my-unit")}
+        onClick={() => router.push("/tenant/my-unit")}
         className="bg-indigo-700 hover:bg-indigo-800 text-white font-semibold py-2 px-6 rounded"
       >
         Finished

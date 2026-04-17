@@ -73,7 +73,7 @@ export async function PUT(req: NextRequest) {
 
         let title = "Tenant Application Update";
         let bodyMessage = "Your tenant application status has been updated.";
-        let redirectUrl = "/pages/tenant/myApplications";
+        let redirectUrl = "/tenant/myApplications";
 
         if (status === "approved") {
             title = "🎉 Application Approved!";

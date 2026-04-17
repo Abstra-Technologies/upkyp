@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
                     userId: tenant.user_id,
                     title: subject,
                     body: truncatedDescription,
-                    url: "/pages/tenant/feeds",
+                    url: "/tenant/feeds",
                 });
 
                 // Android FCM
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
                             await fcm.send({
                                 token: row.token,
                                 notification: { title: subject, body: truncatedDescription },
-                                data: { url: "/pages/tenant/feeds" },
+                                data: { url: "/tenant/feeds" },
                             });
                         } catch (err: any) {
                             if (err.errorInfo?.code === "messaging/registration-token-not-registered") {

@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
             Your lease for <b>${lease.property_name}</b> – <b>${lease.unit_name}</b>
             has been extended until <b>${new_end_date}</b>.
         `;
-        const redirectUrl = "/pages/tenant/leases";
+        const redirectUrl = "/tenant/leases";
 
         /* ===============================
            SAVE NOTIFICATION

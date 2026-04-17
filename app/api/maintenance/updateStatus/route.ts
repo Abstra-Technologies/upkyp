@@ -252,7 +252,7 @@ export async function PUT(req: NextRequest) {
       notifBody = `Your maintenance request "${subject}" has been completed.`;
     }
 
-    const notifUrl = `/pages/tenant/maintenance/view/${request_id}`;
+    const notifUrl = `/tenant/maintenance/view/${request_id}`;
 
     await conn.query(
       `INSERT INTO Notification (user_id, title, body, url, is_read, created_at)

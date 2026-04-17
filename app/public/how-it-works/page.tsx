@@ -98,7 +98,7 @@ export default function HowItWorks() {
                 className="mt-8 flex flex-col sm:flex-row gap-4"
               >
                 <Link
-                  href="/pages/auth/selectRole"
+                  href="/auth/selectRole"
                   className="group inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-500 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-200"
                 >
                   Get started free
@@ -106,7 +106,7 @@ export default function HowItWorks() {
                 </Link>
 
                 <Link
-                  href="/pages/public/support"
+                  href="/public/support"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
                 >
                   Contact sales
@@ -413,7 +413,7 @@ export default function HowItWorks() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link
-                  href="/pages/auth/selectRole"
+                  href="/auth/selectRole"
                   className="group inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white text-blue-600 font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200"
                 >
                   Create free account
@@ -421,7 +421,7 @@ export default function HowItWorks() {
                 </Link>
 
                 <Link
-                  href="/pages/public/pricing"
+                  href="/public/pricing"
                   className="inline-flex items-center justify-center px-8 py-4 rounded-xl border-2 border-white/30 text-white font-medium hover:bg-white/10 transition-all duration-200"
                 >
                   View plans

@@ -54,7 +54,7 @@ export async function generateMetadata(
             openGraph: {
                 title,
                 description,
-                url: `${baseUrl}/pages/find-rent/${id}/${rentId}`,
+                url: `${baseUrl}/find-rent/${id}/${rentId}`,
                 siteName: "Upkyp",
                 type: "website",
                 images: [

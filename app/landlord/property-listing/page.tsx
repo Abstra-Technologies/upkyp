@@ -200,7 +200,7 @@ export default function PropertyListingPage() {
         {/*      </span>*/}
         {/*      <button*/}
         {/*        onClick={() =>*/}
-        {/*          router.push("/pages/landlord/subsciption_plan/pricing")*/}
+        {/*          router.push("/landlord/subsciption_plan/pricing")*/}
         {/*        }*/}
         {/*        className="text-amber-900 text-sm font-semibold underline hover:text-amber-700"*/}
         {/*      >*/}

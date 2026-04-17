@@ -30,7 +30,7 @@ export default function AdminCMSPage() {
                 "Create and manage announcements for tenants, landlords, or all users.",
             icon: Megaphone,
             color: "from-amber-500 to-orange-600",
-            path: "/pages/admin/cms/announcements",
+            path: "/admin/cms/announcements",
         },
         {
             title: "Media Library",
@@ -38,7 +38,7 @@ export default function AdminCMSPage() {
                 "Upload, view, and organize images and videos across the platform.",
             icon: ImageIcon,
             color: "from-blue-500 to-indigo-600",
-            path: "/pages/admin/cms/media",
+            path: "/admin/cms/media",
         },
         {
             title: "Header & Hero Sections",
@@ -54,7 +54,7 @@ export default function AdminCMSPage() {
                 "Edit content pages like About, Privacy Policy, Terms of Service, and Help Center.",
             icon: FileText,
             color: "from-green-500 to-emerald-600",
-            path: "/pages/admin/cms/content",
+            path: "/admin/cms/content",
         },
         {
             title: "User Highlights",
@@ -62,7 +62,7 @@ export default function AdminCMSPage() {
                 "Manage testimonials, featured landlords, and success stories.",
             icon: Users,
             color: "from-rose-500 to-red-600",
-            path: "/pages/admin/cms/highlights",
+            path: "/admin/cms/highlights",
         },
         {
             title: "System Settings",
@@ -70,7 +70,7 @@ export default function AdminCMSPage() {
                 "Configure content visibility, role-based access, and global display settings.",
             icon: Settings,
             color: "from-slate-500 to-gray-600",
-            path: "/pages/admin/cms/settings",
+            path: "/admin/cms/settings",
         },
     ];
 

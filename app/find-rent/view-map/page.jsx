@@ -126,11 +126,11 @@ export default function PropertyMapPage() {
     };
 
     const handleViewUnitDetails = (unitId) => {
-        router.push(`/pages/find-rent/${selectedProperty.property_id}/${unitId}`);
+        router.push(`/find-rent/${selectedProperty.property_id}/${unitId}`);
     };
 
     const handleViewPropertyDetails = () => {
-        router.push(`/pages/find-rent/${selectedProperty.property_id}`);
+        router.push(`/find-rent/${selectedProperty.property_id}`);
     };
 
     const defaultCenter = userCoords || { lat: 14.5995, lng: 120.9842 };

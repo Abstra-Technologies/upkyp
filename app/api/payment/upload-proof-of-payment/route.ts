@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
                         landlordUserId,
                         "New payment proof uploaded",
                         `A tenant submitted a payment proof for agreement #${agreement_id}. Receipt: ${receiptRef}.`,
-                        billingId ? `/pages/landlord/billing/${billingId}` : `/pages/landlord/billing`,
+                        billingId ? `/landlord/billing/${billingId}` : `/landlord/billing`,
                     ]
                 );
             }
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
                     body: billingId
                         ? `A tenant uploaded proof for Billing #${billingId}. Status set to "Unpaid" pending review.`
                         : `A tenant uploaded a payment proof. Please review.`,
-                    url: billingId ? `/pages/landlord/billing/${billingId}` : `/pages/landlord/billing`,
+                    url: billingId ? `/landlord/billing/${billingId}` : `/landlord/billing`,
                     tag: `payment-proof-${receiptRef}`,
                     data: { receiptRef, agreement_id, billingId },
                 });

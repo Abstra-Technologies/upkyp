@@ -28,7 +28,7 @@ export default function AdminDashboard() {
 
     /* If not authenticated after check → redirect to login */
     if (!admin) {
-        router.replace("/pages/admin_login");
+        router.replace("/admin_login");
         return <LoadingScreen />;
     }
 

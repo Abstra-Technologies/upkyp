@@ -7,7 +7,7 @@ import { decryptData } from "@/crypto/encrypt";
  * @method      DELETE
  * @route       /api/unitListing/deleteUnitPhoto
  * @desc        delete a unit photo single.
- * @usedIn      app/pages/landlord/properties/[id]/units/edit/[unitId]/page.tsx
+ * @usedIn      app/landlord/properties/[id]/units/edit/[unitId]/page.tsx
  * @returns     n/a
  */
 

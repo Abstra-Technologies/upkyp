@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
       SELECT u.user_id,
              'Tenant Ended Lease',
              CONCAT('A tenant has ended the lease for Unit ', un.unit_name),
-             '/pages/landlord/lease-management'
+             '/landlord/lease-management'
       FROM LeaseAgreement la
       JOIN Unit un ON la.unit_id = un.unit_id
       JOIN Property p ON un.property_id = p.property_id

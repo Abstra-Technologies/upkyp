@@ -159,7 +159,7 @@ function SecSuccess() {
                     <button
                         onClick={() =>
                             router.replace(
-                                `/pages/tenant/rentalPortal/${paymentData?.agreement_id}/billing?agreement_id=${paymentData?.agreement_id}`
+                                `/tenant/rentalPortal/${paymentData?.agreement_id}/billing?agreement_id=${paymentData?.agreement_id}`
                             )
                         }
                         className="border py-2.5 rounded-lg hover:bg-gray-100 transition"

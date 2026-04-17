@@ -25,7 +25,7 @@ export default function JoinBetaPage() {
     /** Redirect non-landlords */
     useEffect(() => {
         if (user && user.userType !== "landlord") {
-            router.replace("/pages/error/accessDenied");
+            router.replace("/error/accessDenied");
         }
     }, [user, router]);
 
@@ -87,7 +87,7 @@ export default function JoinBetaPage() {
                 confirmButtonColor: "#2563eb",
             });
 
-            router.push("/pages/landlord/subscription");
+            router.push("/landlord/subscription");
         } finally {
             setLoading(false);
         }

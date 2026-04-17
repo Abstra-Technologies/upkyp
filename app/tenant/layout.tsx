@@ -71,7 +71,7 @@ export default function TenantLayout({ children }) {
         if (isAuthChecking) return;
 
         if (!user || user.userType !== "tenant") {
-            router.replace("/pages/auth/login");
+            router.replace("/auth/login");
             return;
         }
 
@@ -82,7 +82,7 @@ export default function TenantLayout({ children }) {
 
   // Check portal context on route changes
   useEffect(() => {
-    const isPortalRoute = pathname?.startsWith("/pages/tenant/rentalPortal");
+    const isPortalRoute = pathname?.startsWith("/tenant/rentalPortal");
 
     if (!isPortalRoute) {
       setIsInPortalMode(false);
@@ -96,7 +96,7 @@ export default function TenantLayout({ children }) {
 
     if (!agreementId) {
       setIsInPortalMode(false);
-      router.replace("/pages/tenant/my-unit");
+      router.replace("/tenant/my-unit");
       return;
     }
 
@@ -114,7 +114,7 @@ export default function TenantLayout({ children }) {
       } catch {
         localStorage.removeItem("portalAgreementId");
         setIsInPortalMode(false);
-        router.replace("/pages/tenant/my-unit");
+        router.replace("/tenant/my-unit");
       }
     }
 
@@ -130,25 +130,25 @@ export default function TenantLayout({ children }) {
   const portalNavItems = [
     {
       name: "Dashboard",
-      href: `/pages/tenant/rentalPortal/${portalAgreementId}`,
+      href: `/tenant/rentalPortal/${portalAgreementId}`,
       icon: Home,
       mobileLabel: "Home",
     },
     {
       name: "Billing",
-      href: `/pages/tenant/rentalPortal/${portalAgreementId}/billing`,
+      href: `/tenant/rentalPortal/${portalAgreementId}/billing`,
       icon: CreditCard,
       mobileLabel: "Billing",
     },
     {
       name: "Payments",
-      href: `/pages/tenant/rentalPortal/${portalAgreementId}/paymentHistory`,
+      href: `/tenant/rentalPortal/${portalAgreementId}/paymentHistory`,
       icon: FileText,
       mobileLabel: "Payments",
     },
     {
       name: "Maintenance",
-      href: `/pages/tenant/rentalPortal/${portalAgreementId}/maintenance`,
+      href: `/tenant/rentalPortal/${portalAgreementId}/maintenance`,
       icon: Wrench,
       mobileLabel: "Requests",
     },
@@ -158,17 +158,17 @@ export default function TenantLayout({ children }) {
   const moreMenuItems = [
     {
       name: "Announcements",
-      href: `/pages/tenant/rentalPortal/${portalAgreementId}/announcement`,
+      href: `/tenant/rentalPortal/${portalAgreementId}/announcement`,
       icon: Megaphone,
     },
     {
       name: "Chats",
-      href: `/pages/tenant/chat`,
+      href: `/tenant/chat`,
       icon: MessageSquare,
     },
     {
       name: "Profile",
-      href: `/pages/commons/profile`,
+      href: `/commons/profile`,
       icon: User,
     },
   ];
@@ -184,7 +184,7 @@ export default function TenantLayout({ children }) {
   const handleLogout = async () => {
     setShowLogoutConfirm(false);
     await signOut();
-    router.push("/pages/auth/login");
+    router.push("/auth/login");
   };
 
   const handleExitPortal = () => {
@@ -192,7 +192,7 @@ export default function TenantLayout({ children }) {
     setIsInPortalMode(false);
     setPortalAgreementId(null);
     setPortalPropertyInfo(null);
-    router.push("/pages/tenant/my-unit");
+    router.push("/tenant/my-unit");
   };
 
   if (isAuthChecking) {
@@ -353,7 +353,7 @@ export default function TenantLayout({ children }) {
       <aside className="hidden lg:flex lg:flex-col fixed left-0 top-0 w-72 bg-white border-r border-gray-200 h-screen z-30 shadow-sm">
         {/* Logo + Portal Badge */}
         <div className="p-5 border-b border-gray-100">
-          <Link href="/pages/tenant/feeds" className="flex items-center gap-2">
+          <Link href="/tenant/feeds" className="flex items-center gap-2">
             <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
               Upkyp
             </span>
@@ -427,7 +427,7 @@ export default function TenantLayout({ children }) {
         {/* Bottom Section */}
         <div className="p-3 border-t border-gray-100 space-y-1">
           <Link
-            href="/pages/commons/profile"
+            href="/commons/profile"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 group"
           >
             <Settings className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />

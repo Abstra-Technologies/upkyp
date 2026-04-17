@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
                     user_id,
                     notifTitle,
                     notifBody,
-                    `/pages/tenant/lease/view/${agreement_id}`,
+                    `/tenant/lease/view/${agreement_id}`,
                 ]
             );
         }

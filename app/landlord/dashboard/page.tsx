@@ -92,7 +92,7 @@ export default function LandlordDashboard() {
 
           {/* Action Button */}
           <a
-            href="/pages/landlord/verification"
+            href="/landlord/verification"
             className={`inline-flex items-center gap-3 
                             ${GRADIENT_PRIMARY} text-white
                             px-8 py-4 rounded-xl

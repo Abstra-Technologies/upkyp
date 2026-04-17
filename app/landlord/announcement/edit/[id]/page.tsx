@@ -220,7 +220,7 @@ export default function EditAnnouncement() {
         timerProgressBar: true,
       });
 
-      router.push(`/pages/landlord/announcement/${id}`);
+      router.push(`/landlord/announcement/${id}`);
     } catch (error: any) {
       console.error("Error updating announcement:", error);
       setError(error.message || "Failed to update announcement");
@@ -248,11 +248,11 @@ export default function EditAnnouncement() {
         cancelButtonText: "Cancel",
       }).then((result) => {
         if (result.isConfirmed) {
-          router.push(`/pages/landlord/announcement/${id}`);
+          router.push(`/landlord/announcement/${id}`);
         }
       });
     } else {
-      router.push(`/pages/landlord/announcement/${id}`);
+      router.push(`/landlord/announcement/${id}`);
     }
   };
 
@@ -320,7 +320,7 @@ export default function EditAnnouncement() {
         {/* Header */}
         <div className="mb-6">
           <Link
-            href={`/pages/landlord/announcement/${id}`}
+            href={`/landlord/announcement/${id}`}
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 text-sm sm:text-base"
           >
             <svg

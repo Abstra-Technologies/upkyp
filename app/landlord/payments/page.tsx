@@ -215,7 +215,7 @@ export default function PaymentsPage() {
                             Download Report
                         </button>
 
-                        <Link href="/pages/landlord/payouts">
+                        <Link href="/landlord/payouts">
                             <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-600 text-white text-sm font-semibold shadow-md hover:scale-95 transition">
                                 <Wallet className="w-4 h-4" />
                                 View Payouts

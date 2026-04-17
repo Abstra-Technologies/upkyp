@@ -29,13 +29,13 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://upkyp.com"),
   alternates: {
-    canonical: "/pages/find-rent",
+    canonical: "/find-rent",
   },
   openGraph: {
     title: "Find Rent | Browse Properties for Rent - UpKyp",
     description:
       "Search rental units including apartments, condos, dorms, and rooms for rent in the Philippines.",
-    url: "/pages/find-rent",
+    url: "/find-rent",
     siteName: "UpKyp",
     locale: "en_PH",
     type: "website",

@@ -25,14 +25,14 @@ export default function NotAuthorizedPage() {
 
                 <div className="flex gap-3">
                     <button
-                        onClick={() => router.push("/pages/tenant")}
+                        onClick={() => router.push("/tenant")}
                         className="flex-1 px-4 py-2 rounded-lg bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 transition"
                     >
                         Go to Dashboard
                     </button>
 
                     <button
-                        onClick={() => router.push("/pages/support")}
+                        onClick={() => router.push("/support")}
                         className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition"
                     >
                         Contact Support

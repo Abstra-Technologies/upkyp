@@ -108,7 +108,7 @@ const PropertyListPage = () => {
                 
                 <div className="px-6 pb-6">
                   <Link
-                    href={`/pages/landlord/billing/viewUnit/${property.property_id}`}
+                    href={`/landlord/billing/viewUnit/${property.property_id}`}
                     className="block w-full"
                   >
                     <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-3 rounded-lg w-full transition-colors duration-200 flex items-center justify-center">

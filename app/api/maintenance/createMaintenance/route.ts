@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
         const body = is_emergency
             ? `An urgent maintenance issue was reported for ${unit_name} at ${property_name}.`
             : `A new maintenance request was created for ${unit_name} at ${property_name}.`;
-        const url = `/pages/landlord/maintenance-request?id=${request_id}`;
+        const url = `/landlord/maintenance-request?id=${request_id}`;
 
         await connection.execute(
             `INSERT INTO Notification (user_id, title, body, url, is_read, created_at)

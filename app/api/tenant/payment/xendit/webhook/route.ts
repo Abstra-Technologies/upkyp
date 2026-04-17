@@ -169,7 +169,7 @@ export async function POST(req: Request) {
                 userId: billing.landlord_user_id,
                 title: "Payment Received",
                 body: `A tenant has paid ₱${grossAmount.toFixed(2)} for billing.`,
-                url: "/pages/landlord/billing",
+                url: "/landlord/billing",
                 conn,
             });
 
@@ -262,7 +262,7 @@ export async function POST(req: Request) {
             userId: landlordUserId,
             title: "Initial Payment Received",
             body: `A tenant has paid ₱${grossAmount.toFixed(2)} (${finalPaymentType.replace("_", " ")}).`,
-            url: "/pages/landlord/payments",
+            url: "/landlord/payments",
             conn,
         });
 

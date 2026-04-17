@@ -153,7 +153,7 @@ export async function POST(req: Request) {
                 userId: landlord.user_id,
                 title: `Tenant Accepted – ${landlord.property_name} / ${landlord.unit_name}`,
                 body: "A tenant has accepted the invite. Lease is now in draft status.",
-                url: `/pages/landlord/property-listing/view-unit/${landlord.property_id}/unit-details/${landlord.unit_id}`,
+                url: `/landlord/property-listing/view-unit/${landlord.property_id}/unit-details/${landlord.unit_id}`,
                 conn,
             });
         }

@@ -21,7 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const staticPages = [
         // Add your main static pages here
         { url: `${baseUrl}/`, lastModified: new Date(), priority: 1.0 },
-        { url: `${baseUrl}/pages/find-rent`, lastModified: new Date(), priority: 0.9 },
+        { url: `${baseUrl}/find-rent`, lastModified: new Date(), priority: 0.9 },
         // Add other pages like /about, /contact, etc.
     ];
 
@@ -30,19 +30,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
         const capitalized = location.charAt(0).toUpperCase() + location.slice(1);
         return [
             {
-                url: `${baseUrl}/pages/find-rent?searchQuery=${encodeURIComponent(location)}`,
+                url: `${baseUrl}/find-rent?searchQuery=${encodeURIComponent(location)}`,
                 lastModified: new Date(),
                 changeFrequency: 'daily' as const,
                 priority: 0.8,
             },
             {
-                url: `${baseUrl}/pages/find-rent?searchQuery=${encodeURIComponent(capitalized)}`,
+                url: `${baseUrl}/find-rent?searchQuery=${encodeURIComponent(capitalized)}`,
                 lastModified: new Date(),
                 changeFrequency: 'daily' as const,
                 priority: 0.8,
             },
             {
-                url: `${baseUrl}/pages/find-rent?location=${encodeURIComponent(location.toLowerCase())}`,
+                url: `${baseUrl}/find-rent?location=${encodeURIComponent(location.toLowerCase())}`,
                 lastModified: new Date(),
                 changeFrequency: 'daily' as const,
                 priority: 0.7,

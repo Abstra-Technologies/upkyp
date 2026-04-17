@@ -59,7 +59,7 @@ export default function LeaseContractsPage() {
         fetchAll();
     }, [user?.landlord_id]);
 
-    const handleView = (id: number) => router.push(`/pages/lease/${id}`);
+    const handleView = (id: number) => router.push(`/lease/${id}`);
 
     const start = (page - 1) * itemsPerPage;
     const visibleLeases = leases.slice(start, start + itemsPerPage);

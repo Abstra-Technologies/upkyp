@@ -110,7 +110,7 @@ const agreement_id = searchParams.get("agreement_id");
 
           {/* Button */}
           <button
-              onClick={() => router.replace(`/pages/tenant/billing?agreement_id=${agreement_id}`)
+              onClick={() => router.replace(`/tenant/billing?agreement_id=${agreement_id}`)
               }
               className="inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow hover:from-blue-700 hover:to-emerald-700 transition-all duration-200"
           >

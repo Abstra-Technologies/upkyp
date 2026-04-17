@@ -39,7 +39,7 @@ export default function UserGuideLandingPage() {
                 {/*    iconColor="text-blue-600"*/}
                 {/*    title="Landlord Guide"*/}
                 {/*    description="Manage properties, billing, tenant payments, and payouts."*/}
-                {/*    href="/pages/landlord/guide"*/}
+                {/*    href="/landlord/guide"*/}
                 {/*/>*/}
 
                 {/* Payment & Payout */}
@@ -49,7 +49,7 @@ export default function UserGuideLandingPage() {
                     iconColor="text-emerald-600"
                     title="Payments & Payouts"
                     description="Understand how tenant payments are processed and how you get paid."
-                    href="/pages/landlord/guide/payment"
+                    href="/landlord/guide/payment"
                 />
             </div>
         </div>

@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
                     0,
                     5
                 )}.`,
-                url: `/pages/landlord/calendar`, // adjust if needed
+                url: `/landlord/calendar`, // adjust if needed
             });
         }
 

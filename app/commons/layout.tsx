@@ -99,7 +99,7 @@ export default function SideNavProfile({
 
   useEffect(() => {
     if (!isAuthChecking && !user) {
-      router.replace("/pages/auth/login");
+      router.replace("/auth/login");
     }
   }, [user, isAuthChecking, router]);
 
@@ -123,7 +123,7 @@ export default function SideNavProfile({
   const handleLogout = () => {
     if (!user) return;
     user?.userType ? signOut() : signOutAdmin();
-    router.push("/pages/auth/login");
+    router.push("/auth/login");
   };
 
   const mainPageUrl =

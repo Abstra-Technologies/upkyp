@@ -98,7 +98,7 @@ export async function PUT(req: NextRequest) {
             await connection.query(
                 `
         INSERT INTO Notification (user_id, title, body, url, is_read, created_at)
-        VALUES (?, ?, ?, '/pages/tenant/billing', 0, NOW())
+        VALUES (?, ?, ?, '/tenant/billing', 0, NOW())
         `,
                 [pdc.user_id, notifTitle, notifBody]
             );
@@ -119,7 +119,7 @@ export async function PUT(req: NextRequest) {
                     title: notifTitle,
                     body: notifBody,
                     icon: "/icons/notification-icon.png",
-                    url: "/pages/tenant/billing",
+                    url: "/tenant/billing",
                 });
 
                 try {

@@ -160,7 +160,7 @@ export default function ForgotPassword() {
       );
       toast.success("Password reset successfully! Redirecting...");
       sessionStorage.clear();
-      setTimeout(() => router.push("/pages/auth/login"), 2000);
+      setTimeout(() => router.push("/auth/login"), 2000);
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Password reset failed.");
     }
@@ -177,7 +177,7 @@ export default function ForgotPassword() {
           <div className="w-full max-w-md">
             {/* Back Link */}
             <Link
-              href="/pages/auth/login"
+              href="/auth/login"
               className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6"
             >
               <ArrowLeft className="w-4 h-4" />

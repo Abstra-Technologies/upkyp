@@ -103,9 +103,9 @@ function SubscriptionReview() {
                 plan_name: selectedPlan.name,
                 addons: selectedAddOns,
                 redirectUrl: {
-                    success: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/payment/subscriptionSuccess`,
-                    failure: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/payment/failure`,
-                    cancel: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/payment/cancelled`,
+                    success: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/subscriptionSuccess`,
+                    failure: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/failure`,
+                    cancel: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancelled`,
                 },
             });
 

@@ -91,7 +91,7 @@ export default function UnitBilling() {
                     <button
                       onClick={() =>
                         router.push(
-                          `/pages/landlord/billing/editUnitBill/${bill.billing_id}`
+                          `/landlord/billing/editUnitBill/${bill.billing_id}`
                         )
                       }
                       className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600"

@@ -56,7 +56,7 @@ export default function ViewAnnouncement() {
   }, [user, id]);
 
   const handleEdit = () => {
-    router.push(`/pages/landlord/announcement/edit/${id}`);
+    router.push(`/landlord/announcement/edit/${id}`);
   };
 
   const handleDelete = async () => {
@@ -91,7 +91,7 @@ export default function ViewAnnouncement() {
         timerProgressBar: true,
       });
 
-      router.push("/pages/landlord/announcement");
+      router.push("/landlord/announcement");
     } catch (error) {
       console.error("Error deleting announcement:", error);
       Swal.fire({
@@ -192,7 +192,7 @@ export default function ViewAnnouncement() {
             The announcement you're looking for doesn't exist.
           </p>
           <Link
-            href="/pages/landlord/announcement"
+            href="/landlord/announcement"
             className="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg hover:shadow-lg transition-shadow font-medium"
           >
             <svg
@@ -222,7 +222,7 @@ export default function ViewAnnouncement() {
         {/* Header */}
         <div className="mb-6">
           <Link
-            href="/pages/landlord/announcement"
+            href="/landlord/announcement"
             className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 text-sm sm:text-base"
           >
             <svg

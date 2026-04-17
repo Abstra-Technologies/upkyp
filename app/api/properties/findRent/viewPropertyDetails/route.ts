@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
       main_photo:
           decryptedPropertyPhotos?.[0] ||
           `${process.env.NEXT_PUBLIC_BASE_URL}/default-property.jpg`,
-      share_url: `${process.env.NEXT_PUBLIC_BASE_URL}/pages/find-rent/${id}`,
+      share_url: `${process.env.NEXT_PUBLIC_BASE_URL}/find-rent/${id}`,
     });
 
 

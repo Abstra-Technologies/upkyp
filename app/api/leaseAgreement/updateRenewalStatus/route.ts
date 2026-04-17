@@ -146,7 +146,7 @@ export async function PUT(req: NextRequest) {
                 const payload = JSON.stringify({
                     title: "Lease Renewal Approved 🎉",
                     body: `Your lease renewal for unit ${renewal.unit_id} has been approved.`,
-                    url: `/pages/tenant/leases/${newLeaseId}`,
+                    url: `/tenant/leases/${newLeaseId}`,
                 });
 
                 for (const sub of subs) {
@@ -173,7 +173,7 @@ export async function PUT(req: NextRequest) {
                         tenant.user_id,
                         "Lease Renewal Approved 🎉",
                         `Your renewal for unit ${renewal.unit_id} was approved.`,
-                        `/pages/tenant/leases/${newLeaseId}`,
+                        `/tenant/leases/${newLeaseId}`,
                     ]
                 );
             }
