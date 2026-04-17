@@ -49,7 +49,7 @@ const profileNavLinks = [
   },
   {
     href: "/commons/landlord/payoutDetails",
-    label: "Payout Account",
+    label: "Finance & Accounting",
     shortLabel: "Payout",
     icon: CreditCardIcon,
     roles: ["landlord"],

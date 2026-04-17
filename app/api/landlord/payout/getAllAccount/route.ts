@@ -1,17 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 export async function GET(req: NextRequest) {
     let connection: any;
 
     try {
-        const { searchParams } = new URL(req.url);
-        const landlord_id = searchParams.get("landlord_id");
+        const session = await getSessionUser();
+
+        // 🔐 AUTH CHECK
+        if (!session) {
+            return NextResponse.json(
+                { error: "Unauthorized. Please log in." },
+                { status: 401 }
+            );
+        }
+
+        if (session.userType !== "landlord" && session.userType !== "admin") {
+            return NextResponse.json(
+                { error: "Access denied." },
+                { status: 403 }
+            );
+        }
+
+        const landlord_id = session.landlord_id;
 
         if (!landlord_id) {
             return NextResponse.json(
-                { error: "landlord_id is required" },
-                { status: 400 }
+                { error: "Landlord profile not found." },
+                { status: 404 }
             );
         }
 
@@ -36,13 +53,14 @@ export async function GET(req: NextRequest) {
             [landlord_id]
         );
 
-        // ✅ NO MASKING — frontend controls visibility
         return NextResponse.json(
             { accounts: rows },
             { status: 200 }
         );
+
     } catch (error) {
         console.error("getAllAccount error:", error);
+
         return NextResponse.json(
             { error: "Internal server error" },
             { status: 500 }
