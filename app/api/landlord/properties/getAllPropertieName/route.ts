@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+//  use case: components/landlord/analytics/detailed/PropertyFilter.tsx
+//  GET property name
+
 export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const landlord_id = searchParams.get("landlord_id");

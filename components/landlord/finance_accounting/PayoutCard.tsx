@@ -1,60 +1,55 @@
+"use client";
 
 export default function PayoutCard({ acc, actions }: any) {
-    const isActive = acc.is_active === 1;
 
     return (
-        <div
-            className={`rounded-xl border px-3 py-3 space-y-2
-            ${isActive
-                ? "bg-gradient-to-br from-blue-600 to-emerald-600 text-white"
-                : "bg-white"
-            }`}
-        >
+        <div className="rounded-xl border bg-white px-3 py-3 space-y-2 shadow-sm">
+
             {/* HEADER */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-start">
                 <div>
-                    <p className="font-semibold text-sm leading-tight">
+                    <p className="font-semibold text-sm text-gray-900 leading-tight">
                         {acc.bank_name}
                     </p>
-                    <p className="text-xs opacity-80">
+                    <p className="text-xs text-gray-500">
                         {acc.account_name}
                     </p>
                 </div>
-
-                {isActive && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/20">
-                        ACTIVE
-                    </span>
-                )}
             </div>
 
             {/* ACCOUNT NUMBER */}
-            <p className="font-mono text-sm tracking-wide">
+            <p className="font-mono text-sm tracking-wide text-gray-800">
                 {acc.account_number}
             </p>
 
             {/* ACTIONS */}
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-1.5 pt-1">
 
-                {!isActive && (
-                    <button
-                        onClick={() => actions.setActive(acc)}
-                        className="flex-1 text-xs py-1.5 rounded-lg
-                        bg-blue-600 text-white hover:bg-blue-700 transition"
-                    >
-                        Set Active
-                    </button>
-                )}
-
+                {/* VIEW */}
                 <button
                     onClick={() => actions.viewProperties(acc)}
-                    className={`flex-1 text-xs py-1.5 rounded-lg transition
-                    ${isActive
-                        ? "bg-white/20 text-white hover:bg-white/30"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
+                    className="flex-1 text-[11px] py-1.5 rounded-lg
+                    bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition"
                 >
-                   View Assigned Properties
+                    View
+                </button>
+
+                {/* EDIT */}
+                <button
+                    onClick={() => actions.edit(acc)}
+                    className="flex-1 text-[11px] py-1.5 rounded-lg
+                    bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                >
+                    Edit
+                </button>
+
+                {/* DELETE */}
+                <button
+                    onClick={() => actions.delete(acc)}
+                    className="flex-1 text-[11px] py-1.5 rounded-lg
+                    bg-red-100 text-red-700 hover:bg-red-200 transition"
+                >
+                    Delete
                 </button>
 
             </div>

@@ -1,9 +1,10 @@
-'use client'
+"use client";
 
 import { useState } from "react";
-import axios from "axios";
 
 import { usePayout } from "@/hooks/landlord/finance/usePayout";
+import { usePayoutProperty } from "@/hooks/landlord/finance/useAssignProperty";
+
 import PayoutTable from "@/components/landlord/finance_accounting/PayoutTable";
 import PayoutMobileList from "@/components/landlord/finance_accounting/PayoutMobileList";
 import PayoutModal from "@/components/landlord/finance_accounting/PayoutModal";
@@ -14,19 +15,37 @@ export default function Page() {
 
     const {
         accounts,
-        activeAccount,
-        otherAccounts,
         setAccounts,
         deleteAccount,
         updateAccount,
     } = usePayout();
 
+    const { getAssignedProperties } = usePayoutProperty();
+
     const [modalOpen, setModalOpen] = useState(false);
+
+    //  assigned properties
     const [properties, setProperties] = useState([]);
 
-    // 🔥 EDIT STATE
+    //  all landlord properties
+    const [allProperties, setAllProperties] = useState([]);
+
     const [editOpen, setEditOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState<any>(null);
+
+    /* ======================
+       FETCH ALL PROPERTIES
+    ====================== */
+    const fetchAllProperties = async () => {
+        try {
+            const res = await fetch("/api/propertyListing/getPropertyperLandlord");
+            const data = await res.json();
+            return Array.isArray(data) ? data : [];
+        } catch (err) {
+            console.error("Failed to fetch all properties", err);
+            return [];
+        }
+    };
 
     /* ======================
        ACTIONS
@@ -42,16 +61,18 @@ export default function Page() {
 
         viewProperties: async (acc: any) => {
             try {
+                setSelectedAccount(acc);
                 setModalOpen(true);
 
-                const res = await axios.get(
-                    "/api/landlord/payout/getAssignedProperties",
-                    {
-                        params: { payout_id: acc.payout_id },
-                    }
-                );
+                // 🔥 fetch BOTH in parallel
+                const [assigned, all] = await Promise.all([
+                    getAssignedProperties(acc.payout_id),
+                    fetchAllProperties(),
+                ]);
 
-                setProperties(res.data || []);
+                setProperties(Array.isArray(assigned) ? assigned : []);
+                setAllProperties(Array.isArray(all) ? all : []);
+
             } catch (error) {
                 console.error("Failed to fetch properties", error);
             }
@@ -109,21 +130,23 @@ export default function Page() {
                 <Header isMobile />
 
                 <PayoutMobileList
-                    activeAccount={activeAccount}
-                    otherAccounts={otherAccounts}
+                    accounts={accounts}
                     actions={actions}
                 />
 
             </div>
 
-            {/* VIEW PROPERTIES MODAL */}
+            {/* 🔥 VIEW / MANAGE PROPERTIES MODAL */}
             <PayoutModal
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 properties={properties}
+                allProperties={allProperties} // 🔥 REQUIRED FIX
+                payout_id={selectedAccount?.payout_id}
+                setProperties={setProperties}
             />
 
-            {/*  EDIT MODAL */}
+            {/* EDIT MODAL */}
             <EditPayoutAccountModal
                 open={editOpen}
                 onClose={() => setEditOpen(false)}
