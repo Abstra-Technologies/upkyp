@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import crypto from "crypto";
+import { get } from '@vercel/edge-config';
 
 /* =====================================================
    HELPERS
