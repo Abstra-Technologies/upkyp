@@ -53,7 +53,7 @@ export async function GET(
         const plan = planRows[0];
 
         const [limitRows]: any = await db.query(
-            `SELECT max_units FROM PlanLimits WHERE plan_id = ? LIMIT 1`,
+            `SELECT max_storage, max_assets_per_property, financial_history_years FROM PlanLimits WHERE plan_id = ? LIMIT 1`,
             [id]
         );
 
@@ -113,7 +113,7 @@ export async function PUT(
         }
 
         const body = await request.json();
-        const { plan, max_units, features } = body;
+        const { plan, limits, features } = body;
 
         if (!plan) {
             return NextResponse.json(
@@ -153,34 +153,41 @@ export async function PUT(
         );
 
         // ==========================
-        // UPDATE / INSERT max_units
+        // UPDATE / INSERT PlanLimits
         // ==========================
         const [limitCheck]: any = await connection.query(
             `SELECT id FROM PlanLimits WHERE plan_id = ? LIMIT 1`,
             [id]
         );
 
-        const safeMaxUnits =
-            max_units === null || max_units === undefined
-                ? null
-                : toSafeNumber(max_units);
+        const safeMaxStorage = limits?.max_storage === null || limits?.max_storage === undefined
+            ? null
+            : String(limits.max_storage);
+        
+        const safeMaxAssetsPerProperty = limits?.max_assets_per_property === null || limits?.max_assets_per_property === undefined
+            ? null
+            : toSafeNumber(limits.max_assets_per_property);
+        
+        const safeFinancialHistoryYears = limits?.financial_history_years === null || limits?.financial_history_years === undefined
+            ? null
+            : toSafeNumber(limits.financial_history_years);
 
         if (limitCheck.length) {
             await connection.query(
                 `
                 UPDATE PlanLimits
-                SET max_units = ?
+                SET max_storage = ?, max_assets_per_property = ?, financial_history_years = ?
                 WHERE plan_id = ?
                 `,
-                [safeMaxUnits, id]
+                [safeMaxStorage, safeMaxAssetsPerProperty, safeFinancialHistoryYears, id]
             );
         } else {
             await connection.query(
                 `
-                INSERT INTO PlanLimits (plan_id, max_units)
-                VALUES (?, ?)
+                INSERT INTO PlanLimits (plan_id, max_storage, max_assets_per_property, financial_history_years)
+                VALUES (?, ?, ?, ?)
                 `,
-                [id, safeMaxUnits]
+                [id, safeMaxStorage, safeMaxAssetsPerProperty, safeFinancialHistoryYears]
             );
         }
 

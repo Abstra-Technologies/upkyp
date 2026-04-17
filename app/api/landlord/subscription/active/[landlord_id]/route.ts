@@ -3,6 +3,7 @@
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,15 @@ export async function GET(
     context: { params: Promise<{ landlord_id?: string }> }
 ) {
     const requestId = crypto.randomUUID();
+
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || sessionUser.userType !== "landlord") {
+        return NextResponse.json(
+            { error: "Unauthorized. Valid landlord session required." },
+            { status: 401 }
+        );
+    }
 
     const { landlord_id } = await context.params;
 
@@ -23,6 +33,13 @@ export async function GET(
         return NextResponse.json(
             { error: "Invalid landlord_id" },
             { status: 400 }
+        );
+    }
+
+    if (String(sessionUser.landlord_id) !== String(landlord_id)) {
+        return NextResponse.json(
+            { error: "Forbidden: You can only access your own subscription." },
+            { status: 403 }
         );
     }
 

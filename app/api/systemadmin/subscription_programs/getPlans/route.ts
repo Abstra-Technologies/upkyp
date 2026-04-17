@@ -19,19 +19,25 @@ export async function GET(request: NextRequest) {
         //   return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         // }
 
-        // 📦 Fetch Plans
+        // 📦 Fetch Plans with Limits and Features
         const [plans]: any = await db.query(`
         SELECT 
-            plan_id,
-            plan_code,
-            name,
-            price,
-            billing_cycle,
-            is_active,
-            created_at,
-            updated_at
-        FROM Plan
-        ORDER BY created_at DESC
+            p.plan_id,
+            p.plan_code,
+            p.name,
+            p.price,
+            p.billing_cycle,
+            p.is_active,
+            p.created_at,
+            p.updated_at,
+            p.platform_fee,
+            p.fee_type,
+            pl.max_storage,
+            pl.max_assets_per_property,
+            pl.financial_history_years
+        FROM Plan p
+        LEFT JOIN PlanLimits pl ON p.plan_id = pl.plan_id
+        ORDER BY p.created_at DESC
     `);
 
         return NextResponse.json(plans);

@@ -64,42 +64,34 @@ export default function useSubscription(
         keepPreviousData: true,
     });
 
-    /* =========================================
-       Optimistic Plan Upgrade
-    ========================================= */
     const upgradeSubscriptionOptimistic = async (
         updatedFields: Partial<Subscription>
     ) => {
         if (!data) return;
 
-        // 1️⃣ Snapshot previous data
+        //  Snapshot previous data
         const previous = data;
 
-        // 2️⃣ Optimistically update UI
+        //  Optimistically update UI
         await mutate(
             { ...data, ...updatedFields },
             false // do NOT revalidate yet
         );
 
         try {
-            // 3️⃣ Background revalidation
+            // 3⃣ Background revalidation
             await mutate();
         } catch (err) {
-            // 4️⃣ Rollback on failure
+            //  Rollback on failure
             await mutate(previous, false);
         }
     };
 
-    /* =========================================
-       Force Refresh
-    ========================================= */
     const refreshSubscription = async () => {
         await mutate();
     };
 
-    /* =========================================
-       Utility Helpers
-    ========================================= */
+
     const isUnlimited = (value: number | null | undefined) =>
         value === null || value === undefined;
 

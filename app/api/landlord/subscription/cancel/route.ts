@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 /* =====================================================
    Cached subscription fetch (used for validation)
@@ -29,6 +30,15 @@ const getActiveSubscription = unstable_cache(
    POST /api/landlord/subscription/cancel
 ===================================================== */
 export async function POST(req: Request) {
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || sessionUser.userType !== "landlord") {
+        return NextResponse.json(
+            { error: "Unauthorized. Valid landlord session required." },
+            { status: 401 }
+        );
+    }
+
     try {
         const body = await req.json();
         const { landlord_id } = body;
@@ -37,6 +47,13 @@ export async function POST(req: Request) {
             return NextResponse.json(
                 { error: "Missing landlord_id" },
                 { status: 400 }
+            );
+        }
+
+        if (String(sessionUser.landlord_id) !== String(landlord_id)) {
+            return NextResponse.json(
+                { error: "Forbidden: You can only cancel your own subscription." },
+                { status: 403 }
             );
         }
 

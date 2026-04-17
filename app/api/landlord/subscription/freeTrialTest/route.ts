@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 const PLAN_MAP: Record<string, {
-    code: "FREE" | "STANDARD" | "PRO" | "ENTERPRISE";
+    code: "FREE" | "STANDARD" | "PRO" | "ENTERPRISE" | "LIFETIME";
     trialDays: number;
     isFree: boolean;
 }> = {
@@ -10,13 +11,37 @@ const PLAN_MAP: Record<string, {
     "Standard Plan": { code: "STANDARD", trialDays: 60, isFree: false },
     "Pro Plan": { code: "PRO", trialDays: 60, isFree: false },
     "Enterprise Plan": { code: "ENTERPRISE", trialDays: 60, isFree: false },
+    "Lifetime License": { code: "LIFETIME", trialDays: 0, isFree: false },
 };
 
 export async function POST(req: NextRequest) {
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || sessionUser.userType !== "landlord") {
+        return NextResponse.json(
+            { error: "Unauthorized. Valid landlord session required." },
+            { status: 401 }
+        );
+    }
+
+    if (!sessionUser.landlord_id) {
+        return NextResponse.json(
+            { error: "Landlord ID not found in session." },
+            { status: 400 }
+        );
+    }
+
     const conn = await db.getConnection();
 
     try {
         const { landlord_id, plan_name } = await req.json();
+
+        if (String(landlord_id) !== String(sessionUser.landlord_id)) {
+            return NextResponse.json(
+                { error: "Forbidden: You can only activate plans for your own account." },
+                { status: 403 }
+            );
+        }
 
         console.log('landlord id: ' + landlord_id);
         console.log('plan: ' + plan_name);
