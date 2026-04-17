@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Menu, X, Layers } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BackButton } from "@/components/navigation/backButton";
 
 export default function UpkypStackLayout({
@@ -11,6 +12,13 @@ export default function UpkypStackLayout({
     children: React.ReactNode;
 }) {
     const [open, setOpen] = useState(false);
+    const pathname = usePathname();
+
+    const navItems = [
+        { label: "Marketplace", href: "/upkyp_stack" },
+        { label: "My API", href: "/upkyp_stack/myAPI" },
+        { label: "API Docs", href: "/upkyp_stack/docs" },
+    ];
 
     return (
         <div className="min-h-screen flex bg-gradient-to-br from-gray-50 to-white">
@@ -31,6 +39,7 @@ export default function UpkypStackLayout({
                 className={`fixed z-50 top-0 left-0 h-full w-64 bg-white border-r border-gray-200 p-5 transform transition-transform duration-300
         ${open ? "translate-x-0" : "-translate-x-full"} md:translate-x-0`}
             >
+
                 {/* MOBILE HEADER */}
                 <div className="flex items-center justify-between mb-4 md:hidden">
                     <span className="font-bold text-lg">Menu</span>
@@ -39,7 +48,7 @@ export default function UpkypStackLayout({
                     </button>
                 </div>
 
-                {/* 🔙 BACK BUTTON */}
+                {/* BACK BUTTON */}
                 <div className="mb-4">
                     <BackButton
                         label="Dashboard"
@@ -56,16 +65,34 @@ export default function UpkypStackLayout({
                 </div>
 
                 {/* NAV */}
-                <nav className="flex flex-col gap-2">
-                    <Link href="/upkyp_stack" className="sidebar-link">
-                        Marketplace
-                    </Link>
-                    <Link href="/upkyp_stack/myAPI" className="sidebar-link">
-                        My API
-                    </Link>
-                    <Link href="/upkyp_stack/docs" className="sidebar-link">
-                        API Docs
-                    </Link>
+                <nav className="flex flex-col gap-1">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.href;
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                onClick={() => setOpen(false)} // close on mobile
+                                className={`
+                  relative px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+
+                  ${
+                                    isActive
+                                        ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-md"
+                                        : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:scale-[0.98]"
+                                }
+                `}
+                            >
+                                {/* ACTIVE INDICATOR (left border glow) */}
+                                {isActive && (
+                                    <span className="absolute left-0 top-0 h-full w-1 bg-white/60 rounded-r-full" />
+                                )}
+
+                                {item.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
             </aside>
 

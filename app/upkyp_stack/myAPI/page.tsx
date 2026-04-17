@@ -1,199 +1,199 @@
 "use client";
 
-import useSWR from "swr";
-import axios from "axios";
 import { useState } from "react";
-import { Copy, Eye, EyeOff, Plus } from "lucide-react";
-
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+import axios from "axios";
+import { Copy, Eye, EyeOff, RefreshCw } from "lucide-react";
+import Swal from "sweetalert2";
 
 export default function MyAPIPage() {
-    const [showKey, setShowKey] = useState(false);
+    const [showApiKey, setShowApiKey] = useState(false);
+    const [showSecretKey, setShowSecretKey] = useState(false);
 
-    // 🔥 REAL DATA HOOKS
-    const { data: apiData, isLoading: loadingKey } = useSWR(
-        "/api/upkyp_stack/api-keys"
-    );
+    const [apiKey, setApiKey] = useState<string | null>(null);
+    const [secretKey, setSecretKey] = useState<string | null>(null);
 
-    const { data: usageData, isLoading: loadingUsage } = useSWR(
-        "/api/upkyp_stack/api-usage"
-    );
+    const [name, setName] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const { data: endpointsData, isLoading: loadingEndpoints } = useSWR(
-        "/api/upkyp_stack/endpoints"
-    );
+    const handleGenerate = async () => {
+        if (!name.trim()) {
+            await Swal.fire({
+                icon: "warning",
+                title: "Missing Name",
+                text: "Please enter a name for your API key.",
+                confirmButtonColor: "#2563eb",
+            });
+            return;
+        }
 
-    const apiKey = apiData?.key;
+        try {
+            setLoading(true);
 
-    const handleCopy = () => {
-        if (!apiKey) return;
-        navigator.clipboard.writeText(apiKey);
+            await Swal.fire({
+                title: "Generating Keys...",
+                text: "Please wait",
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+            });
+
+            const res = await axios.post("/api/upkyp_stack/generate-keys", {
+                name,
+                environment: "live",
+            });
+
+            const data = res.data?.data;
+
+            if (!data?.api_key || !data?.secret_key) {
+                throw new Error("Invalid API response");
+            }
+
+            setApiKey(data.api_key);
+            setSecretKey(data.secret_key);
+
+            setName("");
+
+            await Swal.fire({
+                icon: "success",
+                title: "API Keys Generated",
+                html: `
+                <p style="font-size: 14px;">
+                    Your API and Secret keys have been created successfully.
+                </p>
+                <p style="margin-top: 10px; font-size: 12px; color: gray;">
+                    ⚠️ Make sure to copy your secret key now. You won't be able to see it again.
+                </p>
+            `,
+                confirmButtonColor: "#10b981",
+            });
+
+        } catch (err: any) {
+            console.error(err);
+
+            await Swal.fire({
+                icon: "error",
+                title: "Failed to Generate Keys",
+                text:
+                    err?.response?.data?.error ||
+                    err?.message ||
+                    "Something went wrong",
+                confirmButtonColor: "#ef4444",
+            });
+
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const copy = (val: string | null) => {
+        if (!val) return;
+        navigator.clipboard.writeText(val);
     };
 
     return (
-        <div className="px-5 py-6 md:p-8 max-w-6xl mx-auto">
+        <div className="px-5 py-6 md:p-8 max-w-5xl mx-auto">
 
             {/* HEADER */}
             <div className="mb-6">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-                    Upkyp API
+                    Upkyp API Keys
                 </h1>
                 <p className="text-gray-500 text-sm sm:text-base mt-1">
-                    Manage your API keys and monitor usage
+                    Generate and manage your API credentials
                 </p>
             </div>
 
+            {/* ERROR */}
+            {error && (
+                <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
+                    {error}
+                </div>
+            )}
+
+            {/* 🔥 NAME INPUT */}
+            <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    API Key Name
+                </label>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Production Key"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
+                />
+            </div>
+
+            {/* GENERATE BUTTON */}
+            <button
+                onClick={handleGenerate}
+                disabled={loading || !name.trim()}
+                className="mb-6 w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-semibold shadow-md hover:shadow-lg transition disabled:opacity-50"
+            >
+                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                {loading ? "Generating..." : "Generate API Keys"}
+            </button>
+
             {/* API KEY */}
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 mb-6">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 mb-5">
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="font-semibold text-gray-800">API Key</h2>
 
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-semibold text-gray-800">Live API Key</h2>
-
-                    <button
-                        onClick={() => setShowKey(!showKey)}
-                        className="text-gray-500 hover:text-gray-700"
-                    >
-                        {showKey ? <EyeOff size={18} /> : <Eye size={18} />}
+                    <button onClick={() => setShowApiKey(!showApiKey)}>
+                        {showApiKey ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                 </div>
 
-                {loadingKey ? (
-                    <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
-                ) : apiKey ? (
-                    <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    <span className="text-sm font-mono text-gray-700 truncate">
+                        {apiKey
+                            ? showApiKey
+                                ? apiKey
+                                : "••••••••••••••••••••••••••"
+                            : "No API key generated"}
+                    </span>
 
-            <span className="text-sm font-mono text-gray-700 truncate">
-              {showKey ? apiKey : "••••••••••••••••••••••••••"}
-            </span>
-
-                        <button
-                            onClick={handleCopy}
-                            className="ml-auto text-gray-500 hover:text-gray-700"
-                        >
+                    {apiKey && (
+                        <button onClick={() => copy(apiKey)} className="ml-auto">
                             <Copy size={16} />
                         </button>
-                    </div>
-                ) : (
-                    <p className="text-sm text-gray-500">No API key found</p>
-                )}
-
-                <button
-                    className="mt-4 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm font-semibold shadow-md"
-                    onClick={async () => {
-                        await axios.post("/api/upkyp_stack/regenerate-key");
-                    }}
-                >
-                    Regenerate Key
-                </button>
+                    )}
+                </div>
             </div>
 
-            {/* USAGE */}
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5 mb-6">
-
-                <h2 className="font-semibold text-gray-800 mb-4">
-                    API Usage (This Month)
-                </h2>
-
-                {loadingUsage ? (
-                    <div className="h-20 bg-gray-100 rounded-xl animate-pulse" />
-                ) : usageData ? (
-                    <>
-                        <div className="mb-4">
-                            <div className="flex justify-between text-sm text-gray-600 mb-1">
-                                <span>Requests</span>
-                                <span>
-                  {usageData.total} / {usageData.limit}
-                </span>
-                            </div>
-
-                            <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-blue-500 to-emerald-500"
-                                    style={{
-                                        width: `${
-                                            (usageData.total / usageData.limit) * 100
-                                        }%`,
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
-                            <div className="p-4 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-500">Total Calls</p>
-                                <p className="font-bold text-gray-800 text-lg">
-                                    {usageData.total}
-                                </p>
-                            </div>
-
-                            <div className="p-4 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-500">Errors</p>
-                                <p className="font-bold text-red-500 text-lg">
-                                    {usageData.errors}
-                                </p>
-                            </div>
-
-                            <div className="p-4 bg-gray-50 rounded-xl">
-                                <p className="text-xs text-gray-500">Latency</p>
-                                <p className="font-bold text-gray-800 text-lg">
-                                    {usageData.latency}ms
-                                </p>
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    <p className="text-sm text-gray-500">No usage data available</p>
-                )}
-            </div>
-
-            {/* ENDPOINTS */}
+            {/* SECRET KEY */}
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+                <div className="flex justify-between items-center mb-3">
+                    <h2 className="font-semibold text-gray-800">Secret Key</h2>
 
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-semibold text-gray-800">Endpoints</h2>
-
-                    <button className="flex items-center gap-2 text-sm text-blue-600 font-medium hover:underline">
-                        <Plus size={16} />
-                        New API
+                    <button onClick={() => setShowSecretKey(!showSecretKey)}>
+                        {showSecretKey ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                 </div>
 
-                {loadingEndpoints ? (
-                    <div className="space-y-3">
-                        <div className="h-14 bg-gray-100 rounded-xl animate-pulse" />
-                        <div className="h-14 bg-gray-100 rounded-xl animate-pulse" />
-                    </div>
-                ) : endpointsData?.length ? (
-                    <div className="space-y-3">
-                        {endpointsData.map((endpoint: any) => (
-                            <div
-                                key={endpoint.id}
-                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border border-gray-100 rounded-xl"
-                            >
-                                <div>
-                                    <p className="font-medium text-gray-800 text-sm">
-                                        {endpoint.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500 font-mono">
-                                        {endpoint.path}
-                                    </p>
-                                </div>
+                <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3">
+                    <span className="text-sm font-mono text-gray-700 truncate">
+                        {secretKey
+                            ? showSecretKey
+                                ? secretKey
+                                : "••••••••••••••••••••••••••"
+                            : "No secret key generated"}
+                    </span>
 
-                                <span
-                                    className={`text-xs px-2 py-1 rounded-md font-medium w-fit ${
-                                        endpoint.method === "GET"
-                                            ? "bg-blue-50 text-blue-600"
-                                            : "bg-green-50 text-green-600"
-                                    }`}
-                                >
-                  {endpoint.method}
-                </span>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-sm text-gray-500">No endpoints available</p>
-                )}
+                    {secretKey && (
+                        <button onClick={() => copy(secretKey)} className="ml-auto">
+                            <Copy size={16} />
+                        </button>
+                    )}
+                </div>
+
+                <p className="text-xs text-gray-400 mt-3">
+                    Keep your secret key safe. Never expose it in frontend code.
+                </p>
             </div>
         </div>
     );

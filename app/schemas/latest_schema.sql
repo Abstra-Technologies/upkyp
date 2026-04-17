@@ -1,4 +1,4 @@
-create table Admin
+create table rentalley_db.Admin
 (
     admin_id        varchar(20)                                  not null
         primary key,
@@ -15,7 +15,7 @@ create table Admin
     permissions     text                                         null
 );
 
-create table AdminAnnouncement
+create table rentalley_db.AdminAnnouncement
 (
     id              int auto_increment
         primary key,
@@ -25,14 +25,14 @@ create table AdminAnnouncement
     target_audience enum ('all', 'tenant', 'landlord')  null,
     created_at      timestamp default CURRENT_TIMESTAMP null,
     constraint AdminAnnouncement_ibfk_1
-        foreign key (admin_id) references Admin (admin_id)
+        foreign key (admin_id) references rentalley_db.Admin (admin_id)
             on delete cascade
 );
 
 create index adminID
-    on AdminAnnouncement (admin_id);
+    on rentalley_db.AdminAnnouncement (admin_id);
 
-create table Admin_archive
+create table rentalley_db.Admin_archive
 (
     admin_id        varchar(20)                                  not null
         primary key,
@@ -50,7 +50,7 @@ create table Admin_archive
     deleted_at      datetime                                     not null
 );
 
-create table Expenses
+create table rentalley_db.Expenses
 (
     expense_id     int auto_increment
         primary key,
@@ -63,7 +63,7 @@ create table Expenses
     created_at     datetime    default CURRENT_TIMESTAMP null
 );
 
-create table InviteCode
+create table rentalley_db.InviteCode
 (
     id         int auto_increment
         primary key,
@@ -79,7 +79,7 @@ create table InviteCode
         unique (code)
 );
 
-create table IpAddresses
+create table rentalley_db.IpAddresses
 (
     id                int auto_increment
         primary key,
@@ -89,7 +89,7 @@ create table IpAddresses
     created_at        timestamp default CURRENT_TIMESTAMP null
 );
 
-create table LandlordPayoutHistory
+create table rentalley_db.LandlordPayoutHistory
 (
     payout_id              int auto_increment
         primary key,
@@ -111,12 +111,29 @@ create table LandlordPayoutHistory
 );
 
 create index idx_payout_external_id
-    on LandlordPayoutHistory (external_id);
+    on rentalley_db.LandlordPayoutHistory (external_id);
 
 create index idx_payout_landlord
-    on LandlordPayoutHistory (landlord_id);
+    on rentalley_db.LandlordPayoutHistory (landlord_id);
 
-create table PaymentMethod
+create table rentalley_db.LoginAttempts
+(
+    id              bigint auto_increment
+        primary key,
+    ip_address      varchar(45)                         not null,
+    email_hash      varchar(64)                         not null,
+    attempts        int       default 1                 null,
+    last_attempt_at timestamp default CURRENT_TIMESTAMP null,
+    locked_until    datetime                            null
+);
+
+create index idx_ip_email
+    on rentalley_db.LoginAttempts (ip_address, email_hash);
+
+create index idx_locked
+    on rentalley_db.LoginAttempts (locked_until);
+
+create table rentalley_db.PaymentMethod
 (
     method_id   int auto_increment
         primary key,
@@ -127,7 +144,7 @@ create table PaymentMethod
         unique (method_name)
 );
 
-create table Plan
+create table rentalley_db.Plan
 (
     plan_id       int auto_increment
         primary key,
@@ -147,7 +164,7 @@ create table Plan
         unique (plan_code)
 );
 
-create table PlanFeatures
+create table rentalley_db.PlanFeatures
 (
     id                 int auto_increment
         primary key,
@@ -160,14 +177,14 @@ create table PlanFeatures
     asset_management   tinyint(1) default 0 null,
     financial_insights tinyint(1) default 0 null,
     constraint PlanFeatures_ibfk_1
-        foreign key (plan_id) references Plan (plan_id)
+        foreign key (plan_id) references rentalley_db.Plan (plan_id)
             on delete cascade
 );
 
 create index plan_id
-    on PlanFeatures (plan_id);
+    on rentalley_db.PlanFeatures (plan_id);
 
-create table PlanLimits
+create table rentalley_db.PlanLimits
 (
     id                      int auto_increment
         primary key,
@@ -181,14 +198,14 @@ create table PlanLimits
     max_assets_per_property int null,
     financial_history_years int null,
     constraint PlanLimits_ibfk_1
-        foreign key (plan_id) references Plan (plan_id)
+        foreign key (plan_id) references rentalley_db.Plan (plan_id)
             on delete cascade
 );
 
 create index plan_id
-    on PlanLimits (plan_id);
+    on rentalley_db.PlanLimits (plan_id);
 
-create table Property
+create table rentalley_db.Property
 (
     property_id              varchar(12)                                                       not null
         primary key,
@@ -219,7 +236,7 @@ create table Property
     house_policy             longtext                                                          null
 );
 
-create table ConcessionaireBilling
+create table rentalley_db.ConcessionaireBilling
 (
     bill_id                 int auto_increment
         primary key,
@@ -235,26 +252,26 @@ create table ConcessionaireBilling
     water_rate              decimal(10, 4)                      null comment 'Computed rate: water_total / water_consumption',
     electricity_rate        decimal(10, 4)                      null comment 'Computed rate: electricity_total / electricity_consumption',
     constraint ConcessionaireBilling_ibfk_1
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade
 );
 
 create index property_id
-    on ConcessionaireBilling (property_id);
+    on rentalley_db.ConcessionaireBilling (property_id);
 
 create index Property_ibfk_1
-    on Property (landlord_id);
+    on rentalley_db.Property (landlord_id);
 
 create index idx_property_landlord_created
-    on Property (landlord_id, created_at);
+    on rentalley_db.Property (landlord_id, created_at);
 
 create index idx_property_landlord_status
-    on Property (landlord_id, status);
+    on rentalley_db.Property (landlord_id, status);
 
 create index idx_property_landlord_status_created
-    on Property (landlord_id asc, status asc, created_at desc);
+    on rentalley_db.Property (landlord_id asc, status asc, created_at desc);
 
-create table PropertyConfiguration
+create table rentalley_db.PropertyConfiguration
 (
     config_id          char(36)                                               not null
         primary key,
@@ -270,13 +287,13 @@ create table PropertyConfiguration
     createdAt          timestamp                    default CURRENT_TIMESTAMP null,
     updatedAt          timestamp                    default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint PropertyConfiguration_ibfk_1
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade,
     constraint chk_due_day_valid
         check (`billingDueDay` between 1 and 31)
 );
 
-create table PropertyPaymentMethod
+create table rentalley_db.PropertyPaymentMethod
 (
     id          int auto_increment
         primary key,
@@ -286,17 +303,17 @@ create table PropertyPaymentMethod
     constraint unique_property_method
         unique (property_id, method_id),
     constraint PropertyPaymentMethod_ibfk_1
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade,
     constraint PropertyPaymentMethod_ibfk_2
-        foreign key (method_id) references PaymentMethod (method_id)
+        foreign key (method_id) references rentalley_db.PaymentMethod (method_id)
             on delete cascade
 );
 
 create index method_id
-    on PropertyPaymentMethod (method_id);
+    on rentalley_db.PropertyPaymentMethod (method_id);
 
-create table PropertyPhoto
+create table rentalley_db.PropertyPhoto
 (
     photo_id    int auto_increment
         primary key,
@@ -305,11 +322,11 @@ create table PropertyPhoto
     created_at  timestamp default CURRENT_TIMESTAMP null,
     updated_at  timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint PropertyPhoto_ibfk_1
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade
 );
 
-create table PropertyVerification
+create table rentalley_db.PropertyVerification
 (
     verification_id int auto_increment
         primary key,
@@ -329,14 +346,14 @@ create table PropertyVerification
     constraint property_id
         unique (property_id),
     constraint PropertyVerification_ibfk_1
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade,
     constraint fk_admin
-        foreign key (reviewed_by) references Admin (admin_id)
+        foreign key (reviewed_by) references rentalley_db.Admin (admin_id)
             on delete set null
 );
 
-create table SupportRequest
+create table rentalley_db.SupportRequest
 (
     support_id int auto_increment
         primary key,
@@ -347,7 +364,7 @@ create table SupportRequest
     created_at timestamp                                             default CURRENT_TIMESTAMP null
 );
 
-create table Unit
+create table rentalley_db.Unit
 (
     unit_id          varchar(12)                                                                                   not null
         primary key,
@@ -366,11 +383,11 @@ create table Unit
     qr_claim_enabled tinyint(1)                                                          default 0                 null comment 'Allow existing tenant to claim occupied unit via QR',
     qr_code_url      text                                                                                          null comment 'S3 URL of generated QR code image',
     constraint Unit_ibfk_property
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade
 );
 
-create table Asset
+create table rentalley_db.Asset
 (
     asset_id             varchar(12)                                                                           not null
         primary key,
@@ -396,29 +413,29 @@ create table Asset
     created_at           timestamp                                                   default CURRENT_TIMESTAMP null,
     updated_at           timestamp                                                   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint Asset_ibfk_parent
-        foreign key (parent_asset_id) references Asset (asset_id)
+        foreign key (parent_asset_id) references rentalley_db.Asset (asset_id)
             on delete set null,
     constraint Asset_ibfk_property
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade,
     constraint Asset_ibfk_unit
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete set null
 );
 
 create index idx_asset_parent_id
-    on Asset (parent_asset_id);
+    on rentalley_db.Asset (parent_asset_id);
 
 create index idx_asset_property_id
-    on Asset (property_id);
+    on rentalley_db.Asset (property_id);
 
 create index idx_asset_status
-    on Asset (status);
+    on rentalley_db.Asset (status);
 
 create index idx_asset_unit_id
-    on Asset (unit_id);
+    on rentalley_db.Asset (unit_id);
 
-create table ElectricMeterReading
+create table rentalley_db.ElectricMeterReading
 (
     reading_id             int auto_increment
         primary key,
@@ -434,20 +451,20 @@ create table ElectricMeterReading
     created_at             timestamp  default CURRENT_TIMESTAMP null,
     updated_at             timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint ElectricMeterReading_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     constraint ElectricMeterReading_ibfk_2
-        foreign key (concessionaire_bill_id) references ConcessionaireBilling (bill_id)
+        foreign key (concessionaire_bill_id) references rentalley_db.ConcessionaireBilling (bill_id)
             on delete set null
 );
 
 create index concessionaire_bill_id
-    on ElectricMeterReading (concessionaire_bill_id);
+    on rentalley_db.ElectricMeterReading (concessionaire_bill_id);
 
 create index unit_id
-    on ElectricMeterReading (unit_id);
+    on rentalley_db.ElectricMeterReading (unit_id);
 
-create table MeterReading
+create table rentalley_db.MeterReading
 (
     reading_id       int auto_increment
         primary key,
@@ -459,26 +476,26 @@ create table MeterReading
     created_at       timestamp default CURRENT_TIMESTAMP null,
     updated_at       timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint MeterReading_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
 create index unit_id
-    on MeterReading (unit_id);
+    on rentalley_db.MeterReading (unit_id);
 
 create index idx_unit_property_created
-    on Unit (property_id asc, created_at desc);
+    on rentalley_db.Unit (property_id asc, created_at desc);
 
 create index idx_unit_property_publish_status
-    on Unit (property_id, publish, status);
+    on rentalley_db.Unit (property_id, publish, status);
 
 create index idx_unit_property_publish_status_rent
-    on Unit (property_id, publish, status, rent_amount);
+    on rentalley_db.Unit (property_id, publish, status, rent_amount);
 
 create index property_id_idx
-    on Unit (property_id);
+    on rentalley_db.Unit (property_id);
 
-create table Unit360
+create table rentalley_db.Unit360
 (
     id           int auto_increment
         primary key,
@@ -487,11 +504,11 @@ create table Unit360
     created_at   timestamp default CURRENT_TIMESTAMP null,
     updated_at   timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint Unit360_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
-create table UnitPhoto
+create table rentalley_db.UnitPhoto
 (
     id         int auto_increment
         primary key,
@@ -500,11 +517,11 @@ create table UnitPhoto
     created_at timestamp default CURRENT_TIMESTAMP null,
     updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint UnitPhoto_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
-create table User
+create table rentalley_db.User
 (
     user_id        char(36)                                                                          not null
         primary key,
@@ -540,7 +557,7 @@ create table User
         unique (emailHashed)
 );
 
-create table ActivityLog
+create table rentalley_db.ActivityLog
 (
     log_id        int auto_increment
         primary key,
@@ -563,26 +580,26 @@ create table ActivityLog
     is_suspicious tinyint(1) default 0                           null comment 'Flag for anomaly detection or suspicious behavior',
     timestamp     datetime   default CURRENT_TIMESTAMP           not null comment 'Exact time of the event',
     constraint fk_activitylog_admin_id
-        foreign key (admin_id) references Admin (admin_id)
+        foreign key (admin_id) references rentalley_db.Admin (admin_id)
             on update cascade on delete cascade,
     constraint fk_activitylog_user_id
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on update cascade on delete cascade
 );
 
 create index idx_activity_action
-    on ActivityLog (action);
+    on rentalley_db.ActivityLog (action);
 
 create index idx_activity_admin
-    on ActivityLog (admin_id);
+    on rentalley_db.ActivityLog (admin_id);
 
 create index idx_activity_timestamp
-    on ActivityLog (timestamp);
+    on rentalley_db.ActivityLog (timestamp);
 
 create index idx_activity_user
-    on ActivityLog (user_id);
+    on rentalley_db.ActivityLog (user_id);
 
-create table BugReport
+create table rentalley_db.BugReport
 (
     report_id     int auto_increment
         primary key,
@@ -595,14 +612,14 @@ create table BugReport
     created_at    timestamp                                          default CURRENT_TIMESTAMP not null,
     updated_at    timestamp                                          default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     constraint BugReport_Admin_fk
-        foreign key (updated_by) references Admin (admin_id)
+        foreign key (updated_by) references rentalley_db.Admin (admin_id)
             on update cascade on delete set null,
     constraint BugReport_User_fk
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on update cascade on delete cascade
 );
 
-create table FCM_Token
+create table rentalley_db.FCM_Token
 (
     id        char(36)                             not null
         primary key,
@@ -615,14 +632,14 @@ create table FCM_Token
     constraint unique_token
         unique (token),
     constraint FCM_Token_ibfk_1
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on delete cascade
 );
 
 create index user_id
-    on FCM_Token (user_id);
+    on rentalley_db.FCM_Token (user_id);
 
-create table Landlord
+create table rentalley_db.Landlord
 (
     landlord_id       varchar(20)                          not null
         primary key,
@@ -640,11 +657,11 @@ create table Landlord
     constraint userID
         unique (user_id),
     constraint fk_user_landlord
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on update cascade on delete cascade
 );
 
-create table Announcement
+create table rentalley_db.Announcement
 (
     announcement_id int auto_increment
         primary key,
@@ -655,17 +672,17 @@ create table Announcement
     created_at      timestamp default CURRENT_TIMESTAMP null,
     updated_at      timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint Announcement_ibfk_1
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade,
     constraint fk_announcement_landlord
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on update cascade on delete cascade
 );
 
 create index Announcement_ibfk_2
-    on Announcement (landlord_id);
+    on rentalley_db.Announcement (landlord_id);
 
-create table AnnouncementPhoto
+create table rentalley_db.AnnouncementPhoto
 (
     photo_id        int auto_increment
         primary key,
@@ -673,11 +690,92 @@ create table AnnouncementPhoto
     photo_url       text                                not null,
     created_at      timestamp default CURRENT_TIMESTAMP null,
     constraint announcement_fk
-        foreign key (announcement_id) references Announcement (announcement_id)
+        foreign key (announcement_id) references rentalley_db.Announcement (announcement_id)
             on delete cascade
 );
 
-create table BetaUsers
+create table rentalley_db.ApiKey
+(
+    api_key_id      char(36)              default (uuid())          not null
+        primary key,
+    user_id         char(36)                                        not null,
+    landlord_id     varchar(20)                                     null,
+    api_key         varchar(80)                                     not null,
+    secret_key_hash varchar(255)                                    not null,
+    name            varchar(100)                                    null,
+    environment     enum ('test', 'live') default 'live'            null,
+    is_active       tinyint(1)            default 1                 null,
+    last_used_at    datetime                                        null,
+    created_at      timestamp             default CURRENT_TIMESTAMP null,
+    updated_at      timestamp             default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    revoked_at      datetime                                        null,
+    constraint uniq_api_key
+        unique (api_key),
+    constraint fk_apikey_landlord
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
+            on update cascade on delete cascade,
+    constraint fk_apikey_user
+        foreign key (user_id) references rentalley_db.User (user_id)
+            on update cascade on delete cascade
+);
+
+create index idx_apikey_active
+    on rentalley_db.ApiKey (is_active);
+
+create index idx_apikey_env
+    on rentalley_db.ApiKey (environment);
+
+create index idx_apikey_landlord
+    on rentalley_db.ApiKey (landlord_id);
+
+create index idx_apikey_user
+    on rentalley_db.ApiKey (user_id);
+
+create table rentalley_db.ApiKeyUsage
+(
+    usage_id       bigint auto_increment
+        primary key,
+    api_key_id     char(36)                            not null,
+    request_count  int       default 0                 null,
+    error_count    int       default 0                 null,
+    avg_latency_ms int       default 0                 null,
+    usage_date     date                                not null,
+    created_at     timestamp default CURRENT_TIMESTAMP null,
+    constraint fk_usage_apikey
+        foreign key (api_key_id) references rentalley_db.ApiKey (api_key_id)
+            on update cascade on delete cascade
+);
+
+create index idx_usage_apikey
+    on rentalley_db.ApiKeyUsage (api_key_id);
+
+create index idx_usage_date
+    on rentalley_db.ApiKeyUsage (usage_date);
+
+create table rentalley_db.ApiRequestLog
+(
+    log_id      bigint auto_increment
+        primary key,
+    api_key_id  char(36)                            not null,
+    endpoint    varchar(255)                        not null,
+    method      varchar(10)                         not null,
+    status_code int                                 null,
+    latency_ms  int                                 null,
+    ip_address  varchar(45)                         null,
+    user_agent  text                                null,
+    created_at  timestamp default CURRENT_TIMESTAMP null,
+    constraint fk_log_apikey
+        foreign key (api_key_id) references rentalley_db.ApiKey (api_key_id)
+            on update cascade on delete cascade
+);
+
+create index idx_log_apikey
+    on rentalley_db.ApiRequestLog (api_key_id);
+
+create index idx_log_created
+    on rentalley_db.ApiRequestLog (created_at);
+
+create table rentalley_db.BetaUsers
 (
     beta_id                bigint auto_increment
         primary key,
@@ -699,17 +797,17 @@ create table BetaUsers
     constraint uq_beta_landlord
         unique (landlord_id),
     constraint fk_beta_admin
-        foreign key (approved_by) references Admin (admin_id)
+        foreign key (approved_by) references rentalley_db.Admin (admin_id)
             on delete set null,
     constraint fk_beta_landlord
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade
 );
 
 create index idx_landlord_user_id
-    on Landlord (user_id);
+    on rentalley_db.Landlord (user_id);
 
-create table LandlordPayoutAccount
+create table rentalley_db.LandlordPayoutAccount
 (
     payout_id      int auto_increment
         primary key,
@@ -722,14 +820,14 @@ create table LandlordPayoutAccount
     created_at     timestamp  default CURRENT_TIMESTAMP null,
     updated_at     timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint fk_landlord_payout
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade
 );
 
 create index idx_landlord_id
-    on LandlordPayoutAccount (landlord_id);
+    on rentalley_db.LandlordPayoutAccount (landlord_id);
 
-create table LandlordPlatformAgreement
+create table rentalley_db.LandlordPlatformAgreement
 (
     id                char(36)   default (uuid())          not null
         primary key,
@@ -746,20 +844,20 @@ create table LandlordPlatformAgreement
     revoked_at        datetime                             null,
     is_active         tinyint(1) default 1                 null,
     constraint fk_landlord_agreement
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade
 );
 
 create index idx_active
-    on LandlordPlatformAgreement (is_active);
+    on rentalley_db.LandlordPlatformAgreement (is_active);
 
 create index idx_landlord
-    on LandlordPlatformAgreement (landlord_id);
+    on rentalley_db.LandlordPlatformAgreement (landlord_id);
 
 create index idx_version
-    on LandlordPlatformAgreement (agreement_version);
+    on rentalley_db.LandlordPlatformAgreement (agreement_version);
 
-create table LandlordTaxProfile
+create table rentalley_db.LandlordTaxProfile
 (
     tax_profile_id      char(36)                              default (uuid())          not null
         primary key,
@@ -774,14 +872,14 @@ create table LandlordTaxProfile
     created_at          timestamp                             default CURRENT_TIMESTAMP null,
     updated_at          timestamp                             default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint LandlordTaxProfile_ibfk_1
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on update cascade on delete cascade
 );
 
 create index landlord_id
-    on LandlordTaxProfile (landlord_id);
+    on rentalley_db.LandlordTaxProfile (landlord_id);
 
-create table LandlordVerification
+create table rentalley_db.LandlordVerification
 (
     id            char(36)                                                 default (uuid())          not null
         primary key,
@@ -796,14 +894,14 @@ create table LandlordVerification
     created_at    timestamp                                                default CURRENT_TIMESTAMP null,
     updated_at    timestamp                                                default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint LandlordVerification_ibfk_1
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade
 );
 
 create index idx_landlord_id
-    on LandlordVerification (landlord_id);
+    on rentalley_db.LandlordVerification (landlord_id);
 
-create table LandlordWallet
+create table rentalley_db.LandlordWallet
 (
     wallet_id         char(36)                                 not null
         primary key,
@@ -814,11 +912,11 @@ create table LandlordWallet
     constraint landlord_id
         unique (landlord_id),
     constraint fk_wallet_landlord
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade
 );
 
-create table LandlordWalletLedger
+create table rentalley_db.LandlordWalletLedger
 (
     ledger_id       bigint auto_increment
         primary key,
@@ -834,20 +932,20 @@ create table LandlordWalletLedger
     constraint idempotency_key
         unique (idempotency_key),
     constraint fk_ledger_wallet
-        foreign key (wallet_id) references LandlordWallet (wallet_id)
+        foreign key (wallet_id) references rentalley_db.LandlordWallet (wallet_id)
             on delete cascade
 );
 
 create index idx_created_at
-    on LandlordWalletLedger (created_at);
+    on rentalley_db.LandlordWalletLedger (created_at);
 
 create index idx_reference
-    on LandlordWalletLedger (reference_type, reference_id);
+    on rentalley_db.LandlordWalletLedger (reference_type, reference_id);
 
 create index idx_wallet
-    on LandlordWalletLedger (wallet_id);
+    on rentalley_db.LandlordWalletLedger (wallet_id);
 
-create table Message
+create table rentalley_db.Message
 (
     message_id        int auto_increment
         primary key,
@@ -858,23 +956,23 @@ create table Message
     chat_room         varchar(255)                        not null,
     timestamp         timestamp default CURRENT_TIMESTAMP not null,
     constraint Message_receiver_fk
-        foreign key (receiver_id) references User (user_id)
+        foreign key (receiver_id) references rentalley_db.User (user_id)
             on delete cascade,
     constraint Message_sender_fk
-        foreign key (receiver_id) references User (user_id)
+        foreign key (receiver_id) references rentalley_db.User (user_id)
             on delete cascade
 );
 
 create index chat_room_index
-    on Message (chat_room);
+    on rentalley_db.Message (chat_room);
 
 create index receiverID_index
-    on Message (receiver_id);
+    on rentalley_db.Message (receiver_id);
 
 create index senderID_index
-    on Message (sender_id);
+    on rentalley_db.Message (sender_id);
 
-create table Notification
+create table rentalley_db.Notification
 (
     id         int auto_increment
         primary key,
@@ -885,14 +983,14 @@ create table Notification
     is_read    tinyint(1) default 0                 null,
     created_at timestamp  default CURRENT_TIMESTAMP null,
     constraint Notification_ibfk_1
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on delete cascade
 );
 
 create index user_id
-    on Notification (user_id);
+    on rentalley_db.Notification (user_id);
 
-create table PayoutOTP
+create table rentalley_db.PayoutOTP
 (
     otp_id       int auto_increment
         primary key,
@@ -905,14 +1003,14 @@ create table PayoutOTP
     verified_at  datetime                                   null,
     created_at   timestamp        default CURRENT_TIMESTAMP null,
     constraint fk_payoutotp_landlord
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade,
     constraint fk_payoutotp_payout
-        foreign key (payout_id) references LandlordPayoutAccount (payout_id)
+        foreign key (payout_id) references rentalley_db.LandlordPayoutAccount (payout_id)
             on delete cascade
 );
 
-create table PropertyDocument
+create table rentalley_db.PropertyDocument
 (
     document_id bigint auto_increment
         primary key,
@@ -928,23 +1026,23 @@ create table PropertyDocument
     created_at  timestamp                   default CURRENT_TIMESTAMP null,
     updated_at  timestamp                   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint fk_doc_landlord
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade,
     constraint fk_doc_property
-        foreign key (property_id) references Property (property_id)
+        foreign key (property_id) references rentalley_db.Property (property_id)
             on delete cascade
 );
 
 create index idx_doc_landlord
-    on PropertyDocument (landlord_id);
+    on rentalley_db.PropertyDocument (landlord_id);
 
 create index idx_doc_property
-    on PropertyDocument (property_id);
+    on rentalley_db.PropertyDocument (property_id);
 
 create index idx_doc_property_created
-    on PropertyDocument (property_id asc, created_at desc);
+    on rentalley_db.PropertyDocument (property_id asc, created_at desc);
 
-create table Subscription
+create table rentalley_db.Subscription
 (
     subscription_id          int auto_increment
         primary key,
@@ -961,20 +1059,20 @@ create table Subscription
     amount_paid              decimal(10, 2)                                            default 0.00              not null,
     is_active                tinyint(1)                                                default 0                 null,
     constraint Subscription_ibfk_1
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on update cascade on delete cascade
 );
 
 create index idx_subscription_active
-    on Subscription (landlord_id, is_active);
+    on rentalley_db.Subscription (landlord_id, is_active);
 
 create index idx_subscription_landlord_id
-    on Subscription (landlord_id);
+    on rentalley_db.Subscription (landlord_id);
 
 create index idx_subscription_trial
-    on Subscription (landlord_id, is_trial);
+    on rentalley_db.Subscription (landlord_id, is_trial);
 
-create table Tenant
+create table rentalley_db.Tenant
 (
     tenant_id          varchar(20)                         not null
         primary key,
@@ -987,11 +1085,11 @@ create table Tenant
     constraint userID
         unique (user_id),
     constraint fk_user_tenant
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on update cascade on delete cascade
 );
 
-create table LeaseAgreement
+create table rentalley_db.LeaseAgreement
 (
     agreement_id            varchar(20)                                                                                                                                                         not null
         primary key,
@@ -1010,25 +1108,25 @@ create table LeaseAgreement
     created_at              timestamp                                                                                                                                 default CURRENT_TIMESTAMP null,
     updated_at              timestamp                                                                                                                                 default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     grace_period_days       int                                                                                                                                       default 3                 null,
-    xendit_customer_id      varchar(100)                                                                                                                                 null,
     late_penalty_amount     decimal(10, 2)                                                                                                                            default 1000.00           null,
+    xendit_customer_id      varchar(100)                                                                                                                                                        null,
     constraint uq_lease_agreement_id
         unique (agreement_id),
     constraint LeaseAgreement_ibfk_1
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on update cascade on delete cascade,
     constraint LeaseAgreement_ibfk_2
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
 create index tenant_id
-    on LeaseAgreement (tenant_id);
+    on rentalley_db.LeaseAgreement (tenant_id);
 
 create index unit_id
-    on LeaseAgreement (unit_id);
+    on rentalley_db.LeaseAgreement (unit_id);
 
-create table LeaseEKyp
+create table rentalley_db.LeaseEKyp
 (
     ekyp_id      varchar(36)                                                   not null comment 'Public eKYP identifier (UUID or nanoid)'
         primary key,
@@ -1046,32 +1144,32 @@ create table LeaseEKyp
     constraint uq_ekyp_agreement
         unique (agreement_id),
     constraint fk_ekyp_agreement
-        foreign key (agreement_id) references LeaseAgreement (agreement_id)
+        foreign key (agreement_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade,
     constraint fk_ekyp_tenant
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on delete cascade,
     constraint fk_ekyp_unit
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
 create index idx_ekyp_hash
-    on LeaseEKyp (qr_hash);
+    on rentalley_db.LeaseEKyp (qr_hash);
 
 create index idx_ekyp_landlord_status
-    on LeaseEKyp (landlord_id, status);
+    on rentalley_db.LeaseEKyp (landlord_id, status);
 
 create index idx_ekyp_status
-    on LeaseEKyp (status);
+    on rentalley_db.LeaseEKyp (status);
 
 create index idx_ekyp_tenant
-    on LeaseEKyp (tenant_id);
+    on rentalley_db.LeaseEKyp (tenant_id);
 
 create index idx_ekyp_unit
-    on LeaseEKyp (unit_id);
+    on rentalley_db.LeaseEKyp (unit_id);
 
-create table LeaseSetupRequirements
+create table rentalley_db.LeaseSetupRequirements
 (
     id                      int auto_increment
         primary key,
@@ -1087,11 +1185,11 @@ create table LeaseSetupRequirements
     created_at              timestamp  default CURRENT_TIMESTAMP null,
     updated_at              timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint LeaseSetupRequirements_ibfk_1
-        foreign key (agreement_id) references LeaseAgreement (agreement_id)
+        foreign key (agreement_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade
 );
 
-create table LeaseSignature
+create table rentalley_db.LeaseSignature
 (
     id                  int auto_increment
         primary key,
@@ -1106,11 +1204,11 @@ create table LeaseSignature
     verified_ip         varchar(45)                                              null,
     verified_user_agent varchar(255)                                             null,
     constraint LeaseSignature_ibfk_1
-        foreign key (agreement_id) references LeaseAgreement (agreement_id)
+        foreign key (agreement_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade
 );
 
-create table MaintenanceRequest
+create table rentalley_db.MaintenanceRequest
 (
     request_id      varchar(20)                                              not null
         primary key,
@@ -1128,17 +1226,17 @@ create table MaintenanceRequest
     updated_at      timestamp                      default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     property_id     varchar(12)                                              not null,
     constraint MaintenanceRequest_ibfk_3
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     constraint MaintenanceRequest_ibfk_4
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on update cascade on delete set null,
     constraint MaintenanceRequest_ibfk_5
-        foreign key (asset_id) references Asset (asset_id)
+        foreign key (asset_id) references rentalley_db.Asset (asset_id)
             on update cascade on delete set null
 );
 
-create table MaintenancePhoto
+create table rentalley_db.MaintenancePhoto
 (
     id         int auto_increment
         primary key,
@@ -1147,14 +1245,14 @@ create table MaintenancePhoto
     created_at timestamp default CURRENT_TIMESTAMP null,
     updated_at timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint MaintenancePhoto_ibfk_1
-        foreign key (request_id) references MaintenanceRequest (request_id)
+        foreign key (request_id) references rentalley_db.MaintenanceRequest (request_id)
             on update cascade on delete cascade
 );
 
 create index unit_id
-    on MaintenanceRequest (unit_id);
+    on rentalley_db.MaintenanceRequest (unit_id);
 
-create table MoveInChecklist
+create table rentalley_db.MoveInChecklist
 (
     checklist_id int auto_increment
         primary key,
@@ -1165,14 +1263,14 @@ create table MoveInChecklist
     created_at   timestamp                     default CURRENT_TIMESTAMP null,
     updated_at   timestamp                     default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint MoveInChecklist_ibfk_1
-        foreign key (agreement_id) references LeaseAgreement (agreement_id)
+        foreign key (agreement_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade
 );
 
 create index agreement_id
-    on MoveInChecklist (agreement_id);
+    on rentalley_db.MoveInChecklist (agreement_id);
 
-create table MoveInItems
+create table rentalley_db.MoveInItems
 (
     item_id      int auto_increment
         primary key,
@@ -1183,14 +1281,14 @@ create table MoveInItems
     created_at   timestamp                                                               default CURRENT_TIMESTAMP null,
     updated_at   timestamp                                                               default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint MoveInItems_ibfk_1
-        foreign key (checklist_id) references MoveInChecklist (checklist_id)
+        foreign key (checklist_id) references rentalley_db.MoveInChecklist (checklist_id)
             on delete cascade
 );
 
 create index checklist_id
-    on MoveInItems (checklist_id);
+    on rentalley_db.MoveInItems (checklist_id);
 
-create table MoveInPhotos
+create table rentalley_db.MoveInPhotos
 (
     photo_id    int auto_increment
         primary key,
@@ -1199,14 +1297,14 @@ create table MoveInPhotos
     description varchar(255)                        null,
     uploaded_at timestamp default CURRENT_TIMESTAMP null,
     constraint MoveInPhotos_ibfk_1
-        foreign key (item_id) references MoveInItems (item_id)
+        foreign key (item_id) references rentalley_db.MoveInItems (item_id)
             on delete cascade
 );
 
 create index item_id
-    on MoveInPhotos (item_id);
+    on rentalley_db.MoveInPhotos (item_id);
 
-create table PostDatedCheck
+create table rentalley_db.PostDatedCheck
 (
     pdc_id             int auto_increment
         primary key,
@@ -1227,14 +1325,14 @@ create table PostDatedCheck
     constraint uniq_lease_check_number
         unique (lease_id, check_number),
     constraint fk_pdc_lease
-        foreign key (lease_id) references LeaseAgreement (agreement_id)
+        foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
             on update cascade on delete cascade,
     constraint fk_pdc_replaced_by
-        foreign key (replaced_by_pdc_id) references PostDatedCheck (pdc_id)
+        foreign key (replaced_by_pdc_id) references rentalley_db.PostDatedCheck (pdc_id)
             on update cascade on delete set null
 );
 
-create table Billing
+create table rentalley_db.Billing
 (
     billing_id               varchar(20)                                                                        not null
         primary key,
@@ -1253,17 +1351,17 @@ create table Billing
     constraint uniq_unit_billing_month
         unique (unit_id, billing_period),
     constraint Billing_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     constraint fk_billing_lease
-        foreign key (lease_id) references LeaseAgreement (agreement_id)
+        foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade,
     constraint fk_billing_pdc
-        foreign key (pdc_id) references PostDatedCheck (pdc_id)
+        foreign key (pdc_id) references rentalley_db.PostDatedCheck (pdc_id)
             on update cascade on delete set null
 );
 
-create table AdvancePayment
+create table rentalley_db.AdvancePayment
 (
     advance_id            int auto_increment
         primary key,
@@ -1279,38 +1377,38 @@ create table AdvancePayment
     created_at            timestamp                                                        default CURRENT_TIMESTAMP null,
     updated_at            timestamp                                                        default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint fk_advance_billing
-        foreign key (applied_to_billing_id) references Billing (billing_id)
+        foreign key (applied_to_billing_id) references rentalley_db.Billing (billing_id)
             on delete set null,
     constraint fk_advance_lease
-        foreign key (lease_id) references LeaseAgreement (agreement_id)
+        foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade,
     constraint fk_advance_tenant
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on delete cascade
 );
 
 create index idx_billing_lease_id
-    on Billing (lease_id);
+    on rentalley_db.Billing (lease_id);
 
 create index idx_billing_lease_period
-    on Billing (lease_id asc, billing_period desc);
+    on rentalley_db.Billing (lease_id asc, billing_period desc);
 
 create index idx_billing_status_due
-    on Billing (status, due_date);
+    on rentalley_db.Billing (status, due_date);
 
 create index idx_billing_status_due_date
-    on Billing (status, due_date);
+    on rentalley_db.Billing (status, due_date);
 
 create index idx_billing_unit_status
-    on Billing (unit_id, status);
+    on rentalley_db.Billing (unit_id, status);
 
 create index idx_billing_unit_status_due
-    on Billing (unit_id, status, due_date);
+    on rentalley_db.Billing (unit_id, status, due_date);
 
 create index unit_id
-    on Billing (unit_id);
+    on rentalley_db.Billing (unit_id);
 
-create table BillingAdditionalCharge
+create table rentalley_db.BillingAdditionalCharge
 (
     id              int auto_increment
         primary key,
@@ -1320,11 +1418,11 @@ create table BillingAdditionalCharge
     amount          decimal(10, 2)                  default 0.00              not null,
     created_at      timestamp                       default CURRENT_TIMESTAMP null,
     constraint fk_billing_additional_charge
-        foreign key (billing_id) references Billing (billing_id)
+        foreign key (billing_id) references rentalley_db.Billing (billing_id)
             on delete cascade
 );
 
-create table Payment
+create table rentalley_db.Payment
 (
     payment_id                      int auto_increment
         primary key,
@@ -1358,26 +1456,26 @@ create table Payment
     constraint transaction_id
         unique (transaction_id),
     constraint fk_payment_agreement
-        foreign key (agreement_id) references LeaseAgreement (agreement_id)
+        foreign key (agreement_id) references rentalley_db.LeaseAgreement (agreement_id)
             on update cascade on delete cascade,
     constraint fk_payment_billing
-        foreign key (bill_id) references Billing (billing_id)
+        foreign key (bill_id) references rentalley_db.Billing (billing_id)
             on update cascade on delete cascade
 );
 
 create index idx_payment_agreement_id
-    on Payment (agreement_id);
+    on rentalley_db.Payment (agreement_id);
 
 create index idx_pdc_due_date
-    on PostDatedCheck (due_date);
+    on rentalley_db.PostDatedCheck (due_date);
 
 create index idx_pdc_lease
-    on PostDatedCheck (lease_id);
+    on rentalley_db.PostDatedCheck (lease_id);
 
 create index idx_pdc_status
-    on PostDatedCheck (status);
+    on rentalley_db.PostDatedCheck (status);
 
-create table PropertyVisit
+create table rentalley_db.PropertyVisit
 (
     visit_id           int auto_increment
         primary key,
@@ -1390,20 +1488,20 @@ create table PropertyVisit
     created_at         timestamp                                                default CURRENT_TIMESTAMP null,
     updated_at         timestamp                                                default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint PropertyVisit_ibfk_1
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on update cascade on delete cascade,
     constraint PropertyVisit_ibfk_3
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
 create index tenant_id
-    on PropertyVisit (tenant_id);
+    on rentalley_db.PropertyVisit (tenant_id);
 
 create index unit_id
-    on PropertyVisit (unit_id);
+    on rentalley_db.PropertyVisit (unit_id);
 
-create table ProspectiveTenant
+create table rentalley_db.ProspectiveTenant
 (
     id              varchar(20)                                                           not null
         primary key,
@@ -1417,17 +1515,17 @@ create table ProspectiveTenant
     created_at      timestamp                                   default CURRENT_TIMESTAMP null,
     updated_at      timestamp                                   default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint ProspectiveTenant_ibfk_1
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on update cascade on delete cascade,
     constraint ProspectiveTenant_ibfk_3
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 );
 
 create index tenant_id
-    on ProspectiveTenant (tenant_id);
+    on rentalley_db.ProspectiveTenant (tenant_id);
 
-create table RenewalRequest
+create table rentalley_db.RenewalRequest
 (
     id                    int auto_increment
         primary key,
@@ -1442,27 +1540,27 @@ create table RenewalRequest
     created_at            timestamp                                           default CURRENT_TIMESTAMP null,
     updated_at            timestamp                                           default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint RenewalRequest_ibfk_1
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on update cascade on delete cascade,
     constraint RenewalRequest_ibfk_2
-        foreign key (agreement_id) references LeaseAgreement (agreement_id)
+        foreign key (agreement_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade,
     constraint RenewalRequest_ibfk_3
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade
 )
     comment 'Stores tenant-initiated lease renewal requests';
 
 create index idx_agreement_id
-    on RenewalRequest (agreement_id);
+    on rentalley_db.RenewalRequest (agreement_id);
 
 create index idx_tenant_id
-    on RenewalRequest (tenant_id);
+    on rentalley_db.RenewalRequest (tenant_id);
 
 create index idx_unit_id
-    on RenewalRequest (unit_id);
+    on rentalley_db.RenewalRequest (unit_id);
 
-create table Review
+create table rentalley_db.Review
 (
     id                     int auto_increment
         primary key,
@@ -1483,10 +1581,10 @@ create table Review
     created_at             timestamp default CURRENT_TIMESTAMP null,
     updated_at             timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint Review_ibfk_1
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on update cascade on delete cascade,
     constraint Review_ibfk_2
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     check (`rating_communication` between 1 and 5),
     check (`rating_maintenance` between 1 and 5),
@@ -1497,7 +1595,7 @@ create table Review
     check (`rating_support` between 1 and 5)
 );
 
-create table Feedback
+create table rentalley_db.Feedback
 (
     id            int auto_increment
         primary key,
@@ -1507,26 +1605,26 @@ create table Feedback
     created_at    timestamp default CURRENT_TIMESTAMP null,
     updated_at    timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint Feedback_ibfk_1
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on update cascade on delete cascade,
     constraint Feedback_ibfk_2
-        foreign key (review_id) references Review (id)
+        foreign key (review_id) references rentalley_db.Review (id)
             on delete cascade
 );
 
 create index landlord_id
-    on Feedback (landlord_id);
+    on rentalley_db.Feedback (landlord_id);
 
 create index review_id
-    on Feedback (review_id);
+    on rentalley_db.Feedback (review_id);
 
 create index tenant_id
-    on Review (tenant_id);
+    on rentalley_db.Review (tenant_id);
 
 create index unit_id
-    on Review (unit_id);
+    on rentalley_db.Review (unit_id);
 
-create table SecurityDeposit
+create table rentalley_db.SecurityDeposit
 (
     deposit_id       int auto_increment
         primary key,
@@ -1542,14 +1640,14 @@ create table SecurityDeposit
     created_at       timestamp                                                          default CURRENT_TIMESTAMP null,
     updated_at       timestamp                                                          default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint fk_security_lease
-        foreign key (lease_id) references LeaseAgreement (agreement_id)
+        foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
             on delete cascade,
     constraint fk_security_tenant
-        foreign key (tenant_id) references Tenant (tenant_id)
+        foreign key (tenant_id) references rentalley_db.Tenant (tenant_id)
             on delete cascade
 );
 
-create table DepositTransactionLog
+create table rentalley_db.DepositTransactionLog
 (
     log_id       bigint auto_increment
         primary key,
@@ -1560,26 +1658,50 @@ create table DepositTransactionLog
     description  text                                                                               null,
     created_at   timestamp default CURRENT_TIMESTAMP                                                null,
     constraint fk_log_deposit
-        foreign key (deposit_id) references SecurityDeposit (deposit_id)
+        foreign key (deposit_id) references rentalley_db.SecurityDeposit (deposit_id)
             on delete cascade
 );
 
 create index idx_tenant_user_id
-    on Tenant (user_id);
+    on rentalley_db.Tenant (user_id);
 
 create index idx_user_google_id
-    on User (google_id);
+    on rentalley_db.User (google_id);
 
 create index idx_user_nameHashed
-    on User (nameHashed);
+    on rentalley_db.User (nameHashed);
 
 create index idx_user_status
-    on User (status);
+    on rentalley_db.User (status);
 
 create index idx_user_type
-    on User (userType);
+    on rentalley_db.User (userType);
 
-create table UserToken
+create table rentalley_db.UserSessions
+(
+    id         bigint auto_increment
+        primary key,
+    user_id    char(36)                             not null,
+    session_id varchar(255)                         not null,
+    ip_address varchar(45)                          null,
+    user_agent text                                 null,
+    expires_at datetime                             not null,
+    is_valid   tinyint(1) default 1                 null,
+    created_at timestamp  default CURRENT_TIMESTAMP null,
+    constraint session_id
+        unique (session_id)
+);
+
+create index idx_expires
+    on rentalley_db.UserSessions (expires_at);
+
+create index idx_user_session
+    on rentalley_db.UserSessions (user_id, session_id);
+
+create index idx_user_valid
+    on rentalley_db.UserSessions (user_id, is_valid);
+
+create table rentalley_db.UserToken
 (
     auth_id    int auto_increment
         primary key,
@@ -1590,14 +1712,14 @@ create table UserToken
     created_at datetime default CURRENT_TIMESTAMP                   not null,
     used_at    datetime                                             null,
     constraint UserToken_ibfk_1
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on delete cascade
 );
 
 create index user_id
-    on UserToken (user_id);
+    on rentalley_db.UserToken (user_id);
 
-create table WalletTransactionLock
+create table rentalley_db.WalletTransactionLock
 (
     lock_id        bigint auto_increment
         primary key,
@@ -1606,14 +1728,14 @@ create table WalletTransactionLock
     status         enum ('locked', 'released') default 'locked'          null,
     created_at     timestamp                   default CURRENT_TIMESTAMP null,
     constraint fk_lock_wallet
-        foreign key (wallet_id) references LandlordWallet (wallet_id)
+        foreign key (wallet_id) references rentalley_db.LandlordWallet (wallet_id)
             on delete cascade
 );
 
 create index idx_wallet
-    on WalletTransactionLock (wallet_id);
+    on rentalley_db.WalletTransactionLock (wallet_id);
 
-create table WaterMeterReading
+create table rentalley_db.WaterMeterReading
 (
     reading_id             int auto_increment
         primary key,
@@ -1629,20 +1751,20 @@ create table WaterMeterReading
     created_at             timestamp  default CURRENT_TIMESTAMP null,
     updated_at             timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint WaterMeterReading_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     constraint WaterMeterReading_ibfk_2
-        foreign key (concessionaire_bill_id) references ConcessionaireBilling (bill_id)
+        foreign key (concessionaire_bill_id) references rentalley_db.ConcessionaireBilling (bill_id)
             on delete set null
 );
 
 create index concessionaire_bill_id
-    on WaterMeterReading (concessionaire_bill_id);
+    on rentalley_db.WaterMeterReading (concessionaire_bill_id);
 
 create index unit_id
-    on WaterMeterReading (unit_id);
+    on rentalley_db.WaterMeterReading (unit_id);
 
-create table WithdrawalRequest
+create table rentalley_db.WithdrawalRequest
 (
     withdrawal_id   char(36)                                                                        not null
         primary key,
@@ -1662,26 +1784,26 @@ create table WithdrawalRequest
     constraint idempotency_key
         unique (idempotency_key),
     constraint fk_withdrawal_landlord
-        foreign key (landlord_id) references Landlord (landlord_id)
+        foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on delete cascade,
     constraint fk_withdrawal_wallet
-        foreign key (wallet_id) references LandlordWallet (wallet_id)
+        foreign key (wallet_id) references rentalley_db.LandlordWallet (wallet_id)
             on delete cascade
 );
 
 create index idx_created_at
-    on WithdrawalRequest (created_at);
+    on rentalley_db.WithdrawalRequest (created_at);
 
 create index idx_landlord
-    on WithdrawalRequest (landlord_id);
+    on rentalley_db.WithdrawalRequest (landlord_id);
 
 create index idx_status
-    on WithdrawalRequest (status);
+    on rentalley_db.WithdrawalRequest (status);
 
 create index idx_wallet
-    on WithdrawalRequest (wallet_id);
+    on rentalley_db.WithdrawalRequest (wallet_id);
 
-create table payout_channels
+create table rentalley_db.payout_channels
 (
     channel_code varchar(30)              not null
         primary key,
@@ -1690,7 +1812,7 @@ create table payout_channels
     is_available tinyint(1) default 1     not null
 );
 
-create table user_push_subscriptions
+create table rentalley_db.user_push_subscriptions
 (
     id         bigint auto_increment
         primary key,
@@ -1705,130 +1827,16 @@ create table user_push_subscriptions
     constraint endpoint
         unique (endpoint),
     constraint fk_user_push_subscriptions_admin
-        foreign key (admin_id) references Admin (admin_id)
+        foreign key (admin_id) references rentalley_db.Admin (admin_id)
             on delete cascade,
     constraint fk_user_push_subscriptions_user
-        foreign key (user_id) references User (user_id)
+        foreign key (user_id) references rentalley_db.User (user_id)
             on delete cascade
 );
 
 create index idx_admin
-    on user_push_subscriptions (admin_id);
+    on rentalley_db.user_push_subscriptions (admin_id);
 
 create index idx_user
-    on user_push_subscriptions (user_id);
-
-create definer = rentalley_admin@`%` event ev_apply_late_fees_daily on schedule
-    every '1' DAY
-        starts '2026-02-09 23:59:00'
-    enable
-    do
-    BEGIN
-        /* 1️⃣ Mark overdue */
-        UPDATE Billing b
-            JOIN LeaseAgreement la ON la.agreement_id = b.lease_id
-            JOIN Unit u ON u.unit_id = b.unit_id
-            JOIN Property p ON p.property_id = u.property_id
-            JOIN PropertyConfiguration pc ON pc.property_id = p.property_id
-        SET b.status = 'overdue'
-        WHERE
-            b.status IN ('unpaid', 'overdue')
-          AND b.paid_at IS NULL
-          AND CURDATE() > DATE_ADD(b.due_date, INTERVAL pc.gracePeriodDays DAY);
-
-        /* 2️⃣ Insert late fee (ONE-TIME) */
-        INSERT INTO BillingAdditionalCharge (
-            billing_id,
-            charge_category,
-            charge_type,
-            amount
-        )
-        SELECT
-            b.billing_id,
-            'additional',
-            'Late Fee',
-            CASE
-                WHEN pc.lateFeeType = 'fixed'
-                    THEN pc.lateFeeAmount
-                WHEN pc.lateFeeType = 'percentage'
-                    THEN ROUND(la.rent_amount * (pc.lateFeeAmount / 100), 2)
-                ELSE 0
-                END
-        FROM Billing b
-                 JOIN LeaseAgreement la ON la.agreement_id = b.lease_id
-                 JOIN Unit u ON u.unit_id = b.unit_id
-                 JOIN Property p ON p.property_id = u.property_id
-                 JOIN PropertyConfiguration pc ON pc.property_id = p.property_id
-        WHERE
-            b.status = 'overdue'
-          AND b.paid_at IS NULL
-          AND pc.lateFeeAmount > 0
-          AND NOT EXISTS (
-            SELECT 1
-            FROM BillingAdditionalCharge c
-            WHERE c.billing_id = b.billing_id
-              AND c.charge_type = 'Late Fee'
-        );
-
-        /* 3️⃣ Update total_amount_due */
-        UPDATE Billing b
-            JOIN BillingAdditionalCharge c
-            ON c.billing_id = b.billing_id
-                AND c.charge_type = 'Late Fee'
-        SET b.total_amount_due = IFNULL(b.total_amount_due, 0) + c.amount
-        WHERE
-            b.status = 'overdue'
-          AND b.paid_at IS NULL;
-    END;
-
-create definer = rentalley_admin@`%` event ev_daily_subscription_check on schedule
-    every '1' DAY
-        starts '2026-02-09 23:59:00'
-    enable
-    do
-    BEGIN
-        -- 1. Deactivate expired subscriptions
-        UPDATE rentalley_db.Subscription
-        SET
-            is_active = 0,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE
-            is_active = 1
-          AND end_date IS NOT NULL
-          AND end_date < CURDATE();
-
-        -- 2. (Optional) Safety: ensure only ONE active subscription per landlord
-        UPDATE rentalley_db.Subscription s
-            JOIN (
-                SELECT landlord_id, MAX(subscription_id) AS latest_sub
-                FROM rentalley_db.Subscription
-                WHERE is_active = 1
-                GROUP BY landlord_id
-            ) latest
-            ON s.landlord_id = latest.landlord_id
-        SET s.is_active = 0
-        WHERE s.subscription_id <> latest.latest_sub
-          AND s.is_active = 1;
-
-    END;
-
-create definer = rentalley_admin@`%` event ev_expire_leases on schedule
-    every '1' DAY
-        starts '2025-12-20 00:00:00'
-    enable
-    do
-    UPDATE LeaseAgreement
-    SET status = 'expired'
-    WHERE end_date < CURDATE()
-      AND status = 'active';
-
-create definer = rentalley_admin@`%` event ev_expire_leases_sample on schedule
-    at '2025-12-19 08:44:26'
-    on completion preserve
-    disable
-    do
-    UPDATE LeaseAgreement
-    SET status = 'expired'
-    WHERE end_date < CURDATE()
-      AND status = 'active';
+    on rentalley_db.user_push_subscriptions (user_id);
 
