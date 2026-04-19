@@ -6,10 +6,13 @@ import { useRouter } from "next/navigation";
 import { SUBSCRIPTION_PLANS, UNIT_BANDS } from "@/constant/subscription/subscriptionPlans";
 import { Check, ChevronDown } from "lucide-react";
 import useAuthStore from "@/zustand/authStore";
+import useSubscriptionData from "@/hooks/landlord/useSubscriptionData";
+import CurrentSubscriptionBanner from "@/components/subscription_pricing/CurrentSubscriptionBanner";
 
 export default function PricingPage() {
     const router = useRouter();
     const { user } = useAuthStore();
+    const { currentSubscription, loading } = useSubscriptionData();
 
     const [selectedBand, setSelectedBand] = useState<Record<number, string>>({});
 
@@ -45,26 +48,41 @@ export default function PricingPage() {
                 </p>
             </section>
 
+            {/* Show current subscription banner if user is logged in */}
+            {!loading && user && currentSubscription && (
+                <div className="max-w-6xl mx-auto mb-8">
+                    <CurrentSubscriptionBanner currentSubscription={currentSubscription} />
+                </div>
+            )}
+
             <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
                 {SUBSCRIPTION_PLANS.map((plan) => {
                     const isEnterprise = plan.name === "Enterprise Plan";
                     const hasUnitBands = plan.unitBands && plan.unitBands.length > 0;
                     const currentBandIndex = selectedBand[plan.id] ?? "0";
-                    const currentBand = hasUnitBands ? plan.unitBands[parseInt(currentBandIndex)] : null;
+                    const currentBand = hasUnitBands && plan.unitBands ? plan.unitBands[parseInt(currentBandIndex)] : null;
                     const displayPrice = currentBand ? currentBand.monthlyPrice : plan.price;
 
                     return (
                         <div
                             key={plan.id}
                             className={`relative flex flex-col rounded-xl border bg-white shadow-sm transition hover:shadow-md
-                                ${plan.popular ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"}
+                                ${currentSubscription?.plan_name === plan.name 
+                                    ? "ring-2 ring-green-500 border-green-500" 
+                                    : plan.popular 
+                                        ? "border-blue-500 ring-1 ring-blue-500" 
+                                        : "border-gray-200"}
                             `}
                         >
-                            {plan.popular && (
+                            {currentSubscription?.plan_name === plan.name ? (
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-green-600 px-3 py-0.5 text-xs font-semibold text-white">
+                                    Current Plan
+                                </div>
+                            ) : plan.popular ? (
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-blue-600 px-3 py-0.5 text-xs font-semibold text-white">
                                     Popular
                                 </div>
-                            )}
+                            ) : null}
 
                             <div className="p-4 sm:p-5 flex flex-col flex-1">
                                 <h3 className="text-base sm:text-lg font-bold text-gray-900">
@@ -153,6 +171,13 @@ export default function PricingPage() {
                                         >
                                             Contact Sales
                                         </Link>
+                                    ) : currentSubscription?.plan_name === plan.name ? (
+                                        <button
+                                            disabled
+                                            className="w-full rounded-lg px-3 py-2.5 text-xs sm:text-sm font-semibold text-white bg-gray-400 cursor-not-allowed"
+                                        >
+                                            Current Plan
+                                        </button>
                                     ) : (
                                         <button
                                             onClick={() => handleSelectPlan(plan)}

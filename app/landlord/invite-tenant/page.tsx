@@ -1,143 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Mail, UserPlus, Building2, Send, Calendar, Home } from "lucide-react";
-import Swal from "sweetalert2";
-import useAuthStore from "@/zustand/authStore";
-import axios from "axios";
 import { BackButton } from "@/components/navigation/backButton";
 
+import { useTenantInvite } from "@/hooks/landlord/useTenantInvite";
+
 export default function InviteTenantPage() {
-    const { user, fetchSession } = useAuthStore();
+    const {
+        loading,
+        properties,
+        units,
+        selectedProperty,
+        setSelectedProperty,
+        selectedUnit,
+        setSelectedUnit,
+        tenantEmail,
+        setTenantEmail,
+        leaseStart,
+        setLeaseStart,
+        leaseEnd,
+        setLeaseEnd,
+        setDatesLaterValue,
+        handleSendInvite,
+    } = useTenantInvite();
 
-    const [properties, setProperties] = useState<any[]>([]);
-    const [units, setUnits] = useState<any[]>([]);
-    const [selectedProperty, setSelectedProperty] = useState("");
-    const [selectedUnit, setSelectedUnit] = useState("");
-    const [tenantEmail, setTenantEmail] = useState("");
-
-    const [leaseStart, setLeaseStart] = useState("");
-    const [leaseEnd, setLeaseEnd] = useState("");
     const [setDatesLater, setSetDatesLater] = useState(false);
 
-    const [loading, setLoading] = useState(true);
-
-    const landlordId = user?.landlord_id;
-
-    /* ===============================
-       Fetch Properties
-    =============================== */
-    useEffect(() => {
-        if (!landlordId) {
-            fetchSession();
-            return;
-        }
-
-        const fetchProperties = async () => {
-            setLoading(true);
-            try {
-                const res = await axios.get(
-                    `/api/landlord/${landlordId}/properties`
-                );
-                setProperties(res.data.data || []);
-            } catch (err) {
-                console.error("Error fetching properties", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProperties();
-    }, [landlordId, fetchSession]);
-
-    /* ===============================
-       Fetch Units
-    =============================== */
-    useEffect(() => {
-        if (!selectedProperty) {
-            setUnits([]);
-            setSelectedUnit("");
-            return;
-        }
-
-        const fetchUnits = async () => {
-            try {
-                const res = await axios.get(
-                    `/api/unitListing/getUnitListings?property_id=${selectedProperty}`
-                );
-                setUnits(res.data || []);
-            } catch (err) {
-                console.error("Error fetching units", err);
-                setUnits([]);
-            }
-        };
-
-        fetchUnits();
-    }, [selectedProperty]);
-
-    /* ===============================
-       Send Invite
-    =============================== */
-    const handleSendInvite = async () => {
-        if (!tenantEmail || !selectedProperty || !selectedUnit) {
-            Swal.fire("Missing Fields", "Please complete required fields.", "warning");
-            return;
-        }
-
-        if (!setDatesLater && (!leaseStart || !leaseEnd)) {
-            Swal.fire(
-                "Lease Dates Required",
-                "Provide lease dates or choose to set them later.",
-                "warning"
-            );
-            return;
-        }
-
-        const property = properties.find(p => p.property_id === selectedProperty);
-        const unit = units.find(u => u.unit_id === selectedUnit);
-
-        try {
-            Swal.fire({
-                title: "Sending Invite...",
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading(),
-            });
-
-            const payload = {
-                email: tenantEmail,
-                unitId: selectedUnit,
-                propertyName: property?.property_name,
-                unitName: unit?.unit_name,
-
-                startDate: setDatesLater ? null : leaseStart,
-                endDate: setDatesLater ? null : leaseEnd,
-                datesDeferred: setDatesLater,
-            };
-
-            const res = await axios.post("/api/invite", payload);
-            Swal.close();
-
-            if (res.data.success) {
-                Swal.fire("Success", "Invitation sent!", "success");
-
-                setTenantEmail("");
-                setSelectedProperty("");
-                setSelectedUnit("");
-                setLeaseStart("");
-                setLeaseEnd("");
-                setSetDatesLater(false);
-                setUnits([]);
-            } else {
-                throw new Error();
-            }
-        } catch (err) {
-            Swal.fire("Error", "Failed to send invitation.", "error");
-        }
+    const handleDatesLaterChange = (checked: boolean) => {
+        setSetDatesLater(checked);
+        setDatesLaterValue(checked);
     };
 
-    /* ===============================
-       UI
-    =============================== */
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-emerald-50 px-3 pb-20 pt-12 sm:px-4 sm:pt-16">
             <div className="max-w-xl mx-auto">
@@ -175,10 +69,7 @@ export default function InviteTenantPage() {
                             label="Property"
                             icon={<Building2 className="w-4 h-4" />}
                             value={selectedProperty}
-                            onChange={(v) => {
-                                setSelectedProperty(v);
-                                setSelectedUnit("");
-                            }}
+                            onChange={setSelectedProperty}
                             options={properties.map(p => ({
                                 value: p.property_id,
                                 label: p.property_name,
@@ -202,13 +93,7 @@ export default function InviteTenantPage() {
                             <input
                                 type="checkbox"
                                 checked={setDatesLater}
-                                onChange={(e) => {
-                                    setSetDatesLater(e.target.checked);
-                                    if (e.target.checked) {
-                                        setLeaseStart("");
-                                        setLeaseEnd("");
-                                    }
-                                }}
+                                onChange={(e) => handleDatesLaterChange(e.target.checked)}
                                 className="mt-1 h-4 w-4 text-blue-600"
                             />
                             <div>
@@ -229,7 +114,6 @@ export default function InviteTenantPage() {
                                 type="date"
                                 value={leaseStart}
                                 onChange={setLeaseStart}
-                                disabled={setDatesLater}
                             />
                             <InputField
                                 label="Lease End"
@@ -237,13 +121,13 @@ export default function InviteTenantPage() {
                                 type="date"
                                 value={leaseEnd}
                                 onChange={setLeaseEnd}
-                                disabled={setDatesLater}
                             />
                         </div>
 
                         <button
                             onClick={handleSendInvite}
-                            className="w-full mt-3 sm:mt-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm sm:text-base font-semibold flex items-center justify-center gap-2 active:scale-[0.98]"
+                            disabled={loading}
+                            className="w-full mt-3 sm:mt-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm sm:text-base font-semibold flex items-center justify-center gap-2 active:scale-[0.98] disabled:opacity-50"
                         >
                             <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                             Send Invitation
@@ -258,16 +142,16 @@ export default function InviteTenantPage() {
 
 /* ===============================
    Reusable Inputs
-=============================== */
+============================== */
 
 function InputField({ label, icon, value, onChange, disabled, ...props }: any) {
     return (
         <div>
             <label className="text-sm font-semibold">{label}</label>
             <div className="relative mt-1">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-          {icon}
-        </span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {icon}
+                </span>
                 <input
                     {...props}
                     value={value}
@@ -285,9 +169,9 @@ function SelectField({ label, icon, value, onChange, options, disabled }: any) {
         <div>
             <label className="text-sm font-semibold">{label}</label>
             <div className="relative mt-1">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-          {icon}
-        </span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                    {icon}
+                </span>
                 <select
                     value={value}
                     disabled={disabled}
