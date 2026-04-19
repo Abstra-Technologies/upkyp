@@ -10,6 +10,7 @@ import {
     ChevronLeft,
     ChevronRight,
     UserPlus,
+    MoreVertical,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -47,6 +48,7 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
     const router = useRouter();
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [selectedUnit, setSelectedUnit] = useState<{ id: string | number; name: string } | null>(null);
+    const [openDropdown, setOpenDropdown] = useState<number | string | null>(null);
 
     /* ------------------------------------------------------------------ */
     /* MOBILE PAGINATION STATE                                            */
@@ -272,83 +274,125 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
     }
 
     return (
-        <div className="w-full">
+        <div className="w-full overflow-x-hidden">
 
             {/* =============================================================== */}
             {/* MOBILE: STACKED LIST + PAGINATION                               */}
             {/* =============================================================== */}
-            <div className="md:hidden divide-y divide-gray-200">
+            <div className="md:hidden overflow-x-hidden divide-y divide-gray-200">
                 {pagedUnits.map((unit) => (
                     <div
                         key={unit.unit_id}
-                        className="px-3 py-3 flex items-center gap-3"
+                        className="px-2 py-2 flex items-start gap-2"
                     >
-                        <div className="w-9 h-9 rounded-md bg-blue-50 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-md bg-blue-50 flex items-center justify-center shrink-0">
                             <Home className="w-4 h-4 text-blue-600" />
                         </div>
 
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 truncate">
-                                {unit.unit_name || "Untitled Unit"}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[11px] text-gray-500">
-                                    ₱{Number(unit.rent_amount || 0).toLocaleString()}
-                                </span>
-                                {getStatusBadge(unit.status)}
+                            <div className="flex items-start gap-2">
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-gray-400 h-3">Unit</span>
+                                    <p className="text-xs font-semibold text-gray-900 truncate">
+                                        {unit.unit_name || "Untitled Unit"}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-gray-400 h-3">Rent</span>
+                                    <p className="text-[10px] text-gray-600">
+                                        ₱{Number(unit.rent_amount || 0).toLocaleString()}
+                                    </p>
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] text-gray-400 h-3">Status</span>
+                                    <div>{getStatusBadge(unit.status)}</div>
+                                </div>
                             </div>
 
                             {/* ACTIONS */}
-                            <div className="flex gap-2 mt-2">
-                                {(unit.status?.toLowerCase() === "unoccupied" || unit.status?.toLowerCase() === "available") && (
+                            <div className="flex items-center justify-between mt-2">
+                                <div className="flex gap-1">
+                                    {(unit.status?.toLowerCase() === "unoccupied" || unit.status?.toLowerCase() === "available") && (
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUnit({ id: unit.unit_id, name: unit.unit_name });
+                                                setInviteModalOpen(true);
+                                            }}
+                                            className="px-2 py-1 rounded text-[10px] font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-300"
+                                        >
+                                            <UserPlus className="w-3 h-3 inline mr-0.5" />
+                                            Invite
+                                        </button>
+                                    )}
                                     <button
-                                        onClick={() => {
-                                            setSelectedUnit({ id: unit.unit_id, name: unit.unit_name });
-                                            setInviteModalOpen(true);
-                                        }}
-                                        className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-300"
+                                        onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${unit.unit_id}`)}
+                                        className="px-2 py-1 rounded text-[10px] font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300"
                                     >
-                                        <UserPlus className="w-3 h-3 inline mr-1" />
-                                        Invite
+                                        <Eye className="w-3 h-3 inline mr-0.5" />
+                                        View
                                     </button>
-                                )}
-                                <button
-                                    onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${unit.unit_id}`)}
-                                    className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300"
-                                >
-                                    <Eye className="w-3 h-3 inline mr-1" />
-                                    View
-                                </button>
-                                <button
-                                    onClick={() => handleEditUnit(unit.unit_id)}
-                                    className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300"
-                                >
-                                    <Edit2 className="w-3 h-3 inline mr-1" />
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteUnit(unit.unit_id)}
-                                    className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
-                                >
-                                    <Trash2 className="w-3 h-3 inline mr-1" />
-                                    Del
-                                </button>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() =>
+                                            handleTogglePublish(unit.unit_id, !!unit.publish)
+                                        }
+                                        className={`px-1.5 py-0.5 text-[9px] font-semibold rounded border shrink-0
+                                        ${
+                                            unit.publish
+                                                ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                                : "bg-gray-50 text-gray-600 border-gray-300"
+                                        }`}
+                                    >
+                                        {unit.publish ? "Live" : "Hidden"}
+                                    </button>
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setOpenDropdown(openDropdown === unit.unit_id ? null : unit.unit_id)}
+                                            className="p-1 rounded text-[10px] font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300"
+                                        >
+                                            <MoreVertical className="w-3 h-3" />
+                                        </button>
+                                        {openDropdown === unit.unit_id && (
+                                            <div className="absolute right-0 mt-1 w-24 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                                                <button
+                                                    onClick={() => {
+                                                        handleEditUnit(unit.unit_id);
+                                                        setOpenDropdown(null);
+                                                    }}
+                                                    className="w-full px-2 py-1.5 text-left text-[10px] font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1.5"
+                                                >
+                                                    <Edit2 className="w-3 h-3" />
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        handleDeleteUnit(unit.unit_id);
+                                                        setOpenDropdown(null);
+                                                    }}
+                                                    className="w-full px-2 py-1.5 text-left text-[10px] font-medium text-red-700 hover:bg-red-50 flex items-center gap-1.5"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                    Delete
+                                                </button>
+                                                {unit.qr_code_url && (
+                                                    <button
+                                                        onClick={() => {
+                                                            window.open(unit.qr_code_url, "_blank");
+                                                            setOpenDropdown(null);
+                                                        }}
+                                                        className="w-full px-2 py-1.5 text-left text-[10px] font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-1.5"
+                                                    >
+                                                        <QrCode className="w-3 h-3" />
+                                                        QR
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <button
-                            onClick={() =>
-                                handleTogglePublish(unit.unit_id, !!unit.publish)
-                            }
-                            className={`px-2 py-1 text-[10px] font-semibold rounded-md border
-                ${
-                                unit.publish
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                                    : "bg-gray-50 text-gray-600 border-gray-300"
-                            }`}
-                        >
-                            {unit.publish ? "Live" : "Hidden"}
-                        </button>
                     </div>
                 ))}
 

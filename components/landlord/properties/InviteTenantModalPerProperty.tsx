@@ -243,36 +243,36 @@ setExistingInvite({
     }
   };
 
-    return (
-        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
-            <div className="bg-white rounded-t-xl sm:rounded-xl shadow-xl w-full max-w-md sm:max-w-md relative max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+return (
+        <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg sm:max-w-md relative max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col">
                 {/* Header - Fixed at top */}
-                <div className="flex-shrink-0 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 border-b border-gray-100">
+                <div className="flex-shrink-0 px-3 py-3 border-b border-gray-100 bg-white">
                     <button
-                        className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"
+                        className="absolute top-2 right-2 p-2 -m-2 text-gray-400 hover:text-gray-600 z-10 touch-manipulation"
                         onClick={onClose}
                         aria-label="Close"
                     >
                         <X className="w-5 h-5" />
                     </button>
 
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-lg sm:text-xl font-semibold text-gray-800">Invite Tenant</h2>
+                    <div className="flex items-center justify-between pr-10">
+                        <h2 className="text-base font-semibold text-gray-800">Invite Tenant</h2>
                         <button
                             onClick={startTour}
-                            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors mr-6"
+                            className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                         >
-                            <HelpCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                            <span className="hidden xs:inline">Guide</span>
+                            <HelpCircle className="w-3 h-3" />
+                            Guide
                         </button>
                     </div>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
+                <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3">
                     {existingInvite ? (
-                        <div className="space-y-4">
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 sm:p-4">
+                        <div className="space-y-3">
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
                                 <p className="text-sm text-amber-800 font-medium">
                                     Active invite found for this unit
                                 </p>
@@ -281,32 +281,32 @@ setExistingInvite({
                                 </p>
                             </div>
 
-                            <div className="bg-gray-50 border rounded-xl p-4 sm:p-5">
-                                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                            <div className="bg-gray-50 border rounded-2xl p-4">
+                                <div className="flex items-center justify-between mb-3">
                                     <span className="text-sm font-medium text-gray-700">Invite Code</span>
-                                    <div className="flex items-center gap-1 sm:gap-1.5 text-amber-600 bg-amber-50 px-2 sm:px-2.5 py-1 rounded-full">
-                                        <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                                        <span className="text-xs sm:text-sm font-bold">{formatTime(timeLeft)}</span>
+                                    <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                                        <Clock className="w-3.5 h-3.5" />
+                                        <span className="text-sm font-bold">{formatTime(timeLeft)}</span>
                                     </div>
                                 </div>
 
-                                {/* Responsive code display */}
-                                <div className="flex items-center justify-center gap-1 sm:gap-2 mb-3">
+                                {/* Code display */}
+                                <div className="flex items-center justify-center gap-1.5 mb-3">
                                     {formatCode(existingInvite.code).split("").map((char, idx) => (
                                         <div
                                             key={idx}
-                                            className="w-10 h-12 xs:w-11 xs:h-14 sm:w-12 sm:h-14 bg-white border-2 border-blue-500 rounded-lg flex items-center justify-center"
+                                            className="w-10 h-12 bg-white border-2 border-blue-500 rounded-lg flex items-center justify-center"
                                         >
-                    <span className="text-xl xs:text-2xl sm:text-2xl font-bold text-blue-600">
-                      {char}
-                    </span>
+                                            <span className="text-xl font-bold text-blue-600">
+                                                {char}
+                                            </span>
                                         </div>
                                     ))}
                                 </div>
 
                                 <button
                                     onClick={handleCopyCode}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition active:scale-[0.98]"
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition active:scale-[0.98] touch-manipulation"
                                 >
                                     {copied ? (
                                         <>
@@ -325,18 +325,18 @@ setExistingInvite({
                                 )}
                             </div>
 
-                            <div className="flex flex-col xs:flex-row gap-2">
+                            <div className="flex gap-3">
                                 <button
                                     onClick={handleResend}
                                     disabled={loading}
-                                    className="flex-1 py-2.5 sm:py-2 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 text-sm sm:text-base rounded-lg hover:bg-gray-200 transition disabled:opacity-50 active:scale-[0.98]"
+                                    className="flex-1 py-3 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 text-base font-medium rounded-xl hover:bg-gray-200 transition disabled:opacity-50 active:scale-[0.98] touch-manipulation"
                                 >
-                                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                                    <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                                     New Code
                                 </button>
                                 <button
                                     onClick={onClose}
-                                    className="flex-1 py-2.5 sm:py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition active:scale-[0.98]"
+                                    className="flex-1 py-3 bg-blue-600 text-white text-base font-medium rounded-xl hover:bg-blue-700 transition active:scale-[0.98] touch-manipulation"
                                 >
                                     Done
                                 </button>
@@ -344,64 +344,68 @@ setExistingInvite({
                         </div>
                     ) : (
                         <>
-                            <label className="text-sm font-medium text-gray-700 block mb-1">
-                                Tenant Email
-                            </label>
-                            <input
-                                id="invite-tenant-email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="tenant@email.com"
-                                inputMode="email"
-                                autoCapitalize="none"
-                                autoCorrect="off"
-                                className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 mb-4"
-                            />
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-2">
+                                    Tenant Email
+                                </label>
+                                <input
+                                    id="invite-tenant-email"
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="tenant@email.com"
+                                    inputMode="email"
+                                    autoCapitalize="none"
+                                    autoCorrect="off"
+                                    className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 mb-4"
+                                />
+                            </div>
 
-                            <label className="text-sm font-medium text-gray-700 block mb-1">
-                                Select Unit
-                            </label>
-                            <select
-                                id="invite-tenant-unit"
-                                value={unitId}
-                                onChange={(e) => setUnitId(e.target.value)}
-                                disabled={loadingUnits}
-                                className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-base border rounded-lg bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 mb-4 disabled:bg-gray-50 disabled:text-gray-500"
-                            >
-                                <option value="">Select a unit</option>
-                                {!loadingUnits &&
-                                    units
-                                        .filter((u) => u.status === "unoccupied")
-                                        .map((unit) => (
-                                            <option key={unit.unit_id} value={String(unit.unit_id)}>
-                                                {unit.unit_name}
-                                            </option>
-                                        ))}
-                            </select>
-                            {loadingUnits && (
-                                <p className="text-xs text-gray-500 -mt-3 mb-4">Loading units...</p>
-                            )}
+                            <div>
+                                <label className="text-sm font-medium text-gray-700 block mb-2">
+                                    Select Unit
+                                </label>
+                                <select
+                                    id="invite-tenant-unit"
+                                    value={unitId}
+                                    onChange={(e) => setUnitId(e.target.value)}
+                                    disabled={loadingUnits}
+                                    className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 mb-4 disabled:bg-gray-50 disabled:text-gray-500"
+                                >
+                                    <option value="">Select a unit</option>
+                                    {!loadingUnits &&
+                                        units
+                                            .filter((u) => u.status === "unoccupied")
+                                            .map((unit) => (
+                                                <option key={unit.unit_id} value={String(unit.unit_id)}>
+                                                    {unit.unit_name}
+                                                </option>
+                                            ))}
+                                </select>
+                                {loadingUnits && (
+                                    <p className="text-xs text-gray-500 -mt-3 mb-4">Loading units...</p>
+                                )}
+                            </div>
 
-                            <div className="mb-4 p-3 sm:p-4 rounded-lg border bg-gray-50">
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                            <div className="p-4 rounded-xl border-2 border-gray-100 bg-gray-50">
+                                <label className="flex items-center gap-3 text-sm font-medium text-gray-700 cursor-pointer">
                                     <input
                                         type="checkbox"
                                         checked={setDatesNow}
                                         onChange={() => setSetDatesNow((prev) => !prev)}
-                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 w-5 h-5"
                                     />
                                     <span>Set lease dates now</span>
                                 </label>
-                                <p className="text-xs text-gray-500 mt-1.5 ml-6">
+                                <p className="text-xs text-gray-500 mt-2 ml-8">
                                     You can also set lease dates later during agreement setup.
                                 </p>
                             </div>
 
                             {setDatesNow && (
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                                        <label className="text-sm font-medium text-gray-700 block mb-2">
                                             Lease Start Date
                                         </label>
                                         <input
@@ -409,12 +413,12 @@ setExistingInvite({
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
                                             min={new Date().toISOString().split('T')[0]}
-                                            className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                            className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-1">
+                                        <label className="text-sm font-medium text-gray-700 block mb-2">
                                             Lease End Date
                                         </label>
                                         <input
@@ -422,7 +426,7 @@ setExistingInvite({
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                             min={startDate || new Date().toISOString().split('T')[0]}
-                                            className="w-full px-3 py-2.5 sm:py-2 text-sm sm:text-base border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                            className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                         />
                                     </div>
                                 </div>
@@ -433,30 +437,30 @@ setExistingInvite({
 
                 {/* Footer - Fixed at bottom */}
                 {!existingInvite && (
-                    <div className="flex-shrink-0 px-4 sm:px-6 py-4 border-t border-gray-100">
+                    <div className="flex-shrink-0 px-3 py-3 border-t border-gray-100 bg-white">
                         <button
                             id="invite-tenant-submit"
                             onClick={handleInvite}
                             disabled={loading}
-                            className="w-full py-3 sm:py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600
-                     text-white text-sm sm:text-base font-semibold rounded-lg shadow-md
+                            className="w-full py-3 bg-gradient-to-r from-blue-600 to-emerald-600
+                     text-white text-sm font-semibold rounded-xl shadow-lg
                      hover:from-blue-700 hover:to-emerald-700
                      transition-all disabled:opacity-50 disabled:cursor-not-allowed
-                     active:scale-[0.98]"
+                     active:scale-[0.98] touch-manipulation"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                Sending...
-              </span>
+                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Sending...
+                                </span>
                             ) : (
                                 "Send Invitation"
                             )}
                         </button>
-                        <p className="text-[10px] sm:text-xs text-gray-400 text-center mt-2">
+                        <p className="text-xs text-gray-400 text-center mt-2">
                             An email with a 4-digit code will be sent to the tenant
                         </p>
                     </div>
