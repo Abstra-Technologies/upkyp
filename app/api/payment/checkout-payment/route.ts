@@ -256,10 +256,3 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// OPTIONAL: If you want to explicitly reject other methods (GET, etc.),
-// uncomment below or create export functions (GET, etc.) returning 405.
-/*
-export async function GET() {
-  return httpError(405, "Method Not Allowed");
-}
-*/
