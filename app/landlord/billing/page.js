@@ -1,53 +1,22 @@
 "use client";
-import React, { useState } from "react";
+
 import Link from "next/link";
-import useAuthStore from "@/zustand/authStore";
-import { useEffect } from "react";
-import axios from "axios";
 import LoadingScreen from "@/components/loadingScreen";
+import { Search } from "lucide-react";
+
+import { useBillingPropertyList } from "@/hooks/landlord/useBillingPropertyList";
 
 const PropertyListPage = () => {
-  const { fetchSession, user, admin } = useAuthStore();
-  const [properties, setProperties] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `/api/landlord/billing/getPropertyUnits?landlordId=${user?.landlord_id}`
-        );
-        if (Array.isArray(response.data)) {
-          setProperties(response.data);
-        } else {
-          console.error("Invalid API response:", response.data);
-          setProperties([]); 
-        }
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-        setProperties([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user?.landlord_id) {
-      fetchProperties();
-    }
-  }, [user?.landlord_id]);
-  // Filter properties
-  const filteredProperties = properties.filter(
-    (property) =>
-      property.property_name &&
-      property.property_name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (filterStatus === "all" || property.status === filterStatus)
-  );
+  const {
+    loading,
+    filteredProperties,
+    searchTerm,
+    setSearchTerm,
+    formatProvince,
+  } = useBillingPropertyList();
 
   if (loading) {
-    return <LoadingScreen />; // Show loading screen while fetching data
+    return <LoadingScreen />;
   }
 
   return (
@@ -63,9 +32,7 @@ const PropertyListPage = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full md:w-64 border border-gray-300 p-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pl-10"
             />
-            <svg className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-            </svg>
+            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
           </div>
         </div>
   
@@ -92,10 +59,7 @@ const PropertyListPage = () => {
                     </svg>
                     <p>
                       {property.city},{" "}
-                      {property.province
-                        .split("_")
-                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                        .join(" ")}
+                      {formatProvince(property.province)}
                     </p>
                   </div>
                   <div className="flex items-center text-gray-600">
@@ -124,7 +88,7 @@ const PropertyListPage = () => {
           </div>
         )}
       </div>
-  );
+    );
 };
 
 export default PropertyListPage;

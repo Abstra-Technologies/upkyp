@@ -56,9 +56,9 @@ export async function GET(
             );
         }
 
-        /* --------------------------------------------------
-           FETCH ACTIVE SUBSCRIPTION + PLAN + LIMITS + FEATURES
-        -------------------------------------------------- */
+/* --------------------------------------------------
+            FETCH ACTIVE SUBSCRIPTION + PLAN + LIMITS + FEATURES
+         -------------------------------------------------- */
         const [rows]: any = await db.query(
             `
                 SELECT
@@ -75,11 +75,6 @@ export async function GET(
                     p.price,
                     p.billing_cycle,
 
-                    pl.max_properties,
-                    pl.max_units,
-                    pl.max_maintenance_request,
-                    pl.max_billing,
-                    pl.max_prospect,
                     pl.max_storage,
                     pl.max_assets_per_property,
                     pl.financial_history_years,
@@ -95,7 +90,7 @@ export async function GET(
                 FROM Subscription s
 
                          JOIN Plan p
-                              ON s.plan_code = p.plan_code   -- ✅ FIX
+                              ON s.plan_code = p.plan_code
 
                          LEFT JOIN PlanLimits pl
                                    ON p.plan_id = pl.plan_id
@@ -134,9 +129,9 @@ export async function GET(
             data.is_active = 0;
         }
 
-        /* --------------------------------------------------
-           FORMAT RESPONSE STRUCTURE
-        -------------------------------------------------- */
+/* --------------------------------------------------
+            FORMAT RESPONSE STRUCTURE
+         -------------------------------------------------- */
         const subscription = {
             subscription_id: data.subscription_id,
             plan_id: data.plan_id,
@@ -152,11 +147,6 @@ export async function GET(
             is_active: data.is_active,
 
             limits: {
-                maxProperties: data.max_properties,
-                maxUnits: data.max_units,
-                maxMaintenanceRequest: data.max_maintenance_request,
-                maxBilling: data.max_billing,
-                maxProspect: data.max_prospect,
                 maxStorage: data.max_storage,
                 maxAssetsPerProperty: data.max_assets_per_property,
                 financialHistoryYears: data.financial_history_years,

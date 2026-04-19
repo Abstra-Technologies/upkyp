@@ -1,17 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
-import { Check } from "lucide-react";
+import { SUBSCRIPTION_PLANS, UNIT_BANDS } from "@/constant/subscription/subscriptionPlans";
+import { Check, ChevronDown } from "lucide-react";
 import useAuthStore from "@/zustand/authStore";
 
 export default function PricingPage() {
     const router = useRouter();
     const { user } = useAuthStore();
 
+    const [selectedBand, setSelectedBand] = useState<Record<number, string>>({});
+
     const handleSelectPlan = (plan: any) => {
-        const intendedUrl = `/landlord/subsciption_plan/payment/review?planId=${plan.id}&amount=${plan.price}&prorated=${plan.price}&addons=${encodeURIComponent("[]")}`;
+        const bandIndex = selectedBand[plan.id] ?? "0";
+        const amount = plan.unitBands 
+            ? plan.unitBands[parseInt(bandIndex)]?.monthlyPrice ?? plan.price
+            : plan.price;
+        
+        const intendedUrl = `/landlord/subsciption_plan/payment/review?planId=${plan.id}&amount=${amount}&prorated=${amount}&addons=${encodeURIComponent("[]")}&band=${bandIndex}`;
 
         const params = new URLSearchParams(window.location.search);
         const existingCallback = params.get("callbackUrl");
@@ -40,6 +48,10 @@ export default function PricingPage() {
             <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
                 {SUBSCRIPTION_PLANS.map((plan) => {
                     const isEnterprise = plan.name === "Enterprise Plan";
+                    const hasUnitBands = plan.unitBands && plan.unitBands.length > 0;
+                    const currentBandIndex = selectedBand[plan.id] ?? "0";
+                    const currentBand = hasUnitBands ? plan.unitBands[parseInt(currentBandIndex)] : null;
+                    const displayPrice = currentBand ? currentBand.monthlyPrice : plan.price;
 
                     return (
                         <div
@@ -66,13 +78,49 @@ export default function PricingPage() {
                                         </p>
                                     ) : (
                                         <p className="text-2xl font-extrabold text-gray-900">
-                                            ₱{plan.price.toLocaleString()}
+                                            ₱{displayPrice.toLocaleString()}
                                             <span className="text-sm font-medium text-gray-500">
-                                                {plan.price > 0 && "/mo"}
+                                                {displayPrice > 0 && "/mo"}
                                             </span>
                                         </p>
                                     )}
                                 </div>
+
+                                {/* Unit Band Dropdown */}
+                                {hasUnitBands && (
+                                    <div className="mt-3">
+                                        <select
+                                            value={currentBandIndex}
+                                            onChange={(e) =>
+                                                setSelectedBand({ ...selectedBand, [plan.id]: e.target.value })
+                                            }
+                                            className="
+            w-full
+            rounded-xl
+            px-3 py-2
+            text-xs sm:text-sm
+
+            bg-gray-100
+            border border-gray-300
+
+            text-gray-800
+            shadow-sm
+
+            transition-all duration-200
+
+            hover:bg-gray-50
+            focus:outline-none
+            focus:ring-2 focus:ring-blue-400/30
+            focus:border-blue-400
+        "
+                                        >
+                                            {plan.unitBands?.map((band: any, idx: number) => (
+                                                <option key={idx} value={String(idx)}>
+                                                    {band.range} - ₱{band.monthlyPrice.toLocaleString()}/mo
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>                                )}
 
                                 <ul className="mt-4 space-y-2 text-xs sm:text-sm text-gray-700">
                                     {plan.features.slice(0, 5).map((feature, idx) => (

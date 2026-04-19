@@ -22,7 +22,12 @@ export default function EditPlanPage() {
         is_active: 1,
     });
 
-    const [maxUnits, setMaxUnits] = useState<number | null>(null);
+    const [limits, setLimits] = useState({
+        max_storage: "",
+        max_assets_per_property: null as number | null,
+        financial_history_years: null as number | null,
+    });
+
     const [features, setFeatures] = useState<any>({});
 
     const fetchPlan = async () => {
@@ -43,7 +48,12 @@ export default function EditPlanPage() {
                 is_active: data.plan.is_active,
             });
 
-            setMaxUnits(data.limits?.max_units ?? null);
+            setLimits({
+                max_storage: data.limits?.max_storage || "",
+                max_assets_per_property: data.limits?.max_assets_per_property ?? null,
+                financial_history_years: data.limits?.financial_history_years ?? null,
+            });
+
             setFeatures(data.features || {});
         } catch {
             Swal.fire("Error", "Failed to load plan", "error");
@@ -62,7 +72,7 @@ export default function EditPlanPage() {
                 `/api/systemadmin/subscription_programs/gerPlanDetails/${id}`,
                 {
                     plan,
-                    max_units: maxUnits,
+                    limits,
                     features,
                 }
             );
@@ -199,32 +209,81 @@ export default function EditPlanPage() {
                     </div>
                 </div>
 
-                {/* ================= DOOR LIMIT ================= */}
+                {/* ================= LIMITS ================= */}
                 <div className="mb-10">
                     <h2 className="text-lg font-semibold mb-4">
-                        Door Allocation (Max Units)
+                        Plan Limits
                     </h2>
 
-                    <input
-                        type="number"
-                        value={maxUnits ?? ""}
-                        onChange={(e) =>
-                            setMaxUnits(
-                                e.target.value === ""
-                                    ? null
-                                    : Number(e.target.value)
-                            )
-                        }
-                        className="border p-3 rounded-xl w-full"
-                        placeholder="Maximum number of doors"
-                    />
+                    <div className="space-y-6">
+                        {/* Storage Limit */}
+                        <div className="border rounded-xl p-4">
+                            <h3 className="font-medium text-gray-800 mb-3">
+                                Storage Limit
+                            </h3>
+                            <input
+                                type="text"
+                                value={limits.max_storage}
+                                onChange={(e) =>
+                                    setLimits({
+                                        ...limits,
+                                        max_storage: e.target.value,
+                                    })
+                                }
+                                className="border p-3 rounded-xl w-full"
+                                placeholder="e.g., 5GB, 10GB, unlimited"
+                            />
+                            <p className="text-sm text-gray-500 mt-2">
+                                Enter storage limit (e.g., "5GB", "10GB") or leave empty for unlimited.
+                            </p>
+                        </div>
 
-                    <p className="text-sm text-gray-500 mt-2">
-                        Leave empty for unlimited doors.
-                    </p>
+                        {/* Max Assets Per Property */}
+                        <div className="border rounded-xl p-4">
+                            <h3 className="font-medium text-gray-800 mb-3">
+                                Max Assets Per Property
+                            </h3>
+                            <input
+                                type="number"
+                                value={limits.max_assets_per_property ?? ""}
+                                onChange={(e) =>
+                                    setLimits({
+                                        ...limits,
+                                        max_assets_per_property: e.target.value === "" ? null : Number(e.target.value),
+                                    })
+                                }
+                                className="border p-3 rounded-xl w-full"
+                                placeholder="Maximum assets per property"
+                            />
+                            <p className="text-sm text-gray-500 mt-2">
+                                Leave empty for unlimited assets per property.
+                            </p>
+                        </div>
+
+                        {/* Financial History Years */}
+                        <div className="border rounded-xl p-4">
+                            <h3 className="font-medium text-gray-800 mb-3">
+                                Financial History Years
+                            </h3>
+                            <input
+                                type="number"
+                                value={limits.financial_history_years ?? ""}
+                                onChange={(e) =>
+                                    setLimits({
+                                        ...limits,
+                                        financial_history_years: e.target.value === "" ? null : Number(e.target.value),
+                                    })
+                                }
+                                className="border p-3 rounded-xl w-full"
+                                placeholder="Years of financial history"
+                            />
+                            <p className="text-sm text-gray-500 mt-2">
+                                Number of years of financial history to retain. Leave empty for unlimited.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
-                {/* ================= FEATURES ================= */}
                 {/* ================= FEATURES ================= */}
                 <div className="mb-12">
                     <div className="mb-6">
@@ -256,11 +315,11 @@ export default function EditPlanPage() {
                                             })
                                         }
                                         className={`cursor-pointer rounded-2xl p-5 border shadow-sm transition-all duration-200 hover:shadow-md
-                            ${
-                                            isEnabled
-                                                ? "bg-gradient-to-br from-blue-50 to-emerald-50 border-emerald-300"
-                                                : "bg-white border-gray-200 hover:border-gray-300"
-                                        }`}
+                                            ${
+                                                isEnabled
+                                                    ? "bg-gradient-to-br from-blue-50 to-emerald-50 border-emerald-300"
+                                                    : "bg-white border-gray-200 hover:border-gray-300"
+                                            }`}
                                     >
                                         <div className="flex items-center justify-between">
                                             <div>
@@ -277,19 +336,19 @@ export default function EditPlanPage() {
                                             {/* Toggle */}
                                             <div
                                                 className={`w-12 h-6 flex items-center rounded-full p-1 transition-all duration-300
-                                    ${
-                                                    isEnabled
-                                                        ? "bg-emerald-500"
-                                                        : "bg-gray-300"
-                                                }`}
+                                                    ${
+                                                        isEnabled
+                                                            ? "bg-emerald-500"
+                                                            : "bg-gray-300"
+                                                    }`}
                                             >
                                                 <div
                                                     className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-all duration-300
-                                        ${
-                                                        isEnabled
-                                                            ? "translate-x-6"
-                                                            : "translate-x-0"
-                                                    }`}
+                                                        ${
+                                                            isEnabled
+                                                                ? "translate-x-6"
+                                                                : "translate-x-0"
+                                                        }`}
                                                 />
                                             </div>
                                         </div>
@@ -298,6 +357,7 @@ export default function EditPlanPage() {
                             })}
                     </div>
                 </div>
+
                 <button
                     onClick={handleUpdate}
                     className="w-full bg-gradient-to-r from-blue-600 to-emerald-600 text-white py-3 rounded-xl font-semibold shadow-md hover:opacity-90 transition"

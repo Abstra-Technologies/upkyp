@@ -1,34 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import useAuthStore from "@/zustand/authStore";
-import Swal from "sweetalert2";
-import useSubscription from "@/hooks/landlord/useSubscription";
-import DOMPurify from "dompurify";
-import { subscriptionConfig } from "@/constant/subscription/limits";
-import {
-  Megaphone,
-  Plus,
-  Search,
-  X,
-  Clock,
-  ChevronRight,
-  Building2,
-  Filter,
-} from "lucide-react";
+import Link from "next/link";
+import { Megaphone, Plus, Search, X, Clock, ChevronRight, Building2 } from "lucide-react";
+import ErrorBoundary from "@/components/Commons/ErrorBoundary";
 
-interface Announcement {
-  id: string | number;
-  subject: string;
-  description: string;
-  property: string;
-  created_at?: string;
-}
+import { useAnnouncementsList } from "@/hooks/landlord/useAnnouncementsList";
 
-// Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
@@ -42,7 +20,6 @@ const staggerContainer = {
   },
 };
 
-// Skeleton Component
 const AnnouncementSkeleton = () => (
   <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
     <div className="hidden sm:grid sm:grid-cols-5 bg-gray-50 border-b border-gray-200 px-6 py-4">
@@ -68,87 +45,23 @@ const AnnouncementSkeleton = () => (
 );
 
 export default function AnnouncementsList() {
-  const router = useRouter();
-  const { fetchSession, user, admin } = useAuthStore();
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [selectedProperty, setSelectedProperty] = useState<string>("all");
-
-  useEffect(() => {
-    if (!user && !admin) {
-      fetchSession();
-    }
-  }, [user, admin, fetchSession]);
-
-  const landlordId = user?.landlord_id;
-  const { subscription, loadingSubscription } = useSubscription(landlordId);
-
-  const planName = subscription?.plan_name;
-  const canUseAnnouncements =
-    planName && subscriptionConfig[planName]?.features?.announcements === true;
-
-  useEffect(() => {
-    async function fetchAnnouncements() {
-      try {
-        const response = await fetch(
-          `/api/landlord/announcement/getAllAnnouncements?landlord_id=${user?.landlord_id}`,
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch announcements");
-        }
-
-        const data = await response.json();
-        setAnnouncements(data);
-      } catch (error) {
-        console.error("Error fetching announcements:", error);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Unable to load announcements.",
-          confirmButtonColor: "#3b82f6",
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (user?.landlord_id) {
-      fetchAnnouncements();
-    }
-  }, [user]);
-
-  const handleCreate = () => {
-    router.push(`/landlord/announcement/create-announcement`);
-  };
-
-  const uniqueProperties: string[] = [
-    ...new Set(announcements.map((ann) => ann.property)),
-  ];
-
-  const filteredAnnouncements = announcements.filter((announcement) => {
-    const matchesSearch =
-      announcement.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      announcement.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProperty =
-      selectedProperty === "all" || announcement.property === selectedProperty;
-    return matchesSearch && matchesProperty;
-  });
-
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return "No date";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const {
+    loading,
+    filteredAnnouncements,
+    uniqueProperties,
+    searchTerm,
+    setSearchTerm,
+    selectedProperty,
+    setSelectedProperty,
+    canUseAnnouncements,
+    handleCreate,
+    formatDate,
+    clearFilters,
+  } = useAnnouncementsList();
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        {/* Header Skeleton */}
         <div className="bg-white border-b border-gray-200 pt-20 pb-5 md:pt-6 md:pb-5 px-4 md:px-8 lg:px-12 xl:px-16">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
             <div className="flex items-center gap-4">
@@ -174,7 +87,6 @@ export default function AnnouncementsList() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -209,13 +121,12 @@ export default function AnnouncementsList() {
           </button>
         </div>
 
-        {/* Stats */}
         <div className="flex flex-wrap items-center gap-4 text-sm mb-5">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             <span className="text-gray-600">
               <span className="font-semibold text-gray-900">
-                {announcements.length}
+                {filteredAnnouncements.length}
               </span>{" "}
               Total
             </span>
@@ -229,18 +140,8 @@ export default function AnnouncementsList() {
               Properties
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-cyan-500" />
-            <span className="text-gray-600">
-              <span className="font-semibold text-gray-900">
-                {filteredAnnouncements.length}
-              </span>{" "}
-              Showing
-            </span>
-          </div>
         </div>
 
-        {/* Search & Filters */}
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -279,10 +180,7 @@ export default function AnnouncementsList() {
 
           {(searchTerm || selectedProperty !== "all") && (
             <button
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedProperty("all");
-              }}
+              onClick={clearFilters}
               className="px-4 py-3 text-sm text-gray-600 hover:text-gray-900 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
             >
               Clear
@@ -291,7 +189,6 @@ export default function AnnouncementsList() {
         </div>
       </motion.div>
 
-      {/* Main Content */}
       <div className="px-4 pb-24 md:pb-8 md:px-8 lg:px-12 xl:px-16 pt-5">
         {filteredAnnouncements.length > 0 ? (
           <motion.div
@@ -300,7 +197,6 @@ export default function AnnouncementsList() {
             animate="visible"
             className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
           >
-            {/* Table Header (Desktop) */}
             <div className="hidden sm:grid sm:grid-cols-5 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700 px-6 py-4">
               <div>Property</div>
               <div>Subject</div>
@@ -309,42 +205,36 @@ export default function AnnouncementsList() {
               <div className="text-right">Action</div>
             </div>
 
-            {/* Table Body */}
             <div className="divide-y divide-gray-100">
-              {filteredAnnouncements.map((announcement, index) => (
+              {filteredAnnouncements.map((announcement) => (
                 <motion.div key={announcement.id} variants={fadeInUp}>
                   <Link
                     href={`/landlord/announcement/${announcement.id}`}
                     className="group block transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50"
                   >
                     <div className="grid grid-cols-1 sm:grid-cols-5 items-start sm:items-center px-5 sm:px-6 py-4 text-sm">
-                      {/* Property */}
                       <div className="flex items-center sm:justify-start mb-2 sm:mb-0">
                         <span className="inline-flex items-center px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold border border-blue-100">
                           {announcement.property}
                         </span>
                       </div>
 
-                      {/* Subject */}
                       <div className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                         {announcement.subject}
                       </div>
 
-                      {/* Description */}
                       <div
                         className="text-gray-600 text-xs sm:text-sm line-clamp-2 sm:line-clamp-1 leading-relaxed"
                         dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(announcement.description),
+                          __html: announcement.description,
                         }}
                       />
 
-                      {/* Date */}
                       <div className="flex items-center justify-start sm:justify-end text-xs text-gray-500 gap-1.5 mt-2 sm:mt-0">
                         <Clock className="w-3.5 h-3.5" />
                         {formatDate(announcement.created_at)}
                       </div>
 
-                      {/* Action */}
                       <div className="flex justify-start sm:justify-end items-center text-sm font-medium text-blue-600 gap-1 mt-2 sm:mt-0">
                         View details
                         <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

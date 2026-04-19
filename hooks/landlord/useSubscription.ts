@@ -23,12 +23,7 @@ export type Subscription = {
     is_active: number;
 
     limits: {
-        maxProperties: number | null;
-        maxUnits: number | null;
-        maxMaintenanceRequest: number | null;
-        maxBilling: number | null;
-        maxProspect: number | null;
-        maxStorage: number | null;
+        maxStorage: string | null;
         maxAssetsPerProperty: number | null;
         financialHistoryYears: number | null;
     };
