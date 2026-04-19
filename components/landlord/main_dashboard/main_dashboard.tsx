@@ -18,12 +18,11 @@ import HeaderContent from "./headerContent";
 import NewWorkOrderModal from "../maintenance_management/NewWorkOrderModal";
 import LeaseOccupancyCard from "./LeaseOccupancyCard";
 import EndingLeaseCard from "@/components/landlord/main_dashboard/EndingLeaseCard";
-import LandlordPropertyQuickView from "./LandlordPropertyQuickView";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 const CardSkeleton = () => (
-  <div className="h-[320px] rounded-2xl bg-gray-100 animate-pulse" />
+  <div className="h-[350px] rounded-2xl bg-gray-100 animate-pulse" />
 );
 
 // Heavy components
@@ -68,7 +67,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
   }, []);
 
   const displayName = useMemo(
-    () => user?.firstName || user?.companyName || user?.email || "Landlord",
+    () => user?.firstName || user?.companyName || user?.email,
     [user?.firstName, user?.companyName, user?.email],
   );
 
@@ -155,28 +154,20 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
               <TodayCalendar landlordId={landlordId} />
             </Suspense>
             <Suspense fallback={<CardSkeleton />}>
-              <div
-                id="dashboard-maintenance"
-                className="h-full"
-              >
+              <div id="dashboard-maintenance" className="h-full">
                 <PendingMaintenanceDonut landlordId={landlordId} />
               </div>
             </Suspense>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Suspense fallback={<CardSkeleton />}>
-              <div id="dashboard-occupancy">
+              <div id="dashboard-occupancy" className="h-full">
                 <LeaseOccupancyCard landlord_id={landlordId} />
               </div>
             </Suspense>
             <Suspense fallback={<CardSkeleton />}>
               <EndingLeaseCard landlord_id={landlordId} />
-            </Suspense>
-            <Suspense fallback={<CardSkeleton />}>
-              <div className="h-full">
-                <LandlordPropertyQuickView landlordId={Number(landlordId)} />
-              </div>
             </Suspense>
           </div>
 

@@ -13,6 +13,7 @@ interface User {
     citizenship: string | null;
     address: string | null;
     birthDate: string | null;
+    companyName:string | null;
     points: number;
     status: string;
     userType: string | null;
@@ -40,7 +41,6 @@ interface AuthState {
     user: User | null;
     admin: Admin | null;
 
-    // 🔥 enterprise flags
     loading: boolean;        // fetching from backend
     isHydrated: boolean;     // persist finished
     hasFetched: boolean;     // prevents duplicate session calls

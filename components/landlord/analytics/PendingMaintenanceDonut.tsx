@@ -88,7 +88,7 @@ export default function PendingMaintenanceDonut({
        UI
     -------------------------------------------------- */
     return (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 h-full flex flex-col hover:shadow-md transition-shadow">
+        <div className="bg-gray-50/50 rounded-2xl border border-gray-200 shadow-sm p-5 h-full flex flex-col hover:shadow-lg hover:border-blue-200 hover:bg-blue-50/30 transition-all">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <div>
