@@ -324,7 +324,7 @@ export default function LandlordOnboardingOverlay({
                         </div>
                     </div>
 
-                    <div className="md:hidden flex overflow-x-auto bg-gray-50 px-2 py-2 gap-1 border-b">
+                    <div className="md:hidden flex bg-gray-50 px-2 py-1.5 gap-1 border-b overflow-x-auto">
                         {STEPS.map((step, index) => {
                             const status = getStepStatus(step.key);
                             const isActive = index === currentStep;
@@ -333,7 +333,7 @@ export default function LandlordOnboardingOverlay({
                                 <button
                                     key={step.key}
                                     onClick={() => setCurrentStep(index)}
-                                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all min-w-[70px] ${
+                                    className={`flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-lg transition-all ${
                                         status === "done"
                                             ? "bg-green-100"
                                             : isActive
@@ -342,11 +342,11 @@ export default function LandlordOnboardingOverlay({
                                     }`}
                                 >
                                     {status === "done" ? (
-                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                        <CheckCircle className="w-3 h-3 text-green-600" />
                                     ) : (
-                                        <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-gray-400"}`} />
+                                        <Icon className={`w-3 h-3 ${isActive ? "text-blue-600" : "text-gray-400"}`} />
                                     )}
-                                    <span className={`text-[10px] font-medium truncate w-full text-center ${
+                                    <span className={`text-[9px] font-medium truncate ${
                                         status === "done"
                                             ? "text-green-700"
                                             : isActive
