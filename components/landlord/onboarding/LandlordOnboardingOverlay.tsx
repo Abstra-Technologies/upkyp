@@ -253,10 +253,10 @@ export default function LandlordOnboardingOverlay({
                     setDismissed(false);
                     localStorage.removeItem(`onboardingDismissed_${landlordId}`);
                 }}
-                className="fixed top-20 right-4 z-[90] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-3 rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-3 animate-pulse"
+                className="fixed top-16 md:top-20 right-2 md:right-4 z-[90] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-3 py-2 md:px-5 md:py-3 rounded-xl md:rounded-2xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 md:gap-3 animate-pulse"
             >
-                <AlertTriangle className="w-5 h-5" />
-                <span className="font-semibold text-sm">Complete Setup</span>
+                <AlertTriangle className="w-4 h-4 md:w-5 md:h-5" />
+                <span className="font-semibold text-xs md:text-sm">Complete Setup</span>
             </button>
         );
     }
@@ -265,90 +265,128 @@ export default function LandlordOnboardingOverlay({
         <>
             <ToastContainer />
 
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-4">
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-                <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] flex">
-                    <div className="w-64 bg-gradient-to-b from-gray-50 to-gray-100 p-6 border-r border-gray-200 flex-shrink-0">
-                        <div className="mb-6">
-                            <h3 className="font-bold text-gray-900 mb-1">Setup Progress</h3>
-                            <p className="text-xs text-gray-500">
-                                {STEPS.filter(s => getStepStatus(s.key) === "done").length} of {STEPS.length} completed
-                            </p>
-                        </div>
+                <div className="relative bg-white w-full md:w-full md:max-w-4xl rounded-xl md:rounded-2xl shadow-2xl overflow-hidden md:max-h-[85vh] flex flex-col md:flex mx-2">
+                    <div className="hidden md:flex w-64 bg-gradient-to-b from-gray-50 to-gray-100 p-6 border-r border-gray-200 flex-shrink-0">
+                        <div className="w-full">
+                            <div className="mb-6">
+                                <h3 className="font-bold text-gray-900 mb-1">Setup Progress</h3>
+                                <p className="text-xs text-gray-500">
+                                    {STEPS.filter(s => getStepStatus(s.key) === "done").length} of {STEPS.length} completed
+                                </p>
+                            </div>
 
-                        <div className="space-y-1">
-                            {STEPS.map((step, index) => {
-                                const status = getStepStatus(step.key);
-                                const isActive = index === currentStep;
-                                const Icon = step.icon;
+                            <div className="space-y-1">
+                                {STEPS.map((step, index) => {
+                                    const status = getStepStatus(step.key);
+                                    const isActive = index === currentStep;
+                                    const Icon = step.icon;
 
-                                return (
-                                    <div
-                                        key={step.key}
-                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                                            status === "done"
-                                                ? "bg-green-50"
-                                                : isActive
-                                                    ? "bg-blue-50 ring-2 ring-blue-200"
-                                                    : "bg-gray-50"
-                                        }`}
-                                    >
-                                        <div className={`shrink-0 ${
-                                            status === "done"
-                                                ? "text-green-600"
-                                                : isActive
-                                                    ? "text-blue-600"
-                                                    : "text-gray-400"
-                                        }`}>
-                                            {status === "done" ? (
-                                                <CheckCircle className="w-5 h-5" />
-                                            ) : (
-                                                <Icon className="w-5 h-5" />
-                                            )}
+                                    return (
+                                        <div
+                                            key={step.key}
+                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                                                status === "done"
+                                                    ? "bg-green-50"
+                                                    : isActive
+                                                        ? "bg-blue-50 ring-2 ring-blue-200"
+                                                        : "bg-gray-50"
+                                            }`}
+                                        >
+                                            <div className={`shrink-0 ${
+                                                status === "done"
+                                                    ? "text-green-600"
+                                                    : isActive
+                                                        ? "text-blue-600"
+                                                        : "text-gray-400"
+                                            }`}>
+                                                {status === "done" ? (
+                                                    <CheckCircle className="w-5 h-5" />
+                                                ) : (
+                                                    <Icon className="w-5 h-5" />
+                                                )}
+                                            </div>
+                                            <span className={`text-sm font-medium ${
+                                                status === "done"
+                                                    ? "text-green-700"
+                                                    : isActive
+                                                        ? "text-blue-700"
+                                                        : "text-gray-500"
+                                            }`}>
+                                                {step.title}
+                                            </span>
                                         </div>
-                                        <span className={`text-sm font-medium ${
-                                            status === "done"
-                                                ? "text-green-700"
-                                                : isActive
-                                                    ? "text-blue-700"
-                                                    : "text-gray-500"
-                                        }`}>
-                                            {step.title}
-                                        </span>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex-1 p-6 flex flex-col">
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
+                    <div className="md:hidden flex overflow-x-auto bg-gray-50 px-2 py-2 gap-1 border-b">
+                        {STEPS.map((step, index) => {
+                            const status = getStepStatus(step.key);
+                            const isActive = index === currentStep;
+                            const Icon = step.icon;
+                            return (
+                                <button
+                                    key={step.key}
+                                    onClick={() => setCurrentStep(index)}
+                                    className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all min-w-[70px] ${
+                                        status === "done"
+                                            ? "bg-green-100"
+                                            : isActive
+                                                ? "bg-blue-100 ring-2 ring-blue-300"
+                                                : "bg-gray-100"
+                                    }`}
+                                >
+                                    {status === "done" ? (
+                                        <CheckCircle className="w-4 h-4 text-green-600" />
+                                    ) : (
+                                        <Icon className={`w-4 h-4 ${isActive ? "text-blue-600" : "text-gray-400"}`} />
+                                    )}
+                                    <span className={`text-[10px] font-medium truncate w-full text-center ${
+                                        status === "done"
+                                            ? "text-green-700"
+                                            : isActive
+                                                ? "text-blue-700"
+                                                : "text-gray-500"
+                                    }`}>
+                                        {step.title}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="flex-1 p-4 md:p-6 flex flex-col overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4 md:mb-6">
+                            <div className="flex items-center gap-2 md:gap-3">
+                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
                                     {(() => {
                                         const Icon = STEPS[currentStep]?.icon;
-                                        return Icon ? <Icon className="h-5 w-5 text-white" /> : <Shield className="h-5 w-5 text-white" />;
+                                        return Icon ? <Icon className="h-4 w-4 md:h-5 md:w-5 text-white" /> : <Shield className="h-4 w-4 md:h-5 md:w-5 text-white" />;
                                     })()}
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-gray-900">{STEPS[currentStep]?.title}</h4>
-                                    <p className="text-xs text-gray-500">Step {currentStep + 1} of {STEPS.length}</p>
+                                    <h4 className="text-sm md:text-base font-bold text-gray-900">{STEPS[currentStep]?.title}</h4>
+                                    <p className="text-[10px] md:text-xs text-gray-500">Step {currentStep + 1} of {STEPS.length}</p>
                                 </div>
                             </div>
 
                             {canDismiss ? (
                                 <button
                                     onClick={handleDismiss}
-                                    className="p-2 rounded-full hover:bg-gray-100"
+                                    className="p-1.5 md:p-2 rounded-full hover:bg-gray-100"
                                     title="Dismiss"
                                 >
-                                    <X className="w-5 h-5 text-gray-500" />
+                                    <X className="w-4 h-4 md:w-5 md:h-5 text-gray-500" />
                                 </button>
                             ) : !emailVerified && currentStep === 0 ? null : (
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 rounded-full">
-                                    <AlertTriangle className="h-4 w-4 text-amber-600" />
-                                    <span className="text-xs font-medium text-amber-700">Required</span>
+                                <div className="flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-amber-50 rounded-full">
+                                    <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-amber-600" />
+                                    <span className="text-[10px] md:text-xs font-medium text-amber-700">Required</span>
                                 </div>
                             )}
                         </div>
@@ -381,20 +419,20 @@ export default function LandlordOnboardingOverlay({
                             />
                         </div>
 
-                        <div className="flex items-center justify-between pt-4 border-t">
+                        <div className="flex items-center justify-between pt-3 md:pt-4 border-t">
                             {currentStep > 0 ? (
                                 <button
                                     onClick={() => setCurrentStep(prev => prev - 1)}
-                                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+                                    className="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm text-gray-600 hover:text-gray-900"
                                 >
                                     Previous
                                 </button>
                             ) : <div />}
 
                             {currentStep < STEPS.length - 1 && (
-                                <div className="flex items-center gap-2 text-xs text-gray-500">
-                                    <span>Complete this step to continue</span>
-                                    <ChevronRight className="w-4 h-4" />
+                                <div className="flex items-center gap-1 md:gap-2 text-[10px] md:text-xs text-gray-500">
+                                    <span>Complete to continue</span>
+                                    <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
                                 </div>
                             )}
                         </div>
@@ -526,22 +564,22 @@ function StepContent({
             return (
                 <div className="h-full flex flex-col">
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                            <FileText className="w-8 h-8 text-blue-600" />
+                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-100 flex items-center justify-center mb-3 md:mb-4">
+                            <FileText className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
                         </div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-2">Accept Platform Usage Terms for Property Owners/Managers</h4>
-                        <p className="text-sm text-gray-500 text-center max-w-sm mb-6">
-                            Read and accept our terms and conditions to continue with your setup.
+                        <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 text-center">Accept Platform Usage Terms</h4>
+                        <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm mb-4 md:mb-6">
+                            Read and accept our terms and conditions to continue.
                         </p>
                         {agreementDone ? (
                             <div className="flex items-center gap-2 text-green-600">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="font-medium">Completed</span>
+                                <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                                <span className="text-xs md:text-sm font-medium">Completed</span>
                             </div>
                         ) : (
                             <button
                                 onClick={onOpenAgreement}
-                                className="px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+                                className="px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md text-xs md:text-sm"
                             >
                                 Read & Accept Terms
                             </button>
@@ -553,33 +591,33 @@ function StepContent({
             return (
                 <div className="h-full flex flex-col">
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 md:mb-4 ${
                             verificationDone ? "bg-green-100" : "bg-blue-100"
                         }`}>
                             {verificationDone ? (
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                             ) : (
-                                <Shield className="w-8 h-8 text-blue-600" />
+                                <Shield className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
                             )}
                         </div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-2">Verify Your Identity</h4>
-                        <p className="text-sm text-gray-500 text-center max-w-sm mb-6">
-                            Upload a valid ID to verify your identity and start managing properties.
+                        <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 text-center">Verify Your Identity</h4>
+                        <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm mb-4 md:mb-6">
+                            Upload a valid ID to verify your identity.
                         </p>
                         {verificationDone ? (
                             <div className="flex items-center gap-2 text-green-600">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="font-medium">Identity Verified</span>
+                                <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                                <span className="text-xs md:text-sm font-medium">Identity Verified</span>
                             </div>
                         ) : verificationStatus === "pending" ? (
                             <div className="flex items-center gap-2 text-yellow-600">
-                                <Clock className="w-5 h-5" />
-                                <span className="font-medium">Under Review</span>
+                                <Clock className="w-4 h-4 md:w-5 md:h-5" />
+                                <span className="text-xs md:text-sm font-medium">Under Review</span>
                             </div>
                         ) : (
                             <button
                                 onClick={onOpenVerification}
-                                className="px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+                                className="px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md text-xs md:text-sm"
                             >
                                 Start Verification
                             </button>
@@ -591,28 +629,28 @@ function StepContent({
             return (
                 <div className="h-full flex flex-col">
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 md:mb-4 ${
                             payoutDone ? "bg-green-100" : "bg-blue-100"
                         }`}>
                             {payoutDone ? (
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                             ) : (
-                                <Wallet className="w-8 h-8 text-blue-600" />
+                                <Wallet className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
                             )}
                         </div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-2">Set Up Bank Account</h4>
-                        <p className="text-sm text-gray-500 text-center max-w-sm mb-6">
-                            Add your bank details to receive rent payments directly.
+                        <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 text-center">Set Up Bank Account</h4>
+                        <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm mb-4 md:mb-6">
+                            Add your bank details to receive rent payments.
                         </p>
                         {payoutDone ? (
                             <div className="flex items-center gap-2 text-green-600">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="font-medium">Bank Account Added</span>
+                                <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                                <span className="text-xs md:text-sm font-medium">Bank Account Added</span>
                             </div>
                         ) : (
                             <button
                                 onClick={onOpenPayout}
-                                className="px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+                                className="px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md text-xs md:text-sm"
                             >
                                 Add Bank Details
                             </button>
@@ -624,28 +662,28 @@ function StepContent({
             return (
                 <div className="h-full flex flex-col">
                     <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                        <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 md:mb-4 ${
                             hasProperty ? "bg-green-100" : "bg-blue-100"
                         }`}>
                             {hasProperty ? (
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                             ) : (
-                                <Home className="w-8 h-8 text-blue-600" />
+                                <Home className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
                             )}
                         </div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-2">Add Your First Property</h4>
-                        <p className="text-sm text-gray-500 text-center max-w-sm mb-6">
-                            Add a rental property to start managing tenants and collecting rent.
+                        <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 text-center">Add Your First Property</h4>
+                        <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm mb-4 md:mb-6">
+                            Add a rental property to start managing tenants.
                         </p>
                         {hasProperty ? (
                             <div className="flex items-center gap-2 text-green-600">
-                                <CheckCircle className="w-5 h-5" />
-                                <span className="font-medium">Property Added</span>
+                                <CheckCircle className="w-4 h-4 md:w-5 md:h-5" />
+                                <span className="text-xs md:text-sm font-medium">Property Added</span>
                             </div>
                         ) : (
                             <button
                                 onClick={onOpenProperty}
-                                className="px-6 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md"
+                                className="px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md text-xs md:text-sm"
                             >
                                 Add Property
                             </button>
@@ -684,11 +722,11 @@ function EmailStep({
     if (emailVerified) {
         return (
             <div className="h-full flex flex-col items-center justify-center">
-                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-green-100 flex items-center justify-center mb-3 md:mb-4">
+                    <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                 </div>
-                <h4 className="text-lg font-bold text-gray-900 mb-2">Email Verified</h4>
-                <p className="text-sm text-gray-500 text-center max-w-sm">
+                <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2">Email Verified</h4>
+                <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm">
                     Your email has been successfully verified.
                 </p>
             </div>
@@ -697,15 +735,15 @@ function EmailStep({
 
     return (
         <div className="h-full flex flex-col items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
-                <Mail className="w-8 h-8 text-blue-600" />
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-100 flex items-center justify-center mb-3 md:mb-4">
+                <Mail className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
             </div>
-            <h4 className="text-lg font-bold text-gray-900 mb-2">Verify Your Email</h4>
-            <p className="text-sm text-gray-500 text-center max-w-sm mb-6">
-                Enter the 6-digit code sent to your email address.
+            <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2">Verify Your Email</h4>
+            <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm mb-4 md:mb-6">
+                Enter the 6-digit code sent to your email.
             </p>
 
-            <div className="flex gap-2 mb-6">
+            <div className="flex gap-1.5 md:gap-2 mb-4 md:mb-6">
                 {[...Array(6)].map((_, i) => (
                     <input
                         key={i}
@@ -745,7 +783,7 @@ function EmailStep({
                             e.target.select();
                         }}
                         data-index={i}
-                        className="w-11 h-12 text-center text-xl font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
+                        className="w-9 h-10 md:w-11 md:h-12 text-center text-base md:text-xl font-semibold border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white"
                         autoComplete="off"
                     />
                 ))}
@@ -754,21 +792,21 @@ function EmailStep({
             <button
                 onClick={handleVerifyOTP}
                 disabled={verifying || otp.length !== 6}
-                className="px-8 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 shadow-md mb-4"
+                className="px-6 py-2 md:px-8 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 shadow-md mb-3 md:mb-4 text-xs md:text-sm"
             >
                 {verifying ? "Verifying..." : "Verify Email"}
             </button>
 
             <div className="text-center">
                 {cooldown > 0 ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-[10px] md:text-sm text-gray-500">
                         Resend code in <span className="font-semibold text-gray-900">{formatTime(cooldown)}</span>
                     </p>
                 ) : (
                     <button
                         onClick={handleResendOTP}
                         disabled={resending}
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                        className="text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-700"
                     >
                         {resending ? "Sending..." : "Resend Code"}
                     </button>
