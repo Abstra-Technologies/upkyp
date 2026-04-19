@@ -9,6 +9,7 @@ import {
     Globe,
     ChevronLeft,
     ChevronRight,
+    UserPlus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -19,6 +20,8 @@ import {
     MaterialReactTable,
     MRT_ColumnDef,
 } from "material-react-table";
+
+import InviteTenantModalPerUnit from "./InviteTenantModalPerUnit";
 
 interface UnitsTabProps {
     units: any[];
@@ -42,6 +45,8 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                                                onPublishToggle,
                                            }) => {
     const router = useRouter();
+    const [inviteModalOpen, setInviteModalOpen] = useState(false);
+    const [selectedUnit, setSelectedUnit] = useState<{ id: string | number; name: string } | null>(null);
 
     /* ------------------------------------------------------------------ */
     /* MOBILE PAGINATION STATE                                            */
@@ -171,44 +176,59 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
             {
                 id: "actions",
                 header: "Actions",
-                size: 280,
-                Cell: ({ row }) => (
-                    <div className="flex justify-end gap-2">
-                        <button
-                            onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${row.original.unit_id}`)}
-                            className="px-3 py-1.5 rounded-lg text-sm text-blue-600 hover:bg-blue-50"
-                        >
-                            <Eye className="inline w-4 h-4 mr-1" />
-                            View
-                        </button>
-                        <button
-                            onClick={() => handleEditUnit(row.original.unit_id)}
-                            className="px-3 py-1.5 rounded-lg text-sm text-orange-600 hover:bg-orange-50"
-                        >
-                            <Edit2 className="inline w-4 h-4 mr-1" />
-                            Edit
-                        </button>
-                        <button
-                            onClick={() => handleDeleteUnit(row.original.unit_id)}
-                            className="px-3 py-1.5 rounded-lg text-sm text-red-600 hover:bg-red-50"
-                        >
-                            <Trash2 className="inline w-4 h-4 mr-1" />
-                            Delete
-                        </button>
-                        {row.original.qr_code_url && (
+                size: 380,
+                Cell: ({ row }) => {
+                    const isUnoccupied = row.original.status?.toLowerCase() === "unoccupied" || row.original.status?.toLowerCase() === "available";
+                    
+                    return (
+                        <div className="flex justify-end gap-1.5 flex-wrap">
+                            {isUnoccupied && (
+                                <button
+                                    onClick={() => {
+                                        setSelectedUnit({ id: row.original.unit_id, name: row.original.unit_name });
+                                        setInviteModalOpen(true);
+                                    }}
+                                    className="px-3 py-2 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-300 flex items-center gap-1"
+                                >
+                                    <UserPlus className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Invite</span>
+                                </button>
+                            )}
                             <button
-                                onClick={() =>
-                                    window.open(row.original.qr_code_url, "_blank")
-                                }
-                                className="px-3 py-1.5 rounded-lg text-sm
-                           bg-gray-900 text-white hover:bg-black"
+                                onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${row.original.unit_id}`)}
+                                className="px-3 py-2 rounded-lg text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300 flex items-center gap-1"
                             >
-                                <QrCode className="inline w-4 h-4 mr-1" />
-                                View QR
+                                <Eye className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">View</span>
                             </button>
-                        )}
-                    </div>
-                ),
+                            <button
+                                onClick={() => handleEditUnit(row.original.unit_id)}
+                                className="px-3 py-2 rounded-lg text-xs font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300 flex items-center gap-1"
+                            >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Edit</span>
+                            </button>
+                            <button
+                                onClick={() => handleDeleteUnit(row.original.unit_id)}
+                                className="px-3 py-2 rounded-lg text-xs font-medium bg-red-100 text-red-700 hover:bg-red-200 border border-red-300 flex items-center gap-1"
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Delete</span>
+                            </button>
+                            {row.original.qr_code_url && (
+                                <button
+                                    onClick={() =>
+                                        window.open(row.original.qr_code_url, "_blank")
+                                    }
+                                    className="px-3 py-2 rounded-lg text-xs font-medium bg-gray-800 text-white hover:bg-gray-900 flex items-center gap-1"
+                                >
+                                    <QrCode className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">QR</span>
+                                </button>
+                            )}
+                        </div>
+                    );
+                },
             },
         ],
         [propertyId]
@@ -279,24 +299,39 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                             </div>
 
                             {/* ACTIONS */}
-                            <div className="flex gap-3 mt-1 text-[11px] font-semibold">
+                            <div className="flex gap-2 mt-2">
+                                {(unit.status?.toLowerCase() === "unoccupied" || unit.status?.toLowerCase() === "available") && (
+                                    <button
+                                        onClick={() => {
+                                            setSelectedUnit({ id: unit.unit_id, name: unit.unit_name });
+                                            setInviteModalOpen(true);
+                                        }}
+                                        className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border border-emerald-300"
+                                    >
+                                        <UserPlus className="w-3 h-3 inline mr-1" />
+                                        Invite
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${unit.unit_id}`)}
-                                    className="text-blue-600"
+                                    className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 border border-blue-300"
                                 >
+                                    <Eye className="w-3 h-3 inline mr-1" />
                                     View
                                 </button>
                                 <button
                                     onClick={() => handleEditUnit(unit.unit_id)}
-                                    className="text-orange-600"
+                                    className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-amber-100 text-amber-700 hover:bg-amber-200 border border-amber-300"
                                 >
+                                    <Edit2 className="w-3 h-3 inline mr-1" />
                                     Edit
                                 </button>
                                 <button
                                     onClick={() => handleDeleteUnit(unit.unit_id)}
-                                    className="text-red-600"
+                                    className="px-2 py-1.5 rounded-lg text-[10px] font-medium bg-red-100 text-red-700 hover:bg-red-200 border border-red-300"
                                 >
-                                    Delete
+                                    <Trash2 className="w-3 h-3 inline mr-1" />
+                                    Del
                                 </button>
                             </div>
                         </div>
@@ -362,6 +397,18 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                     }}
                 />
             </div>
+
+            {/* Invite Tenant Modal */}
+            {inviteModalOpen && selectedUnit && (
+                <InviteTenantModalPerUnit
+                    unitId={selectedUnit.id}
+                    unitName={selectedUnit.name}
+                    onClose={() => {
+                        setInviteModalOpen(false);
+                        setSelectedUnit(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

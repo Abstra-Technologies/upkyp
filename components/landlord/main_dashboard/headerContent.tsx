@@ -1,6 +1,7 @@
 "use client";
 
 import Clock from "./Clock";
+import PropertySearch from "./PropertySearch";
 import {
     CARD_CONTAINER,
     GRADIENT_TEXT,
@@ -15,6 +16,7 @@ interface HeaderContentProps {
 export default function HeaderContent({
                                           greeting,
                                           displayName,
+                                          landlordId,
                                       }: HeaderContentProps) {
     const today = new Date();
 
@@ -35,8 +37,8 @@ export default function HeaderContent({
                 {/* LEFT: Greeting */}
                 <div className="flex-1 min-w-0">
 
-                    {/* Smaller but readable heading */}
-                    <h1 className="text-base sm:text-xl md:text-2xl lg:text-3xl
+{/* Smaller but readable heading */}
+                    <h1 className="text-sm sm:text-base md:text-xl lg:text-2xl
                                    font-semibold leading-snug truncate">
                         <span className={GRADIENT_TEXT}>{greeting}</span>
                         <span className="text-gray-400">, </span>
@@ -44,14 +46,19 @@ export default function HeaderContent({
                     </h1>
 
                     {/* Subtitle smaller on mobile */}
-                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                        Here's what’s happening with your properties today
+                    <p className="hidden sm:block text-[11px] sm:text-xs md:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                        Here's what's happening with your properties today
                     </p>
 
                     {/* Date for mobile */}
                     <p className="text-[11px] sm:text-xs text-gray-500 mt-1 lg:hidden">
                         {weekday}, {formattedDate}
                     </p>
+
+                    {/* Property Search */}
+                    <div className="mt-3">
+                        <PropertySearch landlordId={landlordId} />
+                    </div>
                 </div>
 
                 {/* RIGHT: Time (desktop only) */}

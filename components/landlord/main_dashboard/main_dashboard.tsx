@@ -133,14 +133,14 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
         <div id="dashboard-quick-actions" className="flex justify-center">
           <QuickActions
             onAddProperty={() =>
-              router.push("/pages/landlord/property-listing/create-property")
+              router.push("/landlord/property-listing/create-property")
             }
-            onInviteTenant={() => router.push("/pages/landlord/invite-tenant")}
+            onInviteTenant={() => router.push("/landlord/invite-tenant")}
             onAnnouncement={() =>
-              router.push("/pages/landlord/announcement/create-announcement")
+              router.push("/landlord/announcement/create-announcement")
             }
             onWorkOrder={() => setShowNewModal(true)}
-            onIncome={() => router.push("/pages/landlord/payouts")}
+            onIncome={() => router.push("/landlord/payouts")}
             emailVerified={emailVerified}
           />
         </div>

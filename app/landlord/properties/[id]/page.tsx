@@ -80,7 +80,8 @@ export default function ViewPropertyDetailedPage() {
     },
   });
 
-  // 🆕 Generate QR Codes (FUNCTION)
+  console.log('PROPERTY INNER: ', property_id);
+
   const handleGenerateQRCodes = async () => {
     if (!units.length) {
       Swal.fire(

@@ -4,7 +4,67 @@ import crypto from "crypto";
 import { sendInviteTenantEmail } from "@/lib/email/sendInviteTenantEmail";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 
-//  api to send ivbite current occupied tenant.
+function generateShortCode(length: number = 4): string {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+    for (let i = 0; i < length; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const unitId = searchParams.get("unitId");
+
+        if (!unitId) {
+            return NextResponse.json(
+                { error: "Unit ID is required." },
+                { status: 400 }
+            );
+        }
+
+        const [invites]: any = await db.query(
+            `SELECT id, code, email, status, expiresAt, start_date, end_date, createdAt 
+             FROM InviteCode 
+             WHERE unitId = ? AND expiresAt > NOW() AND status = 'PENDING'
+             ORDER BY createdAt DESC 
+             LIMIT 1`,
+            [unitId]
+        );
+
+        if (invites.length === 0) {
+            return NextResponse.json({ exists: false });
+        }
+
+        const invite = invites[0];
+        const expiresAt = new Date(invite.expiresAt);
+        const now = new Date();
+        const timeLeft = Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
+
+        return NextResponse.json({
+            exists: true,
+            invite: {
+                id: invite.id,
+                code: invite.code,
+                email: invite.email,
+                status: invite.status,
+                expiresAt: invite.expiresAt,
+                startDate: invite.start_date,
+                endDate: invite.end_date,
+                createdAt: invite.createdAt,
+                timeLeft: timeLeft > 0 ? timeLeft : 0,
+            },
+        });
+    } catch (error) {
+        console.error("Error fetching invite:", error);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
+    }
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -18,9 +78,6 @@ export async function POST(req: NextRequest) {
             datesDeferred = false,
         } = await req.json();
 
-        /* ===============================
-           Basic validation
-        =============================== */
         if (!email || !unitId || !unitName) {
             return NextResponse.json(
                 { error: "Missing required fields." },
@@ -28,9 +85,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        /* ===============================
-           Conditional date validation
-        =============================== */
         if (!datesDeferred) {
             if (!startDate || !endDate) {
                 return NextResponse.json(
@@ -47,15 +101,34 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        const inviteCode = crypto.randomBytes(8).toString("hex");
-
         const conn = await db.getConnection();
         await conn.beginTransaction();
 
         try {
-            /* ===============================
-               Lock unit row & validate status
-            =============================== */
+            const [existingInvites]: any = await conn.query(
+                `SELECT id, code, expiresAt FROM InviteCode 
+                 WHERE unitId = ? AND expiresAt > NOW() AND status = 'PENDING'
+                 ORDER BY createdAt DESC LIMIT 1`,
+                [unitId]
+            );
+
+            if (existingInvites.length > 0) {
+                const existing = existingInvites[0];
+                const expiresAt = new Date(existing.expiresAt);
+                const now = new Date();
+                const timeLeft = Math.floor((expiresAt.getTime() - now.getTime()) / 1000);
+
+                await conn.rollback();
+                return NextResponse.json({
+                    success: true,
+                    existing: true,
+                    code: existing.code,
+                    expiresAt: existing.expiresAt,
+                    timeLeft: timeLeft > 0 ? timeLeft : 0,
+                    message: "Existing invite code found.",
+                });
+            }
+
             const [unitRows]: any = await conn.query(
                 `
                 SELECT property_id, status
@@ -86,34 +159,49 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            /* ===============================
-               Insert invite record
-            =============================== */
+            let inviteCode = generateShortCode(4);
+            
+            const [existingCode]: any = await conn.query(
+                "SELECT id FROM InviteCode WHERE code = ?",
+                [inviteCode]
+            );
+            
+            while (existingCode.length > 0) {
+                inviteCode = generateShortCode(4);
+                const [checkAgain]: any = await conn.query(
+                    "SELECT id FROM InviteCode WHERE code = ?",
+                    [inviteCode]
+                );
+                if (checkAgain.length === 0) break;
+            }
+
+            const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
             await conn.query(
                 `
                 INSERT INTO InviteCode (
                     code,
                     email,
                     unitId,
+                    propertyId,
                     start_date,
                     end_date,
                     status,
                     expiresAt
                 )
-                VALUES (?, ?, ?, ?, ?, 'PENDING', DATE_ADD(NOW(), INTERVAL 7 DAY))
+                VALUES (?, ?, ?, ?, ?, ?, 'PENDING', ?)
                 `,
                 [
                     inviteCode,
                     email,
                     unitId,
+                    propertyId,
                     datesDeferred ? null : startDate,
                     datesDeferred ? null : endDate,
+                    expiresAt,
                 ]
             );
 
-            /* ===============================
-               Resolve property name
-            =============================== */
             let propertyName = incomingName;
 
             if (!propertyName) {
@@ -133,9 +221,6 @@ export async function POST(req: NextRequest) {
                 propertyName = propRows[0].property_name;
             }
 
-            /* ===============================
-               Reserve unit
-            =============================== */
             await conn.query(
                 `UPDATE Unit SET status = 'reserved' WHERE unit_id = ?`,
                 [unitId]
@@ -143,9 +228,6 @@ export async function POST(req: NextRequest) {
 
             await conn.commit();
 
-            /* ===============================
-                Send email (Resend)
-            =============================== */
             await sendInviteTenantEmail({
                 email,
                 propertyName,
@@ -154,9 +236,6 @@ export async function POST(req: NextRequest) {
                 datesDeferred,
             });
 
-            /* ===============================
-                Send push notification to existing user
-            =============================== */
             const emailHash = crypto
                 .createHash("sha256")
                 .update(email.toLowerCase())
@@ -183,6 +262,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: true,
                 code: inviteCode,
+                expiresAt: expiresAt.toISOString(),
+                timeLeft: 600,
                 propertyName,
                 datesDeferred,
                 message: "Invite sent and unit reserved.",

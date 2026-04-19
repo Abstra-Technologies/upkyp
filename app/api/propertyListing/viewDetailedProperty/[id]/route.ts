@@ -2,8 +2,12 @@ import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 import { NextRequest } from "next/server";
 // @ts-ignore
-export async function GET(req: NextRequest, { params }) {
-  const property_id = params.property_id;
+export async function GET(
+    req: NextRequest,
+    context: { params: Promise<{ property_id: string }> }
+)
+{
+    const { property_id } = await context.params;
 
   if (!property_id) {
     return new Response(

@@ -205,7 +205,7 @@ export default function LandlordLayout({
   if (isInsideProperty) return <main className="min-h-screen">{children}</main>;
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30 scrollbar-none">
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-72 bg-white shadow-xl z-40">
         <div className="flex flex-col h-full">
@@ -404,7 +404,7 @@ export default function LandlordLayout({
         </div>
       )}
             {/* MAIN */}
-            <main className="flex-1 lg:pl-72 pt-10 lg:pt-0 min-h-screen">{children}</main>
+            <main className="flex-1 lg:pl-72 pt-14 lg:pt-0 min-h-screen scrollbar-none">{children}</main>
         </div>
     );
 }
