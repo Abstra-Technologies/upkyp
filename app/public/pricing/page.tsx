@@ -3,16 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SUBSCRIPTION_PLANS, UNIT_BANDS } from "@/constant/subscription/subscriptionPlans";
-import { Check, ChevronDown } from "lucide-react";
+import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
+import { Check } from "lucide-react";
 import useAuthStore from "@/zustand/authStore";
 import useSubscriptionData from "@/hooks/landlord/useSubscriptionData";
 import CurrentSubscriptionBanner from "@/components/subscription_pricing/CurrentSubscriptionBanner";
+import CheckoutPanel from "@/components/subscription_pricing/CheckoutPanel";
+import { useSubscriptionStore } from "@/zustand/subscriptionStore";
 
 export default function PricingPage() {
     const router = useRouter();
     const { user } = useAuthStore();
     const { currentSubscription, loading } = useSubscriptionData();
+    const { selectedPlan, setSelectedPlan, clearSelectedPlan } = useSubscriptionStore();
 
     const [selectedBand, setSelectedBand] = useState<Record<number, string>>({});
 
@@ -22,19 +25,28 @@ export default function PricingPage() {
             ? plan.unitBands[parseInt(bandIndex)]?.monthlyPrice ?? plan.price
             : plan.price;
         
-        const intendedUrl = `/landlord/subsciption_plan/payment/review?planId=${plan.id}&amount=${amount}&prorated=${amount}&addons=${encodeURIComponent("[]")}&band=${bandIndex}`;
+        setSelectedPlan({
+            id: plan.id,
+            name: plan.name,
+            price: amount,
+            unitBandIndex: parseInt(bandIndex),
+            bandRange: plan.unitBands ? plan.unitBands[parseInt(bandIndex)]?.range : undefined,
+            monthlyPrice: amount,
+            proratedAmount: amount,
+        });
+    };
 
-        const params = new URLSearchParams(window.location.search);
-        const existingCallback = params.get("callbackUrl");
-
-        const finalCallback = existingCallback || intendedUrl;
-
+    const handleCheckout = () => {
         if (!user) {
-            router.push(`/auth/login?callbackUrl=${encodeURIComponent(finalCallback)}`);
+            router.push(`/auth/login?callbackUrl=${encodeURIComponent("/public/pricing")}`);
             return;
         }
+        
+        router.push("/landlord/subsciption_plan/payment/review");
+    };
 
-        router.push(finalCallback);
+    const handleCancel = () => {
+        clearSelectedPlan();
     };
 
     return (
@@ -206,6 +218,13 @@ export default function PricingPage() {
                     </Link>
                 </p>
             </section>
+
+            {selectedPlan && (
+                <CheckoutPanel 
+                    onCheckout={handleCheckout} 
+                    onCancel={handleCancel} 
+                />
+            )}
         </main>
     );
 }
