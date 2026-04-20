@@ -16,9 +16,6 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        /* =========================================
-           🔐 PROPERTY OWNERSHIP VALIDATION
-        ========================================= */
         const [ownership]: any = await db.query(
             `
       SELECT property_id
@@ -37,9 +34,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        /* =========================================
-           📄 FETCH ALL PAYMENTS FOR PROPERTY
-        ========================================= */
+
         const [rows]: any = await db.query(
             `
       SELECT
@@ -116,8 +111,6 @@ export async function GET(req: NextRequest) {
                         : "—",
             };
         });
-
-        console.log('payemnts: ', payments);
 
         return NextResponse.json({
             payments,

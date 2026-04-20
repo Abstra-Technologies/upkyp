@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { db } from "@/lib/db";
+import { redis } from "@/lib/redis";
 import { encryptData } from "@/crypto/encrypt";
-import { jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { getSessionUser } from "@/lib/auth/auth";
 
 /* =========================
    AWS S3 CLIENT
@@ -39,13 +39,44 @@ export async function PUT(req: NextRequest) {
         );
     }
 
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || !sessionUser.landlord_id) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
     const connection = await db.getConnection();
 
     try {
         await connection.beginTransaction();
 
         /* =========================
-           1️⃣ Parse Property Data
+           1️⃣ Verify Ownership
+        ========================= */
+        const [rows]: any = await connection.query(
+            "SELECT property_id, landlord_id FROM Property WHERE property_id = ? LIMIT 1",
+            [property_id]
+        );
+
+        if (!rows.length) {
+            return NextResponse.json(
+                { error: "Property not found" },
+                { status: 404 }
+            );
+        }
+
+        if (rows[0].landlord_id !== sessionUser.landlord_id) {
+            return NextResponse.json(
+                { error: "Forbidden - you do not own this property" },
+                { status: 403 }
+            );
+        }
+
+        /* =========================
+           2️⃣ Parse Property Data
         ========================= */
         const raw = formData.get("data")?.toString() || "{}";
         const body = JSON.parse(raw);
@@ -75,21 +106,6 @@ export async function PUT(req: NextRequest) {
             latitude: body.lat ?? null,
             longitude: body.lng ?? null,
         };
-
-        /* =========================
-           2️⃣ Ensure Property Exists
-        ========================= */
-        const [rows]: any = await connection.query(
-            "SELECT property_id FROM Property WHERE property_id = ? LIMIT 1",
-            [property_id]
-        );
-
-        if (!rows.length) {
-            return NextResponse.json(
-                { error: "Property not found" },
-                { status: 404 }
-            );
-        }
 
         /* =========================
            3️⃣ Update Property
@@ -174,24 +190,20 @@ export async function PUT(req: NextRequest) {
         }
 
         /* =========================
-           5️⃣ Activity Log (FIXED)
+           5️⃣ Activity Log
         ========================= */
-        const cookieStore = await cookies();
-        const token = cookieStore.get("token")?.value;
-
-        if (token) {
-            const decoded = await jwtVerify(
-                token,
-                new TextEncoder().encode(process.env.JWT_SECRET!)
-            );
-
-            await connection.query(
-                "INSERT INTO ActivityLog (user_id, action, timestamp) VALUES (?, ?, NOW())",
-                [decoded.payload.user_id, `Edited Property: ${fields.property_name}`]
-            );
-        }
+        await connection.query(
+            "INSERT INTO ActivityLog (user_id, action, timestamp) VALUES (?, ?, NOW())",
+            [sessionUser.user_id, `Edited Property: ${fields.property_name}`]
+        );
 
         await connection.commit();
+
+        /* =========================
+           6️⃣ Invalidate Cache
+        ========================= */
+        const cacheKey = `properties:landlord:${sessionUser.landlord_id}`;
+        await redis.del(cacheKey);
 
         /* =========================
            ✅ RESPONSE

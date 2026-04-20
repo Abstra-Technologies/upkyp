@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { parse } from "cookie";
-import { jwtVerify } from "jose";
+import { redis } from "@/lib/redis";
 import { NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth/auth";
 import { decryptData } from "@/crypto/encrypt";
 import { deleteFromS3 } from "@/lib/s3";
 
@@ -13,12 +13,19 @@ export async function DELETE(
 ) {
     const { id: propertyId } = await params;
 
-    console.log("DELETE PROPERTY:", propertyId);
-
     if (!propertyId) {
         return NextResponse.json(
             { error: "Property ID is required" },
             { status: 400 }
+        );
+    }
+
+    const sessionUser = await getSessionUser();
+
+    if (!sessionUser || !sessionUser.landlord_id) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
         );
     }
 
@@ -27,11 +34,8 @@ export async function DELETE(
     try {
         connection = await db.getConnection();
 
-        /* =========================
-           1. Property exists?
-        ========================= */
         const [propertyRows]: any = await connection.execute(
-            `SELECT property_id FROM Property WHERE property_id = ?`,
+            `SELECT property_id, landlord_id FROM Property WHERE property_id = ?`,
             [propertyId]
         );
 
@@ -42,16 +46,20 @@ export async function DELETE(
             );
         }
 
-        /* =========================
-           2. Block active leases
-        ========================= */
+        if (propertyRows[0].landlord_id !== sessionUser.landlord_id) {
+            return NextResponse.json(
+                { error: "Forbidden - you do not own this property" },
+                { status: 403 }
+            );
+        }
+
         const [activeLeases]: any = await connection.execute(
             `
-      SELECT la.agreement_id
-      FROM LeaseAgreement la
-      JOIN Unit u ON la.unit_id = u.unit_id
-      WHERE u.property_id = ? AND la.status = 'active'
-      `,
+            SELECT la.agreement_id
+            FROM LeaseAgreement la
+            JOIN Unit u ON la.unit_id = u.unit_id
+            WHERE u.property_id = ? AND la.status = 'active'
+            `,
             [propertyId]
         );
 
@@ -62,31 +70,21 @@ export async function DELETE(
             );
         }
 
-        /* =========================
-           3. Fetch ALL encrypted S3 URLs
-           (property photos + unit photos)
-        ========================= */
-
-        // Property photos
         const [propertyPhotos]: any = await connection.execute(
             `SELECT photo_url FROM PropertyPhoto WHERE property_id = ?`,
             [propertyId]
         );
 
-        // Unit photos (via units)
         const [unitPhotos]: any = await connection.execute(
             `
-      SELECT up.photo_url
-      FROM UnitPhoto up
-      JOIN Unit u ON up.unit_id = u.unit_id
-      WHERE u.property_id = ?
-      `,
+            SELECT up.photo_url
+            FROM UnitPhoto up
+            JOIN Unit u ON up.unit_id = u.unit_id
+            WHERE u.property_id = ?
+            `,
             [propertyId]
         );
 
-        /* =========================
-           4. Delete property (CASCADE)
-        ========================= */
         await connection.beginTransaction();
 
         await connection.execute(
@@ -96,9 +94,6 @@ export async function DELETE(
 
         await connection.commit();
 
-        /* =========================
-           5. Delete S3 files (AFTER commit)
-        ========================= */
         const allPhotos = [...propertyPhotos, ...unitPhotos];
 
         await Promise.allSettled(
@@ -116,26 +111,16 @@ export async function DELETE(
             })
         );
 
-        /* =========================
-           6. Activity log
-        ========================= */
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
+        await db.execute(
+            `
+            INSERT INTO ActivityLog (user_id, action, timestamp)
+            VALUES (?, ?, NOW())
+            `,
+            [sessionUser.user_id, `Deleted Property: ${propertyId}`]
+        );
 
-        if (cookies?.token) {
-            const secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
-            const { payload }: any = await jwtVerify(cookies.token, secretKey);
-
-            if (payload?.user_id) {
-                await db.query(
-                    `
-          INSERT INTO ActivityLog (user_id, action, timestamp)
-          VALUES (?, ?, NOW())
-          `,
-                    [payload.user_id, `Deleted Property: ${propertyId}`]
-                );
-            }
-        }
+        const cacheKey = `properties:landlord:${sessionUser.landlord_id}`;
+        await redis.del(cacheKey);
 
         return NextResponse.json(
             { message: "Property and related data deleted successfully" },

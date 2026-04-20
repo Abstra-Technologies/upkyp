@@ -13,7 +13,7 @@ export default function usePropertyListingPage() {
     const router = useRouter();
 
     const { fetchSession, user } = useAuthStore();
-    const { properties, fetchAllProperties, loading, error } =
+    const { properties, fetchAllProperties, clearProperties, loading, error } =
         usePropertyStore();
 
     const { subscription, loadingSubscription } = useSubscription(
@@ -141,7 +141,7 @@ export default function usePropertyListingPage() {
                 confirmButtonColor: "#2563eb",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    router.push("/pages/landlord/beta-program/joinForm");
+                    router.push("/landlord/beta-program/joinForm");
                 }
             });
 
@@ -161,7 +161,7 @@ export default function usePropertyListingPage() {
 
         setIsNavigating(true);
         router.push(
-            "/pages/landlord/property-listing/create-property"
+            "/landlord/property-listing/create-property"
         );
     }, [
         verificationStatus,
@@ -176,20 +176,53 @@ export default function usePropertyListingPage() {
             event.stopPropagation();
 
             const confirm = await Swal.fire({
-                title: "Are you sure?",
+                title: "Delete Property?",
+                text: "This action cannot be undone. All units and data will be permanently deleted.",
                 icon: "warning",
                 showCancelButton: true,
+                confirmButtonText: "Yes, Delete",
+                confirmButtonColor: "#dc2626",
             });
 
             if (!confirm.isConfirmed) return;
 
-            const res = await fetch(
-                `/api/propertyListing/deletePropertyListing/${propertyId}`,
-                { method: "DELETE" }
-            );
+            try {
+                const res = await fetch(
+                    `/api/propertyListing/deletePropertyListing/${propertyId}`,
+                    { method: "DELETE" }
+                );
 
-            if (res.ok && user?.landlord_id) {
-                fetchAllProperties(user.landlord_id);
+                const data = await res.json();
+
+                if (!res.ok) {
+                    await Swal.fire({
+                        icon: "error",
+                        title: "Delete Failed",
+                        text: data.error || "Could not delete property",
+                    });
+                    return;
+                }
+
+                await Swal.fire({
+                    icon: "success",
+                    title: "Deleted",
+                    text: "Property has been deleted successfully",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+
+                clearProperties();
+
+                if (user?.landlord_id) {
+                    fetchAllProperties(user.landlord_id);
+                }
+            } catch (err) {
+                console.error("Delete property error:", err);
+                await Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "Something went wrong. Please try again.",
+                });
             }
         },
         [fetchAllProperties, user?.landlord_id]

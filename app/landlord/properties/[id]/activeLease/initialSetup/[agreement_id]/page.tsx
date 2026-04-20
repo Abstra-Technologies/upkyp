@@ -6,7 +6,6 @@ import axios from "axios";
 import {
     FileSignature,
     ClipboardList,
-    CreditCard,
     CheckCircle,
     Lock,
 } from "lucide-react";
@@ -24,14 +23,6 @@ export default function LeaseSetupWizard() {
     const [documentUploaded, setDocumentUploaded] = useState(false);
     const [moveInDate, setMoveInDate] = useState<string | null>(null);
 
-    const [paymentData, setPaymentData] = useState({
-        security_deposit_amount: "",
-        security_deposit_months: 1,
-        advance_payment_amount: "",
-        advance_payment_months: 1,
-    });
-
-    const [paymentsSaved, setPaymentsSaved] = useState(false);
     const [moveInModalOpen, setMoveInModalOpen] = useState(false);
     const [loading, setLoading] = useState(true);
 
@@ -39,15 +30,12 @@ export default function LeaseSetupWizard() {
     useEffect(() => {
         const load = async () => {
             try {
-                const [reqRes, moveInRes, payRes] = await Promise.all([
+                const [reqRes, moveInRes] = await Promise.all([
                     axios.get(
                         `/api/landlord/activeLease/saveChecklistRequirements?agreement_id=${agreement_id}`
                     ),
                     axios.get(
                         `/api/landlord/activeLease/moveIn?agreement_id=${agreement_id}`
-                    ),
-                    axios.get(
-                        `/api/landlord/activeLease/initialPayments?agreement_id=${agreement_id}`
                     ),
                 ]);
 
@@ -55,18 +43,6 @@ export default function LeaseSetupWizard() {
                 setDocumentUploaded(reqRes.data.document_uploaded || false);
                 setMoveInDate(moveInRes.data.move_in_date || null);
 
-                setPaymentData({
-                    security_deposit_amount:
-                        payRes.data?.security_deposit_amount || "",
-                    security_deposit_months:
-                        payRes.data?.security_deposit_months || 1,
-                    advance_payment_amount:
-                        payRes.data?.advance_payment_amount || "",
-                    advance_payment_months:
-                        payRes.data?.advance_payment_months || 1,
-                });
-
-                setPaymentsSaved(!!payRes.data?.saved);
                 setLoading(false);
             } catch (err) {
                 console.error("❌ Failed to load lease setup:", err);
@@ -83,19 +59,6 @@ export default function LeaseSetupWizard() {
             </div>
         );
     }
-
-    /* ---------------- SAVE PAYMENTS ---------------- */
-    const savePayments = async () => {
-        try {
-            await axios.post(`/api/landlord/activeLease/initialPayments`, {
-                agreement_id,
-                ...paymentData,
-            });
-            setPaymentsSaved(true);
-        } catch (e) {
-            console.error("❌ Failed to save payments", e);
-        }
-    };
 
     /* ---------------- BUILD STEPS ---------------- */
     const steps: any[] = [];
@@ -153,65 +116,6 @@ export default function LeaseSetupWizard() {
                 </>
             ),
             onClick: () => setMoveInModalOpen(true),
-        });
-    }
-
-    if (requirements.security_deposit || requirements.advance_payment) {
-        steps.push({
-            key: "payments",
-            title: "Initial Payments",
-            icon: CreditCard,
-            completed: paymentsSaved,
-            render: () => (
-                <div className="space-y-4 mt-4">
-                    {requirements.security_deposit && (
-                        <PaymentInput
-                            label="Security Deposit"
-                            amount={paymentData.security_deposit_amount}
-                            months={paymentData.security_deposit_months}
-                            onAmountChange={(v) =>
-                                setPaymentData((p) => ({
-                                    ...p,
-                                    security_deposit_amount: v,
-                                }))
-                            }
-                            onMonthsChange={(v) =>
-                                setPaymentData((p) => ({
-                                    ...p,
-                                    security_deposit_months: v,
-                                }))
-                            }
-                        />
-                    )}
-
-                    {requirements.advance_payment && (
-                        <PaymentInput
-                            label="Advance Payment"
-                            amount={paymentData.advance_payment_amount}
-                            months={paymentData.advance_payment_months}
-                            onAmountChange={(v) =>
-                                setPaymentData((p) => ({
-                                    ...p,
-                                    advance_payment_amount: v,
-                                }))
-                            }
-                            onMonthsChange={(v) =>
-                                setPaymentData((p) => ({
-                                    ...p,
-                                    advance_payment_months: v,
-                                }))
-                            }
-                        />
-                    )}
-
-                    <button
-                        onClick={savePayments}
-                        className="w-full py-2.5 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition"
-                    >
-                        Save Payments
-                    </button>
-                </div>
-            ),
         });
     }
 
@@ -327,36 +231,4 @@ function StepCard({
     );
 }
 
-function PaymentInput({
-                          label,
-                          amount,
-                          months,
-                          onAmountChange,
-                          onMonthsChange,
-                      }: any) {
-    return (
-        <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-                {label} Amount
-            </label>
-            <input
-                type="number"
-                min="0"
-                className="w-full border rounded-lg px-3 py-2 text-sm mb-2"
-                value={amount}
-                onChange={(e) => onAmountChange(e.target.value)}
-            />
 
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-                Months Covered
-            </label>
-            <input
-                type="number"
-                min="1"
-                className="w-full border rounded-lg px-3 py-2 text-sm"
-                value={months}
-                onChange={(e) => onMonthsChange(Number(e.target.value))}
-            />
-        </div>
-    );
-}

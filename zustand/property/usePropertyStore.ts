@@ -73,6 +73,7 @@ interface PropertyStore {
     fetchAllProperties: (landlordId: string | number) => Promise<void>;
     updateProperty: (id: string | number, updatedData: any) => void;
     setSelectedProperty: (property: any) => void;
+    clearProperties: () => void;
 
     reset: () => void;
 }
@@ -213,6 +214,8 @@ const usePropertyStore = create<PropertyStore>()(
                 })),
 
             setSelectedProperty: (property) => set({ selectedProperty: property }),
+
+            clearProperties: () => set({ properties: [] }),
 
             /* ================= RESET ================= */
 

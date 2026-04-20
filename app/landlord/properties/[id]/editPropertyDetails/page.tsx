@@ -91,7 +91,7 @@ export default function EditProperty() {
             );
 
             Swal.fire("Updated!", "Property updated successfully.", "success")
-                .then(() => router.replace(`/landlord/properties/${propertyId}`));
+                .then(() => router.replace(`/landlord/properties/${propertyId}/editPropertyDetails?id=${propertyId}`));
         } catch (error) {
             console.error(error);
             Swal.fire("Error", "Update failed", "error");
