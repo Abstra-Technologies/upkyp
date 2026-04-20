@@ -265,14 +265,16 @@ export default function LandlordOnboardingOverlay({
         <>
             <ToastContainer />
 
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-4">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4">
                 <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-                <div className="relative bg-white w-full md:w-full md:max-w-4xl rounded-xl md:rounded-2xl shadow-2xl overflow-hidden md:max-h-[85vh] flex flex-col md:flex mx-2">
-                    <div className="hidden md:flex w-64 bg-gradient-to-b from-gray-50 to-gray-100 p-6 border-r border-gray-200 flex-shrink-0">
-                        <div className="w-full">
-                            <div className="mb-6">
-                                <h3 className="font-bold text-gray-900 mb-1">Setup Progress</h3>
+                {/* Main container: col on mobile, row on desktop */}
+                <div className="relative bg-white w-full md:w-auto max-w-lg md:max-w-4xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col md:flex-row mx-2 md:mx-0">
+                    {/* Desktop Sidebar - only visible on desktop */}
+                    <div className="hidden md:flex md:w-56 bg-gradient-to-b from-gray-50 to-gray-100 p-4 border-r border-gray-200 flex-shrink-0">
+                        <div className="w-full overflow-y-auto">
+                            <div className="mb-4">
+                                <h3 className="font-bold text-gray-900 text-sm">Setup Progress</h3>
                                 <p className="text-xs text-gray-500">
                                     {STEPS.filter(s => getStepStatus(s.key) === "done").length} of {STEPS.length} completed
                                 </p>
@@ -287,7 +289,7 @@ export default function LandlordOnboardingOverlay({
                                     return (
                                         <div
                                             key={step.key}
-                                            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                                            className={`flex items-center gap-2 px-2 py-2 rounded-lg transition-all ${
                                                 status === "done"
                                                     ? "bg-green-50"
                                                     : isActive
@@ -303,12 +305,12 @@ export default function LandlordOnboardingOverlay({
                                                         : "text-gray-400"
                                             }`}>
                                                 {status === "done" ? (
-                                                    <CheckCircle className="w-5 h-5" />
+                                                    <CheckCircle className="w-4 h-4" />
                                                 ) : (
-                                                    <Icon className="w-5 h-5" />
+                                                    <Icon className="w-4 h-4" />
                                                 )}
                                             </div>
-                                            <span className={`text-sm font-medium ${
+                                            <span className={`text-xs font-medium truncate ${
                                                 status === "done"
                                                     ? "text-green-700"
                                                     : isActive
@@ -324,6 +326,7 @@ export default function LandlordOnboardingOverlay({
                         </div>
                     </div>
 
+                    {/* Mobile Stepper */}
                     <div className="md:hidden flex bg-gray-50 px-2 py-1.5 gap-1 border-b overflow-x-auto">
                         {STEPS.map((step, index) => {
                             const status = getStepStatus(step.key);
@@ -391,7 +394,7 @@ export default function LandlordOnboardingOverlay({
                             )}
                         </div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 flex flex-col min-w-0">
                             <StepContent
                                 step={STEPS[currentStep]?.key}
                                 emailVerified={emailVerified}
