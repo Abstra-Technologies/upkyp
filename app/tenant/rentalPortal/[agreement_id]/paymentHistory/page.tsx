@@ -13,19 +13,18 @@ function TenantPaymentsContent() {
     console.log("payment history page: ", agreement_id);
 
     return agreement_id ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <TenantPdcSummary agreement_id={agreement_id} />
 
-            {/* Existing payment history */}
             <TenantLeasePayments agreement_id={agreement_id} />
         </div>
     ) : (
         <div className="min-h-screen bg-gray-50">
-            <div className="bg-white border-b border-gray-200 pt-20 pb-4 md:pt-6 md:pb-4 px-4 md:px-8 lg:px-12 xl:px-16">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <div className="bg-white border-b border-gray-200 pt-16 pb-3 md:pt-6 md:pb-3 px-3 md:px-8 lg:px-12 xl:px-16">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20">
                         <svg
-                            className="w-6 h-6 text-white"
+                            className="w-5 h-5 text-white"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -39,14 +38,14 @@ function TenantPaymentsContent() {
                         </svg>
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Error</h1>
-                        <p className="text-gray-600 text-sm">No agreement ID provided</p>
+                        <h1 className="text-lg font-bold text-gray-900">Error</h1>
+                        <p className="text-gray-500 text-xs">No agreement ID provided</p>
                     </div>
                 </div>
             </div>
-            <div className="px-4 pb-24 md:pb-8 md:px-8 lg:px-12 xl:px-16 pt-5">
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
-                    <p className="text-amber-700 font-medium">
+            <div className="px-3 pb-24 md:pb-8 md:px-8 lg:px-12 xl:px-16 pt-3">
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-amber-700 text-sm font-medium">
                         No agreement ID provided. Please try again.
                     </p>
                 </div>
@@ -58,30 +57,25 @@ function TenantPaymentsContent() {
 function PaymentsFallback() {
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header Skeleton */}
-            <div className="bg-white border-b border-gray-200 pt-20 pb-4 md:pt-6 md:pb-4 px-4 md:px-8 lg:px-12 xl:px-16">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gray-200 rounded-xl animate-pulse" />
-                        <div>
-                            <div className="h-7 bg-gray-200 rounded w-48 animate-pulse mb-2" />
-                            <div className="h-4 bg-gray-200 rounded w-64 animate-pulse" />
-                        </div>
+            <div className="bg-white border-b border-gray-200 pt-16 pb-3 md:pt-6 md:pb-3 px-3 md:px-8 lg:px-12 xl:px-16">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 bg-gray-200 rounded-lg animate-pulse" />
+                    <div>
+                        <div className="h-5 bg-gray-200 rounded w-40 animate-pulse mb-1.5" />
+                        <div className="h-3 bg-gray-200 rounded w-52 animate-pulse" />
                     </div>
-                    <div className="h-10 w-32 bg-gray-200 rounded-xl animate-pulse" />
                 </div>
             </div>
 
-            {/* Content Skeleton */}
-            <div className="px-4 pb-24 md:pb-8 md:px-8 lg:px-12 xl:px-16 pt-5">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="px-3 pb-24 md:pb-8 md:px-8 lg:px-12 xl:px-16 pt-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[1, 2, 3].map((i) => (
                         <div
                             key={i}
-                            className="bg-white rounded-xl shadow-sm border border-gray-200 p-6"
+                            className="bg-white rounded-xl border border-gray-200 p-4"
                         >
-                            <div className="h-10 bg-gray-200 rounded w-16 animate-pulse mb-2" />
-                            <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+                            <div className="h-8 bg-gray-200 rounded w-14 animate-pulse mb-2" />
+                            <div className="h-3 bg-gray-200 rounded w-18 animate-pulse" />
                         </div>
                     ))}
                 </div>

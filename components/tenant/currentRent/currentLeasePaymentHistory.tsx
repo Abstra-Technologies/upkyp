@@ -118,19 +118,18 @@ export default function TenantLeasePayments({
     /* ================= MAIN UI ================= */
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-4 pt-20 pb-10 md:px-6 md:pt-6">
+        <div className="min-h-screen bg-gray-50 px-3 pt-16 pb-10 md:px-6 md:pt-6">
 
-            {/* HEADER */}
-            <div className="mb-8 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl">
-                        <ReceiptPercentIcon className="w-6 h-6 text-white" />
+            <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg">
+                        <ReceiptPercentIcon className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-lg md:text-xl font-bold text-gray-900">
                             Payment History
                         </h1>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs text-gray-500 hidden sm:block">
                             Complete record of your payments
                         </p>
                     </div>
@@ -139,111 +138,102 @@ export default function TenantLeasePayments({
                 <button
                     onClick={fetchPayments}
                     disabled={isRefetching}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border bg-white hover:bg-blue-50"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-white hover:bg-blue-50 text-xs font-medium"
                 >
                     <ArrowPathIcon
-                        className={`w-5 h-5 text-blue-600 ${
+                        className={`w-4 h-4 text-blue-600 ${
                             isRefetching ? "animate-spin" : ""
                         }`}
                     />
-                    Refresh
+                    <span className="hidden sm:inline">Refresh</span>
                 </button>
             </div>
 
-            {/* ERROR */}
             {error && <ErrorBoundary error={error} onRetry={fetchPayments} />}
 
-            {/* NO LEASE */}
             {!error && lease === null && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm">
                     No active lease found.
                 </div>
             )}
 
-            {/* NO PAYMENTS */}
             {!error && lease && payments.length === 0 && (
-                <div className="text-center py-16">
-                    <CreditCardIcon className="w-12 h-12 text-blue-500 mx-auto mb-3" />
-                    <p className="text-gray-600">
+                <div className="text-center py-10">
+                    <CreditCardIcon className="w-10 h-10 text-blue-500 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">
                         No payment records found for this lease.
                     </p>
                 </div>
             )}
 
-            {/* PAYMENTS */}
             {!error && lease && payments.length > 0 && (
-                <div className="space-y-8">
+                <div className="space-y-4">
 
-                    {/* SUMMARY CARDS */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <StatCard
                             label="Total Payments"
                             value={payments.length}
-                            icon={<ChartBarIcon className="w-5 h-5 text-blue-600" />}
+                            icon={<ChartBarIcon className="w-4 h-4 text-blue-600" />}
                         />
                         <StatCard
-                            label="Confirmed Payments"
+                            label="Confirmed"
                             value={confirmedPayments.length}
-                            icon={<CheckCircleIcon className="w-5 h-5 text-emerald-600" />}
+                            icon={<CheckCircleIcon className="w-4 h-4 text-emerald-600" />}
                         />
                         <StatCard
                             label="Total Paid"
                             value={formatCurrency(totalPaid)}
-                            icon={<BanknotesIcon className="w-5 h-5 text-amber-600" />}
+                            icon={<BanknotesIcon className="w-4 h-4 text-amber-600" />}
                         />
                     </div>
 
-                    {/* TABLE */}
                     <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
-                        <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b text-gray-600 uppercase text-xs">
-                            <tr>
-                                <th className="px-6 py-4 text-left">Receipt No.</th>
-                                <th className="px-6 py-4 text-left">Reference No.</th>
-
-                                <th className="px-6 py-4 text-left">Billing Period</th>
-                                <th className="px-6 py-4 text-left">Date Paid</th>
-                                <th className="px-6 py-4 text-right">Amount</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                            </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                            {payments.map((p) => (
-                                <tr key={p.payment_id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 font-mono">
-                                        {p.receipt_reference ||
-                                            p.gateway_transaction_ref ||
-                                            `RCPT-${p.payment_id}`}
-                                    </td>
-                                    <td className="px-6 py-4 font-mono">
-                                        {p.gateway_transaction_ref
-                                          }
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {p.billing_period_label}
-                                    </td>
-
-                                    <td className="px-6 py-4">
-                                        {formatDate(p.payment_date)}
-                                    </td>
-
-                                    <td className="px-6 py-4 text-right font-semibold">
-                                        {formatCurrency(p.amount_paid)}
-                                    </td>
-
-                                    <td className="px-6 py-4 text-center">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-xs md:text-sm min-w-[640px]">
+                                <thead className="bg-gray-50 border-b text-gray-600 uppercase text-[10px] md:text-xs">
+                                <tr>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 text-left">Receipt</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 text-left">Reference</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 text-left hidden sm:table-cell">Period</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 text-left">Date Paid</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 text-right">Amount</th>
+                                    <th className="px-3 md:px-6 py-3 md:py-4 text-center">Status</th>
+                                </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                {payments.map((p) => (
+                                    <tr key={p.payment_id} className="hover:bg-gray-50">
+                                        <td className="px-3 md:px-6 py-3 md:py-4 font-mono text-[10px] md:text-xs">
+                                            {p.receipt_reference ||
+                                                p.gateway_transaction_ref ||
+                                                `RCPT-${p.payment_id}`}
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 font-mono text-[10px] md:text-xs">
+                                            {p.gateway_transaction_ref || "—"}
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs hidden sm:table-cell">
+                                            {p.billing_period_label}
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 text-[10px] md:text-xs">
+                                            {formatDate(p.payment_date)}
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 text-right font-semibold text-[10px] md:text-xs">
+                                            {formatCurrency(p.amount_paid)}
+                                        </td>
+                                        <td className="px-3 md:px-6 py-3 md:py-4 text-center">
                       <span
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border ${getStatusBadge(
+                          className={`px-2 py-1 rounded-md text-[10px] md:text-xs font-bold border ${getStatusBadge(
                               p.payment_status
                           )}`}
                       >
                         {p.payment_status.toUpperCase()}
                       </span>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -255,14 +245,14 @@ export default function TenantLeasePayments({
 
 function StatCard({ label, value, icon }: any) {
     return (
-        <div className="bg-white rounded-xl border p-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gray-100 rounded-lg">{icon}</div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">
+        <div className="bg-white rounded-xl border p-4 shadow-sm">
+            <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="p-1.5 bg-gray-100 rounded-lg">{icon}</div>
+                <p className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase">
                     {label}
                 </p>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
+            <p className="text-lg md:text-xl font-bold text-gray-900">{value}</p>
         </div>
     );
 }

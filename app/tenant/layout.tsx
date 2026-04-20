@@ -166,6 +166,11 @@ export default function TenantLayout({ children }) {
       href: `/tenant/chat`,
       icon: MessageSquare,
     },
+      {
+          name: "House Policy",
+          href: `/tenant/rentalPortal/${portalAgreementId}/house-policy`,
+          icon: Megaphone,
+      },
     {
       name: "Profile",
       href: `/commons/profile`,
@@ -217,26 +222,24 @@ export default function TenantLayout({ children }) {
     <>
       {/* Mobile Portal Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-        <div className="flex items-center justify-between h-14 px-4">
-          {/* Back Button + Property Info */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="flex items-center justify-between h-12 px-3">
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
             <button
               onClick={handleExitPortal}
-              className="p-2 -ml-2 rounded-xl hover:bg-gray-100 transition-colors"
+              className="p-1.5 -ml-1.5 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
+              <ArrowLeft className="w-4 h-4 text-gray-600" />
             </button>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900 truncate">
+              <p className="text-xs font-semibold text-gray-900 truncate">
                 {portalPropertyInfo?.property_name || "Loading..."}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-[10px] text-gray-500 truncate">
                 Unit {portalPropertyInfo?.unit_name}
               </p>
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-1">
             <NotificationSection user={user} />
           </div>
@@ -245,25 +248,25 @@ export default function TenantLayout({ children }) {
 
       {/* Mobile Bottom Navigation */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 safe-area-bottom">
-        <div className="flex items-center justify-around h-16 px-2">
+        <div className="flex items-center justify-around h-14 px-1">
           {portalNavItems.map(({ href, icon: Icon, mobileLabel }) => {
             const active = isActive(href);
             return (
               <Link
                 key={href}
                 href={href}
-                className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-xl transition-colors ${
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
                   active ? "text-blue-600" : "text-gray-500"
                 }`}
               >
                 <div
-                  className={`p-1.5 rounded-xl transition-colors ${
+                  className={`p-1.5 rounded-lg transition-colors ${
                     active ? "bg-blue-100" : ""
                   }`}
                 >
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-medium">{mobileLabel}</span>
+                <span className="text-[10px] font-medium leading-tight">{mobileLabel}</span>
               </Link>
             );
           })}
@@ -271,14 +274,14 @@ export default function TenantLayout({ children }) {
           {/* More Button */}
           <button
             onClick={() => setShowMoreMenu(true)}
-            className={`flex flex-col items-center justify-center gap-1 flex-1 py-2 rounded-xl transition-colors ${
+            className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-colors ${
               showMoreMenu ? "text-blue-600" : "text-gray-500"
             }`}
           >
             <div className="p-1.5">
               <MoreHorizontal className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-medium">More</span>
+            <span className="text-[10px] font-medium leading-tight">More</span>
           </button>
         </div>
       </nav>
@@ -299,26 +302,25 @@ export default function TenantLayout({ children }) {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-[60] safe-area-bottom"
+              className="lg:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-[60] safe-area-bottom"
             >
-              {/* Handle */}
-              <div className="flex justify-center pt-3 pb-2">
-                <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              <div className="flex justify-center pt-2.5 pb-1.5">
+                <div className="w-8 h-1 bg-gray-300 rounded-full" />
               </div>
 
-              <div className="px-4 pb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">More</h3>
+              <div className="px-3 pb-4">
+                <h3 className="text-base font-bold text-gray-900 mb-3 px-1">More</h3>
 
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {moreMenuItems.map(({ href, name, icon: Icon }) => (
                     <Link
                       key={href}
                       href={href}
                       onClick={() => setShowMoreMenu(false)}
-                      className="flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                      <div className="p-2 bg-gray-100 rounded-xl">
-                        <Icon className="w-5 h-5 text-gray-600" />
+                      <div className="p-1.5 bg-gray-100 rounded-lg">
+                        <Icon className="w-4 h-4 text-gray-600" />
                       </div>
                       <span className="text-sm font-medium text-gray-900">
                         {name}
@@ -326,17 +328,17 @@ export default function TenantLayout({ children }) {
                     </Link>
                   ))}
 
-                  <div className="h-px bg-gray-100 my-2" />
+                  <div className="h-px bg-gray-100 my-1.5" />
 
                   <button
                     onClick={() => {
                       setShowMoreMenu(false);
                       handleExitPortal();
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg hover:bg-red-50 transition-colors"
                   >
-                    <div className="p-2 bg-red-100 rounded-xl">
-                      <LogOut className="w-5 h-5 text-red-600" />
+                    <div className="p-1.5 bg-red-100 rounded-lg">
+                      <LogOut className="w-4 h-4 text-red-600" />
                     </div>
                     <span className="text-sm font-medium text-red-600">
                       Exit Portal
@@ -350,32 +352,30 @@ export default function TenantLayout({ children }) {
       </AnimatePresence>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex lg:flex-col fixed left-0 top-0 w-72 bg-white border-r border-gray-200 h-screen z-30 shadow-sm">
-        {/* Logo + Portal Badge */}
-        <div className="p-5 border-b border-gray-100">
+      <aside className="hidden lg:flex lg:flex-col fixed left-0 top-0 w-64 bg-white border-r border-gray-200 h-screen z-30 shadow-sm">
+        <div className="p-4 border-b border-gray-100">
           <Link href="/tenant/feeds" className="flex items-center gap-2">
-            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
               Upkyp
             </span>
-            <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-100 text-blue-700 rounded-md">
               Portal
             </span>
           </Link>
-          <p className="text-xs text-gray-500 mt-1">Rental Management</p>
+          <p className="text-[10px] text-gray-500 mt-0.5">Rental Management</p>
         </div>
 
-        {/* Property Card */}
-        <div className="p-4 border-b border-gray-100">
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-emerald-50 rounded-xl border border-blue-100">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-600 flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-5 h-5 text-white" />
+        <div className="p-3 border-b border-gray-100">
+          <div className="p-3 bg-gradient-to-br from-blue-50 to-emerald-50 rounded-lg border border-blue-100">
+            <div className="flex items-start gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-emerald-600 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-sm font-bold text-gray-900 line-clamp-2">
+                <h2 className="text-xs font-bold text-gray-900 line-clamp-2">
                   {portalPropertyInfo?.property_name || "Loading..."}
                 </h2>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-[10px] text-gray-600 mt-0.5">
                   Unit{" "}
                   <span className="font-semibold">
                     {portalPropertyInfo?.unit_name}
@@ -386,9 +386,8 @@ export default function TenantLayout({ children }) {
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-3">
-          <ul className="space-y-1">
+        <nav className="flex-1 overflow-y-auto p-2.5">
+          <ul className="space-y-0.5">
             {[...portalNavItems, ...moreMenuItems].map(
               ({ href, name, icon: Icon }, index) => {
                 const active = isActive(href);
@@ -401,21 +400,21 @@ export default function TenantLayout({ children }) {
                   >
                     <Link
                       href={href}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                      className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-all duration-200 group ${
                         active
-                          ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg shadow-blue-500/25"
+                          ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-md shadow-blue-500/25"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
                       <Icon
-                        className={`w-5 h-5 ${
+                        className={`w-4 h-4 ${
                           active
                             ? ""
                             : "text-gray-400 group-hover:text-blue-600"
                         }`}
                       />
-                      <span className="flex-1 text-sm font-medium">{name}</span>
-                      {active && <ChevronRight className="w-4 h-4" />}
+                      <span className="flex-1 text-xs font-medium">{name}</span>
+                      {active && <ChevronRight className="w-3.5 h-3.5" />}
                     </Link>
                   </motion.li>
                 );
@@ -424,22 +423,21 @@ export default function TenantLayout({ children }) {
           </ul>
         </nav>
 
-        {/* Bottom Section */}
-        <div className="p-3 border-t border-gray-100 space-y-1">
+        <div className="p-2.5 border-t border-gray-100 space-y-0.5">
           <Link
             href="/commons/profile"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 group"
+            className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 group"
           >
-            <Settings className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
-            <span className="flex-1 text-sm font-medium">Account Settings</span>
+            <Settings className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+            <span className="flex-1 text-xs font-medium">Account Settings</span>
           </Link>
 
           <button
             onClick={handleExitPortal}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
+            className="flex items-center gap-2.5 w-full px-2.5 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group"
           >
-            <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-600" />
-            <span className="flex-1 text-sm font-medium text-left">
+            <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-600" />
+            <span className="flex-1 text-xs font-medium text-left">
               Exit Portal
             </span>
           </button>
@@ -491,11 +489,11 @@ export default function TenantLayout({ children }) {
       </AnimatePresence>
 
       {/* Main Layout */}
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-emerald-50/20">
-        {/* Desktop: Content with sidebar offset */}
-        {/* Mobile: Content with top header and bottom nav padding */}
-        <main className="lg:pl-72 pt-10 lg:pt-0 pb-20 lg:pb-0">{children}</main>
-      </div>
+        <div className="min-h-screen bg-gray-50">
+            <main className="lg:pl-64 pt-12 lg:pt-0 pb-16 lg:pb-0">
+                {children}
+            </main>
+        </div>
     </>
   );
 }
