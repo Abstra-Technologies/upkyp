@@ -60,7 +60,20 @@ export default function PaymentDueWidget({ agreement_id }: PaymentDueWidgetProps
         };
     }, [agreement_id]);
 
-    if (loading || billings.length === 0) return null;
+    if (loading) return null;
+
+    if (billings.length === 0) {
+        return (
+            <div className="p-4 rounded-xl border bg-gray-50 text-center">
+                <p className="text-sm font-medium text-gray-600">
+                    No payment due
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                    You’re all caught up 🎉
+                </p>
+            </div>
+        );
+    }
 
     const formatBillingMonth = (billing: BillingSummary) => {
         const raw =

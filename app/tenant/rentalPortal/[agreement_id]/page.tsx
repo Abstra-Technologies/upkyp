@@ -108,56 +108,69 @@ export default function RentPortalPage() {
     );
   }
 
-  return (
-    <>
-      {/* Mobile-only compact dashboard */}
-      <div className="block md:hidden">
-        <MobilePortalDashboard />
-      </div>
-
-      {/* Desktop layout */}
-      <div className="hidden md:block min-h-screen bg-gray-50 p-3 md:p-4">
-        <PortalAccessGate agreementId={agreementId} />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-          <div className="bg-white rounded-xl border border-gray-200 p-3">
-            <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
-              <ClockIcon className="w-4 h-4 text-amber-500" />
-              Pending Payments
-            </h2>
-            <PaymentDueWidget agreement_id={agreementId} />
-          </div>
-
-          <div className="bg-white rounded-xl border border-gray-200 p-3">
-            <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
-              <DocumentCheckIcon className="w-4 h-4 text-blue-500" />
-              Lease Info
-            </h2>
-            <LeaseInfoWidget agreement_id={agreementId} />
-          </div>
-        </div>
-
-        {/* Announcements */}
-        <section className="mt-4">
-          <div className="flex items-center gap-2.5 md:gap-3 mb-3">
-            <div className="p-1.5 md:p-2 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg shadow-sm">
-              <MegaphoneIcon className="w-4 h-4 md:w-5 md:h-5 text-white" />
+    return (
+        <>
+            {/* MOBILE */}
+            <div className="block md:hidden">
+                <MobilePortalDashboard />
             </div>
-            <div>
-              <h2 className="text-sm md:text-base font-bold text-gray-900">
-                Property Announcements
-              </h2>
-              <p className="text-xs text-gray-600">
-                Latest announcements and notices
-              </p>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-3 md:p-4">
-            <AnnouncementWidget agreement_id={agreementId} />
-          </div>
-        </section>
-      </div>
-    </>
-  );
+            {/* DESKTOP */}
+            <div className="hidden md:block min-h-screen bg-gray-50 p-3 md:p-4">
+                <PortalAccessGate agreementId={agreementId} />
+
+                <div className="max-w-6xl mx-auto flex gap-6 mt-3">
+
+                    {/* ================= LEFT: ANNOUNCEMENTS ================= */}
+                    <main className="flex-1 max-w-2xl bg-white border border-gray-300 rounded-xl overflow-hidden">
+
+                        {/* Header */}
+                        <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b border-gray-300 px-4 py-3">
+                            <div className="flex items-center gap-2">
+                                <MegaphoneIcon className="w-5 h-5 text-emerald-500" />
+                                <h2 className="font-bold text-gray-900">
+                                    Announcements
+                                </h2>
+                            </div>
+                            <p className="text-xs text-gray-500">
+                                Latest announcements and notices
+                            </p>
+                        </div>
+
+                        {/* Feed */}
+                        <div className="divide-y divide-gray-300">
+                            <div className="[&>*]:px-4 [&>*]:py-4 [&>*]:border-b [&>*]:border-gray-300 [&>*]:transition-all [&>*]:duration-150 [&>*]:hover:bg-gray-100 [&>*]:hover:shadow-sm [&>*]:cursor-pointer">
+                                <AnnouncementWidget agreement_id={agreementId} />
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* ================= RIGHT: WIDGETS ================= */}
+                    <aside className="w-[320px] flex flex-col gap-4">
+
+                        {/* Payments */}
+                        <div className="bg-white rounded-xl border border-gray-300 p-4 transition-all duration-150 hover:shadow-md hover:border-gray-400">
+                            <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                <ClockIcon className="w-4 h-4 text-amber-500" />
+                                Payments
+                            </h2>
+
+                            <PaymentDueWidget agreement_id={agreementId} />
+                        </div>
+
+                        {/* Lease Info */}
+                        <div className="bg-white rounded-xl border border-gray-300 p-4 transition-all duration-150 hover:shadow-md hover:border-gray-400">
+                            <h2 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                <DocumentCheckIcon className="w-4 h-4 text-blue-500" />
+                                Lease Info
+                            </h2>
+
+                            <LeaseInfoWidget agreement_id={agreementId} />
+                        </div>
+
+                    </aside>
+                </div>
+            </div>
+        </>
+    );
 }

@@ -74,64 +74,66 @@ export default function MobilePortalDashboard() {
     );
   }
 
-  return (
-    <div className="space-y-3">
-      <PortalAccessGate agreementId={agreementId} />
+    return (
+        <div className="space-y-3">
+            <PortalAccessGate agreementId={agreementId} />
 
-      {/* Payment Widget */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-3 py-2 bg-gradient-to-r from-blue-50 to-emerald-50 border-b border-gray-100 flex items-center gap-2">
-          <div className="p-1 bg-blue-100 rounded-md">
-            <CreditCardIcon className="w-3.5 h-3.5 text-blue-600" />
-          </div>
-          <h2 className="text-xs font-bold text-gray-900">Payments</h2>
-        </div>
-        <div className="p-3">
-          <MobilePaymentWidget agreement_id={agreementId} />
-        </div>
-      </section>
+            {/* ================= PAYMENT (HERO CARD) ================= */}
+            <section className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+                <MobilePaymentWidget agreement_id={agreementId} />
+            </section>
 
-      {/* Lease Info */}
-      <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-3 py-2 bg-gradient-to-r from-blue-50 to-emerald-50 border-b border-gray-100 flex items-center gap-2">
-          <div className="p-1 bg-blue-100 rounded-md">
-            <CalendarDaysIcon className="w-3.5 h-3.5 text-blue-600" />
-          </div>
-          <h2 className="text-xs font-bold text-gray-900">Lease Info</h2>
-        </div>
-        <div className="p-3">
-          <MobileLeaseInfo agreement_id={agreementId} />
-        </div>
-      </section>
+            {/* ================= ANNOUNCEMENTS ================= */}
+            <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+                <div className="px-4 py-3 flex items-center gap-2 border-b border-gray-100">
+                    <MegaphoneIcon className="w-4 h-4 text-blue-500" />
+                    <h2 className="text-sm font-semibold text-gray-900">
+                        Announcements
+                    </h2>
+                </div>
 
-      {/* Announcements + Utility side by side */}
-      <div className="grid grid-cols-1 gap-3">
-        {/* Announcements */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-3 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-100 flex items-center gap-2">
-            <div className="p-1 bg-emerald-100 rounded-md">
-              <MegaphoneIcon className="w-3.5 h-3.5 text-emerald-600" />
-            </div>
-            <h2 className="text-xs font-bold text-gray-900">Announcements</h2>
-          </div>
-          <div className="p-3">
-            <MobileAnnouncementWidget agreement_id={agreementId} />
-          </div>
-        </section>
+                <div className="divide-y divide-gray-100">
+                    <div className="[&>*]:px-4 [&>*]:py-3 [&>*]:hover:bg-gray-50 [&>*]:transition [&>*]:cursor-pointer">
+                        <MobileAnnouncementWidget agreement_id={agreementId} />
+                    </div>
+                </div>
+            </section>
 
-        {/* Utility Consumption - only shows if submetered */}
-        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-3 py-2 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-100 flex items-center gap-2">
-            <div className="p-1 bg-amber-100 rounded-md">
-              <BoltIcon className="w-3.5 h-3.5 text-amber-600" />
-            </div>
-            <h2 className="text-xs font-bold text-gray-900">Utility Consumption</h2>
-          </div>
-          <div className="p-3">
-            <MobileUtilityWidget agreement_id={agreementId} />
-          </div>
-        </section>
-      </div>
-    </div>
-  );
+            {/* ================= UTILITY ================= */}
+            <section className="bg-white rounded-2xl border border-gray-200 p-4">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <BoltIcon className="w-4 h-4 text-blue-500" />
+                        <h2 className="text-sm font-semibold text-gray-900">
+                            Utility Costs
+                        </h2>
+                    </div>
+
+                    <button className="text-xs text-blue-600 font-medium">
+                        Details
+                    </button>
+                </div>
+
+                <MobileUtilityWidget agreement_id={agreementId} />
+            </section>
+
+            {/* ================= LEASE ================= */}
+            <section className="bg-white rounded-2xl border border-gray-200 p-4">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <CalendarDaysIcon className="w-4 h-4 text-blue-500" />
+                        <h2 className="text-sm font-semibold text-gray-900">
+                            Lease Details
+                        </h2>
+                    </div>
+
+                    <button className="text-xs text-blue-600 font-medium">
+                        View PDF
+                    </button>
+                </div>
+
+                <MobileLeaseInfo agreement_id={agreementId} />
+            </section>
+        </div>
+    );
 }
