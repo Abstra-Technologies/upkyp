@@ -83,13 +83,13 @@ export default function TenantPayables({
         })}`;
 
     const handleBillingPay = (agreementId: string) => {
-        router.push(`/pages/tenant/rentalPortal/${agreementId}/billing?agreement_id=${agreementId}`);
+        router.push(`/tenant/rentalPortal/${agreementId}/billing?agreement_id=${agreementId}`);
     };
 
 
 
     const handleInitialPay = (agreementId: string) => {
-        router.push(`/pages/tenant/initialPayment/${agreementId}`);
+        router.push(`/tenant/initialPayment/${agreementId}`);
     };
 
     const getStatusColor = (status: string) =>

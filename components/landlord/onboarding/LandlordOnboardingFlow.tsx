@@ -226,13 +226,13 @@ export default function LandlordOnboardingFlow({
                 confirmButtonText: "View Plans",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    router.push("/pages/landlord/subsciption_plan/pricing");
+                    router.push("/landlord/subsciption_plan/pricing");
                 }
             });
             return;
         }
 
-        router.push("/pages/landlord/property-listing/create-property");
+        router.push("/landlord/property-listing/create-property");
     };
 
     if (dismissed || (!isStandalone && !isMinimized && allCompleted)) return null;
@@ -285,7 +285,7 @@ export default function LandlordOnboardingFlow({
         if (step.key === "agreement" && !agreementDone) {
             setShowAgreementModal(true);
         } else if (step.key === "verification" && !verificationDone) {
-            window.location.href = "/pages/landlord/verification";
+            window.location.href = "/landlord/verification";
         } else if (step.key === "payout" && !payoutDone) {
             setShowPayoutModal(true);
         } else if (step.key === "property" && !hasProperty && agreementDone && verificationDone && payoutDone) {

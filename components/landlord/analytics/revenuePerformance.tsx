@@ -127,7 +127,7 @@ export default function RevenuePerformanceChart({ landlord_id }: Props) {
     return (
         <div
             onClick={() =>
-                router.push("/pages/landlord/analytics/detailed/revenue")
+                router.push("/landlord/analytics/detailed/revenue")
             }
             className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer"
         >

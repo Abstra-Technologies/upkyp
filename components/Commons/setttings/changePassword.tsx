@@ -73,7 +73,7 @@ const ChangePasswordModal = ({ userId }: Props) => {
         confirmButtonColor: "#2563eb",
       });
       await axios.post("/api/auth/logout");
-      router.replace("/pages/auth/login");
+      router.replace("/auth/login");
     } catch (error: any) {
       Swal.fire(
         "Error",

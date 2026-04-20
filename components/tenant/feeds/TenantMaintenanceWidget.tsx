@@ -129,7 +129,7 @@ export default function TenantMaintenanceWidget({
 
     const handleRedirect = (agreementId: string) => {
         router.push(
-            `/pages/tenant/rentalPortal/${agreementId}/maintenance`
+            `/tenant/rentalPortal/${agreementId}/maintenance`
         );
     };
 

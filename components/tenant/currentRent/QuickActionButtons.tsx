@@ -22,25 +22,25 @@ export default function QuickActionButtons({
     {
       label: "Billing",
       icon: CreditCardIcon,
-      href: `/pages/tenant/rentalPortal/${agreement_id}/billing?agreement_id=${agreement_id}`,
+      href: `/tenant/rentalPortal/${agreement_id}/billing?agreement_id=${agreement_id}`,
       color: "blue",
     },
     {
       label: "Payments",
       icon: DocumentTextIcon,
-      href: `/pages/tenant/rentalPortal/${agreement_id}/paymentHistory?agreement_id=${agreement_id}`,
+      href: `/tenant/rentalPortal/${agreement_id}/paymentHistory?agreement_id=${agreement_id}`,
       color: "emerald",
     },
     {
       label: "Updates",
       icon: BellIcon,
-      href: `/pages/tenant/rentalPortal/${agreement_id}/announcement?agreement_id=${agreement_id}`,
+      href: `/tenant/rentalPortal/${agreement_id}/announcement?agreement_id=${agreement_id}`,
       color: "purple",
     },
     {
       label: "Maintenance",
       icon: WrenchScrewdriverIcon,
-      href: `/pages/tenant/rentalPortal/${agreement_id}/maintenance?agreement_id=${agreement_id}`,
+      href: `/tenant/rentalPortal/${agreement_id}/maintenance?agreement_id=${agreement_id}`,
       color: "amber",
     },
   ];
@@ -83,7 +83,7 @@ export default function QuickActionButtons({
         {/* Back Button */}
         <div className="mt-4 pt-4 border-t border-gray-200">
           <button
-            onClick={() => router.push("/pages/tenant/my-unit")}
+            onClick={() => router.push("/tenant/my-unit")}
             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all text-gray-700 font-medium text-sm"
           >
             <ArrowLeftIcon className="w-4 h-4" />

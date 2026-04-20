@@ -30,7 +30,7 @@ export default function PaymentSection({
     /* -------------------- PROOF OF PAYMENT -------------------- */
     const handleUploadProof = () => {
         router.push(
-            `/pages/payment/proofOfPayment?agreement_id=${agreement_id}&amountPaid=${totalDue}&billingId=${bill.billing_id}`
+            `/payment/proofOfPayment?agreement_id=${agreement_id}&amountPaid=${totalDue}&billingId=${bill.billing_id}`
         );
     };
 

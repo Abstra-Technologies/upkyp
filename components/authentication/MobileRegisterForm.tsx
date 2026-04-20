@@ -189,7 +189,7 @@ export default function MobileRegisterForm() {
                             disabled={isRegistering}
                         />
                         I agree to the{" "}
-                        <Link href="/pages/terms-services" className="text-blue-600">
+                        <Link href="/terms-services" className="text-blue-600">
                             Terms & Privacy
                         </Link>
                     </label>
@@ -223,7 +223,7 @@ export default function MobileRegisterForm() {
 
             <p className="text-center text-sm text-gray-600 mt-5">
                 Already have an account?{" "}
-                <Link href="/pages/auth/login" className="text-blue-600">
+                <Link href="/auth/login" className="text-blue-600">
                     Sign in
                 </Link>
             </p>

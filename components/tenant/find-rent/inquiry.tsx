@@ -74,7 +74,7 @@ export default function InquiryBooking({
         confirmButtonText: "Login",
         confirmButtonColor: "#3B82F6",
       }).then(() => {
-        router.push(`/pages/auth/login?callbackUrl=${callbackUrl}`);
+        router.push(`/auth/login?callbackUrl=${callbackUrl}`);
       });
 
       return;
@@ -140,7 +140,7 @@ export default function InquiryBooking({
 
         // ⏳ Delay before redirect
         setTimeout(() => {
-          router.push("/pages/find-rent");
+          router.push("/find-rent");
         }, 1200); // 1.2 seconds
       } catch {
         Swal.fire("Error", "Failed to schedule visit", "error");
@@ -152,7 +152,7 @@ export default function InquiryBooking({
 
   const handleApply = () => {
     requireAuth(() => {
-      router.push(`/pages/tenant/prospective/${unit_id}`);
+      router.push(`/tenant/prospective/${unit_id}`);
     });
   };
 

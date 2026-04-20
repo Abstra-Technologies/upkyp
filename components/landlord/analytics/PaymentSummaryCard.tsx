@@ -157,7 +157,7 @@ export default function PaymentSummaryCard({ landlord_id, onClick }: Props) {
                     <div className="flex items-center justify-between">
                         <div className="flex -space-x-2">
                             {tenants.slice(0, 5).map((tenant: any) => (
-                                <Link key={tenant.tenant_id} href={`/pages/landlord/list_of_tenants/${tenant.tenant_id}`}>
+                                <Link key={tenant.tenant_id} href={`/landlord/list_of_tenants/${tenant.tenant_id}`}>
                                     <div className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-sm hover:scale-110 transition-transform">
                                         <Image
                                             src={tenant.profilePicture || "https://cdn-icons-png.flaticon.com/512/847/847969.png"}
@@ -175,7 +175,7 @@ export default function PaymentSummaryCard({ landlord_id, onClick }: Props) {
                                 </div>
                             )}
                         </div>
-                        <Link href="/pages/landlord/list_of_tenants" className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                        <Link href="/landlord/list_of_tenants" className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
                             View all <ChevronRight className="w-3 h-3" />
                         </Link>
                     </div>

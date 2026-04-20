@@ -75,7 +75,7 @@ export default function ResubmitVerification({ property_id }) {
         "Verification documents resubmitted successfully.",
         "success"
       );
-      router.push("/pages/landlord/property-listing/review-listing");
+      router.push("/landlord/property-listing/review-listing");
     } catch (error) {
       Swal.fire(
         "Error",

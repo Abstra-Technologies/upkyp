@@ -141,13 +141,13 @@ export default function LandlordOnboarding({ landlordId }: Props) {
                 confirmButtonText: "View Plans",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    router.push("/pages/landlord/subsciption_plan/pricing");
+                    router.push("/landlord/subsciption_plan/pricing");
                 }
             });
             return;
         }
 
-        router.push("/pages/landlord/property-listing/create-property");
+        router.push("/landlord/property-listing/create-property");
     };
 
     return (
@@ -220,7 +220,7 @@ export default function LandlordOnboarding({ landlordId }: Props) {
                             onClick={() =>
                                 !verificationDone &&
                                 (window.location.href =
-                                    "/pages/landlord/verification")
+                                    "/landlord/verification")
                             }
                         />
 

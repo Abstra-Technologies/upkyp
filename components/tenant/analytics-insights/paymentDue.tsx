@@ -183,7 +183,7 @@ export default function PaymentDueWidget({ agreement_id }: PaymentDueWidgetProps
                             <button
                                 onClick={() =>
                                     router.push(
-                                        `/pages/tenant/rentalPortal/${agreement_id}/billing?billing_id=${billing.billing_id}`
+                                        `/tenant/rentalPortal/${agreement_id}/billing?billing_id=${billing.billing_id}`
                                     )
                                 }
                                 className={`

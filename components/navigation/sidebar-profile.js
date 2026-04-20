@@ -31,19 +31,19 @@ export default function SideNavProfile() {
     } else {
       signOutAdmin();
     }
-    router.push("/pages/auth/login");
+    router.push("/auth/login");
   };
 
   const menuItems = [
     {
-      href: `/pages/commons/profile`,
+      href: `/commons/profile`,
       icon: UserIcon,
       label: "Profile",
       onClick: () =>
         logEvent("Navigation", "User Interaction", "Clicked Profile Link", 1),
     },
     {
-      href: `/pages/commons/profile/security`,
+      href: `/commons/profile/security`,
       icon: ShieldCheckIcon,
       label: "Security & Privacy",
       onClick: () =>
@@ -57,7 +57,7 @@ export default function SideNavProfile() {
     ...(user?.userType === "landlord"
       ? [
           {
-            href: "/pages/landlord/subsciption_plan",
+            href: "/landlord/subsciption_plan",
             icon: CreditCardIcon,
             label: "View Subscription",
             onClick: () => {},

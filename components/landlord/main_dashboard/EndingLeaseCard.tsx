@@ -92,7 +92,7 @@ export default function EndingLeaseCard({ landlord_id }: Props) {
       <button
         onClick={() =>
           router.push(
-            `/pages/landlord/properties/${lease.property_id}/activeLease`,
+            `/landlord/properties/${lease.property_id}/activeLease`,
           )
         }
         className="

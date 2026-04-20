@@ -165,7 +165,7 @@ const ProspectiveTenantDetails = () => {
                 });
 
                 if (result.isConfirmed) {
-                    router.push(`/pages/landlord/properties/${propertyId}/activeLease`);
+                    router.push(`/landlord/properties/${propertyId}/activeLease`);
                 }
 
                 return; // Stop further navigation

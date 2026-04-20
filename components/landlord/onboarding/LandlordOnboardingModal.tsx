@@ -212,20 +212,20 @@ export default function LandlordOnboardingModal({
                 confirmButtonText: "View Plans",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    router.push("/pages/landlord/subsciption_plan/pricing");
+                    router.push("/landlord/subsciption_plan/pricing");
                 }
             });
             return;
         }
 
-        router.push("/pages/landlord/property-listing/create-property");
+        router.push("/landlord/property-listing/create-property");
     };
 
     const handleStepClick = (key: string) => {
         if (key === "agreement" && !agreementDone) {
             setShowAgreementModal(true);
         } else if (key === "verification" && !verificationDone) {
-            window.location.href = "/pages/landlord/verification";
+            window.location.href = "/landlord/verification";
         } else if (key === "payout" && !payoutDone) {
             setShowPayoutModal(true);
         } else if (key === "property" && !hasProperty && agreementDone && verificationDone && payoutDone) {

@@ -86,7 +86,7 @@ export default function MobileFeedsPage({ user }: { user: any }) {
                     {/* QUICK ACTIONS */}
                     <div className="grid grid-cols-2 gap-2">
                         <Link
-                            href="/pages/tenant/my-unit"
+                            href="/tenant/my-unit"
                             className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                         >
                             <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center shrink-0">
@@ -99,7 +99,7 @@ export default function MobileFeedsPage({ user }: { user: any }) {
                         </Link>
 
                         <Link
-                            href="/pages/tenant/property-search"
+                            href="/tenant/property-search"
                             className="flex items-center gap-2.5 p-3 bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                         >
                             <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center shrink-0">

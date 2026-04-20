@@ -33,7 +33,7 @@ export default function DeleteAccountButton({ user_id, userType }: Props) {
                 confirmButtonColor: "#10b981",
             });
 
-            router.push("/pages/auth/login");
+            router.push("/auth/login");
             window.location.reload();
         } catch (error: any) {
             console.error("Account deletion failed:", error);

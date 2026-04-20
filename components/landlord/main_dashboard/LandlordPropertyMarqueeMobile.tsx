@@ -117,7 +117,7 @@ export default function LandlordPropertyMarqueeMobile({ landlordId }: Props) {
             </svg>
           </button>
           <button
-            onClick={() => router.push(`/pages/landlord/properties/${currentProperty.property_id}`)}
+            onClick={() => router.push(`/landlord/properties/${currentProperty.property_id}`)}
             className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-emerald-500 flex items-center justify-center shadow-lg active:scale-90 transition-transform"
           >
             <Eye className="w-6 h-6 text-white" />
@@ -174,7 +174,7 @@ function PropertyCard({
       className={`bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 ${isNext ? "pointer-events-none" : "cursor-grab active:cursor-grabbing"}`}
     >
       <div
-        onClick={() => !isNext && router.push(`/pages/landlord/properties/${property.property_id}`)}
+        onClick={() => !isNext && router.push(`/landlord/properties/${property.property_id}`)}
         className="relative aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200"
       >
         {property.photos?.[0]?.photo_url ? (

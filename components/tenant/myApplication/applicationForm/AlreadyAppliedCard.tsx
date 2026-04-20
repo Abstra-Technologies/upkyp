@@ -59,14 +59,14 @@ export default function AlreadyAppliedCard() {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={() => router.push("/pages/tenant/my-unit")}
+                        onClick={() => router.push("/tenant/my-unit")}
                     >
                         View My Units
                     </Button>
 
                     <Button
                         variant="outlined"
-                        onClick={() => router.push("/pages/find-rent")}
+                        onClick={() => router.push("/find-rent")}
                     >
                         Find Another
                     </Button>

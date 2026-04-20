@@ -6,16 +6,16 @@ import { MessageSquare, X, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const HIDDEN_ROUTES = [
-  "/pages/tenant/chat",
-  "/pages/landlord/chat",
-  "/pages/landlord/messages",
-  "/pages/admin/chat",
-  "/pages/tenant/rentalPortal",
-  "/pages/tenant/kypId",
-  "/pages/find-rent",
-  "/pages/landlord/properties",
-  "/pages/landlord/maintenance-request",
-  "/pages/landlord/property-listing/create-property",
+  "/tenant/chat",
+  "/landlord/chat",
+  "/landlord/messages",
+  "/admin/chat",
+  "/tenant/rentalPortal",
+  "/tenant/kypId",
+  "/find-rent",
+  "/landlord/properties",
+  "/landlord/maintenance-request",
+  "/landlord/property-listing/create-property",
 ];
 
 export default function FeedbackWidget() {

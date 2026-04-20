@@ -55,7 +55,7 @@ export default function CookiesPermission() {
                       We use cookies to enhance your experience and analyze
                       traffic.{" "}
                       <Link
-                        href="/pages/public/cookiePolicy"
+                        href="/public/cookiePolicy"
                         className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center gap-1"
                       >
                         Learn more
@@ -128,7 +128,7 @@ export default function CookiesPermission() {
                   We use cookies to enhance your experience and analyze our
                   traffic.{" "}
                   <Link
-                    href="/pages/public/cookiePolicy"
+                    href="/public/cookiePolicy"
                     className="text-blue-600 font-medium"
                   >
                     Learn more

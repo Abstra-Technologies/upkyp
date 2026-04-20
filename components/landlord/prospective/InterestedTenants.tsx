@@ -106,7 +106,7 @@ export default function InterestedTenants({
     ===================================================== */
   const handleView = (t: Tenant) => {
     router.push(
-      `/pages/landlord/properties/${propertyId}/prospectives/details?tenant_id=${t.tenant_id}&unit_id=${t.unit_id}`,
+      `/landlord/properties/${propertyId}/prospectives/details?tenant_id=${t.tenant_id}&unit_id=${t.unit_id}`,
     );
   };
 

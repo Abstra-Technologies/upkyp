@@ -113,7 +113,7 @@ export default function UnitCard({
   }, []);
 
   const handleCopyLink = useCallback(async () => {
-    const url = `${window.location.origin}/pages/find-rent/${unit.property_id}/${unit.unit_id}`;
+    const url = `${window.location.origin}/find-rent/${unit.property_id}/${unit.unit_id}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => {

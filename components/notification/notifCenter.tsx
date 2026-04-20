@@ -477,7 +477,7 @@ const NotificationDropdown = ({
       {notifications.length > 0 && (
         <div className="border-t border-gray-100 p-3 text-center bg-gray-50/50 flex-shrink-0">
           <Link
-            href={`/pages/${user?.userType || "tenant"}/inbox`}
+            href={`/${user?.userType || "tenant"}/inbox`}
             onClick={onClose}
             className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
           >

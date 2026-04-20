@@ -99,7 +99,7 @@ export default function LandlordProfileStatus({ landlord_id }: Props) {
             {/* Action */}
             {cfg.action && (
                 <button
-                    onClick={() => router.push("/pages/landlord/verification")}
+                    onClick={() => router.push("/landlord/verification")}
                     className="inline-flex items-center gap-1
         text-[11px] sm:text-xs font-semibold
         px-3 py-1.5 rounded-md

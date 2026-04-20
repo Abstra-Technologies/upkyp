@@ -313,7 +313,7 @@ export default function MyApplications({ tenantId }: { tenantId: number }) {
             Browse available properties to start your first application.
           </p>
           <button
-            onClick={() => router.push("/pages/tenant/my-unit")}
+            onClick={() => router.push("/tenant/my-unit")}
             className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-medium text-sm hover:opacity-90"
           >
             Browse Properties

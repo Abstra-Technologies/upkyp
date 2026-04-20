@@ -124,7 +124,7 @@ export default function ActiveRentConsolidatedCards({
                       key={`active-rental-${unit.unit_id}`}
                       className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 hover:border-emerald-300 hover:shadow-md transition-all duration-300 cursor-pointer"
                       onClick={() =>
-                          router.push(`/pages/tenant/rentalPortal/${unit.agreement_id}`)
+                          router.push(`/tenant/rentalPortal/${unit.agreement_id}`)
                       }
                   >
                       <div className="flex items-start gap-3">

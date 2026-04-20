@@ -156,7 +156,7 @@ export default function AnimatedFeaturesPopLoop() {
         {/* Learn More Link */}
         <div className="mt-12 text-center">
           <Link
-            href="/pages/public/how-it-works"
+            href="/public/how-it-works"
             className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
           >
             See the full breakdown

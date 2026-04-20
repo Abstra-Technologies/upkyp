@@ -80,7 +80,7 @@ export default function MobilePropertySidenav({
               {/* Back Button */}
               <button
                 onClick={() => {
-                  router.push("/pages/landlord/property-listing");
+                  router.push("/landlord/property-listing");
                   onClose();
                 }}
                 className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors group mb-3 w-full"

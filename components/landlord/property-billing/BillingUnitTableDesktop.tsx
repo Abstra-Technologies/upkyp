@@ -69,7 +69,7 @@ export default function BillingUnitTableDesktop({
                   onClick={() =>
                     guardActionWithConfig(() =>
                       router.push(
-                        `/pages/landlord/properties/${property_id}/billing/createUnitBill/${bill.unit_id}`,
+                        `/landlord/properties/${property_id}/billing/createUnitBill/${bill.unit_id}`,
                       ),
                     )
                   }

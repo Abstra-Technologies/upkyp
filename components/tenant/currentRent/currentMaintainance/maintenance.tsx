@@ -202,7 +202,7 @@ const MaintenanceRequestList = ({ agreement_id, user_id }: Props) => {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-2">
             <Link
-              href={`/pages/tenant/rentalPortal/${agreement_id}/maintenance/add?agreement_id=${agreement_id}`}
+              href={`/tenant/rentalPortal/${agreement_id}/maintenance/add?agreement_id=${agreement_id}`}
             >
               <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200">
                 <PlusIcon className="w-5 h-5" />
@@ -210,7 +210,7 @@ const MaintenanceRequestList = ({ agreement_id, user_id }: Props) => {
               </button>
             </Link>
             <Link
-              href={`/pages/tenant/maintenance/history?agreement_id=${agreement_id}`}
+              href={`/tenant/maintenance/history?agreement_id=${agreement_id}`}
             >
               <button className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
                 <ClockIcon className="w-5 h-5" />
@@ -328,7 +328,7 @@ const MaintenanceRequestList = ({ agreement_id, user_id }: Props) => {
             </p>
             {filter === "all" && (
               <Link
-                href={`/pages/tenant/rentalPortal/${agreement_id}/maintenance/add?agreement_id=${agreement_id}`}
+                href={`/tenant/rentalPortal/${agreement_id}/maintenance/add?agreement_id=${agreement_id}`}
               >
                 <button className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200">
                   <PlusIcon className="w-5 h-5" />

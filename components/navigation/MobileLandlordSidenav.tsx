@@ -104,7 +104,7 @@ export default function MobileLandlordSidenav({
                                 )}
                             </div>
 
-                            <Link href="/pages/commons/profile" onClick={onClose}>
+                            <Link href="/commons/profile" onClick={onClose}>
                                 <Settings className="w-5 h-5 text-gray-500 hover:text-blue-600" />
                             </Link>
                         </div>

@@ -109,7 +109,7 @@ export default function LandlordPropertyMarquee({ landlordId }: Props) {
         confirmButtonColor: "#2563eb",
       }).then((res) => {
         if (res.isConfirmed) {
-          router.push("/pages/landlord/verification");
+          router.push("/landlord/verification");
         }
       });
 
@@ -127,14 +127,14 @@ export default function LandlordPropertyMarquee({ landlordId }: Props) {
         showCancelButton: true,
       }).then((res) => {
         if (res.isConfirmed) {
-          router.push("/pages/landlord/subscription");
+          router.push("/landlord/subscription");
         }
       });
 
       return;
     }
 
-    router.push("/pages/landlord/property-listing/create-property");
+    router.push("/landlord/property-listing/create-property");
   };
 
   /* =========================
@@ -252,7 +252,7 @@ export default function LandlordPropertyMarquee({ landlordId }: Props) {
           <div
             key={property.property_id}
             onClick={() =>
-              router.push(`/pages/landlord/properties/${property.property_id}`)
+              router.push(`/landlord/properties/${property.property_id}`)
             }
             className="p-3 flex items-center gap-3 cursor-pointer
                             bg-gray-50 rounded-xl border border-gray-100
@@ -296,7 +296,7 @@ export default function LandlordPropertyMarquee({ landlordId }: Props) {
       {properties.length > 5 && (
         <div className="mt-3 pt-3 border-t border-gray-100">
           <button
-            onClick={() => router.push("/pages/landlord/property-listing")}
+            onClick={() => router.push("/landlord/property-listing")}
             className="w-full text-sm font-semibold text-blue-600 
                             py-2 rounded-lg flex items-center justify-center gap-1
                             hover:bg-blue-50 transition-colors duration-200"

@@ -33,7 +33,16 @@ export async function GET(req: NextRequest) {
     try {
         if (state) {
             const parsedState = JSON.parse(decodeURIComponent(state));
-            callbackUrl = parsedState?.callbackUrl || "";
+            const stateCallbackUrl = parsedState?.callbackUrl || "";
+            if (stateCallbackUrl) {
+                const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+                const isValid = stateCallbackUrl.startsWith(baseUrl + "/tenant/") ||
+                    stateCallbackUrl.startsWith(baseUrl + "/landlord/") ||
+                    stateCallbackUrl.startsWith(baseUrl + "/auth/");
+                if (isValid) {
+                    callbackUrl = stateCallbackUrl;
+                }
+            }
         }
     } catch {
         callbackUrl = "";
@@ -113,11 +122,19 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const dbUser = rows[0];
+const dbUser = rows[0];
+
+        /* =====================================================
+           VALIDATE USER TYPE
+         ===================================================== */
+        const validUserTypes = ["tenant", "landlord"];
+        if (!dbUser.userType || !validUserTypes.includes(dbUser.userType)) {
+            return redirectToLogin("Invalid user type. Contact support.");
+        }
 
         /* =====================================================
            ACCOUNT STATUS CHECK
-        ===================================================== */
+         ===================================================== */
         if (dbUser.status === "deactivated") {
             return redirectToLogin("Your account is deactivated. Contact support.");
         }
@@ -139,9 +156,14 @@ export async function GET(req: NextRequest) {
 
             await createSession(dbUser.user_id, jti, DEFAULT_JWT_EXPIRY);
 
-            const redirectUrl = dbUser.userType === "tenant"
-                ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-email`
-                : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+            let redirectUrl: string;
+            if (dbUser.userType === "tenant") {
+                redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`;
+            } else if (dbUser.userType === "landlord") {
+                redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+            } else {
+                return redirectToLogin("Invalid user type. Contact support.");
+            }
 
             response = NextResponse.redirect(redirectUrl);
             response.cookies.set("token", token, {
@@ -232,9 +254,23 @@ export async function GET(req: NextRequest) {
         let finalRedirectUrl = callbackUrl;
 
         if (!finalRedirectUrl) {
-            finalRedirectUrl = dbUser.userType === "tenant"
-                ? `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`
-                : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+            if (dbUser.userType === "tenant") {
+                finalRedirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`;
+            } else if (dbUser.userType === "landlord") {
+                finalRedirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+            } else {
+                return redirectToLogin("Invalid user type. Contact support.");
+            }
+        } else {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+            const isValidCallback = callbackUrl.startsWith(baseUrl + "/tenant/") ||
+                callbackUrl.startsWith(baseUrl + "/landlord/") ||
+                callbackUrl.startsWith(baseUrl + "/auth/");
+            if (!isValidCallback) {
+                finalRedirectUrl = dbUser.userType === "tenant"
+                    ? `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`
+                    : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+            }
         }
 
         response = NextResponse.redirect(finalRedirectUrl);

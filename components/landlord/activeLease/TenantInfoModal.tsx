@@ -52,7 +52,7 @@ export default function TenantInfoModal({
       tenant_id: tenant.tenant_id,
       name: `${tenant.firstName} ${tenant.lastName}`,
     });
-    router.push("/pages/landlord/chat");
+    router.push("/landlord/chat");
     onClose();
   };
 

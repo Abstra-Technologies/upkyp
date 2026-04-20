@@ -37,7 +37,7 @@ export default function LandlordBetaBanner() {
     }, [endDate]);
 
     const handleJoinBeta = () => {
-        router.push("/pages/landlord/beta-program/joinForm");
+        router.push("/landlord/beta-program/joinForm");
     };
 
     if (isLoading) return null;

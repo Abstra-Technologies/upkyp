@@ -131,12 +131,12 @@ export default function TenantList({ landlord_id }: { landlord_id: number }) {
       tenant_id: tenant.tenant_id,
       name: `${tenant.firstName} ${tenant.lastName}`,
     });
-    router.push("/pages/landlord/chat");
+    router.push("/landlord/chat");
   };
 
   const handleViewDetails = (id: number) =>
-    router.push(`/pages/landlord/list_of_tenants/${id}`);
-  const handleInviteTenant = () => router.push("/pages/landlord/invite-tenant");
+    router.push(`/landlord/list_of_tenants/${id}`);
+  const handleInviteTenant = () => router.push("/landlord/invite-tenant");
 
   if (loading) {
     return (

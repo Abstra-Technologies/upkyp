@@ -615,7 +615,7 @@ export default function ProfilePage() {
                         </p>
                         <button
                           onClick={() =>
-                            router.push("/pages/landlord/verification")
+                            router.push("/landlord/verification")
                           }
                           className="inline-flex items-center gap-2 px-4 py-2 lg:px-5 lg:py-2.5 text-sm lg:text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg lg:rounded-xl hover:shadow-md transition-all"
                         >
@@ -965,7 +965,7 @@ export default function ProfilePage() {
                 {user?.userType === "landlord" && (
                   <button
                     onClick={() =>
-                      router.push("/pages/commons/landlord/subscription")
+                      router.push("/commons/landlord/subscription")
                     }
                     className="w-full px-4 py-2.5 lg:py-3 text-sm lg:text-base font-semibold text-blue-600 bg-white rounded-xl hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
                   >

@@ -27,12 +27,18 @@ function Login() {
     }, []);
 
     useEffect(() => {
-        if (user?.landlord_id) {
-            // Priority: 1. callbackUrl from query param, 2. redirectAfterLogin from localStorage
-            const redirectUrl = callbackUrl || localStorage.getItem("redirectAfterLogin");
-            if (redirectUrl) {
-                localStorage.removeItem("redirectAfterLogin");
-                router.push(redirectUrl);
+        if (!user || user.loading) return;
+        
+        const isLoggedIn = user.landlord_id || user.tenant_id;
+        if (isLoggedIn) {
+            if (callbackUrl) {
+                router.push(callbackUrl);
+            } else if (user.userType === "tenant") {
+                router.push("/tenant/feeds");
+            } else if (user.userType === "landlord") {
+                router.push("/landlord/dashboard");
+            } else {
+                router.push("/landlord/dashboard");
             }
         }
     }, [user, router, callbackUrl]);

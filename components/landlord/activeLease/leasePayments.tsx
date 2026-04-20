@@ -52,7 +52,7 @@ export default function LeasePayments({ lease }: { lease: any }) {
   }, [lease?.lease_id]);
 
   const handleRowClick = (payment: Payment) => {
-    router.push(`/pages/landlord/payment/details/${payment.payment_id}`);
+    router.push(`/landlord/payment/details/${payment.payment_id}`);
   };
 
   // Filter payments based on search

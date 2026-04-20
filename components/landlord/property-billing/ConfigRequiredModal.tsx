@@ -31,7 +31,7 @@ export default function ConfigRequiredModal({
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold"
                         onClick={() =>
                             router.push(
-                                `/pages/landlord/properties/${property_id}/configurations?id=${property_id}`
+                                `/landlord/properties/${property_id}/configurations?id=${property_id}`
                             )
                         }
                     >

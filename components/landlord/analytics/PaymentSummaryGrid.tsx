@@ -65,7 +65,7 @@ export default function PaymentSummaryGrid({ landlord_id }: Props) {
             border: "border-amber-200",
             iconColor: "text-amber-600",
             valueColor: "text-amber-700",
-            link: "/pages/landlord/payouts",
+            link: "/landlord/payouts",
             helper: "View payout schedule",
         },
     ];

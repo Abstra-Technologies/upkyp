@@ -224,7 +224,7 @@ const ErrorState = ({ onRetry }: { onRetry: () => void }) => {
             Try Again
           </button>
           <button
-            onClick={() => router.push("/pages/find-rent")}
+            onClick={() => router.push("/find-rent")}
             className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
           >
             Browse Properties
@@ -590,7 +590,7 @@ export default function PropertyDetails() {
   );
 
   const shareUrl = useMemo(
-    () => `${process.env.NEXT_PUBLIC_BASE_URL}/pages/find-rent/${id}`,
+    () => `${process.env.NEXT_PUBLIC_BASE_URL}/find-rent/${id}`,
     [id]
   );
 
@@ -619,14 +619,14 @@ export default function PropertyDetails() {
 
       setTimeout(() => {
         Swal.close();
-        router.push(`/pages/find-rent/${id}/${unitId}`);
+        router.push(`/find-rent/${id}/${unitId}`);
       }, 1000);
     },
     [id, router]
   );
 
   const handleContactSupport = useCallback(() => {
-    router.push("/pages/contact-us");
+    router.push("/contact-us");
   }, [router]);
 
   const handleBackClick = useCallback(() => {

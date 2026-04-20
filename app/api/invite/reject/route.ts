@@ -17,9 +17,6 @@ export async function POST(req: NextRequest) {
 
         await conn.beginTransaction();
 
-        /* ===============================
-           1️⃣ Validate invite (LOCK)
-        =============================== */
         const [inviteRows]: any = await conn.query(
             `
             SELECT code, unitId, status
@@ -102,6 +99,14 @@ export async function POST(req: NextRequest) {
                 conn,
             });
         }
+
+        /* ===============================
+           5️⃣ Delete invite record
+         =============================== */
+        await conn.query(
+            `DELETE FROM InviteCode WHERE code = ?`,
+            [inviteCode]
+        );
 
         await conn.commit();
 

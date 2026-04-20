@@ -48,7 +48,7 @@ export default function LandlordCard({ landlord_id }: { landlord_id: string }) {
   }
 
   const handleClick = () => {
-    router.push(`/pages/public/${landlord?.landlord_id}`);
+    router.push(`/public/${landlord?.landlord_id}`);
   };
 
   if (!landlord) return null;

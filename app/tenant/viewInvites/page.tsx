@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/zustand/authStore";
 import LoadingScreen from "@/components/loadingScreen";
 import Swal from "sweetalert2";
+import { formatDateTime } from "@/lib/utils";
 
 import {
     EnvelopeIcon,
@@ -21,6 +22,7 @@ type Invite = {
     propertyName: string;
     unitName: string;
     createdAt: string;
+    expiresAt: string;
 };
 
 export default function TenantInvitesPage() {
@@ -32,9 +34,7 @@ export default function TenantInvitesPage() {
     const [processingCode, setProcessingCode] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    /* ===============================
-       Fetch Invites
-    =============================== */
+
     useEffect(() => {
         if (!user?.email) {
             setLoading(false);
@@ -214,7 +214,12 @@ export default function TenantInvitesPage() {
                                 <InfoBlock
                                     icon={<CalendarIcon />}
                                     label="Sent On"
-                                    value={new Date(invite.createdAt).toLocaleDateString()}
+                                    value={formatDateTime(invite.createdAt)}
+                                />
+                                <InfoBlock
+                                    icon={<CalendarIcon />}
+                                    label="Expires"
+                                    value={formatDateTime(invite.expiresAt)}
                                 />
                                 <InfoBlock
                                     icon={<EnvelopeIcon />}

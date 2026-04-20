@@ -46,11 +46,11 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
   const goToLease = (lease: LeaseItem) => {
     if (lease.type === "prospective") {
       router.push(
-        `/pages/landlord/properties/${lease.property_id}/prospectives`,
+        `/landlord/properties/${lease.property_id}/prospectives`,
       );
     } else {
       router.push(
-        `/pages/landlord/properties/${lease.property_id}/activeLease`,
+        `/landlord/properties/${lease.property_id}/activeLease`,
       );
     }
   };
