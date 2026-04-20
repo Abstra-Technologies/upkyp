@@ -63,22 +63,6 @@ create table Expenses
     created_at     datetime    default CURRENT_TIMESTAMP null
 );
 
-create table InviteCode
-(
-    id         int auto_increment
-        primary key,
-    code       varchar(255)                                                              not null,
-    email      varchar(255)                                                              not null,
-    unitId     varchar(12)                                                               not null,
-    status     enum ('PENDING', 'USED', 'EXPIRED', 'REJECTED') default 'PENDING'         null,
-    expiresAt  datetime                                                                  not null,
-    createdAt  datetime                                        default CURRENT_TIMESTAMP null,
-    start_date date                                                                      null,
-    end_date   date                                                                      null,
-    constraint code
-        unique (code)
-);
-
 create table IpAddresses
 (
     id                int auto_increment
@@ -188,15 +172,10 @@ create table PlanLimits
 (
     id                      int auto_increment
         primary key,
-    plan_id                 int not null,
-    max_properties          int null,
-    max_units               int null,
-    max_maintenance_request int null,
-    max_billing             int null,
-    max_prospect            int null,
-    max_storage             int null,
-    max_assets_per_property int null,
-    financial_history_years int null,
+    plan_id                 int         not null,
+    max_storage             varchar(20) null,
+    max_assets_per_property int         null,
+    financial_history_years int         null,
     constraint PlanLimits_ibfk_1
         foreign key (plan_id) references Plan (plan_id)
             on delete cascade
@@ -258,6 +237,29 @@ create table ConcessionaireBilling
 
 create index property_id
     on ConcessionaireBilling (property_id);
+
+create table InviteCode
+(
+    id         int auto_increment
+        primary key,
+    code       varchar(255)                                                              not null,
+    email      varchar(255)                                                              null,
+    unitId     varchar(12)                                                               not null,
+    propertyId varchar(12)                                                               null,
+    status     enum ('PENDING', 'USED', 'EXPIRED', 'REJECTED') default 'PENDING'         null,
+    expiresAt  datetime                                                                  not null,
+    createdAt  datetime                                        default CURRENT_TIMESTAMP null,
+    start_date date                                                                      null,
+    end_date   date                                                                      null,
+    constraint code
+        unique (code),
+    constraint fk_invitecode_property
+        foreign key (propertyId) references Property (property_id)
+            on delete cascade
+);
+
+create index idx_invitecode_propertyId
+    on InviteCode (propertyId);
 
 create index Property_ibfk_1
     on Property (landlord_id);
@@ -1138,6 +1140,7 @@ create table LeaseAgreement
     start_date              date                                                                                                                                                                null,
     end_date                date                                                                                                                                                                null,
     move_in_date            date                                                                                                                                                                null,
+    move_out_date           date                                                                                                                                                                null,
     rent_amount             decimal(12, 2)                                                                                                                            default 0.00              not null,
     security_deposit_amount decimal(10, 2)                                                                                                                            default 0.00              null,
     advance_payment_amount  decimal(10, 2)                                                                                                                            default 0.00              null,
@@ -1210,19 +1213,14 @@ create index idx_ekyp_unit
 
 create table LeaseSetupRequirements
 (
-    id                      int auto_increment
+    id                 int auto_increment
         primary key,
-    agreement_id            varchar(20)                          not null,
-    lease_agreement         tinyint(1) default 1                 null,
-    move_in_checklist       tinyint(1) default 0                 null,
-    move_out_checklist      tinyint(1) default 0                 null comment 'Required at end of lease',
-    security_deposit        tinyint(1) default 0                 null,
-    security_deposit_months int        default 1                 null,
-    advance_payment         tinyint(1) default 0                 null,
-    advance_payment_months  int        default 1                 null,
-    other_essential         tinyint(1) default 0                 null,
-    created_at              timestamp  default CURRENT_TIMESTAMP null,
-    updated_at              timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    agreement_id       varchar(20)                          not null,
+    lease_agreement    tinyint(1) default 1                 null,
+    move_in_checklist  tinyint(1) default 0                 null,
+    move_out_checklist tinyint(1) default 0                 null comment 'Required at end of lease',
+    created_at         timestamp  default CURRENT_TIMESTAMP null,
+    updated_at         timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint LeaseSetupRequirements_ibfk_1
         foreign key (agreement_id) references LeaseAgreement (agreement_id)
             on delete cascade

@@ -1,12 +1,14 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { FileText } from "lucide-react";
 
 import LeaseTable from "@/components/landlord/activeLease/LeaseTable";
 import LeaseStack from "@/components/landlord/activeLease/LeaseStack";
 import LeaseScorecards from "@/components/landlord/activeLease/LeaseScorecards";
 import EKypModal from "@/components/landlord/activeLease/EKypModal";
+import ChecklistModal from "@/components/landlord/activeLease/ChecklistModal";
 import { usePropertyLeases } from "@/hooks/landlord/activeLease/usePropertyLeases";
 import {
   LeaseCardSkeleton,
@@ -35,10 +37,29 @@ export default function PropertyLeasesPage() {
     handleEndLease,
   } = usePropertyLeases(String(id));
 
+  const [checklistOpen, setChecklistOpen] = useState(false);
+  const [selectedLease, setSelectedLease] = useState<any>(null);
+
   const handlePrimaryAction = (lease: any) => {
+    if (!lease) return;
+    
     const agreementId = lease.agreement_id || lease.lease_id;
+    const status = (lease.status ?? lease.lease_status)?.toLowerCase();
+    
+    if (status === "draft" && agreementId) {
+      setSelectedLease(lease);
+      setChecklistOpen(true);
+    } else if (agreementId) {
+      router.push(
+        `/landlord/properties/${id}/activeLease/leaseDetails/${agreementId}`
+      );
+    }
+  };
+
+  const handleChecklistContinue = (data: any) => {
+    setChecklistOpen(false);
     router.push(
-      `/landlord/properties/${id}/activeLease/leaseDetails/${agreementId}`
+      `/landlord/properties/${id}/activeLease/initialSetup/${selectedLease?.agreement_id || selectedLease?.lease_id}`
     );
   };
 
@@ -239,6 +260,16 @@ export default function PropertyLeasesPage() {
             setKypOpen(false);
             setSelectedKypLease(null);
           }}
+        />
+
+        <ChecklistModal
+          open={checklistOpen && !!selectedLease}
+          lease={selectedLease}
+          onClose={() => {
+            setChecklistOpen(false);
+            setSelectedLease(null);
+          }}
+          onContinue={handleChecklistContinue}
         />
       </div>
     </div>

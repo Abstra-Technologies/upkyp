@@ -29,7 +29,7 @@ export default function LeaseStack({
 
                 return (
                     <div
-                        key={lease.agreement_id}
+                        key={lease.agreement_id || lease.lease_id}
                         className="bg-white border rounded-lg p-3 shadow-sm"
                     >
                         {/* Header */}

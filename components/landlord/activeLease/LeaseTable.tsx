@@ -52,7 +52,7 @@ export default function LeaseTable({
 
                     return (
                         <tr
-                            key={lease.agreement_id}
+                            key={lease.agreement_id || lease.lease_id}
                             className="hover:bg-gray-50 transition"
                         >
                             {/* Unit */}
@@ -91,16 +91,16 @@ export default function LeaseTable({
                                 {status === "active" ? (
                                     <button
                                         onClick={() => onKyp(lease)}
-                                        className="px-2.5 py-1 text-xs
+                                        className="px-3 py-1.5 text-sm
                                                        bg-indigo-600 text-white
                                                        rounded-md hover:bg-indigo-700
-                                                       transition"
+                                                       transition font-medium"
                                     >
                                         View ID
                                     </button>
                                 ) : (
                                     <span
-                                        className="inline-flex px-2.5 py-1 text-xs
+                                        className="inline-flex px-3 py-1.5 text-sm
                                                        bg-gray-100 text-gray-400
                                                        rounded-md cursor-not-allowed"
                                     >
@@ -115,9 +115,9 @@ export default function LeaseTable({
                                 {status === "draft" && (
                                     <button
                                         onClick={() => onPrimary(lease)}
-                                        className="px-2.5 py-1 text-xs
+                                        className="px-3 py-1.5 text-sm
                                                        bg-blue-600 text-white
-                                                       rounded-md"
+                                                       rounded-md font-medium"
                                     >
                                         Setup
                                     </button>
@@ -127,9 +127,9 @@ export default function LeaseTable({
                                 {requiresLandlordSignature(lease) && (
                                     <button
                                         onClick={() => onAuthenticate(lease)}
-                                        className="px-2.5 py-1 text-xs
+                                        className="px-3 py-1.5 text-sm
                                                        bg-emerald-600 text-white
-                                                       rounded-md"
+                                                       rounded-md font-medium"
                                     >
                                         Authenticate
                                     </button>
@@ -140,17 +140,17 @@ export default function LeaseTable({
                                     <>
                                         <button
                                             onClick={() => onExtend(lease)}
-                                            className="px-2.5 py-1 text-xs
+                                            className="px-3 py-1.5 text-sm
                                                            bg-emerald-600 text-white
-                                                           rounded-md"
+                                                           rounded-md font-medium"
                                         >
                                             Extend
                                         </button>
                                         <button
                                             onClick={() => onEnd(lease)}
-                                            className="px-2.5 py-1 text-xs
+                                            className="px-3 py-1.5 text-sm
                                                            bg-red-600 text-white
-                                                           rounded-md"
+                                                           rounded-md font-medium"
                                         >
                                             End
                                         </button>
@@ -161,9 +161,9 @@ export default function LeaseTable({
                                 {status === "active" && (
                                     <button
                                         onClick={() => onPrimary(lease)}
-                                        className="px-2.5 py-1 text-xs
+                                        className="px-3 py-1.5 text-sm
                                                        bg-gray-800 text-white
-                                                       rounded-md"
+                                                       rounded-md font-medium"
                                     >
                                         View
                                     </button>
@@ -178,9 +178,9 @@ export default function LeaseTable({
                                 ].includes(status) && (
                                     <button
                                         onClick={() => onPrimary(lease)}
-                                        className="px-2.5 py-1 text-xs
+                                        className="px-3 py-1.5 text-sm
                                                        bg-gray-800 text-white
-                                                       rounded-md"
+                                                       rounded-md font-medium"
                                     >
                                         View
                                     </button>
