@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 import { NextRequest, NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
+import { getSessionUser } from "@/lib/auth/auth";
 
 const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
@@ -23,6 +24,7 @@ const getTenantActiveLeases = unstable_cache(
         -- SIGNATURE STATUS
         MAX(CASE WHEN ls.role = 'landlord' THEN ls.status END) AS landlord_sig,
         MAX(CASE WHEN ls.role = 'tenant' THEN ls.status END) AS tenant_sig,
+        (SELECT COUNT(*) FROM LeaseSignature WHERE agreement_id = la.agreement_id) AS has_signature_records,
 
         -- UNIT
         u.unit_id,
@@ -145,6 +147,10 @@ const getTenantActiveLeases = unstable_cache(
                 landlord_name,
 
                 unit_photos,
+
+                has_signature_records: row.has_signature_records > 0,
+                tenant_sig: row.tenant_sig,
+                landlord_sig: row.landlord_sig,
             };
         });
     },
@@ -160,12 +166,21 @@ const getTenantActiveLeases = unstable_cache(
 ========================================================= */
 export async function GET(req: NextRequest) {
     try {
+        const sessionUser = await getSessionUser();
+
+        if (!sessionUser || !sessionUser.tenant_id) {
+            return NextResponse.json(
+                { message: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const { searchParams } = new URL(req.url);
         const tenantId = searchParams.get("tenantId");
 
-        if (!tenantId) {
+        if (!tenantId || tenantId !== sessionUser.tenant_id) {
             return NextResponse.json(
-                { message: "Tenant ID is required" },
+                { message: "Invalid tenant ID" },
                 { status: 400 }
             );
         }

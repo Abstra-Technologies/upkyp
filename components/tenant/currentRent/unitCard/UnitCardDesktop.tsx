@@ -10,6 +10,7 @@ import {
     ChatBubbleLeftRightIcon,
     ArrowRightOnRectangleIcon,
     CalendarIcon,
+    DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
 import { Unit } from "@/types/units";
@@ -49,7 +50,19 @@ export default function UnitCardDesktop({
     const showDatePicker =
         unit.move_in_checklist === 1 && !unit.move_in_date;
 
-    const canAccessPortal = !!unit.move_in_date;
+    const needsSigning =
+        unit.has_signature_records &&
+        unit.leaseSignature !== "completed" &&
+        unit.leaseSignature !== "active";
+
+    const needsMoveInDate = showDatePicker;
+
+    const noRequirements =
+        !needsSigning && !needsMoveInDate;
+
+    const canAccessPortal =
+        noRequirements ||
+        (!!unit.move_in_date && !needsSigning && !needsMoveInDate);
 
     const daysUntilMoveIn = canAccessPortal
         ? getDaysUntilMoveIn(unit.move_in_date!)
@@ -115,7 +128,7 @@ export default function UnitCardDesktop({
                 />
 
                 {/* MOVE-IN DATE BANNER (SET) */}
-                {canAccessPortal && (
+                {canAccessPortal && unit.move_in_date && (
                     <div className="absolute bottom-0 left-0 right-0 bg-emerald-600/90 text-white px-4 py-2.5 text-xs">
                         <div className="flex justify-between items-center">
                             <span className="flex items-center gap-1.5">
@@ -134,7 +147,7 @@ export default function UnitCardDesktop({
                 )}
 
                 {/* COUNTDOWN TIMER OVERLAY */}
-                {showCountdown && (
+                {showCountdown && unit.move_in_date && (
                     <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 text-center min-w-[80px]">
                         <p className="text-xs font-medium text-blue-600">Days Left</p>
                         <p className="text-3xl font-bold text-blue-700 leading-none">{daysUntilMoveIn}</p>
@@ -205,24 +218,39 @@ export default function UnitCardDesktop({
 
                 {/* ACTIONS */}
                 <div className="space-y-2 pt-2">
-                    <button
-                        onClick={() => onAccessPortal(unit.agreement_id)}
-                        disabled={!canAccessPortal}
-                        className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg
-                        font-semibold text-sm
-                        ${
-                            canAccessPortal
-                                ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:opacity-95"
-                                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        }`}
-                    >
-                        <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                        {canAccessPortal
-                            ? daysUntilMoveIn !== null && daysUntilMoveIn > 0
-                                ? `Access Portal (${daysUntilMoveIn} days until move-in)`
-                                : "Access Rental Portal"
-                            : "Set Move-in Date First"}
-                    </button>
+                    {needsSigning ? (
+                        <button
+                            onClick={() => onAccessPortal(unit.agreement_id)}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg
+                            bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm"
+                        >
+                            <DocumentTextIcon className="w-4 h-4" />
+                            Sign Lease to Access Portal
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => onAccessPortal(unit.agreement_id)}
+                            disabled={!canAccessPortal}
+                            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg
+                            font-semibold text-sm
+                            ${
+                                canAccessPortal
+                                    ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:opacity-95"
+                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            }`}
+                        >
+                            <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                            {canAccessPortal
+                                ? unit.move_in_date
+                                    ? daysUntilMoveIn !== null && daysUntilMoveIn > 0
+                                        ? `Access Portal (${daysUntilMoveIn} days until move-in)`
+                                        : "Access Rental Portal"
+                                    : "Access Portal"
+                                : needsMoveInDate
+                                    ? "Set Move-in Date First"
+                                    : "Access Portal"}
+                        </button>
+                    )}
 
                     <button
                         onClick={onContactLandlord}

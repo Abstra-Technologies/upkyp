@@ -9,6 +9,7 @@ import {
     ChatBubbleLeftRightIcon,
     ArrowRightOnRectangleIcon,
     CalendarIcon,
+    DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
 import { Unit } from "@/types/units";
@@ -48,7 +49,18 @@ export default function UnitCardMobile({
     const showDatePicker =
         unit.move_in_checklist === 1 && !unit.move_in_date;
 
-    const canAccessPortal = !!unit.move_in_date;
+    const needsSigning =
+        unit.has_signature_records &&
+        unit.leaseSignature !== "completed" &&
+        unit.leaseSignature !== "active";
+
+    const needsMoveInDate = showDatePicker;
+
+    const noRequirements = !needsSigning && !needsMoveInDate;
+
+    const canAccessPortal =
+        noRequirements ||
+        (!!unit.move_in_date && !needsSigning && !needsMoveInDate);
 
     const daysUntilMoveIn = canAccessPortal
         ? getDaysUntilMoveIn(unit.move_in_date!)
@@ -101,15 +113,15 @@ export default function UnitCardMobile({
     return (
         <article
             className="bg-white rounded-xl
-            border-2 border-gray-200
+            border border-gray-200
             shadow-sm overflow-hidden
             hover:border-gray-300
             transition-colors"
         >
             {/* HEADER */}
-            <div className="flex gap-3 p-3">
+            <div className="flex gap-2 p-2">
                 {/* IMAGE */}
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                     <Image
                         src={
                             unit.unit_photos?.[0] ||
@@ -124,42 +136,42 @@ export default function UnitCardMobile({
                 {/* CORE INFO */}
                 <div className="flex-1 min-w-0">
                     <div>
-                        <h2 className="font-bold text-sm text-gray-900 truncate">
+                        <h2 className="font-bold text-xs text-gray-900 truncate">
                             Unit {unit.unit_name}
                         </h2>
-                        <p className="text-xs text-gray-600 truncate">
+                        <p className="text-[10px] text-gray-600 truncate">
                             {unit.property_name}
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-1 mt-1">
-                        <CurrencyDollarIcon className="w-4 h-4 text-blue-600" />
-                        <span className="font-bold text-blue-700 text-sm">
+                    <div className="flex items-center gap-1 mt-0.5">
+                        <CurrencyDollarIcon className="w-3 h-3 text-blue-600" />
+                        <span className="font-bold text-blue-700 text-xs">
                             {formatCurrency(unit.rent_amount)}
                         </span>
-                        <span className="text-xs text-gray-500">/mo</span>
+                        <span className="text-[10px] text-gray-500">/mo</span>
                     </div>
                 </div>
             </div>
 
             {/* MOVE-IN DATE PICKER */}
             {showDatePicker && (
-                <div className="px-3 pb-3 border-t border-gray-100 pt-3">
-                    <label className="block text-xs font-semibold text-gray-700 mb-2">
-                        <CalendarIcon className="w-4 h-4 inline mr-1" />
+                <div className="px-2 pb-2 border-t border-gray-100 pt-2">
+                    <label className="block text-[10px] font-semibold text-gray-700 mb-1.5">
+                        <CalendarIcon className="w-3 h-3 inline mr-0.5" />
                         Set Move-in Date
                     </label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                         <input
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                         />
                         <button
                             onClick={handleSetMoveInDate}
                             disabled={loadingDate || !selectedDate}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg disabled:opacity-50"
+                            className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg disabled:opacity-50"
                         >
                             {loadingDate ? "Saving..." : "Save"}
                         </button>
@@ -168,58 +180,71 @@ export default function UnitCardMobile({
             )}
 
             {/* DAYS UNTIL MOVE-IN (ONLY ON MOVE-IN DAY) */}
-            {isToday && (
-                <div className="px-3 pb-3">
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
-                        <p className="text-sm font-bold text-emerald-700">
-                            Welcome Home! It's Move-in Day!
+            {isToday && unit.move_in_date && (
+                <div className="px-2 pb-2">
+                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg py-1.5 px-2 text-center">
+                        <p className="text-xs font-bold text-emerald-700">
+                            Welcome Home! Move-in Day!
                         </p>
                     </div>
                 </div>
             )}
 
             {/* COUNTDOWN TIMER */}
-            {showCountdown && (
-                <div className="px-3 pb-3">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                        <p className="text-xs text-blue-600 font-medium">Days Until Move-in</p>
-                        <p className="text-2xl font-bold text-blue-700">{daysUntilMoveIn}</p>
+            {showCountdown && unit.move_in_date && (
+                <div className="px-2 pb-2">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg py-1 px-1.5 text-center flex items-center justify-center gap-1.5">
+                        <span className="text-[10px] text-blue-600 font-medium">Move-in in</span>
+                        <span className="text-sm font-bold text-blue-700">{daysUntilMoveIn}d</span>
                     </div>
                 </div>
             )}
 
             {/* ACTIONS */}
-            <div className="px-3 pb-3 space-y-2">
-                {/* Access Portal */}
-                <button
-                    onClick={() => onAccessPortal(unit.agreement_id)}
-                    disabled={!canAccessPortal}
-                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg
-                    text-sm font-semibold
-                    ${
-                        canAccessPortal
-                            ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
-                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    }`}
-                >
-                    <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                    {canAccessPortal
-                        ? daysUntilMoveIn !== null && daysUntilMoveIn > 0
-                            ? `Access Portal (${daysUntilMoveIn}d)`
-                            : "Access Portal"
-                        : "Access Portal"}
-                </button>
+            <div className="px-2 pb-2 space-y-1.5">
+                {needsSigning ? (
+                    <button
+                        onClick={() => onAccessPortal(unit.agreement_id)}
+                        className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg
+                        bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold"
+                    >
+                        <DocumentTextIcon className="w-3.5 h-3.5" />
+                        Sign Lease
+                    </button>
+                ) : (
+                    <>
+                        <button
+                            onClick={() => onAccessPortal(unit.agreement_id)}
+                            disabled={!canAccessPortal}
+                            className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg
+                            text-xs font-semibold
+                            ${
+                                canAccessPortal
+                                    ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
+                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            }`}
+                        >
+                            <ArrowRightOnRectangleIcon className="w-3.5 h-3.5" />
+                            {canAccessPortal
+                                ? unit.move_in_date && daysUntilMoveIn !== null && daysUntilMoveIn > 0
+                                    ? `Access Portal (${daysUntilMoveIn}d)`
+                                    : "Access Portal"
+                                : needsMoveInDate
+                                    ? "Set Move-in Date"
+                                    : "Access Portal"}
+                        </button>
 
-                {/* Message Landlord */}
-                <button
-                    onClick={onContactLandlord}
-                    className="w-full flex items-center justify-center gap-2 py-2
-                    bg-gray-100 hover:bg-gray-200
-                    text-gray-700 rounded-lg text-sm font-semibold"
-                >
-                    <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                    Message Landlord
-                </button>
+                        <button
+                            onClick={onContactLandlord}
+                            className="w-full flex items-center justify-center gap-1.5 py-1.5
+                            bg-gray-100 hover:bg-gray-200
+                            text-gray-700 rounded-lg text-xs font-semibold"
+                        >
+                            <ChatBubbleLeftRightIcon className="w-3.5 h-3.5" />
+                            Message Landlord
+                        </button>
+                    </>
+                )}
             </div>
         </article>
     );

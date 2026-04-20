@@ -13,7 +13,15 @@ import { decryptData } from "@/crypto/encrypt";
 
 const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+const fetcher = async (url: string) => {
+    const response = await axios.get(url, {
+        headers: {
+            "Cache-Control": "no-store, must-revalidate",
+            "Pragma": "no-cache",
+        },
+    });
+    return response.data;
+};
 
 const shouldRemoveFromView = (unit: Unit) => {
     if (unit.leaseSignature !== "completed" || !unit.lease_ended_at) {
@@ -59,8 +67,10 @@ export function useMyUnits() {
             : null,
         fetcher,
         {
-            revalidateOnFocus: false,
-            keepPreviousData: true,
+            revalidateOnFocus: true,
+            revalidateOnReconnect: true,
+            refreshInterval: 0,
+            keepPreviousData: false,
         }
     );
 
@@ -71,6 +81,12 @@ export function useMyUnits() {
             fetchSession();
         }
     }, [user, admin, fetchSession]);
+
+    useEffect(() => {
+        if (user?.tenant_id) {
+            mutate();
+        }
+    }, [user?.tenant_id]);
 
     useEffect(() => {
         setCurrentPage(1);

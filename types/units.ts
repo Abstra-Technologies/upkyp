@@ -50,6 +50,11 @@ export interface UnitDetails {
   move_in_checklist?: number;
   has_pending_proof?: boolean;
 
+  leaseSignature?: string;
+  has_signature_records?: boolean;
+  tenant_sig?: string;
+  landlord_sig?: string;
+
   landlord_id: string;
   landlord_name: string;
 
