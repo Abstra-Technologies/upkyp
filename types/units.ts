@@ -46,6 +46,8 @@ export interface UnitDetails {
   agreement_id?: string;
   start_date?: string;
   end_date?: string;
+  move_in_date?: string;
+  move_in_checklist?: number;
   has_pending_proof?: boolean;
 
   landlord_id: string;

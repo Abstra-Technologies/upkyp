@@ -14,9 +14,11 @@ export default function UnitCard(props: any) {
     return () => window.removeEventListener("resize", check);
   }, []);
 
+  const { onRefresh, ...restProps } = props;
+
   return isMobile ? (
-    <UnitCardMobile {...props} />
+    <UnitCardMobile {...restProps} onRefresh={onRefresh} />
   ) : (
-    <UnitCardDesktop {...props} />
+    <UnitCardDesktop {...restProps} onRefresh={onRefresh} />
   );
 }

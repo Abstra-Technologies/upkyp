@@ -88,8 +88,7 @@ export async function GET(req: NextRequest) {
         const [[requirements]]: any = await db.query(
             `
             SELECT
-              security_deposit,
-              advance_payment
+           *
             FROM LeaseSetupRequirements
             WHERE agreement_id = ?
             LIMIT 1

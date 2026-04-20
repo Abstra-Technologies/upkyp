@@ -127,28 +127,21 @@ export async function POST(req: NextRequest) {
                     agreement_id,
                     lease_agreement,
                     move_in_checklist,
-                    move_out_checklist,
-                    security_deposit,
-                    advance_payment,
-                    other_essential
+                    move_out_checklist
+            
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     lease_agreement    = VALUES(lease_agreement),
                     move_in_checklist  = VALUES(move_in_checklist),
-                    move_out_checklist = VALUES(move_out_checklist),
-                    security_deposit   = VALUES(security_deposit),
-                    advance_payment    = VALUES(advance_payment),
-                    other_essential    = VALUES(other_essential)
+                    move_out_checklist = VALUES(move_out_checklist)
+        
                 `,
                 [
                     agreement_id,
                     body.lease_agreement ? 1 : 0,
                     body.move_in_checklist ? 1 : 0,
                     body.move_out_checklist ? 1 : 0,
-                    body.security_deposit ? 1 : 0,
-                    body.advance_payment ? 1 : 0,
-                    body.other_essential ? 1 : 0,
                 ]
             );
         }

@@ -33,7 +33,9 @@ export default function ChecklistSetupModal({
     const [showDecision, setShowDecision] = useState(false);
     const [showOptions, setShowOptions] = useState<"agreement" | "dates" | null>(null);
 
-    const agreement_id = lease?.lease_id || lease?.agreement_id;
+    const agreement_id = lease?.agreement_id || lease?.lease_id || lease?.agreementId;
+    
+    console.log('SETUP LEASE MODAL: agreement_id =', agreement_id);
 
 
     const [form, setForm] = useState({
@@ -47,6 +49,8 @@ export default function ChecklistSetupModal({
 
 
     useEffect(() => {
+        if (!agreement_id) return;
+        
         axios
             .get(
                 `/api/landlord/activeLease/saveChecklistRequirements?agreement_id=${agreement_id}`
@@ -109,15 +113,9 @@ export default function ChecklistSetupModal({
             return;
         }
 
-        setLoading(true);
-        await Swal.fire({
-            title: "Saving...",
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
-
         try {
-            console.log("Saving with showOptions:", showOptions, "form:", form);
+
+            const isDatesOnly = showOptions === "dates" && !form.include_move_in && !form.include_move_out;
             
             if (showOptions === "dates") {
                 console.log("Calling updateLeaseDateSet with:", {
@@ -135,34 +133,36 @@ export default function ChecklistSetupModal({
                 console.log("updateLeaseDateSet response:", dateSetRes.data);
             }
 
-            if (showOptions || form.include_move_in || form.include_move_out) {
-                const shouldSaveChecklist = showOptions === "agreement" || form.include_move_in || form.include_move_out;
+            const shouldSaveChecklist = showOptions === "agreement" || form.include_move_in || form.include_move_out;
                 
-                if (shouldSaveChecklist) {
-                    const checklistRes = await axios.post(
-                        "/api/landlord/activeLease/saveChecklistRequirements",
-                        {
-                            agreement_id,
-                            lease_agreement: showOptions === "agreement",
-                            move_in_checklist: form.include_move_in,
-                            move_out_checklist: form.include_move_out,
-                            security_deposit: showOptions === "agreement",
-                            advance_payment: showOptions === "agreement",
-                            lease_start_date: form.lease_start_date || null,
-                            lease_end_date: form.lease_end_date || null,
-                        }
-                    );
-                    
-                    console.log("saveChecklistRequirements response:", checklistRes.data);
-                }
+            if (shouldSaveChecklist) {
+                const checklistRes = await axios.post(
+                    "/api/landlord/activeLease/saveChecklistRequirements",
+                    {
+                        agreement_id,
+                        lease_agreement: showOptions === "agreement",
+                        move_in_checklist: form.include_move_in,
+                        move_out_checklist: form.include_move_out,
+                        security_deposit: showOptions === "agreement",
+                        advance_payment: showOptions === "agreement",
+                        lease_start_date: form.lease_start_date || null,
+                        lease_end_date: form.lease_end_date || null,
+                    }
+                );
+                
+                console.log("saveChecklistRequirements response:", checklistRes.data);
             }
 
             Swal.close();
-            Swal.fire({
-                icon: "success",
-                title: "Setup saved",
-                text: "Checklist requirements have been saved.",
-            }).then(onClose);
+            
+            if (isDatesOnly) {
+                await Swal.fire({
+                    icon: "success",
+                    title: "Dates saved",
+                    text: "Lease dates have been updated.",
+                });
+            }
+            onClose();
         } catch (error: any) {
             console.error("Save error:", error);
             Swal.close();
@@ -413,18 +413,32 @@ export default function ChecklistSetupModal({
                                 >
                                     Cancel
                                 </button>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={loading || !canProceed || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)}
-                                    className={`flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 ${
-                                        !canProceed || loading || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)
-                                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                                            : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
-                                    }`}
-                                >
-                                    {loading ? "Saving..." : "Continue"}
-                                    <ArrowRight className="w-4 h-4" />
-                                </button>
+                                {showOptions === "dates" && !form.include_move_in && !form.include_move_out ? (
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={loading || !canProceed || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)}
+                                        className={`flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                                            !canProceed || loading || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)
+                                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                                : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
+                                        }`}
+                                    >
+                                        {loading ? "Saving..." : "Save"}
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={loading || !canProceed || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)}
+                                        className={`flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 ${
+                                            !canProceed || loading || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)
+                                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                                : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
+                                        }`}
+                                    >
+                                        {loading ? "Saving..." : "Continue"}
+                                        <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                )}
                             </div>
                         </>
                     )}

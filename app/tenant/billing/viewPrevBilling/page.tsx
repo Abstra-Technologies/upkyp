@@ -1,11 +1,7 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
-import axios from "axios";
-import {  useRef } from "react";
-import * as htmlToImage from "html-to-image";
-
+import { Suspense } from "react";
+import { useViewBilling } from "@/hooks/tenant/useViewBilling";
 
 export default function ViewBillingPageWrapper() {
     return (
@@ -16,59 +12,20 @@ export default function ViewBillingPageWrapper() {
 }
 
 function BillingDetails() {
-    const [billing, setBilling] = useState<any>(null);
-    const [error, setError] = useState<string | null>(null);
-    const billingRef = useRef<HTMLDivElement>(null);
-    const searchParams = useSearchParams();
-    const billing_id = searchParams.get("billing_id");
-
-    useEffect(() => {
-        if (!billing_id) return;
-
-        const fetchBilling = async () => {
-            try {
-                const res = await axios.get(`/api/tenant/billing/previousBilling/${billing_id}`);
-                setBilling(res.data.billing);
-            } catch (err) {
-                console.error(err);
-                setError("Failed to fetch billing.");
-            }
-        };
-
-        fetchBilling();
-    }, [billing_id]);
-
-    const downloadImage = async () => {
-        if (!billingRef.current) return;
-
-        try {
-            const dataUrl = await htmlToImage.toPng(billingRef.current, { cacheBust: true });
-            const link = document.createElement("a");
-            link.href = dataUrl;
-            link.download = `billing_${billing_id}.png`;
-            link.click();
-        } catch (err) {
-            console.error("Error generating image:", err);
-        }
-    };
+    const { billing, error, loading, billingRef, downloadImage } = useViewBilling();
 
     if (error) return <p className="text-red-500">{error}</p>;
-    if (!billing) return <p className="text-gray-500">Loading billing...</p>;
+    if (loading) return <p className="text-gray-500">Loading billing...</p>;
 
     return (
         <div className="max-w-2xl mx-auto py-8 px-6 bg-white shadow-xl border border-gray-200 rounded-lg font-sans relative">
-
-            {/* Watermark */}
             <div className="absolute top-0 left-0 w-full h-full flex flex-wrap items-center justify-center pointer-events-none opacity-5 z-0">
                 {Array.from({ length: 100 }).map((_, i) => (
                     <span key={i} className="text-5xl font-bold text-gray-400 mx-2 my-2 transform rotate-45 select-none">HESTIA</span>
                 ))}
             </div>
 
-            {/* Billing Statement */}
             <div ref={billingRef} className="relative z-10 p-6 bg-white rounded-lg">
-
-                {/* Header */}
                 <div className="flex justify-between items-center mb-6 border-b border-gray-300 pb-4">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Billing Statement</h1>
@@ -88,7 +45,6 @@ function BillingDetails() {
                     </div>
                 </div>
 
-                {/* Tenant & Property Info */}
                 <div className="grid grid-cols-2 gap-6 mb-6">
                     <div>
                         <p className="text-sm font-semibold text-gray-600 mb-1">Tenant</p>
@@ -102,7 +58,6 @@ function BillingDetails() {
                     </div>
                 </div>
 
-                {/* Total Amount Due */}
                 <div className="mb-6 p-6 bg-gradient-to-r from-blue-50 to-white border border-gray-200 rounded-lg text-center shadow-sm">
                     <p className="text-sm font-semibold text-gray-500">Total Amount Due</p>
                     <p className="mt-2 text-4xl font-extrabold text-gray-900">
@@ -110,7 +65,6 @@ function BillingDetails() {
                     </p>
                 </div>
 
-                {/* Breakdown */}
                 <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-2 shadow-sm">
                     <h2 className="text-lg font-semibold text-gray-700 border-b border-gray-300 pb-2 mb-2">Breakdown</h2>
 
@@ -126,7 +80,6 @@ function BillingDetails() {
                         </div>
                     ))}
 
-                    {/* Meter Readings */}
                     {billing.meter_readings && (
                         <table className="w-full text-left border-collapse mt-4">
                             <thead>
@@ -161,13 +114,11 @@ function BillingDetails() {
                     )}
                 </div>
 
-                {/* Due Date */}
                 <div className="mb-6 text-gray-700 text-sm space-y-1">
                     <p><span className="font-semibold">Due Date:</span> {billing?.due_date}</p>
                 </div>
             </div>
 
-            {/* Download Button */}
             <div className="text-center mt-4">
                 <button
                     onClick={downloadImage}
@@ -177,11 +128,9 @@ function BillingDetails() {
                 </button>
             </div>
 
-            {/* Page_footer */}
             <div className="mt-6 text-xs text-gray-400 text-center border-t border-gray-200 pt-4">
                 Abstra Technologies. @ Hestia Rent360 This is a system-generated billing statement.
             </div>
         </div>
     );
 }
-

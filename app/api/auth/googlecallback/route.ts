@@ -48,16 +48,11 @@ export async function GET(req: NextRequest) {
         callbackUrl = "";
     }
 
-    const redirectToLogin = (message: string) => {
-        const securityHeaders = getSecurityHeaders();
-        const redirectUrl = callbackUrl
-            ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&error=${encodeURIComponent(message)}`
-            : `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?error=${encodeURIComponent(message)}`;
-        return NextResponse.redirect(redirectUrl);
-    };
-
     if (!code) {
-        return redirectToLogin("Authorization code is required.");
+        const redirectUrl = callbackUrl
+            ? `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}&error=Authorization+code+required`
+            : `${process.env.NEXT_PUBLIC_BASE_URL}/auth/login?error=Authorization+code+required`;
+        return NextResponse.redirect(redirectUrl);
     }
 
     let response: NextResponse;
@@ -122,7 +117,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-const dbUser = rows[0];
+        const dbUser = rows[0];
 
         /* =====================================================
            VALIDATE USER TYPE
@@ -170,7 +165,7 @@ const dbUser = rows[0];
                 path: "/",
                 httpOnly: true,
                 secure: IS_PROD,
-                sameSite: "strict",
+                sameSite: "lax",
                 maxAge: DEFAULT_JWT_EXPIRY,
             });
 
@@ -191,9 +186,9 @@ const dbUser = rows[0];
                 `INSERT INTO UserToken (user_id, token_type, token, created_at, expires_at)
                  VALUES (?, '2fa', ?, NOW(), DATE_ADD(NOW(), INTERVAL 10 MINUTE))
                  ON DUPLICATE KEY UPDATE
-                    token = VALUES(token),
-                    created_at = NOW(),
-                    expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE)`,
+                                      token = VALUES(token),
+                                      created_at = NOW(),
+                                      expires_at = DATE_ADD(NOW(), INTERVAL 10 MINUTE)`,
                 [dbUser.user_id, otp]
             );
 
@@ -219,8 +214,8 @@ const dbUser = rows[0];
         }
 
         /* =====================================================
-           UPDATE LAST LOGIN TIMESTAMP
-        ===================================================== */
+                    UPDATE LAST LOGIN TIMESTAMP
+                ===================================================== */
         const clientIp = await getClientIp();
         await db.execute(
             `UPDATE User SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = ?`,
@@ -228,13 +223,13 @@ const dbUser = rows[0];
         );
 
         /* =====================================================
-           LOGIN LOGGING
+            LOGIN LOGGING
         ===================================================== */
-        db.query(
-            `INSERT INTO ActivityLog (user_id, action, ip_address, user_agent, timestamp) 
+        await db.query(
+            `INSERT INTO ActivityLog (user_id, action, ip_address, user_agent, timestamp)
              VALUES (?, 'User logged in via Google', ?, ?, NOW())`,
             [dbUser.user_id, clientIp, req.headers.get("user-agent") ?? "unknown"]
-        ).catch(() => {});
+        );
 
         /* =====================================================
            GENERATE SECURE TOKEN
@@ -249,27 +244,29 @@ const dbUser = rows[0];
         await createSession(dbUser.user_id, jti, DEFAULT_JWT_EXPIRY);
 
         /* =====================================================
-           REDIRECT
-        ===================================================== */
+                    REDIRECT
+                ===================================================== */
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL!;
         let finalRedirectUrl = callbackUrl;
 
-        if (!finalRedirectUrl) {
+        console.log("[GoogleCallback] dbUser:", dbUser.userType, "callbackUrl:", callbackUrl, "state:", state);
+
+        if (!finalRedirectUrl || !callbackUrl) {
             if (dbUser.userType === "tenant") {
-                finalRedirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`;
+                finalRedirectUrl = `${baseUrl}/tenant/feeds`;
             } else if (dbUser.userType === "landlord") {
-                finalRedirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+                finalRedirectUrl = `${baseUrl}/landlord/dashboard`;
             } else {
                 return redirectToLogin("Invalid user type. Contact support.");
             }
         } else {
-            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
             const isValidCallback = callbackUrl.startsWith(baseUrl + "/tenant/") ||
                 callbackUrl.startsWith(baseUrl + "/landlord/") ||
                 callbackUrl.startsWith(baseUrl + "/auth/");
             if (!isValidCallback) {
                 finalRedirectUrl = dbUser.userType === "tenant"
-                    ? `${process.env.NEXT_PUBLIC_BASE_URL}/tenant/feeds`
-                    : `${process.env.NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+                    ? `${baseUrl}/tenant/feeds`
+                    : `${baseUrl}/landlord/dashboard`;
             }
         }
 

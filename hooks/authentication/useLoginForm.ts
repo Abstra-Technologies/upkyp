@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import useAuthStore from "@/zustand/authStore";
@@ -12,13 +12,16 @@ const loginSchema = z.object({
 });
 
 export function useLoginForm({
-                                  callbackUrl,
-                              }: {
+                                 callbackUrl,
+                             }: {
     callbackUrl?: string | null;
 } = {}) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { user, fetchSession } = useAuthStore();
+
+    const { user, fetchSession, loading } = useAuthStore();
+
+    const hasFetched = useRef(false);
 
     const errorParam = searchParams.get("error");
 
@@ -30,14 +33,29 @@ export function useLoginForm({
     const [rememberMe, setRememberMe] = useState(false);
 
     /* =====================================================
-       DO NOT FORCE REDIRECT ON MOUNT
+       SESSION HYDRATION (SAFE + ONCE)
     ===================================================== */
     useEffect(() => {
-        fetchSession();
-    }, []);
+        if (!hasFetched.current) {
+            hasFetched.current = true;
+            fetchSession();
+        }
+    }, [fetchSession]);
 
     /* =====================================================
-       ERROR FROM QUERY PARAM
+       REDIRECT IF ALREADY AUTHENTICATED (NO FLICKER)
+    ===================================================== */
+    useEffect(() => {
+        if (loading) return;
+
+        if (user) {
+            const safeRedirect = getSafeRedirect(callbackUrl, user.userType);
+            router.replace(safeRedirect);
+        }
+    }, [user, loading, callbackUrl, router]);
+
+    /* =====================================================
+       HANDLE ERROR PARAM
     ===================================================== */
     useEffect(() => {
         if (errorParam) {
@@ -46,34 +64,46 @@ export function useLoginForm({
     }, [errorParam]);
 
     /* =====================================================
-       FORM HANDLERS
+       INPUT HANDLER (SANITIZED)
     ===================================================== */
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
-        setFormData((prev) => ({ ...prev, [id]: value }));
+
+        setFormData((prev) => ({
+            ...prev,
+            [id]: value.trimStart(), // prevent leading spaces
+        }));
+
         if (errorMessage) setErrorMessage("");
     };
 
+    /* =====================================================
+       GOOGLE SIGN-IN (SAFE REDIRECT)
+    ===================================================== */
     const handleGoogleSignin = () => {
+        if (isLoggingIn) return;
+
         logEvent("Login Attempt", "Google Sign-In", "User Clicked Google Login", 1);
 
         const cb = callbackUrl
             ? `?callbackUrl=${encodeURIComponent(callbackUrl)}`
             : "";
 
-        window.location.href = `/api/auth/google-login${cb}`;
+        window.location.assign(`/api/auth/google-login${cb}`);
     };
 
     /* =====================================================
-       SUBMIT LOGIN
+       SUBMIT LOGIN (HARDENED)
     ===================================================== */
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (isLoggingIn) return; // prevent double submit
+
         try {
             loginSchema.parse(formData);
         } catch {
-            setErrorMessage("Please fill in valid credentials.");
+            setErrorMessage("Please enter valid credentials.");
             return;
         }
 
@@ -86,10 +116,15 @@ export function useLoginForm({
         setErrorMessage("");
 
         try {
+            const controller = new AbortController();
+
             const res = await fetch("/api/auth/login", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                },
                 credentials: "include",
+                signal: controller.signal,
                 body: JSON.stringify({
                     ...formData,
                     captchaToken,
@@ -98,37 +133,83 @@ export function useLoginForm({
                 }),
             });
 
+            /* ============================
+               HANDLE REDIRECT RESPONSE
+            ============================ */
             if (res.redirected) {
-                const redirectUrl = res.url;
-                window.location.href = redirectUrl;
+                window.location.replace(res.url);
                 return;
             }
 
             const data = await res.json();
 
+            /* ============================
+               HANDLE 2FA
+            ============================ */
             if (res.ok && data?.requires_otp) {
                 const twoFaUrl = `/auth/verify-2fa?user_id=${data.user_id}${
-                    callbackUrl ? `&callbackUrl=${encodeURIComponent(callbackUrl)}` : ""
+                    callbackUrl
+                        ? `&callbackUrl=${encodeURIComponent(callbackUrl)}`
+                        : ""
                 }`;
-                router.push(twoFaUrl);
+
+                router.replace(twoFaUrl);
                 return;
             }
 
+            /* ============================
+               HANDLE ERROR
+            ============================ */
             if (!res.ok) {
                 setErrorMessage(data?.error || "Invalid credentials");
-                (window as any).grecaptcha?.reset();
-                setCaptchaToken(null);
+
+                resetCaptcha();
                 return;
             }
-        } catch (err) {
-            console.error(err);
-            setErrorMessage("Something went wrong. Please try again.");
-            (window as any).grecaptcha?.reset();
-            setCaptchaToken(null);
+
+            /* ============================
+               SUCCESS (NON-REDIRECT API)
+            ============================ */
+            await fetchSession();
+
+            const safeRedirect = getSafeRedirect(callbackUrl, data.userType);
+            router.replace(safeRedirect);
+        } catch (err: any) {
+            console.error("[Login Error]", err);
+
+            if (err.name !== "AbortError") {
+                setErrorMessage("Network error. Please try again.");
+                resetCaptcha();
+            }
         } finally {
             setIsLoggingIn(false);
         }
     };
+
+    /* =====================================================
+       HELPERS
+    ===================================================== */
+    function resetCaptcha() {
+        (window as any).grecaptcha?.reset();
+        setCaptchaToken(null);
+    }
+
+    function getSafeRedirect(cb: string | null | undefined, userType: string) {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+        if (cb && baseUrl) {
+            const isValid =
+                cb.startsWith(`${baseUrl}/tenant/`) ||
+                cb.startsWith(`${baseUrl}/landlord/`) ||
+                cb.startsWith(`${baseUrl}/auth/`);
+
+            if (isValid) return cb;
+        }
+
+        return userType === "tenant"
+            ? "/tenant/feeds"
+            : "/landlord/dashboard";
+    }
 
     return {
         formData,
@@ -143,5 +224,6 @@ export function useLoginForm({
         handleChange,
         handleGoogleSignin,
         handleSubmit,
+        loading, // expose for UI
     };
 }

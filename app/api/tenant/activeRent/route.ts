@@ -14,7 +14,11 @@ const getTenantActiveLeases = unstable_cache(
         la.status AS lease_status,
         la.start_date,
         la.end_date,
+        la.move_in_date,
         la.updated_at,
+        
+        -- LEASE SETUP REQUIREMENTS
+        lsr.move_in_checklist,
 
         -- SIGNATURE STATUS
         MAX(CASE WHEN ls.role = 'landlord' THEN ls.status END) AS landlord_sig,
@@ -55,6 +59,7 @@ const getTenantActiveLeases = unstable_cache(
 
       LEFT JOIN LeaseSignature ls ON la.agreement_id = ls.agreement_id
       LEFT JOIN UnitPhoto up ON u.unit_id = up.unit_id
+      LEFT JOIN LeaseSetupRequirements lsr ON la.agreement_id = lsr.agreement_id
 
       WHERE la.tenant_id = ?
         AND la.status IN ('draft', 'active', 'expired', 'pending_signature', 'invited', 'accepted', 'pending')
@@ -115,6 +120,8 @@ const getTenantActiveLeases = unstable_cache(
 
                 start_date: row.start_date,
                 end_date: row.end_date,
+                move_in_date: row.move_in_date,
+                move_in_checklist: row.move_in_checklist,
 
                 unit_id: row.unit_id,
                 unit_name: row.unit_name,
