@@ -11,7 +11,6 @@ export default function TenantPortalLayout({
   const params = useParams();
   const agreement_id = params?.agreement_id as string | undefined;
 
-  // Store agreement ID when on portal pages
   useEffect(() => {
     if (agreement_id) {
       localStorage.setItem("portalAgreementId", agreement_id);

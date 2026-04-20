@@ -153,7 +153,7 @@ export default function MaintenanceRequestForm() {
           confirmButtonColor: "#10b981",
         }).then(() =>
           router.push(
-            `app/tenant/rentalPortal/${agreement_id}/maintenance?agreement_id=${agreement_id}`,
+            `/tenant/rentalPortal/${agreement_id}/maintenance?agreement_id=${agreement_id}`,
           ),
         );
       }
