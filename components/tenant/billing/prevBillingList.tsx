@@ -72,30 +72,30 @@ export default function PreviousBilling({ agreement_id, user_id }) {
     ------------------------------------------------*/
     if (loading)
         return (
-            <div className="space-y-4 md:space-y-3">
+            <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
                     <div
                         key={i}
-                        className="bg-white rounded-2xl shadow-sm border-2 border-gray-200 overflow-hidden"
+                        className="bg-white rounded-xl border border-gray-200 overflow-hidden"
                     >
-                        <div className="p-4 md:p-5">
-                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                                <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <div className="p-3">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {[1, 2, 3].map((j) => (
                                         <div key={j}>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <div className="w-7 h-7 bg-gray-200 rounded-lg animate-pulse" />
-                                                <div className="h-3 bg-gray-200 rounded w-20 animate-pulse" />
+                                            <div className="flex items-center gap-1.5 mb-1">
+                                                <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+                                                <div className="h-2.5 bg-gray-200 rounded w-14 animate-pulse" />
                                             </div>
-                                            <div className="h-5 bg-gray-200 rounded w-24 animate-pulse" />
+                                            <div className="h-4 bg-gray-200 rounded w-18 animate-pulse" />
                                         </div>
                                     ))}
                                 </div>
-                                <div className="h-11 w-full lg:w-48 bg-gray-200 rounded-xl animate-pulse" />
+                                <div className="h-9 w-full sm:w-36 bg-gray-200 rounded-lg animate-pulse" />
                             </div>
                         </div>
-                        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 px-4 md:px-5 py-3 border-t border-gray-200">
-                            <div className="h-4 bg-gray-200 rounded w-48 animate-pulse" />
+                        <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
+                            <div className="h-3 bg-gray-200 rounded w-36 animate-pulse" />
                         </div>
                     </div>
                 ))}
@@ -107,14 +107,14 @@ export default function PreviousBilling({ agreement_id, user_id }) {
     ------------------------------------------------*/
     if (fetchFailed || billingData.length === 0)
         return (
-            <div className="text-center py-16">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-                    <FolderOpenIcon className="w-10 h-10 text-gray-400" />
+            <div className="text-center py-10">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                    <FolderOpenIcon className="w-7 h-7 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                <h3 className="text-base font-bold text-gray-900 mb-1.5">
                     No Billing History
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-500">
                     You currently have no previous billing records.
                 </p>
             </div>
@@ -124,77 +124,72 @@ export default function PreviousBilling({ agreement_id, user_id }) {
        BILLING LIST
     ------------------------------------------------*/
     return (
-        <div className="space-y-4 md:space-y-3">
+        <div className="space-y-3">
             {billingData.map((bill) => (
                 <div
                     key={bill.billing_id}
-                    className="bg-white rounded-2xl shadow-sm border-2 border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all duration-300 overflow-hidden"
+                    className="bg-white rounded-xl border border-gray-200 hover:shadow-md hover:border-blue-200 transition-all duration-200 overflow-hidden"
                 >
-                    <div className="p-4 md:p-5">
-                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="p-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
 
-                            {/* Billing Info */}
-                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                                {/* Billing ID */}
+                            <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="p-1.5 bg-blue-100 rounded-lg">
-                                            <ReceiptPercentIcon className="w-4 h-4 text-blue-600" />
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <div className="p-1 bg-blue-100 rounded">
+                                            <ReceiptPercentIcon className="w-3.5 h-3.5 text-blue-600" />
                                         </div>
-                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                                             Billing ID
                                         </p>
                                     </div>
-                                    <p className="text-sm font-bold text-gray-900">
+                                    <p className="text-xs font-bold text-gray-900">
                                         #{bill.billing_id}
                                     </p>
                                 </div>
 
-                                {/* Billing Period */}
                                 <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="p-1.5 bg-emerald-100 rounded-lg">
-                                            <CalendarIcon className="w-4 h-4 text-emerald-600" />
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <div className="p-1 bg-emerald-100 rounded">
+                                            <CalendarIcon className="w-3.5 h-3.5 text-emerald-600" />
                                         </div>
-                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                                             Period
                                         </p>
                                     </div>
-                                    <p className="text-sm font-semibold text-gray-900">
+                                    <p className="text-xs font-semibold text-gray-900">
                                         {formatDate(bill.billing_period)}
                                     </p>
                                 </div>
 
-                                {/* Total Amount */}
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <div className="p-1.5 bg-amber-100 rounded-lg">
-                                            <BanknotesIcon className="w-4 h-4 text-amber-600" />
+                                <div className="col-span-2 sm:col-span-1">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                        <div className="p-1 bg-amber-100 rounded">
+                                            <BanknotesIcon className="w-3.5 h-3.5 text-amber-600" />
                                         </div>
-                                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                                             Amount
                                         </p>
                                     </div>
-                                    <p className="text-lg font-bold text-gray-900">
+                                    <p className="text-base font-bold text-gray-900">
                                         {formatCurrency(bill.total_amount_due || 0)}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Download Button */}
                             <button
                                 onClick={() => handleDownload(bill.billing_id)}
                                 disabled={downloadingId === bill.billing_id}
-                                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-xl font-bold shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed lg:w-auto text-sm sm:text-base"
+                                className="flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-lg font-semibold shadow-sm hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xs"
                             >
                                 {downloadingId === bill.billing_id ? (
                                     <>
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                         <span>Downloading...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <DocumentArrowDownIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                                        <DocumentArrowDownIcon className="w-3.5 h-3.5" />
                                         <span>Download PDF</span>
                                     </>
                                 )}
@@ -202,11 +197,10 @@ export default function PreviousBilling({ agreement_id, user_id }) {
                         </div>
                     </div>
 
-                    {/* Footer Bar */}
-                    <div className="bg-gradient-to-r from-emerald-50 to-blue-50 px-4 md:px-5 py-3 border-t border-gray-200">
-                        <div className="flex items-center gap-2 text-xs sm:text-sm">
+                    <div className="bg-gray-50 px-3 py-2 border-t border-gray-200">
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
                             <span className="text-gray-400">•</span>
-                            <span className="text-gray-600">Statement available for download</span>
+                            <span>Statement available for download</span>
                         </div>
                     </div>
                 </div>
