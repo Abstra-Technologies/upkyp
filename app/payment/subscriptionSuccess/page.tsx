@@ -1,20 +1,30 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense, useRef } from "react";
+import { useEffect, useState, Suspense, useRef, Dispatch, SetStateAction } from "react";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import { Home, Download, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 
-const SearchParamsWrapper = ({
+interface SearchParamsProps {
+    setRequestReferenceNumber: Dispatch<SetStateAction<string | null>>;
+    setLandlordId: Dispatch<SetStateAction<string | null>>;
+    setPlanName: Dispatch<SetStateAction<string | null>>;
+    setPlanCode: Dispatch<SetStateAction<string | null>>;
+    setAmount: Dispatch<SetStateAction<string | null>>;
+}
+
+const SearchParamsWrapper: React.FC<SearchParamsProps> = ({
                                  setRequestReferenceNumber,
                                  setLandlordId,
                                  setPlanName,
+                                 setPlanCode,
                                  setAmount,
                              }) => {
     const searchParams = useSearchParams();
     const requestReferenceNumber = searchParams.get("requestReferenceNumber");
     const landlord_id = searchParams.get("landlord_id");
     const plan_name = searchParams.get("plan_name");
+    const plan_code = searchParams.get("plan_code");
     const amount = searchParams.get("amount");
 
     useEffect(() => {
@@ -22,16 +32,19 @@ const SearchParamsWrapper = ({
             setRequestReferenceNumber(requestReferenceNumber);
             setLandlordId(landlord_id);
             setPlanName(plan_name);
+            setPlanCode(plan_code);
             setAmount(amount);
         }
     }, [
         requestReferenceNumber,
         landlord_id,
         plan_name,
+        plan_code,
         amount,
         setRequestReferenceNumber,
         setLandlordId,
         setPlanName,
+        setPlanCode,
         setAmount,
     ]);
 
@@ -44,6 +57,7 @@ function PaymentReceiptPage() {
     const [requestReferenceNumber, setRequestReferenceNumber] = useState<string | null>(null);
     const [landlord_id, setLandlordId] = useState<string | null>(null);
     const [plan_name, setPlanName] = useState<string | null>(null);
+    const [plan_code, setPlanCode] = useState<string | null>(null);
     const [amount, setAmount] = useState<string | null>(null);
     const [message, setMessage] = useState("Processing your payment...");
     const [loading, setLoading] = useState(true);
@@ -133,6 +147,7 @@ function PaymentReceiptPage() {
                 setRequestReferenceNumber={setRequestReferenceNumber}
                 setLandlordId={setLandlordId}
                 setPlanName={setPlanName}
+                setPlanCode={setPlanCode}
                 setAmount={setAmount}
             />
 

@@ -643,19 +643,22 @@ create index user_id
 
 create table Landlord
 (
-    landlord_id       varchar(20)                          not null
+    landlord_id        varchar(20)                          not null
         primary key,
-    user_id           char(36)                             not null,
-    createdAt         timestamp  default CURRENT_TIMESTAMP not null,
-    updatedAt         timestamp  default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
-    is_trial_used     tinyint(1) default 0                 null,
-    trial_used_at     datetime                             null,
-    citizenship       varchar(200)                         null,
-    is_verified       tinyint    default 0                 null,
-    setup_completed   tinyint(1) default 0                 null,
-    xendit_account_id varchar(100)                         null,
+    user_id            char(36)                             not null,
+    createdAt          timestamp  default CURRENT_TIMESTAMP not null,
+    updatedAt          timestamp  default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
+    is_trial_used      tinyint(1) default 0                 null,
+    trial_used_at      datetime                             null,
+    citizenship        varchar(200)                         null,
+    is_verified        tinyint    default 0                 null,
+    setup_completed    tinyint(1) default 0                 null,
+    xendit_account_id  varchar(100)                         null,
+    xendit_customer_id varchar(100)                         null,
     constraint uniq_xendit_account_id
         unique (xendit_account_id),
+    constraint uniq_xendit_customer_id
+        unique (xendit_customer_id),
     constraint userID
         unique (user_id),
     constraint fk_user_landlord
@@ -1099,6 +1102,7 @@ create table Subscription
     is_trial                 tinyint(1)                                                default 0                 not null,
     amount_paid              decimal(10, 2)                                            default 0.00              not null,
     is_active                tinyint(1)                                                default 0                 null,
+    raw_xendit_payload       json                                                                                null,
     constraint Subscription_ibfk_1
         foreign key (landlord_id) references Landlord (landlord_id)
             on update cascade on delete cascade

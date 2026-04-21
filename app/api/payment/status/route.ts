@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
         const requestReferenceNumber = String(body?.requestReferenceNumber || "").trim();
         const landlord_id = String(body?.landlord_id || "").trim();
         const plan_name = String(body?.plan_name || "").trim();
+        const plan_code = String(body?.plan_code || plan_name.toUpperCase()).trim();
         const amount = Number(body?.amount ?? 0);
         const status = String(body?.status || "success").toLowerCase();
 
@@ -117,12 +118,13 @@ export async function POST(req: NextRequest) {
         // 🔹 Insert new subscription record (always record attempt)
         await connection.execute(
             `INSERT INTO Subscription
-       (landlord_id, plan_name, start_date, end_date, payment_status, created_at,
+       (landlord_id, plan_name, plan_code, start_date, end_date, payment_status, created_at,
         request_reference_number, is_trial, amount_paid, is_active)
-       VALUES (?, ?, ?, ?, ?, NOW(), ?, 0, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, 0, ?, ?)`,
             [
                 landlord_id,
                 plan_name,
+                plan_code,
                 start_date,
                 end_date,
                 payment_status,

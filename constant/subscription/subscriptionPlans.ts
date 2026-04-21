@@ -11,6 +11,7 @@ export interface UnitBand {
 export interface SubscriptionPlan {
     id: number;
     name: string;
+    planCode: string;
     price: number;
     trialDays: number;
     popular: boolean;
@@ -32,6 +33,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 1,
         name: "Starter Plan",
+        planCode: "STARTER",
         price: 200,
         trialDays: 0,
         popular: false,
@@ -48,6 +50,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 2,
         name: "Growth Plan",
+        planCode: "GROWTH",
         price: 1499,
         trialDays: 60,
         popular: true,
@@ -70,6 +73,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 3,
         name: "Pro Plan",
+        planCode: "PRO",
         price: 2499,
         trialDays: 60,
         popular: false,
@@ -93,6 +97,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     {
         id: 4,
         name: "Lifetime License",
+        planCode: "LIFETIME",
         price: 0,
         trialDays: 0,
         popular: false,

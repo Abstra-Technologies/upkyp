@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 
 interface SelectedPlan {
     id: number;
+    planCode?: string;
     name: string;
     price: number;
     unitBandIndex?: number;

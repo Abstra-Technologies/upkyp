@@ -13,12 +13,12 @@ export async function createXenditCustomer({
                                                secretKey,
                                                forUserId,
                                            }: {
-    referenceId: string; // e.g. tenant-123 | landlord-456
+    referenceId: string;
     email?: string;
     firstName?: string;
     lastName?: string;
     secretKey: string;
-    forUserId: string; // landlord's xendit_account_id
+    forUserId?: string;
 }) {
 
     const resp = await fetch("https://api.xendit.co/customers", {

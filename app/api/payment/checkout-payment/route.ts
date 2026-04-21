@@ -1,64 +1,98 @@
+/* -------------------------------------------------------------------------- */
+/* XENDIT SUBSCRIPTION CHECKOUT API (Enterprise Grade)                             */
+/* -------------------------------------------------------------------------- */
+/* Supports:                                                               */
+/* - PAY_AND_SAVE: First payment + save card for recurring                                */
+/* - PAY_With_Token: Recurring payments using saved token                           */
+/* - INVOICE: One-time/lifetime payments                                        */
+/* -------------------------------------------------------------------------- */
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
-import axios from "axios";
+import crypto from "crypto";
+import { createXenditCustomer } from "@/lib/payments/xenditCustomer";
+import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
 
-// for landlord subscription checkout payment
+/* -------------------------------------------------------------------------- */
+/* ENV & CONSTANTS                                                           */
+/* -------------------------------------------------------------------------- */
 
-export const runtime = "nodejs";
+const {
+    DB_HOST,
+    DB_USER,
+    DB_PASSWORD,
+    DB_NAME,
+    XENDIT_SECRET_KEY,
+    NEXT_PUBLIC_BASE_URL,
+} = process.env;
 
-export const dynamic = "force-dynamic";
+const XENDIT_PAYMENT_REQUESTS = "https://api.xendit.co/v3/payment_requests";
+const XENDIT_INVOICES = "https://api.xendit.co/v2/invoices";
+const CURRENCY = "PHP";
+const COUNTRY = "PH";
+const API_VERSION = "2024-11-11";
 
-// Types ----------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* TYPES                                                                   */
+/* -------------------------------------------------------------------------- */
+
 interface RedirectUrls {
     success: string;
     failure: string;
-    cancel: string;
+    cancel?: string;
 }
 
-interface SubscriptionCheckoutBody {
-    amount?: number | string; // numeric string accepted; validated later
-    description?: string;
+interface CheckoutBody {
+    landlord_id?: string;
+    plan_code: string;
+    redirectUrl?: RedirectUrls;
     email?: string;
     firstName?: string;
     lastName?: string;
-    redirectUrl?: RedirectUrls;
-    landlord_id?: number | string;
-    plan_name?: string; // Standard | Premium | ...
+    payment_token_id?: string;
+    channel_code?: string;
+    card_details?: {
+        card_number: string;
+        expiry_month: string;
+        expiry_year: string;
+        cvn?: string;
+    };
 }
 
-// Helpers --------------------------------------------------------------------
-function httpError(status: number, message: string, extra?: any) {
-    return NextResponse.json({ error: message, ...(extra ? { details: extra } : {}) }, { status });
+interface PlanInfo {
+    name: string;
+    planCode: string;
+    price: number;
+    isLifetime?: boolean;
 }
 
-function sanitizeNumber(n: unknown): number | null {
-    if (typeof n === "number" && !Number.isNaN(n)) return n;
-    if (typeof n === "string" && n.trim() !== "" && !Number.isNaN(Number(n))) return Number(n);
-    return null;
+/* -------------------------------------------------------------------------- */
+/* HELPERS                                                                   */
+/* -------------------------------------------------------------------------- */
+
+function httpError(status: number, message: string, extra?: Record<string, unknown>): NextResponse {
+    return NextResponse.json(
+        { error: message, ...(extra && { details: extra }) },
+        { status }
+    );
 }
 
-function sanitizeId(id: unknown): number | null {
-    return sanitizeNumber(id);
+function sanitizeString(s: unknown): string | null {
+    return typeof s === "string" && s.trim() !== "" ? s.trim() : null;
 }
 
-function isoDate(date: Date): string {
-    return date.toISOString().split("T")[0];
+function getPlan(planCode: string): PlanInfo | undefined {
+    return SUBSCRIPTION_PLANS.find(p => p.planCode === planCode);
 }
 
-function calcTrialDays(plan: string | undefined | null): number {
-    // Adjust as needed. Current logic: Standard -> 10, Premium -> 10, else -> 14.
-    if (!plan) return 14;
-    if (plan === "Standard" || plan === "Premium") return 10;
-    return 14;
+function isLifetimePlan(planCode: string): boolean {
+    return planCode === "LIFETIME";
 }
 
-// DB Connection Factory -------------------------------------------------------
 async function getDbConnection() {
-    const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
-    if (!DB_HOST || !DB_USER || !DB_NAME) {
-        throw new Error("Database environment variables are not fully configured.");
-    }
     return mysql.createConnection({
         host: DB_HOST,
         user: DB_USER,
@@ -67,192 +101,418 @@ async function getDbConnection() {
     });
 }
 
-// POST -----------------------------------------------------------------------
-export async function POST(req: NextRequest) {
-    let body: SubscriptionCheckoutBody;
-    try {
-        body = await req.json();
-    } catch {
-        return httpError(400, "Invalid JSON body.");
-    }
+function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
+    const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: "Basic " + Buffer.from(`${XENDIT_SECRET_KEY}:`).toString("base64"),
+        "api-version": API_VERSION,
+    };
+    if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
+    return headers;
+}
 
-    const {
-        amount: rawAmount,
-        description = "Subscription",
-        email = "",
-        firstName = "",
-        lastName = "",
-        redirectUrl,
-        landlord_id: rawLandlordId,
-        plan_name = "Standard",
-    } = body;
+/* -------------------------------------------------------------------------- */
+/* XENDIT API CALLS                                                         */
+/* -------------------------------------------------------------------------- */
 
-    // landlord_id required ------------------------------------------------------
-    const landlord_id = sanitizeId(rawLandlordId);
-    if (landlord_id === null) {
-        return httpError(400, "Missing or invalid landlord_id in request.");
-    }
-
-    // Log request (server-side only) -------------------------------------------
-    console.log("Incoming Request Data for subscription checkout:", {
-        amount: rawAmount,
+/**
+ * Create a one-time invoice payment (for LIFETIME plans)
+ */
+async function createInvoicePayment(
+    customerId: string,
+    amount: number,
+    description: string,
+    redirectUrls: RedirectUrls,
+    referenceId: string
+) {
+    const payload = {
+        external_id: referenceId,
+        amount,
+        currency: CURRENCY,
         description,
-        email,
-        firstName,
-        lastName,
-        redirectUrl,
-        landlord_id,
-        plan_name,
+        customer: { customer_id: customerId },
+        success_redirect_url: redirectUrls.success,
+        failure_redirect_url: redirectUrls.failure,
+        cancel_redirect_url: redirectUrls.cancel,
+    };
+
+    const res = await fetch(XENDIT_INVOICES, {
+        method: "POST",
+        headers: getXenditHeaders(referenceId),
+        body: JSON.stringify(payload),
     });
 
-    // Env keys for Maya --------------------------------------------------------
-    const publicKey = process.env.MAYA_PUBLIC_KEY;
-    const secretKey = process.env.MAYA_SECRET_KEY;
-    if (!publicKey || !secretKey) {
-        return httpError(500, "Maya keys are not configured on the server.");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Invoice creation failed");
+
+    return data;
+}
+
+/**
+ * Create PAY_AND_SAVE payment (first payment + save card)
+ */
+async function createPayAndSavePayment(
+    customerId: string,
+    amount: number,
+    description: string,
+    redirectUrls: RedirectUrls,
+    referenceId: string,
+    channelCode: string,
+    cardDetails?: {
+        card_number: string;
+        expiry_month: string;
+        expiry_year: string;
+        cvn?: string;
+    },
+    email?: string,
+    firstName?: string,
+    lastName?: string
+) {
+    const customer = {
+        reference_id: `cust-${referenceId}`,
+        type: "INDIVIDUAL" as const,
+        individual_detail: {
+            given_names: firstName || "Customer",
+            surname: lastName || "",
+        },
+        email: email || "customer@example.com",
+    };
+
+    const channelProperties: Record<string, unknown> = {
+        failure_return_url: redirectUrls.failure,
+        success_return_url: redirectUrls.success,
+    };
+
+    if (cardDetails) {
+        Object.assign(channelProperties, {
+            card_details: {
+                ...cardDetails,
+                cardholder_email: email,
+                cardholder_first_name: firstName,
+                cardholder_last_name: lastName,
+            },
+        });
     }
 
+    const payload = {
+        reference_id: referenceId,
+        customer,
+        type: "PAY_AND_SAVE",
+        country: COUNTRY,
+        currency: CURRENCY,
+        request_amount: amount,
+        capture_method: "AUTOMATIC",
+        channel_code: channelCode,
+        channel_properties: channelProperties,
+        description,
+        metadata: { source: "subscription_checkout" },
+    };
+
+    const res = await fetch(XENDIT_PAYMENT_REQUESTS, {
+        method: "POST",
+        headers: getXenditHeaders(referenceId),
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "PAY_AND_SAVE failed");
+
+    return data;
+}
+
+/**
+ * Create payment with saved token (recurring payments)
+ */
+async function createPaymentWithToken(
+    paymentTokenId: string,
+    amount: number,
+    description: string,
+    redirectUrls: RedirectUrls,
+    referenceId: string,
+    customerId?: string
+) {
+    const payload: Record<string, unknown> = {
+        reference_id: referenceId,
+        payment_token_id: paymentTokenId,
+        type: "PAY",
+        country: COUNTRY,
+        currency: CURRENCY,
+        request_amount: amount,
+        capture_method: "AUTOMATIC",
+        channel_code: "CARDS",
+        channel_properties: {
+            card_on_file_type: "RECURRING",
+            success_return_url: redirectUrls.success,
+            failure_return_url: redirectUrls.failure,
+        },
+        description,
+    };
+
+    if (customerId) {
+        payload.customer_id = customerId;
+    }
+
+    const res = await fetch(XENDIT_PAYMENT_REQUESTS, {
+        method: "POST",
+        headers: getXenditHeaders(referenceId),
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Payment with token failed");
+
+    return data;
+}
+
+/* -------------------------------------------------------------------------- */
+/* DATABASE OPERATIONS                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Get or create Xendit customer
+ */
+async function getOrCreateCustomer(
+    conn: mysql.Connection,
+    landlordId: string,
+    email?: string,
+    firstName?: string,
+    lastName?: string
+): Promise<string> {
+    const [rows] = await conn.execute<mysql.RowDataPacket[]>(
+        "SELECT xendit_customer_id FROM Landlord WHERE landlord_id = ? LIMIT 1",
+        [landlordId]
+    );
+
+    let customerId = rows[0]?.xendit_customer_id;
+
+    if (!customerId) {
+        customerId = await createXenditCustomer({
+            referenceId: `landlord-${landlordId}`,
+            email,
+            firstName,
+            lastName,
+            secretKey: XENDIT_SECRET_KEY!,
+        });
+
+        await conn.execute(
+            "UPDATE Landlord SET xendit_customer_id = ? WHERE landlord_id = ?",
+            [customerId, landlordId]
+        );
+    }
+
+    return customerId;
+}
+
+/**
+ * Save subscription record
+ */
+async function saveSubscription(
+    conn: mysql.Connection,
+    landlordId: string,
+    plan: PlanInfo,
+    amount: number,
+    xenditData: Record<string, unknown>,
+    referenceId: string
+): Promise<number> {
+    const startDate = new Date().toISOString().split("T")[0];
+    const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    const [result] = await conn.execute<mysql.ResultSetHeader>(
+        `INSERT INTO Subscription 
+        (landlord_id, plan_name, plan_code, start_date, end_date, payment_status, created_at, 
+         request_reference_number, amount_paid, is_active, raw_xendit_payload) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 1, ?)`,
+        [
+            landlordId,
+            plan.name,
+            plan.planCode,
+            startDate,
+            endDate,
+            "pending",
+            referenceId,
+            amount,
+            JSON.stringify(xenditData),
+        ]
+    );
+
+    return result.insertId;
+}
+
+/* -------------------------------------------------------------------------- */
+/* MAIN HANDLER                                                            */
+/* -------------------------------------------------------------------------- */
+
+export async function POST(req: NextRequest) {
     let connection: mysql.Connection | undefined;
 
     try {
+        /* ---------------- VALIDATE REQUEST ---------------- */
+        const body: CheckoutBody = await req.json();
+
+        const {
+            landlord_id: rawLandlordId,
+            plan_code,
+            redirectUrl,
+            email,
+            firstName,
+            lastName,
+            payment_token_id,
+            channel_code = "CARDS",
+            card_details,
+        } = body;
+
+        const landlord_id = sanitizeString(rawLandlordId);
+        if (!landlord_id) {
+            return httpError(400, "Missing or invalid landlord_id");
+        }
+
+        if (!plan_code) {
+            return httpError(400, "Missing plan_code");
+        }
+
+        if (!XENDIT_SECRET_KEY) {
+            return httpError(500, "Server misconfiguration: missing Xendit key");
+        }
+
+        /* ---------------- GET PLAN ---------------- */
+        const plan = getPlan(plan_code);
+        if (!plan) {
+            return httpError(400, "Invalid plan_code");
+        }
+
+        const amount = plan.price;
+
+        if (amount <= 0) {
+            return httpError(400, "Invalid plan price");
+        }
+
+        /* ---------------- SETUP REDIRECT URLs ---------------- */
+        const defaultRedirectUrls: RedirectUrls = {
+            success: `${NEXT_PUBLIC_BASE_URL}/payment/subscriptionSuccess`,
+            failure: `${NEXT_PUBLIC_BASE_URL}/payment/failure`,
+            cancel: `${NEXT_PUBLIC_BASE_URL}/payment/cancelled`,
+        };
+
+        const finalRedirectUrls: RedirectUrls = redirectUrl || defaultRedirectUrls;
+
+        /* ---------------- DATABASE CONNECTION ---------------- */
         connection = await getDbConnection();
 
-        // 1. Has user already consumed trial? ------------------------------------
-        const [landlordRows] = await connection.execute<mysql.RowDataPacket[]>(
-            "SELECT is_trial_used FROM Landlord WHERE landlord_id = ? LIMIT 1",
-            [landlord_id]
-        );
-        const hasUsedTrial = landlordRows.length > 0 && Boolean(landlordRows[0].is_trial_used);
-        console.log("Debug - Has Used Trial Before?", hasUsedTrial);
-
-        // 2. Compute dates -------------------------------------------------------
-        const start_date = isoDate(new Date());
-        const trialDays = calcTrialDays(plan_name);
-        const trialStartDate = new Date();
-        const trialEndDate = new Date(trialStartDate);
-        trialEndDate.setDate(trialStartDate.getDate() + trialDays);
-        const formattedTrialEndDate = isoDate(trialEndDate);
-
-        const paidEndDate = new Date();
-        paidEndDate.setMonth(paidEndDate.getMonth() + 1);
-        const formattedPaidEndDate = isoDate(paidEndDate);
-
-        // 3. Handle free trial (Standard | Premium) if not yet used --------------
-        if (!hasUsedTrial && (plan_name === "Standard" || plan_name === "Premium")) {
-            console.log("Granting One-Time Free Trial!");
-
-            // mark trial used
-            await connection.execute("UPDATE Landlord SET is_trial_used = 1 WHERE landlord_id = ?", [landlord_id]);
-
-            // see if subscription exists
-            const [existingSub] = await connection.execute<mysql.RowDataPacket[]>(
-                "SELECT subscription_id FROM Subscription WHERE landlord_id = ? LIMIT 1",
-                [landlord_id]
-            );
-
-            if (existingSub.length > 0) {
-                await connection.execute(
-                    "UPDATE Subscription SET plan_name = ?, status = 'trial', start_date = ?, end_date = ?, payment_status = 'pending', is_trial = 1, trial_end_date = ? WHERE landlord_id = ?",
-                    [plan_name, start_date, formattedTrialEndDate, formattedTrialEndDate, landlord_id]
-                );
-            } else {
-                await connection.execute(
-                    "INSERT INTO Subscription (landlord_id, plan_name, status, start_date, end_date, payment_status, created_at, request_reference_number, is_trial, trial_end_date) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)",
-                    [
-                        landlord_id,
-                        plan_name,
-                        "trial",
-                        start_date,
-                        formattedTrialEndDate,
-                        "pending",
-                        `TRIAL-${Date.now()}`,
-                        1,
-                        formattedTrialEndDate,
-                    ]
-                );
-            }
-
-            await connection.end();
-            return NextResponse.json(
-                {
-                    message: "Free trial activated successfully.",
-                    trialEndDate: formattedTrialEndDate,
-                    subscriptionEndDate: formattedTrialEndDate,
-                },
-                { status: 201 }
-            );
-        }
-
-        // 4. Trial already used -> must pay --------------------------------------
-        const amount = sanitizeNumber(rawAmount);
-        if (amount === null) {
-            await connection.end();
-            return httpError(400, "Invalid amount.");
-        }
-
-        // ensure redirectUrl structure exists -----------------------------------
-        if (!redirectUrl || !redirectUrl.success || !redirectUrl.failure || !redirectUrl.cancel) {
-            await connection.end();
-            return httpError(400, "Missing redirectUrl.success / failure / cancel in request body.");
-        }
-
-        const requestReferenceNumber = `REF-${Date.now()}`;
-
-        // Build Maya payload -----------------------------------------------------
-        const mayaPayload = {
-            totalAmount: { value: amount, currency: "PHP" },
-            buyer: {
-                firstName,
-                lastName,
-                contact: { email },
-            },
-            redirectUrl: {
-                success: `${redirectUrl.success}?requestReferenceNumber=${encodeURIComponent(requestReferenceNumber)}&landlord_id=${encodeURIComponent(String(landlord_id))}&plan_name=${encodeURIComponent(plan_name)}&amount=${encodeURIComponent(String(amount))}`,
-                failure: `${redirectUrl.failure}?requestReferenceNumber=${encodeURIComponent(requestReferenceNumber)}&landlord_id=${encodeURIComponent(String(landlord_id))}&plan_name=${encodeURIComponent(plan_name)}&amount=${encodeURIComponent(String(amount))}`,
-                cancel: `${redirectUrl.cancel}?requestReferenceNumber=${encodeURIComponent(requestReferenceNumber)}&landlord_id=${encodeURIComponent(String(landlord_id))}&plan_name=${encodeURIComponent(plan_name)}&amount=${encodeURIComponent(String(amount))}`,
-            },
-            requestReferenceNumber,
-            items: [
-                {
-                    name: description,
-                    quantity: 1,
-                    totalAmount: { value: amount, currency: "PHP" },
-                },
-            ],
-        } as const;
-
-        // Call Maya Checkout -----------------------------------------------------
-        const mayaAuth = Buffer.from(`${publicKey}:${secretKey}`).toString("base64");
-        const mayaResp = await axios.post(
-            "https://pg-sandbox.paymaya.com/checkout/v1/checkouts",
-            mayaPayload,
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Basic ${mayaAuth}`,
-                },
-            }
+        /* ---------------- GET CUSTOMER ---------------- */
+        const customerId = await getOrCreateCustomer(
+            connection,
+            landlord_id,
+            email,
+            firstName,
+            lastName
         );
 
-        await connection.end();
+        const referenceId = `sub-${landlord_id}-${Date.now()}`;
 
-        return NextResponse.json(
-            {
-                checkoutUrl: mayaResp.data.redirectUrl,
-                requestReferenceNumber,
+        /* ---------------- ROUTE BY PLAN TYPE ---------------- */
+        
+        // === LIFETIME PLAN: Use Invoice ===
+        if (isLifetimePlan(plan_code)) {
+            const invoiceData = await createInvoicePayment(
+                customerId,
+                amount,
+                `${plan.name} - Lifetime Subscription`,
+                finalRedirectUrls,
+                referenceId
+            );
+
+            await saveSubscription(
+                connection,
                 landlord_id,
-                subscriptionEndDate: formattedPaidEndDate,
-                payload: mayaPayload,
-            },
-            { status: 200 }
-        );
-    } catch (err: any) {
-        console.error("Error during Maya checkout:", err?.message ?? err);
-        if (connection) {
-            try { await connection.end(); } catch {}
+                plan,
+                amount,
+                invoiceData,
+                referenceId
+            );
+
+            return NextResponse.json({
+                type: "invoice",
+                checkoutUrl: invoiceData.invoice_url,
+                invoiceId: invoiceData.id,
+            });
         }
-        const details = err?.response?.data || err?.message || String(err);
-        return httpError(500, "Payment initiation failed.", details);
+
+        // === RECURRING PLANS ===
+
+        // First payment: Require PAY_AND_SAVE or card details
+        if (!payment_token_id && !card_details) {
+            const payAndSaveData = await createPayAndSavePayment(
+                customerId,
+                amount,
+                `${plan.name} - Initial Payment`,
+                finalRedirectUrls,
+                referenceId,
+                channel_code,
+                card_details,
+                email,
+                firstName,
+                lastName
+            );
+
+            await saveSubscription(
+                connection,
+                landlord_id,
+                plan,
+                amount,
+                payAndSaveData,
+                referenceId
+            );
+
+            return NextResponse.json({
+                type: "PAY_AND_SAVE",
+                paymentRequestId: payAndSaveData.payment_request_id,
+                customerId: payAndSaveData.customer_id,
+                actions: payAndSaveData.actions,
+                status: payAndSaveData.status,
+                requiresAction: payAndSaveData.status === "REQUIRES_ACTION",
+            });
+        }
+
+        // Subsequent payment: Use saved token
+        if (payment_token_id) {
+            const tokenPaymentData = await createPaymentWithToken(
+                payment_token_id,
+                amount,
+                `${plan.name} - Recurring Payment`,
+                finalRedirectUrls,
+                referenceId,
+                customerId
+            );
+
+            await saveSubscription(
+                connection,
+                landlord_id,
+                plan,
+                amount,
+                tokenPaymentData,
+                referenceId
+            );
+
+            return NextResponse.json({
+                type: "PAY_WITH_TOKEN",
+                paymentRequestId: tokenPaymentData.payment_request_id,
+                status: tokenPaymentData.status,
+                requiresAction: tokenPaymentData.status === "REQUIRES_ACTION",
+                actions: tokenPaymentData.actions,
+            });
+        }
+
+        return httpError(400, "Invalid payment configuration");
+
+    } catch (err: any) {
+        console.error("Checkout error:", err);
+
+        return httpError(
+            500,
+            err.message || "Payment initiation failed",
+            { stack: process.env.NODE_ENV === "development" ? err.stack : undefined }
+        );
+    } finally {
+        if (connection) await connection.end();
     }
 }
-

@@ -14,6 +14,7 @@ function SubscriptionReview() {
     const { user, isHydrated } = useAuthStore();
     const { selectedPlan, clearSelectedPlan } = useSubscriptionStore();
     const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
         if (!isHydrated) return;
@@ -72,8 +73,9 @@ function SubscriptionReview() {
     const finalTotal = proratedAmount;
 
     const goToPayment = async () => {
-        if (!user) return;
+        if (!user || isProcessing) return;
 
+        setIsProcessing(true);
         try {
             const response = await axios.post("/api/payment/checkout-payment", {
                 amount: finalTotal,
@@ -83,20 +85,32 @@ function SubscriptionReview() {
                 lastName: user.lastName,
                 landlord_id: user.landlord_id,
                 plan_name: selectedPlanDetails.name,
+                plan_code: selectedPlanDetails.planCode,
                 redirectUrl: {
                     success: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/subscriptionSuccess`,
                     failure: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/failure`,
-                    cancel: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/cancelled`,
                 },
             });
+
+            if (response.status === 201) {
+                alert(`Free trial activated! Your trial ends on ${response.data.trialEndDate}`);
+                router.push("/landlord/dashboard");
+                return;
+            }
 
             if (response.data?.checkoutUrl) {
                 window.location.href = response.data.checkoutUrl;
             } else {
                 alert("Payment Error: No checkout URL received.");
             }
-        } catch {
-            alert("Unable to start payment.");
+        } catch (error: unknown) {
+            if (axios.isAxiosError(error) && error.response?.data?.error) {
+                alert(error.response.data.error);
+            } else {
+                alert("Unable to start payment.");
+            }
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -200,9 +214,10 @@ function SubscriptionReview() {
 
                         <button
                             onClick={goToPayment}
-                            className="w-full mt-6 py-3 rounded-lg text-white font-semibold bg-green-600 hover:bg-green-700"
+                            disabled={isProcessing}
+                            className="w-full mt-6 py-3 rounded-lg text-white font-semibold bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed"
                         >
-                            Pay Now
+                            {isProcessing ? "Processing..." : "Pay Now"}
                         </button>
                     </div>
                 </div>

@@ -16,15 +16,6 @@ export async function GET(
             );
         }
 
-        // Optional: Enable auth
-        // const auth = await verifyAdmin(request);
-        // if ("error" in auth) {
-        //     return NextResponse.json(
-        //         { success: false, message: auth.error },
-        //         { status: auth.status }
-        //     );
-        // }
-
         const [planRows]: any = await db.query(
             `
             SELECT 
@@ -66,11 +57,24 @@ export async function GET(
 
         const features = featureRows.length ? featureRows[0] : {};
 
+        const [priceRows]: any = await db.query(
+            `SELECT id, unit_range, min_units, max_units, monthly_price, annual_price
+             FROM PlanPrices WHERE plan_id = ? ORDER BY min_units ASC`,
+            [id]
+        );
+
+        const prices = priceRows.map((row: any) => ({
+            ...row,
+            monthly_price: String(row.monthly_price || ""),
+            annual_price: String(row.annual_price || ""),
+        }));
+
         return NextResponse.json({
             success: true,
             plan,
             limits,
             features,
+            prices,
         });
 
     } catch (error) {
@@ -113,7 +117,7 @@ export async function PUT(
         }
 
         const body = await request.json();
-        const { plan, limits, features } = body;
+        const { plan, limits, features, prices } = body;
 
         if (!plan) {
             return NextResponse.json(
@@ -244,6 +248,30 @@ export async function PUT(
             );
         }
 
+        // ==========================
+        // UPDATE PLAN PRICES (Unit Bands)
+        // ==========================
+        if (prices && Array.isArray(prices) && prices.length > 0) {
+            // Delete existing prices
+            await connection.query(`DELETE FROM PlanPrices WHERE plan_id = ?`, [id]);
+
+            // Insert new prices
+            for (const price of prices) {
+                await connection.query(
+                    `INSERT INTO PlanPrices (plan_id, unit_range, min_units, max_units, monthly_price, annual_price)
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [
+                        id,
+                        price.unit_range,
+                        toSafeNumber(price.min_units, 0),
+                        toSafeNumber(price.max_units, 0),
+                        toSafeNumber(price.monthly_price, 0),
+                        toSafeNumber(price.annual_price, 0),
+                    ]
+                );
+            }
+        }
+
         await connection.commit();
         connection.release();
 
@@ -260,6 +288,60 @@ export async function PUT(
 
         return NextResponse.json(
             { success: false, message: "Failed to update plan" },
+            { status: 500 }
+        );
+    }
+}
+
+export async function DELETE(
+    request: NextRequest,
+    context: { params: Promise<{ id: string }> }
+) {
+    const { id } = await context.params;
+    const connection = await db.getConnection();
+
+    try {
+        if (!id) {
+            return NextResponse.json(
+                { success: false, message: "Plan ID required" },
+                { status: 400 }
+            );
+        }
+
+        const auth = await verifyAdmin(request);
+        if ("error" in auth) {
+            return NextResponse.json(
+                { success: false, message: auth.error },
+                { status: auth.status }
+            );
+        }
+
+        await connection.beginTransaction();
+
+        await connection.query(`DELETE FROM PlanPrices WHERE plan_id = ?`, [id]);
+
+        await connection.query(`DELETE FROM PlanFeatures WHERE plan_id = ?`, [id]);
+
+        await connection.query(`DELETE FROM PlanLimits WHERE plan_id = ?`, [id]);
+
+        await connection.query(`DELETE FROM Plan WHERE plan_id = ?`, [id]);
+
+        await connection.commit();
+        connection.release();
+
+        return NextResponse.json({
+            success: true,
+            message: "Plan deleted successfully",
+        });
+
+    } catch (error) {
+        await connection.rollback();
+        connection.release();
+
+        console.error("DELETE PLAN ERROR:", error);
+
+        return NextResponse.json(
+            { success: false, message: "Failed to delete plan" },
             { status: 500 }
         );
     }

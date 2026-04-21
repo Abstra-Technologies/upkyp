@@ -4,21 +4,6 @@ import { verifyAdmin } from "@/lib/auth/adminAuth";
 
 export async function GET(request: NextRequest) {
     try {
-        // 🔐 Verify Admin
-        // const auth = await verifyAdmin(request);
-        //
-        // if ("error" in auth) {
-        //     return NextResponse.json(
-        //         { success: false, message: auth.error },
-        //         { status: auth.status }
-        //     );
-        // }
-
-        // Optional: role restriction
-        // if (auth.role !== "super_admin") {
-        //   return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-        // }
-
         // 📦 Fetch Plans with Limits and Features
         const [plans]: any = await db.query(`
         SELECT 
@@ -37,10 +22,31 @@ export async function GET(request: NextRequest) {
             pl.financial_history_years
         FROM Plan p
         LEFT JOIN PlanLimits pl ON p.plan_id = pl.plan_id
+        WHERE p.is_active = 1
         ORDER BY p.created_at DESC
     `);
 
-        return NextResponse.json(plans);
+        // Fetch unit prices for each plan
+        const plansWithPrices = await Promise.all(
+            plans.map(async (plan: any) => {
+                const [priceRows]: any = await db.query(
+                    `SELECT unit_range, min_units, max_units, monthly_price, annual_price
+                     FROM PlanPrices WHERE plan_id = ? ORDER BY min_units ASC`,
+                    [plan.plan_id]
+                );
+                
+                return {
+                    ...plan,
+                    prices: priceRows.map((row: any) => ({
+                        ...row,
+                        monthly_price: row.monthly_price ? Number(row.monthly_price) : null,
+                        annual_price: row.annual_price ? Number(row.annual_price) : null,
+                    })),
+                };
+            })
+        );
+
+        return NextResponse.json(plansWithPrices);
 
     } catch (error) {
         console.error("ADMIN GET PLANS ERROR:", error);
