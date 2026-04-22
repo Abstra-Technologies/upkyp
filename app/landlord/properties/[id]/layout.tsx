@@ -149,13 +149,6 @@ export default function PropertyLayout({
       title: "Finance",
       items: [
         {
-          id: "billing",
-          navId: "prop-nav-billing",
-          label: "Billing",
-          href: `/landlord/properties/${id}/billing`,
-          icon: CreditCard,
-        },
-        {
           id: "payments",
           navId: "prop-nav-payments",
           label: "Payments",

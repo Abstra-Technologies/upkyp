@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Zap, Droplets } from "lucide-react";
 
 import ConcessionaireBillingHistory from "@/components/landlord/properties/ConcessionaireBillingHistory";
+import UtilityCostTrendChart from "@/components/landlord/analytics/perProperty/UtilityCostTrendChart";
 
 export default function UtilityHistoryPage() {
     const { id } = useParams();
@@ -48,7 +49,12 @@ export default function UtilityHistoryPage() {
                     </div>
                 </div>
 
-                {/* ================= CONTENT ================= */}
+                {/* ================= CHART ================= */}
+                <div className="bg-white w-full rounded-lg border border-gray-200 shadow-sm overflow-hidden mb-6 p-4">
+                    <UtilityCostTrendChart propertyId={property_id} />
+                </div>
+
+                {/* ================= TABLES ================= */}
                 <div className="bg-white w-full rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                     <ConcessionaireBillingHistory propertyId={property_id} />
                 </div>

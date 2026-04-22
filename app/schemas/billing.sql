@@ -202,7 +202,7 @@ create table rentalley_db.ElectricMeterReading
         foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     constraint ElectricMeterReading_ibfk_2
-        foreign key (electricity_bill_id) references rentalley_db.ConcessionaireBilling (bill_id)
+        foreign key (electricity_bill_id) references rentalley_db.ElectricityConcessionaireBilling (bill_id)
             on delete set null,
     constraint fk_electric_meter_lease
         foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
@@ -278,7 +278,7 @@ create table rentalley_db.WaterMeterReading
         foreign key (unit_id) references rentalley_db.Unit (unit_id)
             on delete cascade,
     constraint WaterMeterReading_ibfk_2
-        foreign key (water_bill_id) references rentalley_db.ConcessionaireBilling (bill_id)
+        foreign key (water_bill_id) references rentalley_db.WaterConcessionaireBilling (bill_id)
             on delete set null,
     constraint fk_water_meter_lease
         foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)

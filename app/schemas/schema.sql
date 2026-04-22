@@ -215,28 +215,51 @@ create table Property
     house_policy             longtext                                                          null
 );
 
-create table ConcessionaireBilling
+create table WaterConcessionaireBilling
 (
-    bill_id                 int auto_increment
+    bill_id        int auto_increment
         primary key,
-    property_id             varchar(12)                         not null,
-    period_start            date                                not null,
-    period_end              date                                not null,
-    water_consumption       decimal(10, 2)                      null,
-    water_total             decimal(12, 2)                      null,
-    electricity_consumption decimal(10, 2)                      null,
-    electricity_total       decimal(12, 2)                      null,
-    created_at              timestamp default CURRENT_TIMESTAMP null,
-    updated_at              timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    water_rate              decimal(10, 4)                      null comment 'Computed rate: water_total / water_consumption',
-    electricity_rate        decimal(10, 4)                      null comment 'Computed rate: electricity_total / electricity_consumption',
-    constraint ConcessionaireBilling_ibfk_1
+    property_id    varchar(12)                         not null,
+    period_start   date                                not null,
+    period_end     date                                not null,
+    consumption    decimal(10, 2)                      not null comment 'Water consumption in cubic meters (m³)',
+    total_amount   decimal(12, 2)                      not null comment 'Total amount in PHP',
+    rate_per_cubic decimal(10, 4)                      not null comment 'Rate per cubic meter',
+    created_at     timestamp default CURRENT_TIMESTAMP null,
+    updated_at     timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint WaterConcessionaireBilling_ibfk_1
         foreign key (property_id) references Property (property_id)
             on delete cascade
 );
 
-create index property_id
-    on ConcessionaireBilling (property_id);
+create index water_concessionaire_period
+    on WaterConcessionaireBilling (period_start, period_end);
+
+create index water_concessionaire_property_id
+    on WaterConcessionaireBilling (property_id);
+
+create table ElectricityConcessionaireBilling
+(
+    bill_id      int auto_increment
+        primary key,
+    property_id  varchar(12)                         not null,
+    period_start date                                not null,
+    period_end   date                                not null,
+    consumption  decimal(10, 2)                      not null comment 'Electricity consumption in kWh',
+    total_amount decimal(12, 2)                      not null comment 'Total amount in PHP',
+    rate_per_kwh decimal(10, 4)                      not null comment 'Rate per kWh',
+    created_at   timestamp default CURRENT_TIMESTAMP null,
+    updated_at   timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint ElectricityConcessionaireBilling_ibfk_1
+        foreign key (property_id) references Property (property_id)
+            on delete cascade
+);
+
+create index electricity_concessionaire_period
+    on ElectricityConcessionaireBilling (period_start, period_end);
+
+create index electricity_concessionaire_property_id
+    on ElectricityConcessionaireBilling (property_id);
 
 create table InviteCode
 (
@@ -456,7 +479,7 @@ create table ElectricMeterReading
         foreign key (unit_id) references Unit (unit_id)
             on delete cascade,
     constraint ElectricMeterReading_ibfk_2
-        foreign key (concessionaire_bill_id) references ConcessionaireBilling (bill_id)
+        foreign key (concessionaire_bill_id) references ElectricityConcessionaireBilling (bill_id)
             on delete set null
 );
 
@@ -1795,7 +1818,7 @@ create table WaterMeterReading
         foreign key (unit_id) references Unit (unit_id)
             on delete cascade,
     constraint WaterMeterReading_ibfk_2
-        foreign key (concessionaire_bill_id) references ConcessionaireBilling (bill_id)
+        foreign key (concessionaire_bill_id) references WaterConcessionaireBilling (bill_id)
             on delete set null
 );
 

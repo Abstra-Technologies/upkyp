@@ -4,11 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { formatCurrency } from "@/utils/formatter/formatters";
-import { Droplets, Zap, AlertCircle, Calendar } from "lucide-react";
+import { Droplets, Zap, AlertCircle } from "lucide-react";
 
-/* -------------------------------------------------
-   Desktop-only MRT imports
-------------------------------------------------- */
 import dynamic from "next/dynamic";
 import type { MRT_ColumnDef } from "material-react-table";
 
@@ -19,15 +16,15 @@ const MaterialReactTable = dynamic(
 );
 
 export default function ConcessionaireBillingHistory({
-                                                         propertyId,
-                                                     }: {
+    propertyId,
+}: {
     propertyId: number;
 }) {
-    const [billings, setBillings] = useState<any[]>([]);
+    const [waterBillings, setWaterBillings] = useState<any[]>([]);
+    const [electricityBillings, setElectricityBillings] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
 
-    /* ---------------- Viewport Detection ---------------- */
     useEffect(() => {
         const check = () => setIsMobile(window.innerWidth < 768);
         check();
@@ -35,7 +32,6 @@ export default function ConcessionaireBillingHistory({
         return () => window.removeEventListener("resize", check);
     }, []);
 
-    /* ---------------- Data Fetch ---------------- */
     useEffect(() => {
         if (!propertyId) return;
         fetchData();
@@ -47,7 +43,8 @@ export default function ConcessionaireBillingHistory({
             const res = await axios.get(
                 `/api/landlord/properties/getConcessionaireHistory?property_id=${propertyId}`
             );
-            setBillings(res.data.billings || []);
+            setWaterBillings(res.data.waterBillings || []);
+            setElectricityBillings(res.data.electricityBillings || []);
         } catch {
             Swal.fire(
                 "Error",
@@ -59,57 +56,75 @@ export default function ConcessionaireBillingHistory({
         }
     };
 
-    /* ---------------- Totals ---------------- */
     const totals = useMemo(() => ({
-        water: billings.reduce(
-            (sum, b) => sum + Number(b.water_consumption || 0),
+        water: waterBillings.reduce(
+            (sum, b) => sum + Number(b.consumption || 0),
             0
         ),
-        electricity: billings.reduce(
-            (sum, b) => sum + Number(b.electricity_consumption || 0),
+        electricity: electricityBillings.reduce(
+            (sum, b) => sum + Number(b.consumption || 0),
             0
         ),
-    }), [billings]);
+    }), [waterBillings, electricityBillings]);
 
-    /* ---------------- Desktop Columns ---------------- */
-    const columns: MRT_ColumnDef<any>[] = [
+    const waterColumns: MRT_ColumnDef<any>[] = [
         {
             accessorKey: "period_start",
             header: "Period",
-            size: 160,
+            size: 180,
             Cell: ({ row }) => (
                 <span className="truncate block">
-          {new Date(row.original.period_start).toLocaleDateString("en-PH", {
-              month: "short",
-              year: "numeric",
-          })}{" "}
+                    {new Date(row.original.period_start).toLocaleDateString("en-PH", {
+                        month: "short",
+                        year: "numeric",
+                    })}{" "}
                     –{" "}
                     {new Date(row.original.period_end).toLocaleDateString("en-PH", {
                         month: "short",
                         year: "numeric",
                     })}
-        </span>
+                </span>
             ),
         },
-        { accessorKey: "water_consumption", header: "Water (m³)", size: 110 },
-        { accessorKey: "water_rate", header: "Water Rate", size: 110 },
+        { accessorKey: "consumption", header: "Consumption (m³)", size: 140 },
+        { accessorKey: "rate", header: "Rate per m³", size: 120 },
         {
-            accessorKey: "water_total",
-            header: "Water Total",
-            size: 120,
-            Cell: ({ cell }) => formatCurrency(cell.getValue()),
-        },
-        { accessorKey: "electricity_consumption", header: "Elec (kWh)", size: 120 },
-        { accessorKey: "electricity_rate", header: "Elec Rate", size: 120 },
-        {
-            accessorKey: "electricity_total",
-            header: "Elec Total",
-            size: 120,
+            accessorKey: "total_amount",
+            header: "Total Amount",
+            size: 140,
             Cell: ({ cell }) => formatCurrency(cell.getValue()),
         },
     ];
 
-    /* ---------------- Loading ---------------- */
+    const electricityColumns: MRT_ColumnDef<any>[] = [
+        {
+            accessorKey: "period_start",
+            header: "Period",
+            size: 180,
+            Cell: ({ row }) => (
+                <span className="truncate block">
+                    {new Date(row.original.period_start).toLocaleDateString("en-PH", {
+                        month: "short",
+                        year: "numeric",
+                    })}{" "}
+                    –{" "}
+                    {new Date(row.original.period_end).toLocaleDateString("en-PH", {
+                        month: "short",
+                        year: "numeric",
+                    })}
+                </span>
+            ),
+        },
+        { accessorKey: "consumption", header: "Consumption (kWh)", size: 150 },
+        { accessorKey: "rate", header: "Rate per kWh", size: 130 },
+        {
+            accessorKey: "total_amount",
+            header: "Total Amount",
+            size: 140,
+            Cell: ({ cell }) => formatCurrency(cell.getValue()),
+        },
+    ];
+
     if (loading) {
         return (
             <div className="space-y-3 animate-pulse">
@@ -120,8 +135,7 @@ export default function ConcessionaireBillingHistory({
         );
     }
 
-    /* ---------------- Empty ---------------- */
-    if (!billings.length) {
+    if (!waterBillings.length && !electricityBillings.length) {
         return (
             <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-10 text-center">
                 <AlertCircle className="w-10 h-10 text-blue-600 mx-auto mb-3" />
@@ -137,8 +151,6 @@ export default function ConcessionaireBillingHistory({
 
     return (
         <div className="space-y-6">
-
-            {/* ---------------- Summary ---------------- */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SummaryCard
                     icon={<Droplets className="w-5 h-5 text-white" />}
@@ -154,74 +166,131 @@ export default function ConcessionaireBillingHistory({
                 />
             </div>
 
-            {/* ---------------- MOBILE (NO MRT) ---------------- */}
-            {isMobile && (
-                <div className="space-y-4">
-                    {billings.map((b) => (
-                        <div key={b.bill_id} className="bg-white border rounded-lg p-4">
-                            <div className="flex items-center gap-2 text-sm font-semibold mb-3">
-                                <Calendar className="w-4 h-4 text-gray-400" />
-                                {new Date(b.period_start).toLocaleDateString("en-PH", {
-                                    month: "short",
-                                    year: "numeric",
-                                })}{" "}
-                                –{" "}
-                                {new Date(b.period_end).toLocaleDateString("en-PH", {
-                                    month: "short",
-                                    year: "numeric",
-                                })}
+            {isMobile ? (
+                <div className="space-y-6">
+                    {waterBillings.length > 0 && (
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <Droplets className="w-4 h-4 text-blue-600" />
+                                Water Billing History
+                            </h3>
+                            <div className="space-y-3">
+                                {waterBillings.map((b) => (
+                                    <div key={b.bill_id} className="border rounded-lg p-4">
+                                        <div className="text-xs text-gray-500 mb-2">
+                                            {new Date(b.period_start).toLocaleDateString("en-PH", {
+                                                month: "short",
+                                                year: "numeric",
+                                            })}{" "}
+                                            –{" "}
+                                            {new Date(b.period_end).toLocaleDateString("en-PH", {
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
+                                        </div>
+                                        <Row label="Consumption" value={`${b.consumption} m³`} />
+                                        <Row label="Rate" value={formatCurrency(b.rate)} />
+                                        <Row label="Total" value={formatCurrency(b.total_amount)} bold />
+                                    </div>
+                                ))}
                             </div>
-
-                            <Row label="Water Consumption" value={`${b.water_consumption} m³`} />
-                            <Row label="Water Total" value={formatCurrency(b.water_total)} bold />
-
-                            <Row
-                                label="Electricity Consumption"
-                                value={`${b.electricity_consumption} kWh`}
-                            />
-                            <Row
-                                label="Electricity Total"
-                                value={formatCurrency(b.electricity_total)}
-                                bold
-                            />
                         </div>
-                    ))}
-                </div>
-            )}
+                    )}
 
-            {/* ---------------- DESKTOP (MRT ONLY) ---------------- */}
-            {!isMobile && (
-                <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
-                    <MaterialReactTable
-                        layoutMode="grid"
-                        columns={columns}
-                        data={billings}
-                        enableTopToolbar={false}
-                        enableColumnActions={false}
-                        enableColumnFilters={false}
-                        enableSorting
-                        initialState={{
-                            pagination: { pageIndex: 0, pageSize: 10 },
-                        }}
-                        muiTableContainerProps={{
-                            sx: { maxWidth: "100%", overflowX: "hidden" },
-                        }}
-                    />
+                    {electricityBillings.length > 0 && (
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-amber-600" />
+                                Electricity Billing History
+                            </h3>
+                            <div className="space-y-3">
+                                {electricityBillings.map((b) => (
+                                    <div key={b.bill_id} className="border rounded-lg p-4">
+                                        <div className="text-xs text-gray-500 mb-2">
+                                            {new Date(b.period_start).toLocaleDateString("en-PH", {
+                                                month: "short",
+                                                year: "numeric",
+                                            })}{" "}
+                                            –{" "}
+                                            {new Date(b.period_end).toLocaleDateString("en-PH", {
+                                                month: "short",
+                                                year: "numeric",
+                                            })}
+                                        </div>
+                                        <Row label="Consumption" value={`${b.consumption} kWh`} />
+                                        <Row label="Rate" value={formatCurrency(b.rate)} />
+                                        <Row label="Total" value={formatCurrency(b.total_amount)} bold />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    {waterBillings.length > 0 && (
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <Droplets className="w-4 h-4 text-blue-600" />
+                                Water Billing History
+                            </h3>
+                            <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+                                <MaterialReactTable
+                                    layoutMode="grid"
+                                    columns={waterColumns}
+                                    data={waterBillings}
+                                    enableTopToolbar={false}
+                                    enableColumnActions={false}
+                                    enableColumnFilters={false}
+                                    enableSorting
+                                    initialState={{
+                                        pagination: { pageIndex: 0, pageSize: 10 },
+                                    }}
+                                    muiTableContainerProps={{
+                                        sx: { maxWidth: "100%", overflowX: "hidden" },
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {electricityBillings.length > 0 && (
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-amber-600" />
+                                Electricity Billing History
+                            </h3>
+                            <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+                                <MaterialReactTable
+                                    layoutMode="grid"
+                                    columns={electricityColumns}
+                                    data={electricityBillings}
+                                    enableTopToolbar={false}
+                                    enableColumnActions={false}
+                                    enableColumnFilters={false}
+                                    enableSorting
+                                    initialState={{
+                                        pagination: { pageIndex: 0, pageSize: 10 },
+                                    }}
+                                    muiTableContainerProps={{
+                                        sx: { maxWidth: "100%", overflowX: "hidden" },
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
     );
 }
 
-/* -------------------------------------------------
-   Helpers
-------------------------------------------------- */
 function SummaryCard({
-                         icon,
-                         title,
-                         value,
-                         color,
-                     }: {
+    icon,
+    title,
+    value,
+    color,
+}: {
     icon: React.ReactNode;
     title: string;
     value: string;
@@ -241,10 +310,10 @@ function SummaryCard({
 }
 
 function Row({
-                 label,
-                 value,
-                 bold,
-             }: {
+    label,
+    value,
+    bold,
+}: {
     label: string;
     value: string;
     bold?: boolean;

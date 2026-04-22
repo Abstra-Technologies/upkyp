@@ -67,6 +67,7 @@ export default function CreateUnitBill() {
     pdc,
     loadingPdc,
     hasExistingBilling,
+    loading,
     handleChange,
     handleAddExpense,
     handleExpenseChange,
@@ -79,7 +80,7 @@ export default function CreateUnitBill() {
     updateBilling,
   } = useCreateSubmeteredUnitBill();
 
-  if (!unit || !property) {
+  if (loading || !unit || !property) {
     return <BillingSkeleton />;
   }
 
