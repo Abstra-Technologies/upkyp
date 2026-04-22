@@ -116,6 +116,7 @@ export default function PropertyBillingPage() {
                             if (billingBlocked) return;
                             billing.handleDownloadSummary();
                         }}
+                        hideSetRates={billing.hasBillingForMonth}
                     />
 
                     {/* ================= STATS ================= */}
@@ -129,6 +130,7 @@ export default function PropertyBillingPage() {
                             propertyDetails={billing.propertyDetails}
                             hasBillingForMonth={billing.hasBillingForMonth}
                             billingData={billing.billingData}
+                            setIsModalOpen={billing.setIsModalOpen}
                         />
                     )}
                 </div>
