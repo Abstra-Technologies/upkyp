@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { NextResponse, NextRequest } from "next/server";
 
-// Get property rates for CURRENT MONTH only
+// Get property rates for CURRENT MONTH using created_at
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const property_id = searchParams.get("property_id");
@@ -14,57 +14,70 @@ export async function GET(req: NextRequest) {
     }
 
     try {
-        const [rows]: any = await db.query(
+        // Get Water rates - latest for current month via created_at
+        const [waterRows]: any = await db.query(
             `
-      SELECT 
-        bill_id,
-        period_start,
-        period_end,
-
-        electricity_total,
-        electricity_consumption,
-        electricity_rate,
-
-        water_total,
-        water_consumption,
-        water_rate
-      FROM ConcessionaireBilling
-      WHERE property_id = ?
-        AND period_start <= LAST_DAY(CURDATE())
-        AND period_end >= DATE_FORMAT(CURDATE(), '%Y-%m-01')
-      ORDER BY period_start DESC
-      LIMIT 1
-      `,
+            SELECT 
+                bill_id,
+                consumption,
+                total_amount,
+                rate_per_cubic,
+                created_at
+            FROM WaterConcessionaireBilling
+            WHERE property_id = ?
+                AND YEAR(created_at) = YEAR(CURDATE())
+                AND MONTH(created_at) = MONTH(CURDATE())
+            ORDER BY created_at DESC
+            LIMIT 1
+            `,
             [property_id]
         );
 
-        if (!rows || rows.length === 0) {
+        // Get Electricity rates - latest for current month via created_at
+        const [electricRows]: any = await db.query(
+            `
+            SELECT 
+                bill_id,
+                consumption,
+                total_amount,
+                rate_per_kwh,
+                created_at
+            FROM ElectricityConcessionaireBilling
+            WHERE property_id = ?
+                AND YEAR(created_at) = YEAR(CURDATE())
+                AND MONTH(created_at) = MONTH(CURDATE())
+            ORDER BY created_at DESC
+            LIMIT 1
+            `,
+            [property_id]
+        );
+
+        const waterRow = waterRows?.[0];
+        const electricRow = electricRows?.[0];
+
+        if (!waterRow && !electricRow) {
             return NextResponse.json({ billingData: null });
         }
 
-        const row = rows[0];
-
-        console.log('billing data rowsa: ', rows);
+const createdAt = waterRow?.created_at || electricRow?.created_at;
 
         return NextResponse.json({
             billingData: {
-                period_start: row.period_start,
-                period_end: row.period_end,
-
-                electricity: row.electricity_total !== null
+                created_at: createdAt,
+                water: waterRow
                     ? {
-                        total: Number(row.electricity_total),
-                        consumption: Number(row.electricity_consumption),
-                        rate: Number(row.electricity_rate),
-                    }
+                        total: Number(waterRow.total_amount),
+                        consumption: Number(waterRow.consumption),
+                        rate: Number(waterRow.rate_per_cubic),
+                      }
                     : null,
 
-                water: row.water_total !== null
+                electricity: electricRow
                     ? {
-                        total: Number(row.water_total),
-                        consumption: Number(row.water_consumption),
-                        rate: Number(row.water_rate),
-                    }
+                        total: Number(electricRow.total_amount),
+                        consumption: Number(electricRow.consumption),
+                        rate: Number(electricRow.rate_per_kwh),
+                      }
                     : null,
             },
         });

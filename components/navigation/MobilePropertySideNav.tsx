@@ -55,17 +55,17 @@ export default function MobilePropertySidenav({
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
 
   useEffect(() => {
-    if (!landlordId || !isOpen) return;
+    if (!isOpen) return;
     const fetchProperties = async () => {
       try {
-        const res = await axios.get(`/api/landlord/properties/getAllPropertieName?landlord_id=${String(landlordId)}`);
+        const res = await axios.get(`/api/landlord/properties/getAllPropertieName`);
         setOtherProperties(res.data || []);
       } catch (err) {
         console.error("Error fetching properties:", err);
       }
     };
     fetchProperties();
-  }, [landlordId, isOpen]);
+  }, [isOpen]);
 
   const handleSwitchProperty = (propertyId: number) => {
     onClose();

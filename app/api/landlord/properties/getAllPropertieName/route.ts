@@ -1,29 +1,36 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 //  use case: components/landlord/analytics/detailed/PropertyFilter.tsx
-//  GET property name
+//  GET property name with utility billing types
 
-export async function GET(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const landlord_id = searchParams.get("landlord_id");
-
-    if (!landlord_id) {
-        return NextResponse.json(
-            { error: "Missing landlord_id parameter" },
-            { status: 400 }
-        );
-    }
-
+export async function GET(req: NextRequest) {
     try {
+        const session = await getSessionUser();
+
+        if (!session) {
+            return NextResponse.json(
+                { error: "Unauthorized. Please log in." },
+                { status: 401 }
+            );
+        }
+
+        if (!session.landlord_id) {
+            return NextResponse.json(
+                { error: "Landlord profile not found." },
+                { status: 404 }
+            );
+        }
+
         const [rows] = await db.execute(
             `
-      SELECT property_id, property_name
+      SELECT property_id, property_name, water_billing_type, electricity_billing_type
       FROM Property
       WHERE landlord_id = ?
       ORDER BY property_name ASC
       `,
-            [landlord_id]
+            [session.landlord_id]
         );
 
         return NextResponse.json(rows);

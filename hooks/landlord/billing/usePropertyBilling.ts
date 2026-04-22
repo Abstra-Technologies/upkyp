@@ -36,8 +36,6 @@ export function usePropertyBilling(property_id: string) {
         electricityTotal: "",
         waterConsumption: "",
         waterTotal: "",
-        periodStart: "",
-        periodEnd: "",
     });
 
     /* ================= ONBOARDING ================= */
@@ -149,8 +147,6 @@ export function usePropertyBilling(property_id: string) {
                 electricityConsumption: data.electricity?.consumption || "",
                 waterTotal: data.water?.total || "",
                 waterConsumption: data.water?.consumption || "",
-                periodStart: data.period_start || "",
-                periodEnd: data.period_end || "",
             });
         } else {
             setBillingData(null);
@@ -204,8 +200,7 @@ export function usePropertyBilling(property_id: string) {
                     property_id,
                     period_start: billingForm.periodStart,
                     period_end: billingForm.periodEnd,
-                    electricityConsumption:
-                        +billingForm.electricityConsumption || 0,
+                    electricityConsumption: +billingForm.electricityConsumption || 0,
                     electricityTotal: +billingForm.electricityTotal || 0,
                     waterConsumption: +billingForm.waterConsumption || 0,
                     waterTotal: +billingForm.waterTotal || 0,

@@ -15,6 +15,7 @@ import {
     Construction,
     ReceiptText,
     UserPen,
+    Zap,
 } from "lucide-react";
 
 import {
@@ -24,6 +25,7 @@ import {
 } from "@/constant/design-constants";
 
 import ScanUnitModal from "@/components/landlord/properties/units/ScanUnitModal";
+import BulkMeterReadingModal from "./BulkMeterReadingModal";
 
 export default function QuickActions({
     onAddProperty,
@@ -41,6 +43,7 @@ export default function QuickActions({
     emailVerified?: boolean;
 }) {
     const [scanOpen, setScanOpen] = useState(false);
+    const [meterReadingOpen, setMeterReadingOpen] = useState(false);
 
     const handleAction = (onClick: () => void) => {
         if (!emailVerified) return;
@@ -91,6 +94,15 @@ export default function QuickActions({
             onClick: () => handleAction(onIncome),
             gradient: "from-cyan-500 to-cyan-600",
             iconColor: "text-cyan-600",
+            disabled: !emailVerified,
+        },
+        {
+            id: "meterReading",
+            label: "Meter Reading",
+            icon: Zap,
+            onClick: () => handleAction(() => setMeterReadingOpen(true)),
+            gradient: "from-amber-500 to-orange-500",
+            iconColor: "text-amber-600",
             disabled: !emailVerified,
         },
     ];
@@ -216,6 +228,11 @@ export default function QuickActions({
             <ScanUnitModal
                 isOpen={scanOpen}
                 onClose={() => setScanOpen(false)}
+            />
+            
+            <BulkMeterReadingModal
+                isOpen={meterReadingOpen}
+                onClose={() => setMeterReadingOpen(false)}
             />
         </>
     );

@@ -17,11 +17,11 @@ export function PropertyFilter({ landlordId, onChange }: PropertyFilterProps) {
     const [selected, setSelected] = useState<string>("all");
 
     useEffect(() => {
-        fetch(`/api/landlord/properties/getAllPropertieName?landlord_id=${landlordId}`)
+        fetch(`/api/landlord/properties/getAllPropertieName`)
             .then((res) => res.json())
             .then((data) => setProperties(data))
             .catch((err) => console.error("Error fetching properties:", err));
-    }, [landlordId]);
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSelected(e.target.value);

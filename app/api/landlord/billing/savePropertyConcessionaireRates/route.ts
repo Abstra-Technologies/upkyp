@@ -8,17 +8,15 @@ export async function POST(req: NextRequest) {
     try {
         const {
             property_id,
-            period_start,
-            period_end,
             electricityTotal,
             electricityConsumption,
             waterTotal,
             waterConsumption,
         } = await req.json();
 
-        if (!property_id || !period_start || !period_end) {
+        if (!property_id) {
             return NextResponse.json(
-                { error: "Property ID, period start, and period end are required" },
+                { error: "Property ID is required" },
                 { status: 400 }
             );
         }
@@ -28,104 +26,69 @@ export async function POST(req: NextRequest) {
         const wTotal = Number(waterTotal) || 0;
         const wCons = Number(waterConsumption) || 0;
 
-        const electricityRate =
-            eTotal > 0 && eCons > 0 ? round4(eTotal / eCons) : null;
+        const electricityRate = eTotal > 0 && eCons > 0 ? round4(eTotal / eCons) : null;
+        const waterRate = wTotal > 0 && wCons > 0 ? round4(wTotal / wCons) : null;
 
-        const waterRate =
-            wTotal > 0 && wCons > 0 ? round4(wTotal / wCons) : null;
-
-        /* ---------- CHECK EXISTING PERIOD ---------- */
-        const [existing]: any = await db.query(
-            `
-            SELECT bill_id
-            FROM ConcessionaireBilling
-            WHERE property_id = ?
-              AND period_start = ?
-              AND period_end = ?
-            LIMIT 1
-            `,
-            [property_id, period_start, period_end]
-        );
-
-        /* ---------- UPDATE ---------- */
-        if (existing.length > 0) {
-            await db.execute(
-                `
-                UPDATE ConcessionaireBilling
-                SET
-                    electricity_total = ?,
-                    electricity_consumption = ?,
-                    electricity_rate = ?,
-                    water_total = ?,
-                    water_consumption = ?,
-                    water_rate = ?,
-                    updated_at = NOW()
-                WHERE property_id = ?
-                  AND period_start = ?
-                  AND period_end = ?
-                `,
-                [
-                    eTotal,
-                    eCons,
-                    electricityRate,
-                    wTotal,
-                    wCons,
-                    waterRate,
-                    property_id,
-                    period_start,
-                    period_end,
-                ]
+        // Electricity rates
+        if (eTotal > 0 && eCons > 0) {
+            // Check if already exists for current month
+            const [existing]: any = await db.query(
+                `SELECT bill_id FROM ElectricityConcessionaireBilling
+                 WHERE property_id = ?
+                 AND YEAR(created_at) = YEAR(CURDATE())
+                 AND MONTH(created_at) = MONTH(CURDATE())`,
+                [property_id]
             );
 
-            return NextResponse.json(
-                {
-                    message: "Concessionaire rates updated successfully",
-                },
-                { status: 200 }
-            );
+            if (existing.length > 0) {
+                await db.execute(
+                    `UPDATE ElectricityConcessionaireBilling SET consumption = ?, total_amount = ?, rate_per_kwh = ?, updated_at = NOW()
+                     WHERE property_id = ?
+                     AND YEAR(created_at) = YEAR(CURDATE())
+                     AND MONTH(created_at) = MONTH(CURDATE())`,
+                    [eCons, eTotal, electricityRate, property_id]
+                );
+            } else {
+                await db.execute(
+                    `INSERT INTO ElectricityConcessionaireBilling (property_id, consumption, total_amount, rate_per_kwh)
+                     VALUES (?, ?, ?, ?)`,
+                    [property_id, eCons, eTotal, electricityRate]
+                );
+            }
         }
 
-        /* ---------- INSERT ---------- */
-        await db.execute(
-            `
-            INSERT INTO ConcessionaireBilling
-            (
-                property_id,
-                period_start,
-                period_end,
-                electricity_total,
-                electricity_consumption,
-                electricity_rate,
-                water_total,
-                water_consumption,
-                water_rate,
-                created_at
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            `,
-            [
-                property_id,
-                period_start,
-                period_end,
-                eTotal,
-                eCons,
-                electricityRate,
-                wTotal,
-                wCons,
-                waterRate,
-            ]
-        );
+        // Water rates
+        if (wTotal > 0 && wCons > 0) {
+            // Check if already exists for current month
+            const [existing]: any = await db.query(
+                `SELECT bill_id FROM WaterConcessionaireBilling
+                 WHERE property_id = ?
+                 AND YEAR(created_at) = YEAR(CURDATE())
+                 AND MONTH(created_at) = MONTH(CURDATE())`,
+                [property_id]
+            );
 
-        return NextResponse.json(
-            { message: "Concessionaire rates saved successfully" },
-            { status: 201 }
-        );
+            if (existing.length > 0) {
+                await db.execute(
+                    `UPDATE WaterConcessionaireBilling SET consumption = ?, total_amount = ?, rate_per_cubic = ?, updated_at = NOW()
+                     WHERE property_id = ?
+                     AND YEAR(created_at) = YEAR(CURDATE())
+                     AND MONTH(created_at) = MONTH(CURDATE())`,
+                    [wCons, wTotal, waterRate, property_id]
+                );
+            } else {
+                await db.execute(
+                    `INSERT INTO WaterConcessionaireBilling (property_id, consumption, total_amount, rate_per_cubic)
+                     VALUES (?, ?, ?, ?)`,
+                    [property_id, wCons, wTotal, waterRate]
+                );
+            }
+        }
+
+        return NextResponse.json({ message: "Concessionaire rates saved successfully" }, { status: 201 });
     } catch (error) {
         console.error("Concessionaire Billing UPSERT Error:", error);
-        return NextResponse.json(
-            { error: "Database server error" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Database server error" }, { status: 500 });
     }
 }
 
@@ -142,65 +105,60 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const [rows]: any = await db.execute(
-            `
-            SELECT
-                bill_id,
-                property_id,
-                period_start,
-                period_end,
-
-                water_consumption,
-                water_total,
-                water_rate,
-
-                electricity_consumption,
-                electricity_total,
-                electricity_rate,
-
-                created_at,
-                updated_at
-            FROM ConcessionaireBilling
-            WHERE property_id = ?
-            ORDER BY period_start DESC
-            LIMIT 1
-            `,
+        // Get latest Water rates for current month
+        const [waterRows]: any = await db.execute(
+            `SELECT bill_id, property_id,
+                    consumption, total_amount, rate_per_cubic, created_at, updated_at
+             FROM WaterConcessionaireBilling
+             WHERE property_id = ?
+             AND YEAR(created_at) = YEAR(CURDATE())
+             AND MONTH(created_at) = MONTH(CURDATE())
+             ORDER BY created_at DESC
+             LIMIT 1`,
             [property_id]
         );
 
-        if (!rows || rows.length === 0) {
-            return NextResponse.json(
-                { billingData: null },
-                { status: 200 }
-            );
-        }
+        // Get latest Electricity rates for current month
+        const [electricRows]: any = await db.execute(
+            `SELECT bill_id, property_id,
+                    consumption, total_amount, rate_per_kwh, created_at, updated_at
+             FROM ElectricityConcessionaireBilling
+             WHERE property_id = ?
+             AND YEAR(created_at) = YEAR(CURDATE())
+             AND MONTH(created_at) = MONTH(CURDATE())
+             ORDER BY created_at DESC
+             LIMIT 1`,
+            [property_id]
+        );
 
-        const row = rows[0];
+        const waterRow = waterRows?.[0];
+        const electricRow = electricRows?.[0];
+
+        if (!waterRow && !electricRow) {
+            return NextResponse.json({ billingData: null }, { status: 200 });
+        }
 
         return NextResponse.json(
             {
                 billingData: {
-                    period_start: row.period_start,
-                    period_end: row.period_end,
-
-                    water: row.water_total
+                    electricity: electricRow
                         ? {
-                            consumption: row.water_consumption,
-                            total: row.water_total,
-                            rate: row.water_rate,
+                            consumption: electricRow.consumption,
+                            total: electricRow.total_amount,
+                            rate: electricRow.rate_per_kwh,
                         }
                         : null,
 
-                    electricity: row.electricity_total
+                    water: waterRow
                         ? {
-                            consumption: row.electricity_consumption,
-                            total: row.electricity_total,
-                            rate: row.electricity_rate,
+                            consumption: waterRow.consumption,
+                            total: waterRow.total_amount,
+                            rate: waterRow.rate_per_cubic,
                         }
                         : null,
 
-                    created_at: row.created_at,
-                    updated_at: row.updated_at,
+                    created_at: waterRow?.created_at || electricRow?.created_at,
+                    updated_at: waterRow?.updated_at || electricRow?.updated_at,
                 },
             },
             { status: 200 }

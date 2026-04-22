@@ -54,11 +54,10 @@ export default function PropertyLayout({
   const [loadingOtherProperties, setLoadingOtherProperties] = useState(false);
 
   useEffect(() => {
-    if (!landlordId) return;
     const fetchOtherProperties = async () => {
       setLoadingOtherProperties(true);
       try {
-        const res = await axios.get(`/api/landlord/properties/getAllPropertieName?landlord_id=${String(landlordId)}`);
+        const res = await axios.get(`/api/landlord/properties/getAllPropertieName`);
         setOtherProperties(res.data || []);
       } catch (err) {
         console.error("Error fetching properties:", err);
@@ -67,7 +66,7 @@ export default function PropertyLayout({
       }
     };
     fetchOtherProperties();
-  }, [landlordId]);
+  }, []);
 
   const handleSwitchProperty = (propertyId: number) => {
     setShowPropertyDropdown(false);

@@ -95,11 +95,10 @@ export default function LandlordLayout({
   }, [isSidebarOpen]);
 
   useEffect(() => {
-    if (!landlordId) return;
     const fetchProperties = async () => {
       setLoadingProperties(true);
       try {
-        const res = await axios.get(`/api/landlord/properties/getAllPropertieName?landlord_id=${String(landlordId)}`);
+        const res = await axios.get(`/api/landlord/properties/getAllPropertieName`);
         setProperties(res.data || []);
       } catch (err) {
         console.error("Error fetching properties:", err);
@@ -108,7 +107,7 @@ export default function LandlordLayout({
       }
     };
     fetchProperties();
-  }, [landlordId]);
+  }, []);
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property);
