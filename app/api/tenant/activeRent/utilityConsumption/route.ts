@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       const [waterRows]: any = await db.query(
         `SELECT * FROM WaterMeterReading
          WHERE unit_id = ?
-         ORDER BY reading_date DESC
+         ORDER BY period_end DESC
          LIMIT 3`,
         [unit_id]
       );
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
       const [electricRows]: any = await db.query(
         `SELECT * FROM ElectricMeterReading
          WHERE unit_id = ?
-         ORDER BY reading_date DESC
+         ORDER BY period_end DESC
          LIMIT 3`,
         [unit_id]
       );

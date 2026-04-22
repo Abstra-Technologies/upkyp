@@ -140,11 +140,11 @@ export async function GET(req: NextRequest) {
         -------------------------------------------------- */
         const [[waterCurr]] = await db.execute<RowDataPacket[]>(
             `
-            SELECT period_start, period_end, previous_reading, current_reading, reading_date
+            SELECT period_start, period_end, previous_reading, current_reading
             FROM WaterMeterReading
             WHERE unit_id = ?
-              AND DATE_FORMAT(reading_date,'%Y-%m') = DATE_FORMAT(?,'%Y-%m')
-            ORDER BY reading_date DESC
+              AND DATE_FORMAT(period_end,'%Y-%m') = DATE_FORMAT(?,'%Y-%m')
+            ORDER BY period_end DESC
             LIMIT 1
             `,
             [unit_id, ymd(today)]
@@ -152,18 +152,18 @@ export async function GET(req: NextRequest) {
 
         const [[elecCurr]] = await db.execute<RowDataPacket[]>(
             `
-            SELECT period_start, period_end, previous_reading, current_reading, reading_date
+            SELECT period_start, period_end, previous_reading, current_reading
             FROM ElectricMeterReading
             WHERE unit_id = ?
-              AND DATE_FORMAT(reading_date,'%Y-%m') = DATE_FORMAT(?,'%Y-%m')
-            ORDER BY reading_date DESC
+              AND DATE_FORMAT(period_end,'%Y-%m') = DATE_FORMAT(?,'%Y-%m')
+            ORDER BY period_end DESC
             LIMIT 1
             `,
             [unit_id, ymd(today)]
         );
 
         const readingDate =
-            waterCurr?.reading_date || elecCurr?.reading_date || today;
+            waterCurr?.period_end || elecCurr?.period_end || today;
 
         /* -------------------------------------------------
            7. COMPUTE DUE DATE

@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Zap } from "lucide-react";
+import { Download, Zap, Gauge } from "lucide-react";
 import Swal from "sweetalert2";
 
 export default function BillingActions({
@@ -9,6 +9,7 @@ export default function BillingActions({
   setIsModalOpen,
   handleDownloadSummary,
   hideSetRates,
+  onBulkMeterReading,
 }: any) {
   return (
     <div
@@ -31,6 +32,22 @@ export default function BillingActions({
             Set Rates
           </button>
         )}
+
+      {(propertyDetails?.water_billing_type === "submetered" ||
+        propertyDetails?.electricity_billing_type === "submetered") && (
+        <button
+          disabled={configMissing}
+          onClick={() => !configMissing && onBulkMeterReading?.()}
+          className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm shadow-sm ${
+            configMissing
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+          }`}
+        >
+          <Gauge className="w-4 h-4" />
+          Bulk Meter Reading
+        </button>
+      )}
 
       <button
         disabled={configMissing}

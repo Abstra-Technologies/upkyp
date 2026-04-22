@@ -5,11 +5,11 @@ import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function BackButton({
-                               label = "Back",
-                               landlordFallback = "/landlord/property-listing",
-                               tenantFallback = "/tenant/myUnit",
-                               variant = "default",
-                           }: {
+    label = "Back",
+    landlordFallback = "/landlord/property-listing",
+    tenantFallback = "/tenant/myUnit",
+    variant = "default",
+}: {
     label?: string;
     landlordFallback?: string;
     tenantFallback?: string;
@@ -42,62 +42,49 @@ export function BackButton({
 
     const variants = {
         default: `
-      flex items-center gap-2
-      px-4 py-2.5
-      text-sm font-semibold
-      bg-white/90 backdrop-blur
-      text-gray-700
-      border border-gray-200
-      rounded-xl
-      shadow-sm hover:shadow-md
-      active:scale-95
-      transition-all duration-200
-    `,
+            inline-flex items-center gap-1.5
+            px-2.5 py-1.5
+            text-xs font-medium
+            bg-white/90 backdrop-blur-sm
+            text-gray-600
+            border border-gray-200/60
+            rounded-lg
+            shadow-sm hover:shadow-md
+            active:scale-95
+            transition-all duration-150
+        `,
         ghost: `
-      flex items-center gap-2
-      px-3 py-2.5
-      text-sm font-medium
-      text-gray-600
-      hover:text-gray-900
-      hover:bg-gray-100
-      rounded-xl
-      active:scale-95
-      transition-all duration-200
-    `,
+            inline-flex items-center gap-1.5
+            px-2 py-1.5
+            text-xs font-medium
+            text-gray-500
+            hover:text-gray-800
+            hover:bg-gray-100/60
+            rounded-lg
+            active:scale-95
+            transition-all duration-150
+        `,
         gradient: `
-      flex items-center gap-2
-      px-4 py-2.5
-      text-sm font-semibold
-      bg-gradient-to-r from-blue-600 to-emerald-600
-      text-white
-      rounded-xl
-      shadow-md hover:shadow-lg
-      active:scale-95
-      transition-all duration-200
-    `,
+            inline-flex items-center gap-1.5
+            px-2.5 py-1.5
+            text-xs font-medium
+            bg-gradient-to-r from-blue-600 to-emerald-600
+            text-white
+            rounded-lg
+            shadow-sm hover:shadow-md
+            active:scale-95
+            transition-all duration-150
+        `,
     };
 
     return (
-        <div className="sticky top-0 z-40 bg-transparent py-2">
-            <button
-                onClick={handleBack}
-                className={`
-          ${variants[variant]}
-          w-fit
-          min-h-[44px]  /* mobile tap target */
-        `}
-                aria-label={label}
-            >
-                {/* Icon container (better visibility) */}
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
-          <ArrowLeft className="w-4 h-4" />
-        </span>
-
-                {/* Text (hidden on very small screens optional) */}
-                <span className="hidden xs:inline">
-          {label}
-        </span>
-            </button>
-        </div>
+        <button
+            onClick={handleBack}
+            className={`${variants[variant]}`}
+            aria-label={label}
+        >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{label}</span>
+        </button>
     );
 }

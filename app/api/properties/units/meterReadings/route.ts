@@ -37,17 +37,16 @@ export async function GET(req: NextRequest) {
                 unit_id,
                 period_start,
                 period_end,
-                reading_date,
                 previous_reading,
                 current_reading,
                 consumption,
-                concessionaire_bill_id,
+                water_bill_id,
                 is_locked,
                 created_at,
                 updated_at
             FROM WaterMeterReading
             WHERE unit_id = ?
-            ORDER BY period_end DESC, reading_date DESC
+            ORDER BY period_end DESC
             `,
             [unitId]
         );
@@ -61,17 +60,16 @@ export async function GET(req: NextRequest) {
                 unit_id,
                 period_start,
                 period_end,
-                reading_date,
                 previous_reading,
                 current_reading,
                 consumption,
-                concessionaire_bill_id,
+                electricity_bill_id,
                 is_locked,
                 created_at,
                 updated_at
             FROM ElectricMeterReading
             WHERE unit_id = ?
-            ORDER BY period_end DESC, reading_date DESC
+            ORDER BY period_end DESC
             `,
             [unitId]
         );
@@ -79,11 +77,7 @@ export async function GET(req: NextRequest) {
         // 4️⃣ Combine all readings
         const allReadings = [...waterReadings, ...electricReadings]
             .sort((a: any, b: any) => {
-                // Sort by period_end DESC, then reading_date DESC
-                if (b.period_end !== a.period_end) {
-                    return b.period_end?.localeCompare(a.period_end);
-                }
-                return b.reading_date?.localeCompare(a.reading_date);
+                return b.period_end?.localeCompare(a.period_end);
             });
 
         // 5️⃣ Get latest concessionaire rates (most recent period_end)

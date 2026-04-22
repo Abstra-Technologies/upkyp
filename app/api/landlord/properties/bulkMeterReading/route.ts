@@ -65,9 +65,9 @@ export async function POST(req: NextRequest) {
 
                     await connection.query(
                         `INSERT INTO ElectricMeterReading 
-                         (unit_id, period_start, period_end, reading_date, previous_reading, current_reading) 
-                         VALUES (?, ?, ?, ?, ?, ?)`,
-                        [unit_id, elecPeriodStart, elecPeriodEnd, elecPeriodEnd, prevReading, currReading]
+                         (unit_id, period_start, period_end, previous_reading, current_reading) 
+                         VALUES (?, ?, ?, ?, ?)`,
+                        [unit_id, elecPeriodStart, elecPeriodEnd, prevReading, currReading]
                     );
 
                     results.push({ unit_id, success: true, type: "electric" });
@@ -79,9 +79,9 @@ export async function POST(req: NextRequest) {
 
                     await connection.query(
                         `INSERT INTO WaterMeterReading 
-                         (unit_id, period_start, period_end, reading_date, previous_reading, current_reading) 
-                         VALUES (?, ?, ?, ?, ?, ?)`,
-                        [unit_id, waterPeriodStart, waterPeriodEnd, waterPeriodEnd, prevReading, currReading]
+                         (unit_id, period_start, period_end, previous_reading, current_reading) 
+                         VALUES (?, ?, ?, ?, ?)`,
+                        [unit_id, waterPeriodStart, waterPeriodEnd, prevReading, currReading]
                     );
 
                     results.push({ unit_id, success: true, type: "water" });

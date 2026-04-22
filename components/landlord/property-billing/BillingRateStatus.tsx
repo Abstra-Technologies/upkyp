@@ -3,41 +3,17 @@
 import { CheckCircle, AlertCircle, Zap, Droplet } from "lucide-react";
 
 export default function BillingRateStatus({
-                                              propertyDetails,
-                                              hasBillingForMonth,
-                                              billingData,
-                                              setIsModalOpen,
-                                          }: any) {
+    propertyDetails,
+    hasBillingForMonth,
+    billingData,
+    setIsModalOpen,
+}: any) {
     if (
         !propertyDetails ||
         (propertyDetails.water_billing_type !== "submetered" &&
             propertyDetails.electricity_billing_type !== "submetered")
     )
         return null;
-
-    const startDate =
-        billingData?.period_start &&
-        !isNaN(new Date(billingData.period_start).getTime())
-            ? new Date(billingData.period_start)
-            : null;
-
-    const endDate =
-        billingData?.period_end &&
-        !isNaN(new Date(billingData.period_end).getTime())
-            ? new Date(billingData.period_end)
-            : null;
-
-    const formattedRange =
-        startDate && endDate
-            ? `${startDate.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-            })} – ${endDate.toLocaleDateString("en-US", {
-                month: "short",
-                day: "numeric",
-                year: "numeric",
-            })}`
-            : null;
 
     const electricityConsumption = billingData?.electricity?.consumption || 0;
     const electricityTotal = billingData?.electricity?.total || 0;
@@ -62,39 +38,25 @@ export default function BillingRateStatus({
         return (
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="w-full text-left rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50 p-3 mb-4 shadow-md shadow-emerald-500/10 hover:shadow-lg hover:shadow-emerald-500/20 transition-all"
+                className="w-full rounded-xl border border-emerald-200 bg-emerald-50 p-3 hover:bg-emerald-100 transition-colors text-left"
             >
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-500 flex items-center justify-center shadow-sm shadow-emerald-500/20">
-                            <CheckCircle className="w-4 h-4 text-white" />
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold text-gray-900">Rates Set ({monthYear})</p>
-                            <p className="text-[10px] text-gray-500">Click to update rates</p>
-                        </div>
-                    </div>
+                <div className="flex items-center gap-1.5 mb-1">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-xs font-bold text-emerald-800">Rates set for {monthYear}</span>
                 </div>
-                
-                <div className="flex gap-2 mt-2">
+                <span className="text-[11px] text-emerald-600 font-medium">Update rates?</span>
+                <div className="flex gap-1.5 mt-2">
                     {hasElectricity && electricityRate > 0 && (
-                        <div className="flex-1 bg-white rounded-lg border border-amber-200 px-2 py-1.5">
-                            <div className="flex items-center gap-1.5">
-                                <Zap className="w-3 h-3 text-amber-500" />
-                                <span className="text-[10px] font-semibold text-gray-600">Elec</span>
-                                <span className="text-xs font-bold text-amber-600">₱{electricityRate.toFixed(2)}/kWh</span>
-                            </div>
-                        </div>
+                        <span className="text-[10px] bg-white/70 text-amber-700 px-1.5 py-0.5 rounded font-medium">
+                            <Zap className="w-2.5 h-2.5 inline mr-0.5" />
+                            ₱{electricityRate.toFixed(2)}
+                        </span>
                     )}
-                    
                     {hasWater && waterRate > 0 && (
-                        <div className="flex-1 bg-white rounded-lg border border-blue-200 px-2 py-1.5">
-                            <div className="flex items-center gap-1.5">
-                                <Droplet className="w-3 h-3 text-blue-500" />
-                                <span className="text-[10px] font-semibold text-gray-600">Water</span>
-                                <span className="text-xs font-bold text-blue-600">₱{waterRate.toFixed(2)}/m³</span>
-                            </div>
-                        </div>
+                        <span className="text-[10px] bg-white/70 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+                            <Droplet className="w-2.5 h-2.5 inline mr-0.5" />
+                            ₱{waterRate.toFixed(2)}
+                        </span>
                     )}
                 </div>
             </button>
@@ -104,21 +66,13 @@ export default function BillingRateStatus({
     return (
         <button
             onClick={() => setIsModalOpen(true)}
-            className="w-full text-left rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-3 mb-4 shadow-md shadow-amber-500/10 hover:shadow-lg hover:shadow-amber-500/20 transition-all"
+            className="w-full rounded-xl border border-amber-200 bg-amber-50 p-3 hover:bg-amber-100 transition-colors text-left"
         >
-            <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm shadow-amber-500/20">
-                    <AlertCircle className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                    <p className="text-xs font-bold text-gray-900">
-                        Rates Not Set
-                    </p>
-                    <p className="text-[10px] text-gray-500">
-                        Configure to enable billing
-                    </p>
-                </div>
+            <div className="flex items-center gap-1.5 mb-1">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                <span className="text-xs font-bold text-amber-800">Set rates for {monthYear}</span>
             </div>
+            <span className="text-[11px] text-amber-600 font-medium">Tap to configure →</span>
         </button>
     );
 }

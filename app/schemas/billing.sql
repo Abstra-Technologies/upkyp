@@ -29,7 +29,28 @@ create table rentalley_db.Property
     house_policy             longtext                                                          null
 );
 
--- ConcessionaireBilling table is now replaced by WaterConcessionaireBilling and ElectricityConcessionaireBilling (see below)
+create table rentalley_db.ElectricityConcessionaireBilling
+(
+    bill_id      int auto_increment
+        primary key,
+    property_id  varchar(12)                         not null,
+    period_start date                                not null,
+    period_end   date                                not null,
+    consumption  decimal(10, 2)                      not null comment 'Electricity consumption in kWh',
+    total_amount decimal(12, 2)                      not null comment 'Total amount in PHP',
+    rate_per_kwh decimal(10, 4)                      not null comment 'Rate per kWh',
+    created_at   timestamp default CURRENT_TIMESTAMP null,
+    updated_at   timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint ElectricityConcessionaireBilling_ibfk_1
+        foreign key (property_id) references rentalley_db.Property (property_id)
+            on delete cascade
+);
+
+create index electricity_concessionaire_period
+    on rentalley_db.ElectricityConcessionaireBilling (period_start, period_end);
+
+create index electricity_concessionaire_property_id
+    on rentalley_db.ElectricityConcessionaireBilling (property_id);
 
 create index Property_ibfk_1
     on rentalley_db.Property (landlord_id);
@@ -162,6 +183,41 @@ create table rentalley_db.BillingAdditionalCharge
             on delete cascade
 );
 
+create table rentalley_db.ElectricMeterReading
+(
+    reading_id          int auto_increment
+        primary key,
+    unit_id             varchar(12)                          not null,
+    lease_id            varchar(20)                          null,
+    period_start        date                                 not null,
+    period_end          date                                 not null,
+    previous_reading    decimal(10, 2)                       not null,
+    current_reading     decimal(10, 2)                       not null,
+    consumption         decimal(10, 2) as ((`current_reading` - `previous_reading`)) stored,
+    electricity_bill_id int                                  null,
+    is_locked           tinyint(1) default 0                 null,
+    created_at          timestamp  default CURRENT_TIMESTAMP null,
+    updated_at          timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint ElectricMeterReading_ibfk_1
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
+            on delete cascade,
+    constraint ElectricMeterReading_ibfk_2
+        foreign key (electricity_bill_id) references rentalley_db.ConcessionaireBilling (bill_id)
+            on delete set null,
+    constraint fk_electric_meter_lease
+        foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
+            on update cascade on delete set null
+);
+
+create index concessionaire_bill_id
+    on rentalley_db.ElectricMeterReading (electricity_bill_id);
+
+create index idx_electric_meter_lease_id
+    on rentalley_db.ElectricMeterReading (lease_id);
+
+create index unit_id
+    on rentalley_db.ElectricMeterReading (unit_id);
+
 create index tenant_id
     on rentalley_db.LeaseAgreement (tenant_id);
 
@@ -180,147 +236,61 @@ create index idx_unit_property_publish_status_rent
 create index property_id_idx
     on rentalley_db.Unit (property_id);
 
-CREATE TABLE IF NOT EXISTS rentalley_db.WaterMeterReading
+create table rentalley_db.WaterConcessionaireBilling
 (
-    reading_id             INT AUTO_INCREMENT PRIMARY KEY,
-    unit_id                VARCHAR(12) NOT NULL,
-    period_start           DATE NOT NULL,
-    period_end             DATE NOT NULL,
-    reading_date           DATE NOT NULL,
-    previous_reading       DECIMAL(10, 2) NOT NULL,
-    current_reading        DECIMAL(10, 2) NOT NULL,
-    consumption           DECIMAL(10, 2) GENERATED ALWAYS AS ((current_reading - previous_reading)) STORED,
-    water_bill_id         INT DEFAULT NULL,
-    is_locked              TINYINT(1) DEFAULT 0,
-    created_at             TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at             TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT WaterMeterReading_ibfk_1
-        FOREIGN KEY (unit_id) REFERENCES rentalley_db.Unit (unit_id)
-            ON DELETE CASCADE
+    bill_id        int auto_increment
+        primary key,
+    property_id    varchar(12)                         not null,
+    period_start   date                                not null,
+    period_end     date                                not null,
+    consumption    decimal(10, 2)                      not null comment 'Water consumption in cubic meters (m³)',
+    total_amount   decimal(12, 2)                      not null comment 'Total amount in PHP',
+    rate_per_cubic decimal(10, 4)                      not null comment 'Rate per cubic meter',
+    created_at     timestamp default CURRENT_TIMESTAMP null,
+    updated_at     timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint WaterConcessionaireBilling_ibfk_1
+        foreign key (property_id) references rentalley_db.Property (property_id)
+            on delete cascade
 );
 
-CREATE INDEX water_meter_unit_id ON rentalley_db.WaterMeterReading (unit_id);
-CREATE INDEX water_meter_period ON rentalley_db.WaterMeterReading (period_start, period_end);
+create index water_concessionaire_period
+    on rentalley_db.WaterConcessionaireBilling (period_start, period_end);
 
--- =====================================================
--- DROP OLD COMBINED TABLE (if exists)
--- =====================================================
+create index water_concessionaire_property_id
+    on rentalley_db.WaterConcessionaireBilling (property_id);
 
-DROP TABLE IF EXISTS rentalley_db.ConcessionaireBilling;
-
--- =====================================================
--- NORMALIZED: Separate Water and Electricity Billing Tables
--- =====================================================
-
--- Create Water Concessionaire Billing Table
-CREATE TABLE IF NOT EXISTS rentalley_db.WaterConcessionaireBilling (
-    bill_id                 INT AUTO_INCREMENT PRIMARY KEY,
-    property_id             VARCHAR(12) NOT NULL,
-    consumption           DECIMAL(10, 2) NOT NULL COMMENT 'Water consumption in cubic meters (m³)',
-    total_amount           DECIMAL(12, 2) NOT NULL COMMENT 'Total amount in PHP',
-    rate_per_cubic         DECIMAL(10, 4) NOT NULL COMMENT 'Rate per cubic meter',
-    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
-    updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT WaterConcessionaireBilling_ibfk_1
-        FOREIGN KEY (property_id) REFERENCES rentalley_db.Property (property_id)
-        ON DELETE CASCADE
+create table rentalley_db.WaterMeterReading
+(
+    reading_id       int auto_increment
+        primary key,
+    unit_id          varchar(12)                          not null,
+    lease_id         varchar(20)                          null,
+    period_start     date                                 not null,
+    period_end       date                                 not null,
+    previous_reading decimal(10, 2)                       not null,
+    current_reading  decimal(10, 2)                       not null,
+    consumption      decimal(10, 2) as ((`current_reading` - `previous_reading`)) stored,
+    water_bill_id    int                                  null,
+    is_locked        tinyint(1) default 0                 null,
+    created_at       timestamp  default CURRENT_TIMESTAMP null,
+    updated_at       timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint WaterMeterReading_ibfk_1
+        foreign key (unit_id) references rentalley_db.Unit (unit_id)
+            on delete cascade,
+    constraint WaterMeterReading_ibfk_2
+        foreign key (water_bill_id) references rentalley_db.ConcessionaireBilling (bill_id)
+            on delete set null,
+    constraint fk_water_meter_lease
+        foreign key (lease_id) references rentalley_db.LeaseAgreement (agreement_id)
+            on update cascade on delete set null
 );
 
-CREATE INDEX water_concessionaire_property_id ON rentalley_db.WaterConcessionaireBilling (property_id);
-CREATE INDEX water_concessionaire_created ON rentalley_db.WaterConcessionaireBilling (created_at);
+create index concessionaire_bill_id
+    on rentalley_db.WaterMeterReading (water_bill_id);
 
--- Create Electricity Concessionaire Billing Table
-CREATE TABLE IF NOT EXISTS rentalley_db.ElectricityConcessionaireBilling (
-    bill_id                 INT AUTO_INCREMENT PRIMARY KEY,
-    property_id             VARCHAR(12) NOT NULL,
-    consumption           DECIMAL(10, 2) NOT NULL COMMENT 'Electricity consumption in kWh',
-    total_amount           DECIMAL(12, 2) NOT NULL COMMENT 'Total amount in PHP',
-    rate_per_kwh           DECIMAL(10, 4) NOT NULL COMMENT 'Rate per kWh',
-    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL,
-    updated_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT ElectricityConcessionaireBilling_ibfk_1
-        FOREIGN KEY (property_id) REFERENCES rentalley_db.Property (property_id)
-        ON DELETE CASCADE
-);
+create index idx_water_meter_lease_id
+    on rentalley_db.WaterMeterReading (lease_id);
 
-CREATE INDEX electricity_concessionaire_property_id ON rentalley_db.ElectricityConcessionaireBilling (property_id);
-CREATE INDEX electricity_concessionaire_created ON rentalley_db.ElectricityConcessionaireBilling (created_at);
-
--- =====================================================
--- MOCK SEED DATA FOR TESTING
--- Property: UPKYP668L6X
--- Unit: UPKYUXS22W6
--- Uses created_at timestamp for month
--- =====================================================
-
--- Property Utility Rates (Water - April 2026)
-INSERT INTO rentalley_db.WaterConcessionaireBilling (property_id, consumption, total_amount, rate_per_cubic)
-VALUES (
-    'UPKYP668L6X',
-    45.00,
-    1125.00,
-    25.0000
-);
-
--- Property Utility Rates (Electricity - April 2026)
-INSERT INTO rentalley_db.ElectricityConcessionaireBilling (property_id, consumption, total_amount, rate_per_kwh)
-VALUES (
-    'UPKYP668L6X',
-    320.00,
-    4928.64,
-    15.4013
-);
-
--- =====================================================
--- ALTER STATEMENTS: Update Concessionaire Billing Tables
--- Drop old period_start/period_end columns if they exist
--- =====================================================
-
--- Drop period columns from Water table (if exists from previous schema)
--- ALTER TABLE rentalley_db.WaterConcessionaireBilling DROP COLUMN IF EXISTS period_start;
--- ALTER TABLE rentalley_db.WaterConcessionaireBilling DROP COLUMN IF EXISTS period_end;
-
--- Drop period columns from Electricity table (if exists from previous schema)
--- ALTER TABLE rentalley_db.ElectricityConcessionaireBilling DROP COLUMN IF EXISTS period_start;
--- ALTER TABLE rentalley_db.ElectricityConcessionaireBilling DROP COLUMN IF EXISTS period_end;
-
--- =====================================================
--- ALTER STATEMENTS: Update Meter Reading Tables
--- Run these SEPARATELY - check constraint names first if needed
--- Run: SHOW CREATE TABLE rentalley_db.ElectricMeterReading; to find exact constraint name
--- =====================================================
-
--- Step 1: Drop old FK constraint (use actual name from SHOW CREATE TABLE)
--- ALTER TABLE rentalley_db.ElectricMeterReading DROP FOREIGN KEY <constraint_name>;
--- ALTER TABLE rentalley_db.WaterMeterReading DROP FOREIGN KEY <constraint_name>;
-
--- Step 2: Rename columns (run these)
-ALTER TABLE rentalley_db.ElectricMeterReading CHANGE COLUMN concessionaire_bill_id electricity_bill_id INT DEFAULT NULL;
-ALTER TABLE rentalley_db.WaterMeterReading CHANGE COLUMN concessionaire_bill_id water_bill_id INT DEFAULT NULL;
-
--- Convert consumption to computed column if not already
--- (MySQL 5.7+ syntax - requires table rebuild)
--- Note: If consumption is not generated, manually calculate:
--- ALTER TABLE rentalley_db.ElectricMeterReading MODIFY consumption DECIMAL(10,2) GENERATED ALWAYS AS ((current_reading - previous_reading)) STORED;
--- ALTER TABLE rentalley_db.WaterMeterReading MODIFY consumption DECIMAL(10,2) GENERATED ALWAYS AS ((current_reading - previous_reading)) STORED;
-
--- =====================================================
--- SEED DATA: Meter Readings (Property: UPKYP668L6X, Unit: UPKYUXS22W6)
--- =====================================================
-
--- Electric Meter Reading (Feb 2026)
-INSERT INTO rentalley_db.ElectricMeterReading (unit_id, period_start, period_end, reading_date, previous_reading, current_reading)
-VALUES ('UPKYUXS22W6', '2026-02-01', '2026-02-28', '2026-02-28', 100.00, 380.00);
-
--- Electric Meter Reading (March 2026)
-INSERT INTO rentalley_db.ElectricMeterReading (unit_id, period_start, period_end, reading_date, previous_reading, current_reading)
-VALUES ('UPKYUXS22W6', '2026-03-01', '2026-03-31', '2026-03-31', 380.00, 700.00);
-
--- Water Meter Reading (Feb 2026)
-INSERT INTO rentalley_db.WaterMeterReading (unit_id, period_start, period_end, reading_date, previous_reading, current_reading)
-VALUES ('UPKYUXS22W6', '2026-02-01', '2026-02-28', '2026-02-28', 10.00, 45.00);
-
--- Water Meter Reading (March 2026)
-INSERT INTO rentalley_db.WaterMeterReading (unit_id, period_start, period_end, reading_date, previous_reading, current_reading)
-VALUES ('UPKYUXS22W6', '2026-03-01', '2026-03-31', '2026-03-31', 45.00, 90.00);
+create index unit_id
+    on rentalley_db.WaterMeterReading (unit_id);
 

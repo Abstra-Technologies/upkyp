@@ -1,13 +1,11 @@
 "use client";
 
+import { Building2, QrCode, ArrowRight } from "lucide-react";
 import { StatusBadge } from "./LeaseStatusBadge";
 
 const getStatus = (lease: any) =>
     (lease.status ?? lease.lease_status)?.toLowerCase();
 
-/**
- * ADDITIVE helper – does not affect existing logic
- */
 const requiresLandlordSignature = (lease: any) => {
     const status = getStatus(lease);
     return status === "pending_signature";
@@ -15,180 +13,157 @@ const requiresLandlordSignature = (lease: any) => {
 
 interface Props {
     leases: any[];
-    onPrimary: (lease: any) => void; // setup / view / authenticate
+    onPrimary: (lease: any) => void;
     onExtend: (lease: any) => void;
     onEnd: (lease: any) => void;
-    onKyp: (lease: any) => void; // eKYP handler
+    onKyp: (lease: any) => void;
     onAuthenticate: (lease: any) => void;
 }
 
 export default function LeaseTable({
-                                       leases,
-                                       onPrimary,
-                                       onExtend,
-                                       onEnd,
-                                       onKyp,
-                                       onAuthenticate
-                                   }: Props) {
+    leases,
+    onPrimary,
+    onExtend,
+    onEnd,
+    onKyp,
+    onAuthenticate,
+}: Props) {
     return (
-        <div className="hidden md:block bg-white border rounded-lg shadow-sm overflow-hidden">
-            <table className="w-full text-sm divide-y">
-                {/* ================= HEADER ================= */}
-                <thead className="bg-gray-50 text-[11px] uppercase text-gray-500">
-                <tr>
-                    <th className="px-4 py-2 text-left">Unit</th>
-                    <th className="px-3 py-2 text-center">Start</th>
-                    <th className="px-3 py-2 text-center">End</th>
-                    <th className="px-3 py-2 text-center">Status</th>
-                    <th className="px-3 py-2 text-center">eKYP ID</th>
-                    <th className="px-4 py-2 text-right">Action</th>
-                </tr>
+        <div
+            id="units-list-section"
+            className="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden"
+        >
+            <div className="bg-gradient-to-r from-slate-100 to-gray-100 px-4 py-3 border-b border-gray-200">
+                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-blue-600" />
+                    Active Lease List
+                </h3>
+            </div>
+            <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-transparent">
+                    <tr>
+                        {["Unit", "Start Date", "End Date", "Status", "eKYP ID", "Actions"].map(
+                            (h) => (
+                                <th
+                                    key={h}
+                                    className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
+                                >
+                                    {h}
+                                </th>
+                            ),
+                        )}
+                    </tr>
                 </thead>
+                <tbody className="divide-y divide-gray-100">
+                    {leases.map((lease) => {
+                        const status = getStatus(lease);
 
-                {/* ================= BODY ================= */}
-                <tbody className="divide-y">
-                {leases.map((lease) => {
-                    const status = getStatus(lease);
+                        return (
+                            <tr key={lease.agreement_id || lease.lease_id} className="group hover:bg-gray-50/50 transition-colors">
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20">
+                                            <Building2 className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <span className="font-semibold text-gray-900">{lease.unit_name}</span>
+                                            <p className="text-xs text-gray-500">{lease.tenant_name || "No tenant"}</p>
+                                        </div>
+                                    </div>
+                                </td>
 
-                    return (
-                        <tr
-                            key={lease.agreement_id || lease.lease_id}
-                            className="hover:bg-gray-50 transition"
-                        >
-                            {/* Unit */}
-                            <td className="px-4 py-2 font-medium text-gray-800">
-                                {lease.unit_name}
-                                <div className="text-xs text-gray-500">
-                                    {lease.tenant_name || "—"}
-                                </div>
-                            </td>
+                                <td className="px-4 py-3">
+                                    <span className="text-sm text-gray-500">
+                                        {lease.start_date
+                                            ? new Date(lease.start_date).toLocaleDateString()
+                                            : "—"}
+                                    </span>
+                                </td>
 
-                            {/* Start */}
-                            <td className="px-3 py-2 text-center text-gray-600">
-                                {lease.start_date
-                                    ? new Date(
-                                        lease.start_date
-                                    ).toLocaleDateString()
-                                    : "—"}
-                            </td>
+                                <td className="px-4 py-3">
+                                    <span className="text-sm text-gray-500">
+                                        {lease.end_date
+                                            ? new Date(lease.end_date).toLocaleDateString()
+                                            : "—"}
+                                    </span>
+                                </td>
 
-                            {/* End */}
-                            <td className="px-3 py-2 text-center text-gray-600">
-                                {lease.end_date
-                                    ? new Date(
-                                        lease.end_date
-                                    ).toLocaleDateString()
-                                    : "—"}
-                            </td>
+                                <td className="px-4 py-3">
+                                    <StatusBadge lease={lease} />
+                                </td>
 
-                            {/* Status */}
-                            <td className="px-3 py-2 text-center">
-                                <StatusBadge lease={lease} />
-                            </td>
-
-                            {/* ================= eKYP ID COLUMN (PRESERVED) ================= */}
-                            <td className="px-3 py-2 text-center">
-                                {status === "active" ? (
-                                    <button
-                                        onClick={() => onKyp(lease)}
-                                        className="px-3 py-1.5 text-sm
-                                                       bg-indigo-600 text-white
-                                                       rounded-md hover:bg-indigo-700
-                                                       transition font-medium"
-                                    >
-                                        View ID
-                                    </button>
-                                ) : (
-                                    <span
-                                        className="inline-flex px-3 py-1.5 text-sm
-                                                       bg-gray-100 text-gray-400
-                                                       rounded-md cursor-not-allowed"
-                                    >
+                                <td className="px-4 py-3">
+                                    {status === "active" ? (
+                                        <button
+                                            onClick={() => onKyp(lease)}
+                                            className="px-3 py-1.5 text-xs font-bold bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+                                        >
+                                            View ID
+                                        </button>
+                                    ) : (
+                                        <span className="inline-flex px-3 py-1.5 text-xs font-bold bg-gray-100 text-gray-400 rounded-lg">
                                             N/A
                                         </span>
-                                )}
-                            </td>
+                                    )}
+                                </td>
 
-                            {/* ================= ACTIONS ================= */}
-                            <td className="px-4 py-2 text-right space-x-1">
-                                {/* Draft → Setup */}
-                                {status === "draft" && (
-                                    <button
-                                        onClick={() => onPrimary(lease)}
-                                        className="px-3 py-1.5 text-sm
-                                                       bg-blue-600 text-white
-                                                       rounded-md font-medium"
-                                    >
-                                        Setup
-                                    </button>
-                                )}
-
-                                {/* Pending Signature → Authenticate (NEW, ADDITIVE) */}
-                                {requiresLandlordSignature(lease) && (
-                                    <button
-                                        onClick={() => onAuthenticate(lease)}
-                                        className="px-3 py-1.5 text-sm
-                                                       bg-emerald-600 text-white
-                                                       rounded-md font-medium"
-                                    >
-                                        Authenticate
-                                    </button>
-                                )}
-
-                                {/* Expired → Extend / End */}
-                                {status === "expired" && (
-                                    <>
+                                <td className="px-4 py-3">
+                                    {status === "draft" && (
                                         <button
-                                            onClick={() => onExtend(lease)}
-                                            className="px-3 py-1.5 text-sm
-                                                           bg-emerald-600 text-white
-                                                           rounded-md font-medium"
+                                            onClick={() => onPrimary(lease)}
+                                            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
                                         >
-                                            Extend
+                                            Setup
                                         </button>
+                                    )}
+
+                                    {requiresLandlordSignature(lease) && (
                                         <button
-                                            onClick={() => onEnd(lease)}
-                                            className="px-3 py-1.5 text-sm
-                                                           bg-red-600 text-white
-                                                           rounded-md font-medium"
+                                            onClick={() => onAuthenticate(lease)}
+                                            className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md shadow-emerald-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
                                         >
-                                            End
+                                            Authenticate
                                         </button>
-                                    </>
-                                )}
+                                    )}
 
-                                {/* Active → View */}
-                                {status === "active" && (
-                                    <button
-                                        onClick={() => onPrimary(lease)}
-                                        className="px-3 py-1.5 text-sm
-                                                       bg-gray-800 text-white
-                                                       rounded-md font-medium"
-                                    >
-                                        View
-                                    </button>
-                                )}
+                                    {status === "expired" && (
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => onExtend(lease)}
+                                                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-lg text-xs font-bold shadow-md shadow-emerald-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
+                                            >
+                                                Extend
+                                            </button>
+                                            <button
+                                                onClick={() => onEnd(lease)}
+                                                className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg text-xs font-bold shadow-md shadow-red-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
+                                            >
+                                                End
+                                            </button>
+                                        </div>
+                                    )}
 
-                                {/* Fallback (UNCHANGED, excludes pending_signature) */}
-                                {![
-                                    "draft",
-                                    "expired",
-                                    "active",
-                                    "pending_signature",
-                                ].includes(status) && (
-                                    <button
-                                        onClick={() => onPrimary(lease)}
-                                        className="px-3 py-1.5 text-sm
-                                                       bg-gray-800 text-white
-                                                       rounded-md font-medium"
-                                    >
-                                        View
-                                    </button>
-                                )}
-                            </td>
-                        </tr>
-                    );
-                })}
+                                    {status === "active" && (
+                                        <button
+                                            onClick={() => onPrimary(lease)}
+                                            className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg text-xs font-bold shadow-md shadow-slate-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
+                                        >
+                                            View
+                                        </button>
+                                    )}
+
+                                    {!["draft", "expired", "active", "pending_signature"].includes(status) && (
+                                        <button
+                                            onClick={() => onPrimary(lease)}
+                                            className="px-4 py-2 bg-gradient-to-r from-slate-700 to-slate-800 text-white rounded-lg text-xs font-bold shadow-md shadow-slate-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
+                                        >
+                                            View
+                                        </button>
+                                    )}
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

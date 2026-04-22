@@ -145,52 +145,740 @@ async function createBilling(req: NextRequest) {
 
         /* ---------- WATER METER ---------- */
         if (waterPrevReading != null && waterCurrentReading != null) {
-            await conn.query(
-                `
-        INSERT INTO WaterMeterReading
-          (unit_id, period_start, period_end, reading_date,
-           previous_reading, current_reading)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-          previous_reading = VALUES(previous_reading),
-          current_reading  = VALUES(current_reading),
-          reading_date     = VALUES(reading_date),
-          updated_at       = NOW()
-        `,
-                [
-                    unit_id,
-                    periodStart,
-                    periodEnd,
-                    readingDate,
-                    Number(waterPrevReading),
-                    Number(waterCurrentReading),
-                ]
+            const [[existingWater]]: any = await conn.query(
+                `SELECT reading_id FROM WaterMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
             );
+
+            let actualWaterStart = periodStart;
+
+            if (!existingWater) {
+                const [[lastWater]]: any = await conn.query(
+                    `SELECT period_end FROM WaterMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastWater) {
+                    actualWaterStart = lastWater.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
         }
 
         /* ---------- ELECTRIC METER ---------- */
         if (electricityPrevReading != null && electricityCurrentReading != null) {
-            await conn.query(
-                `
-        INSERT INTO ElectricMeterReading
-          (unit_id, period_start, period_end, reading_date,
-           previous_reading, current_reading)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-          previous_reading = VALUES(previous_reading),
-          current_reading  = VALUES(current_reading),
-          reading_date     = VALUES(reading_date),
-          updated_at       = NOW()
-        `,
-                [
-                    unit_id,
-                    periodStart,
-                    periodEnd,
-                    readingDate,
-                    Number(electricityPrevReading),
-                    Number(electricityCurrentReading),
-                ]
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
             );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+                await conn.query(
+                    `INSERT INTO WaterMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualWaterStart,
+                        periodEnd,
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE WaterMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(waterPrevReading),
+                        Number(waterCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
+        }
+
+        /* ---------- ELECTRIC METER ---------- */
+        if (electricityPrevReading != null && electricityCurrentReading != null) {
+            const [[existingElec]]: any = await conn.query(
+                `SELECT reading_id FROM ElectricMeterReading WHERE unit_id = ? AND period_end = ?`,
+                [unit_id, periodEnd]
+            );
+
+            let actualElecStart = periodStart;
+
+            if (!existingElec) {
+                const [[lastElec]]: any = await conn.query(
+                    `SELECT period_end FROM ElectricMeterReading WHERE unit_id = ? ORDER BY period_end DESC LIMIT 1`,
+                    [unit_id]
+                );
+                if (lastElec) {
+                    actualElecStart = lastElec.period_end;
+                }
+
+                await conn.query(
+                    `INSERT INTO ElectricMeterReading
+                     (unit_id, period_start, period_end, previous_reading, current_reading)
+                     VALUES (?, ?, ?, ?, ?)`,
+                    [
+                        unit_id,
+                        actualElecStart,
+                        periodEnd,
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                    ]
+                );
+            } else {
+                await conn.query(
+                    `UPDATE ElectricMeterReading
+                     SET previous_reading = ?, current_reading = ?, updated_at = NOW()
+                     WHERE unit_id = ? AND period_end = ?`,
+                    [
+                        Number(electricityPrevReading),
+                        Number(electricityCurrentReading),
+                        unit_id,
+                        periodEnd,
+                    ]
+                );
+            }
         }
 
         /* ---------- CHARGES ---------- */
@@ -376,7 +1064,6 @@ async function updateBilling(req: NextRequest) {
                     SET
                         previous_reading = ?,
                         current_reading  = ?,
-                        reading_date     = ?,
                         updated_at       = NOW()
                     WHERE unit_id = ?
                       AND period_start = ?
@@ -385,7 +1072,6 @@ async function updateBilling(req: NextRequest) {
                 [
                     Number(waterPrevReading),
                     Number(waterCurrentReading),
-                    readingDate,
                     unit_id,
                     periodStart,
                     periodEnd,
@@ -398,15 +1084,14 @@ async function updateBilling(req: NextRequest) {
                 await conn.query(
                     `
                         INSERT INTO WaterMeterReading
-                        (unit_id, period_start, period_end, reading_date,
+                        (unit_id, period_start, period_end,
                          previous_reading, current_reading)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?)
                     `,
                     [
                         unit_id,
                         periodStart,
                         periodEnd,
-                        readingDate,
                         Number(waterPrevReading),
                         Number(waterCurrentReading),
                     ]
@@ -424,7 +1109,6 @@ async function updateBilling(req: NextRequest) {
                     SET
                         previous_reading = ?,
                         current_reading  = ?,
-                        reading_date     = ?,
                         updated_at       = NOW()
                     WHERE unit_id = ?
                       AND period_start = ?
@@ -433,7 +1117,6 @@ async function updateBilling(req: NextRequest) {
                 [
                     Number(electricityPrevReading),
                     Number(electricityCurrentReading),
-                    readingDate,
                     unit_id,
                     periodStart,
                     periodEnd,
@@ -446,15 +1129,14 @@ async function updateBilling(req: NextRequest) {
                 await conn.query(
                     `
                         INSERT INTO ElectricMeterReading
-                        (unit_id, period_start, period_end, reading_date,
+                        (unit_id, period_start, period_end,
                          previous_reading, current_reading)
-                        VALUES (?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?)
                     `,
                     [
                         unit_id,
                         periodStart,
                         periodEnd,
-                        readingDate,
                         Number(electricityPrevReading),
                         Number(electricityCurrentReading),
                     ]
