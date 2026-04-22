@@ -2,7 +2,6 @@
 
 import { formatCurrency } from "@/utils/formatter/formatters";
 import { useSubscriptionStore } from "@/zustand/subscriptionStore";
-import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
 
 interface CheckoutPanelProps {
     onCheckout: () => void;
@@ -13,13 +12,6 @@ export default function CheckoutPanel({ onCheckout, onCancel }: CheckoutPanelPro
     const { selectedPlan } = useSubscriptionStore();
 
     if (!selectedPlan) return null;
-
-    const plan = SUBSCRIPTION_PLANS.find(p => p.id === selectedPlan.id);
-    if (!plan) return null;
-
-    const displayBand = selectedPlan.unitBandIndex !== undefined && plan.unitBands 
-        ? plan.unitBands[selectedPlan.unitBandIndex]?.range 
-        : null;
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -36,10 +28,10 @@ export default function CheckoutPanel({ onCheckout, onCancel }: CheckoutPanelPro
 
                 <div className="space-y-4">
                     <div className="bg-gray-50 rounded-lg p-4">
-                        <h3 className="font-semibold text-lg">{plan.name}</h3>
-                        {displayBand && (
+                        <h3 className="font-semibold text-lg">{selectedPlan.name}</h3>
+                        {selectedPlan.bandRange && (
                             <p className="text-sm text-gray-500">
-                                Unit range: {displayBand} units
+                                Unit range: {selectedPlan.bandRange}
                             </p>
                         )}
                     </div>
@@ -60,7 +52,7 @@ export default function CheckoutPanel({ onCheckout, onCancel }: CheckoutPanelPro
                         onClick={onCheckout}
                         className="w-full py-3 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
                     >
-                        Proceed to Payment
+                        Proceed to Checkout
                     </button>
                 </div>
             </div>

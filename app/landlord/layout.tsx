@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import axios from "axios";
 
 import useAuthStore from "@/zustand/authStore";
 import LoadingScreen from "@/components/loadingScreen";
@@ -26,6 +27,7 @@ import {
   AlertCircle,
   Handshake,
   CreditCard,
+  ChevronDown,
 } from "lucide-react";
 import useSubscription from "@/hooks/landlord/useSubscription";
 import { IoFileTrayStacked } from "react-icons/io5";
@@ -40,6 +42,13 @@ const SendTenantInviteModal = dynamic(
   { ssr: false },
 );
 
+interface Property {
+  property_id: number;
+  property_name: string;
+  city: string;
+  province: string;
+}
+
 export default function LandlordLayout({
   children,
 }: {
@@ -48,13 +57,17 @@ export default function LandlordLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { user, fetchSession, signOut } = useAuthStore();
-  const landlordId = user?.landlord_id;
+  const landlordId = user?.landlord_id ?? undefined;
   const { subscription, loadingSubscription } = useSubscription(landlordId);
   const emailVerified = user?.emailVerified ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [authReady, setAuthReady] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
+  const [loadingProperties, setLoadingProperties] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -81,6 +94,28 @@ export default function LandlordLayout({
     };
   }, [isSidebarOpen]);
 
+  useEffect(() => {
+    if (!landlordId) return;
+    const fetchProperties = async () => {
+      setLoadingProperties(true);
+      try {
+        const res = await axios.get(`/api/landlord/properties/getAllPropertieName?landlord_id=${String(landlordId)}`);
+        setProperties(res.data || []);
+      } catch (err) {
+        console.error("Error fetching properties:", err);
+      } finally {
+        setLoadingProperties(false);
+      }
+    };
+    fetchProperties();
+  }, [landlordId]);
+
+  const handlePropertySelect = (property: Property) => {
+    setSelectedProperty(property);
+    setShowPropertyDropdown(false);
+    window.location.href = `/landlord/properties/${property.property_id}`;
+  };
+
   const isInsideProperty = useMemo(
     () =>
       pathname.includes("/landlord/properties/") &&
@@ -88,23 +123,16 @@ export default function LandlordLayout({
     [pathname],
   );
 
-  // ── Nav groups with IDs added for Driver.js targeting ──
   const navGroups = useMemo(
     () => [
       {
-        title: "Core",
+        title: "Main",
         items: [
           {
             id: "nav-dashboard",
             label: "Dashboard",
             href: "/landlord/dashboard",
             icon: Home,
-          },
-          {
-            id: "nav-payments",
-            label: "Payments",
-            href: "/landlord/payments",
-            icon: Wallet,
           },
           {
             id: "nav-properties",
@@ -114,9 +142,15 @@ export default function LandlordLayout({
           },
           {
             id: "nav-tenants",
-            label: "My Tenants",
+            label: "Tenants",
             href: "/landlord/list_of_tenants",
             icon: Users,
+          },
+          {
+            id: "nav-payments",
+            label: "Payments",
+            href: "/landlord/payments",
+            icon: Wallet,
           },
           {
             id: "nav-messages",
@@ -124,15 +158,14 @@ export default function LandlordLayout({
             href: "/landlord/chat",
             icon: MessageSquareMore,
           },
-
         ],
       },
       {
-        title: "Operations",
+        title: "Management",
         items: [
           {
             id: "nav-workorders",
-            label: "Work Orders",
+            label: "Maintenance",
             href: "/landlord/maintenance-request",
             icon: Construction,
           },
@@ -151,7 +184,7 @@ export default function LandlordLayout({
         ],
       },
       {
-        title: "Finance & Strategy",
+        title: "Insights",
         items: [
           {
             id: "nav-analytics",
@@ -161,20 +194,26 @@ export default function LandlordLayout({
           },
         ],
       },
-        {
-            title: "Upkyp Platform",
-            items: [
-                {
-                    id: "nav-upkyp",
-                    label: "Upkyp Stack",
-                    href: "/upkyp_stack",
-                    icon: IoFileTrayStacked ,
-                },
-            ],
-        },
       {
-        title: "Support",
+        title: "Platform",
         items: [
+          {
+            id: "nav-upkyp",
+            label: "Upkyp Stack",
+            href: "/upkyp_stack",
+            icon: IoFileTrayStacked,
+          },
+        ],
+      },
+      {
+        title: "Help",
+        items: [
+          {
+            id: "nav-subscription",
+            label: "Subscription",
+            href: "/commons/landlord/subscription",
+            icon: CreditCard,
+          },
           {
             id: "nav-help",
             label: "Help & Support",
@@ -207,22 +246,19 @@ export default function LandlordLayout({
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30 scrollbar-none">
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-72 bg-white shadow-xl z-40">
+      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-72 bg-white shadow-xl z-40 transition-all duration-300">
         <div className="flex flex-col h-full">
           {/* HEADER */}
-          <div className="px-6 py-5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white">
-            <div className="flex justify-between items-center">
-              {/* ID for tour targeting */}
-              <Link id="nav-brand" href="/landlord/dashboard">
-                <h1 className="text-2xl font-bold">Upkyp</h1>
-              </Link>
-              <NotificationSection user={user} admin={null} />
-            </div>
-            <p className="text-xs text-white/80">Landlord Portal</p>
+          <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white flex items-center justify-between">
+            <Link id="nav-brand" href="/landlord/dashboard" className="flex items-center gap-2">
+              <h1 className="text-lg font-bold">Upkyp</h1>
+              <span className="text-xs text-white/70 font-medium">Landlord Portal</span>
+            </Link>
+            <NotificationSection user={user} admin={null} />
           </div>
 
           {/* PROFILE */}
-          <div className="px-4 py-4 border-b bg-gray-50">
+          <div className="px-4 py-3 border-b bg-gray-50">
             <div className="flex items-center gap-3">
               <Image
                 src={
@@ -230,9 +266,9 @@ export default function LandlordLayout({
                   "https://res.cloudinary.com/dptmeluy0/image/upload/v1766715365/profile-icon-design-free-vector_la6rgj.jpg"
                 }
                 alt="Profile"
-                width={44}
-                height={44}
-                className="rounded-xl object-cover border-2 border-gray-200"
+                width={40}
+                height={40}
+                className="rounded-lg object-cover border border-gray-200"
               />
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">
@@ -240,10 +276,9 @@ export default function LandlordLayout({
                     ? `${user.firstName} ${user.lastName}`
                     : user?.companyName || user.email}
                 </p>
-                <p className="text-xs text-gray-500">Landlord</p>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <div className="flex items-center gap-2 mt-0.5">
                   <span
-                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       subscription?.plan_name === "pro"
                         ? "bg-emerald-100 text-emerald-700"
                         : subscription?.plan_name === "enterprise"
@@ -255,26 +290,73 @@ export default function LandlordLayout({
                       ? "..."
                       : subscription?.plan_name
                         ? subscription.plan_name.toUpperCase()
-                        : "-"}
+                        : "FREE"}
                   </span>
                 </div>
-                {user.landlord_id && (
-                  <p className="text-[11px] text-gray-400 truncate mt-0.5">
-                    ID: {user?.landlord_id}
-                  </p>
-                )}
               </div>
               <Link href="/commons/profile">
-                <Settings className="w-5 h-5 text-gray-500 hover:text-blue-600" />
+                <Settings className="w-4 h-4 text-gray-500 hover:text-blue-600 transition-colors" />
               </Link>
             </div>
           </div>
 
-          {/* NAV — id applied to each Link for Driver.js */}
-          <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5">
+          {/* PROPERTY SELECTOR */}
+          <div className="px-3 py-2.5 border-b bg-white relative">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
+              My Properties
+            </p>
+            <button
+              onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-blue-300 transition-all duration-200 text-left"
+            >
+              <Building className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {selectedProperty ? selectedProperty.property_name : "Select Property"}
+                </p>
+              </div>
+              <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Dropdown */}
+            {showPropertyDropdown && (
+              <div className="absolute left-3 right-3 mt-1 bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-64 overflow-y-auto">
+                {loadingProperties ? (
+                  <div className="p-3 text-center text-sm text-gray-500">Loading...</div>
+                ) : properties.length === 0 ? (
+                  <div className="p-3 text-center text-sm text-gray-500">No properties yet</div>
+                ) : (
+                  properties.map((prop) => (
+                    <button
+                      key={prop.property_id}
+                      onClick={() => handlePropertySelect(prop)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0 ${
+                        selectedProperty?.property_id === prop.property_id ? "bg-blue-50" : ""
+                      }`}
+                    >
+                      <div className="w-7 h-7 rounded-md bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <Building className="w-3.5 h-3.5 text-blue-600" />
+                      </div>
+                      <p className="text-sm font-medium text-gray-800 truncate">{prop.property_name}</p>
+                    </button>
+                  ))
+                )}
+                <Link
+                  href="/landlord/property-listing"
+                  onClick={() => setShowPropertyDropdown(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
+                >
+                  + Add New Property
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* NAV */}
+          <nav className="flex-1 px-3 py-3 overflow-y-auto space-y-4">
             {navGroups.map((group) => (
               <div key={group.title}>
-                <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
                   {group.title}
                 </p>
                 {group.items.map(({ id, label, href, icon: Icon }) => {
@@ -285,10 +367,10 @@ export default function LandlordLayout({
                     return (
                       <div
                         key={href}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition opacity-50 cursor-not-allowed text-gray-400"
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition opacity-50 cursor-not-allowed text-gray-400"
                         title="Verify your email first"
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className="w-4 h-4" />
                         {label}
                       </div>
                     );
@@ -299,13 +381,13 @@ export default function LandlordLayout({
                       key={href}
                       id={id}
                       href={href}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         active
-                          ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
+                          ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-md"
                           : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4" />
                       {label}
                     </Link>
                   );
@@ -314,26 +396,13 @@ export default function LandlordLayout({
             ))}
           </nav>
 
-          {/* SUBSCRIPTION UPGRADE BANNER */}
-          <div className="p-4 border-t bg-gradient-to-r from-blue-600 to-emerald-600">
-            <Link
-              href="/public/pricing"
-              className="flex items-center justify-center gap-2 px-4 py-3 bg-white rounded-lg hover:bg-gray-50 transition font-semibold text-sm"
-            >
-              <CreditCard className="w-5 h-5" />
-              {subscription?.plan_name === "pro" || subscription?.plan_name === "enterprise"
-                ? "Manage Subscription"
-                : "Upgrade Plan"}
-            </Link>
-          </div>
-
           {/* FOOTER LOGOUT */}
-          <div className="p-4 border-t bg-gray-50">
+          <div className="p-3 border-t bg-gray-50">
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white border rounded-lg hover:bg-red-50 hover:text-red-600"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium text-sm shadow-md"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4 h-4" />
               Logout
             </button>
           </div>
@@ -343,35 +412,39 @@ export default function LandlordLayout({
       {/* MOBILE HEADER */}
       <div
         id="mobile-header"
-        className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
+        className="lg:hidden fixed top-0 left-0 right-0 h-12 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
-        <Link href="/landlord/dashboard">
-          <h1 className="text-xl font-bold text-white">Upkyp</h1>
+        <Link href="/landlord/dashboard" className="flex items-center gap-2">
+          <h1 className="text-base font-bold text-white">Upkyp</h1>
+          <span className="text-xs text-white/70 font-medium hidden sm:inline">Landlord Portal</span>
         </Link>
-        <div className="flex gap-2">
+        <div className="flex gap-1">
           <NotificationSection user={user} admin={null} />
           <button
             id="mobile-menu-btn"
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/10"
+            className="p-1.5 rounded-lg hover:bg-white/10"
           >
             <Menu className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
 
-            {/* MOBILE SIDENAV (COMPONENT) */}
-            <MobileLandlordSidenav
-                isOpen={isSidebarOpen}
-                onClose={() => setIsSidebarOpen(false)}
-                navGroups={navGroups}
-                landlordId={user.landlord_id}
-                // InviteModal={SendTenantInviteModal}
-                onLogoutClick={() => setShowLogoutConfirm(true)}
-                user={user}
-                emailVerified={emailVerified}
-            />
-
+      {/* MOBILE SIDENAV */}
+      <MobileLandlordSidenav
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        navGroups={navGroups}
+        onLogoutClick={() => setShowLogoutConfirm(true)}
+        user={user}
+        emailVerified={emailVerified}
+        properties={properties}
+        selectedProperty={selectedProperty}
+        onPropertySelect={handlePropertySelect}
+        showPropertyDropdown={showPropertyDropdown}
+        setShowPropertyDropdown={setShowPropertyDropdown}
+        loadingProperties={loadingProperties}
+      />
 
       {/* LOGOUT CONFIRM */}
       {showLogoutConfirm && (
@@ -403,8 +476,8 @@ export default function LandlordLayout({
           </div>
         </div>
       )}
-            {/* MAIN */}
-            <main className="flex-1 lg:pl-72 pt-14 lg:pt-0 min-h-screen scrollbar-none">{children}</main>
-        </div>
-    );
+      {/* MAIN */}
+      <main className="flex-1 lg:pl-72 pt-12 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">{children}</main>
+    </div>
+  );
 }

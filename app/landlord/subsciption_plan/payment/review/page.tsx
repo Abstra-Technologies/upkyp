@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -40,33 +39,6 @@ function SubscriptionReview() {
         );
     }
 
-    const selectedPlanDetails = SUBSCRIPTION_PLANS.find(
-        (p) => p.id === selectedPlan.id
-    );
-
-    if (!selectedPlanDetails) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600 mb-4">Invalid subscription request.</p>
-                    <button 
-                        onClick={() => {
-                            clearSelectedPlan();
-                            router.push('/public/pricing');
-                        }}
-                        className="text-blue-600 hover:underline"
-                    >
-                        Go to Pricing
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    const displayBand = selectedPlan.unitBandIndex !== undefined && selectedPlan.unitBandIndex !== null && selectedPlanDetails.unitBands
-        ? selectedPlanDetails.unitBands[selectedPlan.unitBandIndex]?.range
-        : null;
-
     const basePrice = selectedPlan.price || 0;
     const proratedAmount = selectedPlan.proratedAmount || basePrice;
     const proratedDiscount = basePrice - proratedAmount;
@@ -79,13 +51,16 @@ function SubscriptionReview() {
         try {
             const response = await axios.post("/api/payment/checkout-payment", {
                 amount: finalTotal,
-                description: selectedPlanDetails.name,
+                description: selectedPlan.name,
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 landlord_id: user.landlord_id,
-                plan_name: selectedPlanDetails.name,
-                plan_code: selectedPlanDetails.planCode,
+                plan_id: selectedPlan.id,
+                plan_name: selectedPlan.name,
+                plan_code: selectedPlan.planCode,
+                unit_band_index: selectedPlan.unitBandIndex,
+                band_range: selectedPlan.bandRange,
                 redirectUrl: {
                     success: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/subscriptionSuccess`,
                     failure: `${process.env.NEXT_PUBLIC_BASE_URL}/payment/failure`,
@@ -137,11 +112,11 @@ function SubscriptionReview() {
 
                         <div className="bg-white rounded-xl shadow border p-6">
                             <h2 className="text-xl font-bold mb-2">
-                                {selectedPlanDetails.name}
+                                {selectedPlan.name}
                             </h2>
-                            {displayBand && (
+                            {selectedPlan.bandRange && (
                                 <p className="text-sm text-gray-500 mb-4">
-                                    Unit range: {displayBand} units
+                                    Unit range: {selectedPlan.bandRange}
                                 </p>
                             )}
 
@@ -180,13 +155,13 @@ function SubscriptionReview() {
                         <div className="space-y-4 text-gray-700">
                             <div className="flex justify-between">
                                 <span>Plan</span>
-                                <span>{selectedPlanDetails.name}</span>
+                                <span>{selectedPlan.name}</span>
                             </div>
 
-                            {displayBand && (
+                            {selectedPlan.bandRange && (
                                 <div className="flex justify-between">
                                     <span>Unit Range</span>
-                                    <span>{displayBand}</span>
+                                    <span>{selectedPlan.bandRange}</span>
                                 </div>
                             )}
 

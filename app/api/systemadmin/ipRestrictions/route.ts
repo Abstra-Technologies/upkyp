@@ -1,28 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { jwtVerify } from "jose";
-import { parse } from "cookie";
+import { verifyAdmin } from "@/lib/auth/adminAuth";
 
 export async function GET(req: NextRequest) {
     try {
-        // 🔐 Parse cookies and verify JWT
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
-
-        if (!cookies || !cookies.token) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        const auth = await verifyAdmin(req);
+        if ("error" in auth) {
+            return NextResponse.json({ success: false, message: auth.error }, { status: auth.status });
         }
 
-        const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
-        const { payload } = await jwtVerify(cookies.token, secretKey);
-        const currentLoggedAdmin = payload.admin_id;
-        const role = payload.role;
-
-        if (role !== "super-admin") {
+        if (auth.role !== "super-admin") {
             return NextResponse.json({ success: false, message: "Access denied" }, { status: 403 });
         }
 
-        // ✅ Fetch all allowed IPs
         const [rows]: any = await db.query(
             "SELECT * FROM IpAddresses ORDER BY created_at DESC"
         );
@@ -40,24 +30,15 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        // 🔐 Parse cookies and verify JWT
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
-
-        if (!cookies || !cookies.token) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        const auth = await verifyAdmin(req);
+        if ("error" in auth) {
+            return NextResponse.json({ success: false, message: auth.error }, { status: auth.status });
         }
 
-        const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
-        const { payload } = await jwtVerify(cookies.token, secretKey);
-        const currentLoggedAdmin = payload.admin_id;
-        const role = payload.role;
-
-        if (role !== "super-admin") {
+        if (auth.role !== "super-admin") {
             return NextResponse.json({ success: false, message: "Access denied" }, { status: 403 });
         }
 
-        // 🧩 Extract request body
         const { ip_address, label } = await req.json();
         if (!ip_address) {
             return NextResponse.json({ success: false, message: "IP address is required" }, { status: 400 });
@@ -65,7 +46,7 @@ export async function POST(req: NextRequest) {
 
         await db.query(
             "INSERT INTO IpAddresses (ip_address, label, added_by_admin_id) VALUES (?, ?, ?)",
-            [ip_address, label || null, currentLoggedAdmin]
+            [ip_address, label || null, auth.admin_id]
         );
 
         return NextResponse.json({ success: true, message: "IP added successfully" });
@@ -77,24 +58,15 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
-        // 🔐 Parse cookies and verify JWT
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
-
-        if (!cookies || !cookies.token) {
-            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        const auth = await verifyAdmin(req);
+        if ("error" in auth) {
+            return NextResponse.json({ success: false, message: auth.error }, { status: auth.status });
         }
 
-        const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
-        const { payload } = await jwtVerify(cookies.token, secretKey);
-        const currentLoggedAdmin = payload.admin_id;
-        const role = payload.role;
-
-        if (role !== "super-admin") {
+        if (auth.role !== "super_admin") {
             return NextResponse.json({ success: false, message: "Access denied" }, { status: 403 });
         }
 
-        // 🧩 Extract ID from query params
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
 

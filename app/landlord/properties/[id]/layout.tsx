@@ -26,11 +26,13 @@ import {
   ChevronLeft,
   MapPin,
   ChevronRight,
+  ChevronDown,
   Wallet,
   NotebookText,
   Users,
   CopyMinus,
   HandCoins,
+  Building,
 } from "lucide-react";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
@@ -44,8 +46,33 @@ export default function PropertyLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuthStore();
+  const landlordId = user?.landlord_id;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
+  const [otherProperties, setOtherProperties] = useState<any[]>([]);
+  const [loadingOtherProperties, setLoadingOtherProperties] = useState(false);
+
+  useEffect(() => {
+    if (!landlordId) return;
+    const fetchOtherProperties = async () => {
+      setLoadingOtherProperties(true);
+      try {
+        const res = await axios.get(`/api/landlord/properties/getAllPropertieName?landlord_id=${String(landlordId)}`);
+        setOtherProperties(res.data || []);
+      } catch (err) {
+        console.error("Error fetching properties:", err);
+      } finally {
+        setLoadingOtherProperties(false);
+      }
+    };
+    fetchOtherProperties();
+  }, [landlordId]);
+
+  const handleSwitchProperty = (propertyId: number) => {
+    setShowPropertyDropdown(false);
+    window.location.href = `/landlord/properties/${propertyId}`;
+  };
 
   const { data, isLoading } = useSWR(
     id ? `/api/propertyListing/getPropDetailsById?property_id=${id}` : null,
@@ -204,6 +231,7 @@ export default function PropertyLayout({
           Back to Properties
         </button>
 
+        {/* Current Property Display */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -221,6 +249,53 @@ export default function PropertyLayout({
               )}
             </div>
           </div>
+        </div>
+
+        {/* Property Switcher */}
+        <div className="mt-3 relative">
+          <button
+            onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-left"
+          >
+            <Building className="w-4 h-4 text-white/80 flex-shrink-0" />
+            <span className="text-sm text-white/90 truncate flex-1">Switch Property</span>
+            <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+          </button>
+
+          {/* Dropdown */}
+          {showPropertyDropdown && (
+            <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-56 overflow-y-auto">
+              {loadingOtherProperties ? (
+                <div className="p-4 text-center text-sm text-gray-500">Loading...</div>
+              ) : otherProperties.length === 0 ? (
+                <div className="p-4 text-center text-sm text-gray-500">No other properties</div>
+              ) : (
+                otherProperties
+                  .filter((p: any) => String(p.property_id) !== String(id))
+                  .map((prop: any) => (
+                    <button
+                      key={prop.property_id}
+                      onClick={() => handleSwitchProperty(prop.property_id)}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0"
+                    >
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
+                        <Building className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{prop.property_name}</p>
+                      </div>
+                    </button>
+                  ))
+              )}
+              <Link
+                href="/landlord/property-listing"
+                onClick={() => setShowPropertyDropdown(false)}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
+              >
+                + Add New Property
+              </Link>
+            </div>
+          )}
         </div>
       </div>
 

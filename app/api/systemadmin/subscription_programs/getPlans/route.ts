@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
                     [plan.plan_id]
                 );
                 
-                return {
+                const result = {
                     ...plan,
                     prices: priceRows.map((row: any) => ({
                         ...row,
@@ -43,8 +43,12 @@ export async function GET(request: NextRequest) {
                         annual_price: row.annual_price ? Number(row.annual_price) : null,
                     })),
                 };
+                console.log(`Plan ${plan.plan_id} (${plan.name}) has ${result.prices.length} price rows`);
+                return result;
             })
         );
+
+        console.log("Returning plans:", plansWithPrices.map((p: any) => ({ id: p.plan_id, name: p.name, priceCount: p.prices.length })));
 
         return NextResponse.json(plansWithPrices);
 

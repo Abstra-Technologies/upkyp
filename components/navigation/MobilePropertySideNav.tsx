@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Building2, MapPin, ArrowLeft, ChevronRight } from "lucide-react";
+import { X, Building2, MapPin, ArrowLeft, ChevronRight, Building, ChevronDown } from "lucide-react";
+import axios from "axios";
 
 interface MenuItem {
   id: string;
@@ -18,6 +20,11 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
+interface Property {
+  property_id: number;
+  property_name: string;
+}
+
 interface MobilePropertySidenavProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,6 +35,7 @@ interface MobilePropertySidenavProps {
   propertyId: string;
   user: any;
   isActive: (menuId: string, href: string) => boolean;
+  landlordId?: number | string;
 }
 
 export default function MobilePropertySidenav({
@@ -40,8 +48,29 @@ export default function MobilePropertySidenav({
   propertyId,
   user,
   isActive,
+  landlordId,
 }: MobilePropertySidenavProps) {
   const router = useRouter();
+  const [otherProperties, setOtherProperties] = useState<Property[]>([]);
+  const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
+
+  useEffect(() => {
+    if (!landlordId || !isOpen) return;
+    const fetchProperties = async () => {
+      try {
+        const res = await axios.get(`/api/landlord/properties/getAllPropertieName?landlord_id=${String(landlordId)}`);
+        setOtherProperties(res.data || []);
+      } catch (err) {
+        console.error("Error fetching properties:", err);
+      }
+    };
+    fetchProperties();
+  }, [landlordId, isOpen]);
+
+  const handleSwitchProperty = (propertyId: number) => {
+    onClose();
+    window.location.href = `/landlord/properties/${propertyId}`;
+  };
 
   return (
     <AnimatePresence>
@@ -109,6 +138,48 @@ export default function MobilePropertySidenav({
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Property Switcher */}
+              <div className="mt-3 relative">
+                <button
+                  onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-left"
+                >
+                  <Building className="w-4 h-4 text-white/80 flex-shrink-0" />
+                  <span className="text-sm text-white/90 truncate flex-1">Switch Property</span>
+                  <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+                </button>
+
+                {showPropertyDropdown && (
+                  <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-56 overflow-y-auto">
+                    {otherProperties.length === 0 ? (
+                      <div className="p-4 text-center text-sm text-gray-500">Loading...</div>
+                    ) : (
+                      otherProperties
+                        .filter((p) => String(p.property_id) !== propertyId)
+                        .map((prop) => (
+                          <button
+                            key={prop.property_id}
+                            onClick={() => handleSwitchProperty(prop.property_id)}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
+                              <Building className="w-4 h-4 text-blue-600" />
+                            </div>
+                            <p className="text-sm font-medium text-gray-800 truncate">{prop.property_name}</p>
+                          </button>
+                        ))
+                    )}
+                    <Link
+                      href="/landlord/property-listing"
+                      onClick={onClose}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
+                    >
+                      + Add New Property
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
 
