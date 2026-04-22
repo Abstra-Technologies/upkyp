@@ -22,23 +22,26 @@ const lastDayOfMonth = (d = new Date()) =>
 /* ------------------ API ------------------ */
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const unit_id = searchParams.get("unit_id");
+    const lease_id = searchParams.get("lease_id");
 
-    if (!unit_id) {
-        return NextResponse.json({ error: "Missing unit_id" }, { status: 400 });
+    if (!lease_id) {
+        return NextResponse.json({ error: "Missing lease_id" }, { status: 400 });
     }
 
     try {
         /* -------------------------------------------------
-           1. UNIT
+           1. LEASE + UNIT (JOIN)
         -------------------------------------------------- */
         const [unitRows] = await db.execute<RowDataPacket[]>(
-            `SELECT * FROM Unit WHERE unit_id = ? LIMIT 1`,
-            [unit_id]
+            `SELECT u.*, la.agreement_id AS lease_id, la.rent_amount AS lease_rent_amount
+             FROM LeaseAgreement la
+             JOIN Unit u ON la.unit_id = u.unit_id
+             WHERE la.agreement_id = ? LIMIT 1`,
+            [lease_id]
         );
 
         if (unitRows.length === 0) {
-            return NextResponse.json({ error: "Unit not found" }, { status: 404 });
+            return NextResponse.json({ error: "Lease not found" }, { status: 404 });
         }
 
         const unit = unitRows[0];
@@ -64,32 +67,12 @@ export async function GET(req: NextRequest) {
         const billingDueDay = Number(configRows[0]?.billingDueDay ?? 30);
 
         /* -------------------------------------------------
-           4. STRICT RENT RESOLUTION (LEASE → UNIT)
+           4. RENT RESOLUTION
         -------------------------------------------------- */
-        let effectiveRentAmount = Number(unit.rent_amount || 0);
-        let rentSource: "lease" | "unit" = "unit";
-        let activeLeaseId: string | null = null;
-
-        const [leaseRows] = await db.execute<RowDataPacket[]>(
-            `
-            SELECT agreement_id, rent_amount
-            FROM LeaseAgreement
-            WHERE unit_id = ?
-              AND status IN ('active','tenant_signed','landlord_signed')
-            ORDER BY start_date DESC
-            LIMIT 1
-            `,
-            [unit_id]
-        );
-
-        if (leaseRows.length > 0 && leaseRows[0].rent_amount != null) {
-            effectiveRentAmount = Number(leaseRows[0].rent_amount);
-            rentSource = "lease";
-            activeLeaseId = leaseRows[0].agreement_id;
-        }
+        let effectiveRentAmount = Number(unit.lease_rent_amount || unit.rent_amount || 0);
 
         /* -------------------------------------------------
-           5. EXISTING BILLING (USE REAL billing_period)
+           5. EXISTING BILLING (USE lease_id)
         -------------------------------------------------- */
         const today = new Date();
         const monthStart = firstDayOfMonth(today);
@@ -100,11 +83,12 @@ export async function GET(req: NextRequest) {
             SELECT *
             FROM Billing
             WHERE unit_id = ?
-              AND billing_period BETWEEN ? AND ?
+              AND MONTH(billing_period) = MONTH(CURDATE())
+              AND YEAR(billing_period) = YEAR(CURDATE())
             ORDER BY billing_period DESC
             LIMIT 1
             `,
-            [unit_id, ymd(monthStart), ymd(monthEnd)]
+            [unit.unit_id]
         );
 
         let billing_id: string | null = null;
@@ -118,8 +102,6 @@ export async function GET(req: NextRequest) {
 
             billing_id = billing.billing_id;
             total_amount_due = billing.total_amount_due;
-
-            // ✅ USE ACTUAL billing_period FROM DB
             billing_period = ymd(billing.billing_period);
 
             const [charges] = await db.execute<RowDataPacket[]>(
@@ -137,6 +119,8 @@ export async function GET(req: NextRequest) {
 
         /* -------------------------------------------------
            6. METER READINGS
+           - Current month reading (if exists)
+           - Previous month reading (for auto-filling prev reading)
         -------------------------------------------------- */
         const [[waterCurr]] = await db.execute<RowDataPacket[]>(
             `
@@ -147,7 +131,19 @@ export async function GET(req: NextRequest) {
             ORDER BY period_end DESC
             LIMIT 1
             `,
-            [unit_id, ymd(today)]
+            [unit.unit_id, ymd(today)]
+        );
+
+        const [[waterPrev]] = await db.execute<RowDataPacket[]>(
+            `
+            SELECT current_reading
+            FROM WaterMeterReading
+            WHERE unit_id = ?
+              AND period_end < DATE_FORMAT(?,'%Y-%m-01')
+            ORDER BY period_end DESC
+            LIMIT 1
+            `,
+            [unit.unit_id, ymd(today)]
         );
 
         const [[elecCurr]] = await db.execute<RowDataPacket[]>(
@@ -159,8 +155,24 @@ export async function GET(req: NextRequest) {
             ORDER BY period_end DESC
             LIMIT 1
             `,
-            [unit_id, ymd(today)]
+            [unit.unit_id, ymd(today)]
         );
+
+        const [[elecPrev]] = await db.execute<RowDataPacket[]>(
+            `
+            SELECT current_reading
+            FROM ElectricMeterReading
+            WHERE unit_id = ?
+              AND period_end < DATE_FORMAT(?,'%Y-%m-01')
+            ORDER BY period_end DESC
+            LIMIT 1
+            `,
+            [unit.unit_id, ymd(today)]
+        );
+
+        // Default prev readings to last month's current reading
+        const waterPrevDefault = waterPrev?.current_reading ?? null;
+        const elecPrevDefault = elecPrev?.current_reading ?? null;
 
         const readingDate =
             waterCurr?.period_end || elecCurr?.period_end || today;
@@ -183,13 +195,13 @@ export async function GET(req: NextRequest) {
                 unit: {
                     ...unit,
                     effective_rent_amount: effectiveRentAmount,
-                    rent_source: rentSource,
+                    rent_source: "lease",
                 },
                 property,
                 dueDate,
                 existingBilling: {
                     billing_id,
-                    lease_id: activeLeaseId,
+                    lease_id,
 
                     billing_period,
 
@@ -205,10 +217,13 @@ export async function GET(req: NextRequest) {
 
                     reading_date: ymd(readingDate),
 
-                    water_prev: waterCurr?.previous_reading ?? null,
+                    water_prev: waterCurr?.previous_reading ?? waterPrevDefault,
                     water_curr: waterCurr?.current_reading ?? null,
-                    elec_prev: elecCurr?.previous_reading ?? null,
+                    elec_prev: elecCurr?.previous_reading ?? elecPrevDefault,
                     elec_curr: elecCurr?.current_reading ?? null,
+
+                    water_prev_default: waterPrevDefault,
+                    elec_prev_default: elecPrevDefault,
 
                     additional_charges: additionalCharges,
                     discounts,

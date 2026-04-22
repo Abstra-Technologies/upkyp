@@ -37,21 +37,25 @@ export async function POST(req: NextRequest) {
             await connection.beginTransaction();
 
             for (const reading of readings) {
-                const { unit_id, electric_previous, electric_current, water_previous, water_current, period_start, period_end } = reading;
+                const { lease_id, electric_previous, electric_current, water_previous, water_current, period_start, period_end } = reading;
 
-                // Verify unit belongs to landlord's property
-                const [unitRows]: any = await connection.query(
-                    `SELECT u.unit_id, u.unit_name, p.landlord_id, p.property_id
-                     FROM Unit u 
-                     JOIN Property p ON u.property_id = p.property_id 
-                     WHERE u.unit_id = ? AND p.landlord_id = ?`,
-                    [unit_id, session.landlord_id]
+                // Verify lease belongs to landlord's property
+                const [leaseRows]: any = await connection.query(
+                    `SELECT la.agreement_id AS lease_id, la.unit_id, u.property_id, p.landlord_id
+                     FROM LeaseAgreement la
+                     JOIN Unit u ON la.unit_id = u.unit_id
+                     JOIN Property p ON u.property_id = p.property_id
+                     WHERE la.agreement_id = ? AND p.landlord_id = ?`,
+                    [lease_id, session.landlord_id]
                 );
 
-                if (unitRows.length === 0) {
-                    results.push({ unit_id, success: false, error: "Unit not found or access denied" });
+                if (leaseRows.length === 0) {
+                    results.push({ lease_id, success: false, error: "Lease not found or access denied" });
                     continue;
                 }
+
+                const lease = leaseRows[0];
+                const unit_id = lease.unit_id;
 
                 // Use provided period_start/period_end
                 const elecPeriodStart = period_start || null;
@@ -65,12 +69,16 @@ export async function POST(req: NextRequest) {
 
                     await connection.query(
                         `INSERT INTO ElectricMeterReading 
-                         (unit_id, period_start, period_end, previous_reading, current_reading) 
-                         VALUES (?, ?, ?, ?, ?)`,
-                        [unit_id, elecPeriodStart, elecPeriodEnd, prevReading, currReading]
+                         (lease_id, unit_id, period_start, period_end, previous_reading, current_reading) 
+                         VALUES (?, ?, ?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE
+                         previous_reading = VALUES(previous_reading),
+                         current_reading = VALUES(current_reading),
+                         updated_at = NOW()`,
+                        [lease_id, unit_id, elecPeriodStart, elecPeriodEnd, prevReading, currReading]
                     );
 
-                    results.push({ unit_id, success: true, type: "electric" });
+                    results.push({ lease_id, unit_id, success: true, type: "electric" });
                 }
 
                 if (water_current) {
@@ -79,12 +87,16 @@ export async function POST(req: NextRequest) {
 
                     await connection.query(
                         `INSERT INTO WaterMeterReading 
-                         (unit_id, period_start, period_end, previous_reading, current_reading) 
-                         VALUES (?, ?, ?, ?, ?)`,
-                        [unit_id, waterPeriodStart, waterPeriodEnd, prevReading, currReading]
+                         (lease_id, unit_id, period_start, period_end, previous_reading, current_reading) 
+                         VALUES (?, ?, ?, ?, ?, ?)
+                         ON DUPLICATE KEY UPDATE
+                         previous_reading = VALUES(previous_reading),
+                         current_reading = VALUES(current_reading),
+                         updated_at = NOW()`,
+                        [lease_id, unit_id, waterPeriodStart, waterPeriodEnd, prevReading, currReading]
                     );
 
-                    results.push({ unit_id, success: true, type: "water" });
+                    results.push({ lease_id, unit_id, success: true, type: "water" });
                 }
             }
 

@@ -67,15 +67,15 @@ export default function BillingUnitListMobile({
               onClick={() =>
                 guardActionWithConfig(() =>
                   router.push(
-                    `/landlord/properties/${property_id}/billing/createUnitBill/${bill.unit_id}`,
+                    `/landlord/properties/${property_id}/billing/createUnitBill/${bill.agreement_id || bill.lease_id}`,
                   ),
                 )
               }
               className="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm"
             >
-              {bill.billing_status === "draft" ? (
+              {bill.billing_status === "draft" || bill.billing_status === "no_bill" ? (
                 <>
-                  <Edit className="w-3 h-3" /> Edit
+                  <Edit className="w-3 h-3" /> Create Bill
                 </>
               ) : (
                 <>

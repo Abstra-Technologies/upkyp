@@ -87,13 +87,13 @@ export default function BillingUnitTableDesktop({
                     onClick={() =>
                       guardActionWithConfig(() =>
                         router.push(
-                          `/landlord/properties/${property_id}/billing/createUnitBill/${bill.unit_id}`,
+                          `/landlord/properties/${property_id}/billing/createUnitBill/${bill.agreement_id || bill.lease_id}`,
                         ),
                       )
                     }
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/25 hover:shadow-lg hover:scale-[1.02] transition-all active:scale-[0.98]"
                   >
-                    Open
+                    {bill.billing_status === "draft" || bill.billing_status === "no_bill" ? "Create Bill" : "Open"}
                   </button>
                 </td>
               </tr>

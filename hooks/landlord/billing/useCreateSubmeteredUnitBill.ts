@@ -10,9 +10,11 @@ import { createUnitBillSteps } from "@/lib/onboarding/createUnitBill";
 
 
 export function useCreateSubmeteredUnitBill() {
-    const { unit_id } = useParams();
+    const params = useParams();
+    const lease_id = Array.isArray(params.lease_id) ? params.lease_id[0] : params.lease_id;
     const router = useRouter();
     const [originalSnapshot, setOriginalSnapshot] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
 
 
@@ -58,10 +60,10 @@ export function useCreateSubmeteredUnitBill() {
 
     /* ------------------ FETCH ------------------ */
     useEffect(() => {
-        if (!unit_id) return;
+        if (!lease_id) return;
         fetchUnitData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [unit_id]);
+    }, [lease_id]);
 
     useEffect(() => {
         console.log("🔥 PROPERTY RATES UPDATED:", propertyRates);
@@ -74,8 +76,9 @@ export function useCreateSubmeteredUnitBill() {
     // GET billing Data for the month
     async function fetchUnitData() {
         try {
+            setLoading(true);
             const res = await axios.get(
-                `/api/landlord/billing/submetered/getUnitBilling?unit_id=${unit_id}`
+                `/api/landlord/billing/submetered/getUnitBilling?lease_id=${lease_id}`
             );
 
             const data = res.data;
@@ -170,6 +173,8 @@ export function useCreateSubmeteredUnitBill() {
         } catch (err) {
             console.error(err);
             Swal.fire("Error", "Failed to load billing data.", "error");
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -330,7 +335,7 @@ export function useCreateSubmeteredUnitBill() {
 
     /* ------------------ PAYLOAD ------------------ */
     const buildPayload = () => ({
-        unit_id: unit.unit_id,
+        lease_id: unit.lease_id,
         ...form,
         totalWaterAmount: bill.waterCost,
         totalElectricityAmount: bill.elecCost,
@@ -479,6 +484,7 @@ export function useCreateSubmeteredUnitBill() {
         bill,
         pdc,
         loadingPdc,
+        loading,
         hasExistingBilling,
         existingBillingMeta,
         isRateModalOpen,

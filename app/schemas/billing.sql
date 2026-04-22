@@ -294,3 +294,44 @@ create index idx_water_meter_lease_id
 create index unit_id
     on rentalley_db.WaterMeterReading (unit_id);
 
+/* =====================================================
+   UNIQUE INDEXES - Prevent duplicate meter readings per lease per month
+===================================================== */
+
+create unique index uniq_electric_meter_lease_month
+    on rentalley_db.ElectricMeterReading (lease_id, YEAR(period_end), MONTH(period_end));
+
+create unique index uniq_water_meter_lease_month
+    on rentalley_db.WaterMeterReading (lease_id, YEAR(period_end), MONTH(period_end));
+
+/* =====================================================
+   SEED DATA - Meter Readings for Lease UPKYPLI06FGDAOCC
+   (March 2026 - last month billing period)
+===================================================== */
+
+INSERT IGNORE INTO rentalley_db.WaterMeterReading
+    (unit_id, lease_id, period_start, period_end, previous_reading, current_reading)
+SELECT u.unit_id, 'UPKYPLI06FGDAOCC', '2026-03-01', '2026-03-31', 100.00, 150.00
+FROM LeaseAgreement la
+JOIN Unit u ON la.unit_id = u.unit_id
+WHERE la.agreement_id = 'UPKYPLI06FGDAOCC'
+  AND NOT EXISTS (
+      SELECT 1 FROM WaterMeterReading wmr
+      WHERE wmr.lease_id = 'UPKYPLI06FGDAOCC'
+        AND YEAR(wmr.period_end) = 2026
+        AND MONTH(wmr.period_end) = 3
+  );
+
+INSERT IGNORE INTO rentalley_db.ElectricMeterReading
+    (unit_id, lease_id, period_start, period_end, previous_reading, current_reading)
+SELECT u.unit_id, 'UPKYPLI06FGDAOCC', '2026-03-01', '2026-03-31', 500.00, 650.00
+FROM LeaseAgreement la
+JOIN Unit u ON la.unit_id = u.unit_id
+WHERE la.agreement_id = 'UPKYPLI06FGDAOCC'
+  AND NOT EXISTS (
+      SELECT 1 FROM ElectricMeterReading emr
+      WHERE emr.lease_id = 'UPKYPLI06FGDAOCC'
+        AND YEAR(emr.period_end) = 2026
+        AND MONTH(emr.period_end) = 3
+  );
+

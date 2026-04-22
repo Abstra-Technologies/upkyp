@@ -8,7 +8,8 @@ const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
  * @method GET
  * @route  app/api/landlord/billing/current
  * @desc   Returns all active lease units for the property, even if no billing is created yet for this month.
- * @usedIn app/landlord/properties/[id]/billing/page.tsx
+ *         Uses lease_id as primary key (same structure as active lease API).
+ * @usedIn app/landlord/properties/[id]/activeLease/page.tsx (billing mode)
  */
 export async function GET(req: NextRequest) {
     try {
@@ -20,6 +21,12 @@ export async function GET(req: NextRequest) {
         const [rows]: any = await db.query(
             `
                 SELECT
+                    la.agreement_id AS lease_id,
+                    la.status AS lease_status,
+                    la.start_date,
+                    la.end_date,
+                    la.rent_amount,
+
                     u.unit_id,
                     u.unit_name,
 
@@ -28,10 +35,6 @@ export async function GET(req: NextRequest) {
                     b.billing_period,
                     b.total_amount_due,
                     b.status AS billing_status,
-
-                    -- Lease info (always active)
-                    la.agreement_id,
-                    la.status AS lease_status,
 
                     -- Tenant info
                     usr.firstName AS enc_firstName,
@@ -45,18 +48,18 @@ export async function GET(req: NextRequest) {
                          LEFT JOIN User usr
                               ON t.user_id = usr.user_id
                          LEFT JOIN Billing b
-                                   ON b.unit_id = u.unit_id
+                                   ON b.lease_id = la.agreement_id
                                        AND MONTH(b.billing_period) = MONTH(CURDATE())
                                        AND YEAR(b.billing_period) = YEAR(CURDATE())
 
                 WHERE u.property_id = ?
-                  AND la.status in ('active','draft')
+                  AND la.status IN ('active', 'draft', 'pending', 'sent', 'pending_signature', 'tenant_signed', 'landlord_signed', 'expired')
                 ORDER BY u.unit_name ASC;
             `,
             [property_id]
         );
 
-        // 🔐 Decrypt helper
+        // Decrypt helper
         const safeDec = (val: any) => {
             try {
                 return val ? decryptData(JSON.parse(val), SECRET_KEY) : "";
@@ -65,17 +68,21 @@ export async function GET(req: NextRequest) {
             }
         };
 
-        // 🧾 Format response
+        // Format response
         const bills = rows.map((r: any) => {
             const first = safeDec(r.enc_firstName);
             const last = safeDec(r.enc_lastName);
             const tenantName = `${first} ${last}`.trim();
 
             return {
+                lease_id: r.lease_id,
+                agreement_id: r.agreement_id,
                 unit_id: r.unit_id,
                 unit_name: r.unit_name,
-                agreement_id: r.agreement_id,
                 lease_status: r.lease_status,
+                start_date: r.start_date,
+                end_date: r.end_date,
+                rent_amount: r.rent_amount,
                 billing_id: r.billing_id || null,
                 billing_period: r.billing_period || null,
                 total_amount_due: r.total_amount_due ? Number(r.total_amount_due) : 0,

@@ -12,6 +12,7 @@ interface PropertyBulkMeterReadingModalProps {
 }
 
 interface UnitReading {
+  lease_id: string;
   unit_id: number;
   unit_name: string;
   electricity_billing_type?: string;
@@ -43,8 +44,8 @@ export default function PropertyBulkMeterReadingModal({
   const [readings, setReadings] = useState<UnitReading[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [successUnits, setSuccessUnits] = useState<number[]>([]);
-  const [errorUnits, setErrorUnits] = useState<number[]>([]);
+  const [successUnits, setSuccessUnits] = useState<string[]>([]);
+  const [errorUnits, setErrorUnits] = useState<string[]>([]);
   const [propertyRates, setPropertyRates] = useState<PropertyRatesData | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [propertyDetails, setPropertyDetails] = useState<{
@@ -84,6 +85,7 @@ export default function PropertyBulkMeterReadingModal({
         const hasCurr = unit.curr_electric_reading || unit.curr_water_reading;
         
         return {
+          lease_id: unit.lease_id,
           unit_id: unit.unit_id,
           unit_name: unit.unit_name,
           electricity_billing_type: unit.electricity_billing_type,
@@ -109,9 +111,9 @@ export default function PropertyBulkMeterReadingModal({
     }
   };
 
-  const updateReading = (unitId: number, field: "electric_previous" | "electric_current" | "water_previous" | "water_current", value: string) => {
+  const updateReading = (leaseId: string, field: "electric_previous" | "electric_current" | "water_previous" | "water_current", value: string) => {
     setReadings(prev =>
-      prev.map(r => (r.unit_id === unitId ? { ...r, [field]: value } : r))
+      prev.map(r => (r.lease_id === leaseId ? { ...r, [field]: value } : r))
     );
   };
 
@@ -130,7 +132,7 @@ export default function PropertyBulkMeterReadingModal({
           (r.water_billing_type === "submetered" && (r.water_previous || r.water_current))
         )
         .map(r => ({
-          unit_id: r.unit_id,
+          lease_id: r.lease_id,
           electric_previous: r.electricity_billing_type === "submetered" ? r.electric_previous : null,
           electric_current: r.electricity_billing_type === "submetered" ? r.electric_current : null,
           water_previous: r.water_billing_type === "submetered" ? r.water_previous : null,
@@ -145,8 +147,8 @@ export default function PropertyBulkMeterReadingModal({
 
       if (res.data?.results) {
         res.data.results.forEach((result: any) => {
-          if (result.success) setSuccessUnits(prev => [...prev, result.unit_id]);
-          else setErrorUnits(prev => [...prev, result.unit_id]);
+          if (result.success) setSuccessUnits(prev => [...prev, result.lease_id]);
+          else setErrorUnits(prev => [...prev, result.lease_id]);
         });
       }
 
@@ -316,8 +318,8 @@ export default function PropertyBulkMeterReadingModal({
                 </div>
               ) : (
                 readings.map((reading) => {
-                  const isSuccess = successUnits.includes(reading.unit_id);
-                  const isError = errorUnits.includes(reading.unit_id);
+                  const isSuccess = successUnits.includes(reading.lease_id);
+                  const isError = errorUnits.includes(reading.lease_id);
                   const waterUsage = reading.water_previous && reading.water_current
                     ? Math.max(0, Number(reading.water_current) - Number(reading.water_previous))
                     : null;
@@ -327,7 +329,7 @@ export default function PropertyBulkMeterReadingModal({
 
                   return (
                     <div
-                      key={reading.unit_id}
+                      key={reading.lease_id}
                       className={`rounded-xl border p-2 sm:p-3 transition-all ${
                         isSuccess ? "bg-green-50 border-green-200" : isError ? "bg-red-50 border-red-200" : "bg-white border-gray-200 hover:border-gray-300"
                       }`}
@@ -348,7 +350,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.water_previous}
-                                  onChange={(e) => updateReading(reading.unit_id, "water_previous", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "water_previous", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 />
@@ -358,7 +360,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.water_current}
-                                  onChange={(e) => updateReading(reading.unit_id, "water_current", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "water_current", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 />
@@ -380,7 +382,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.electric_previous}
-                                  onChange={(e) => updateReading(reading.unit_id, "electric_previous", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "electric_previous", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                 />
@@ -390,7 +392,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.electric_current}
-                                  onChange={(e) => updateReading(reading.unit_id, "electric_current", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "electric_current", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                 />
@@ -435,7 +437,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.water_previous}
-                                  onChange={(e) => updateReading(reading.unit_id, "water_previous", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "water_previous", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 />
@@ -445,7 +447,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.water_current}
-                                  onChange={(e) => updateReading(reading.unit_id, "water_current", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "water_current", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
                                 />
@@ -471,7 +473,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.electric_previous}
-                                  onChange={(e) => updateReading(reading.unit_id, "electric_previous", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "electric_previous", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                 />
@@ -481,7 +483,7 @@ export default function PropertyBulkMeterReadingModal({
                                 <input
                                   type="number"
                                   value={reading.electric_current}
-                                  onChange={(e) => updateReading(reading.unit_id, "electric_current", e.target.value)}
+                                  onChange={(e) => updateReading(reading.lease_id, "electric_current", e.target.value)}
                                   placeholder="0"
                                   className="w-full bg-white border border-gray-200 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none"
                                 />

@@ -46,12 +46,13 @@ export async function GET(req: NextRequest) {
 
         const property = propertyRows[0];
 
-        // Fetch units with active leases and last reading info
-        // prev_ = reading from previous month (period_end from last month)
-        // curr_ = reading already entered for current month
+        // Fetch units with active leases via LeaseAgreement join (same structure as active lease API)
         const [unitRows]: any = await db.query(
             `
             SELECT 
+                la.agreement_id AS lease_id,
+                la.status AS lease_status,
+                la.rent_amount,
                 u.unit_id,
                 u.unit_name,
                 u.status as unit_status,
@@ -60,8 +61,10 @@ export async function GET(req: NextRequest) {
                 (SELECT current_reading FROM WaterMeterReading WHERE unit_id = u.unit_id AND MONTH(period_end) < MONTH(CURDATE()) ORDER BY period_end DESC LIMIT 1) as prev_water_reading,
                 (SELECT current_reading FROM ElectricMeterReading WHERE unit_id = u.unit_id AND MONTH(period_end) = MONTH(CURDATE()) ORDER BY created_at DESC LIMIT 1) as curr_electric_reading,
                 (SELECT current_reading FROM WaterMeterReading WHERE unit_id = u.unit_id AND MONTH(period_end) = MONTH(CURDATE()) ORDER BY created_at DESC LIMIT 1) as curr_water_reading
-            FROM Unit u
-            WHERE u.property_id = ? AND u.status = 'occupied'
+            FROM LeaseAgreement la
+            JOIN Unit u ON la.unit_id = u.unit_id
+            WHERE u.property_id = ? 
+              AND la.status IN ('active', 'draft', 'pending', 'sent', 'pending_signature', 'tenant_signed', 'landlord_signed', 'expired')
             ORDER BY u.unit_name ASC
             `,
             [propertyId]
