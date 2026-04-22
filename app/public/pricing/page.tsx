@@ -113,7 +113,7 @@ export default function PricingPage() {
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 px-4 py-12 md:px-6 md:py-16">
-            <section className="max-w-5xl mx-auto text-center mb-10 md:mb-14">
+            <section className="max-w-7xl mx-auto text-center mb-10 md:mb-14">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900">
                     Simple, Transparent Pricing
                 </h1>
@@ -129,7 +129,7 @@ export default function PricingPage() {
                 </div>
             )}
 
-            <section className="flex flex-wrap justify-center gap-6 max-w-6xl mx-auto">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 max-w-7xl mx-auto">
                 {loading ? (
                     <div className="w-full text-center py-10">
                         <p className="text-gray-500">Loading plans...</p>
@@ -160,7 +160,7 @@ export default function PricingPage() {
                     return (
                         <div
                             key={plan.plan_id}
-                            className={`relative flex flex-col rounded-2xl border-2 bg-gray-50 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-blue-400 hover:bg-white hover:-translate-y-1 w-72 sm:w-80
+                            className={`relative flex flex-col rounded-2xl border-2 bg-gray-50 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-blue-400 hover:bg-white hover:-translate-y-1 w-full
                                 ${currentSubscription?.plan_name === plan.name 
                                     ? "ring-2 ring-green-500 border-green-500 bg-white" 
                                     : plan.plan_code === "GROWTH"

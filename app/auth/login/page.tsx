@@ -7,6 +7,7 @@ import MobileLoginForm from "@/components/authentication/mobileLoginForm";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/zustand/authStore";
+import Image from "next/image";
 
 export default function LoginPage() {
     return (
@@ -44,18 +45,22 @@ function Login() {
     }, [user, router, callbackUrl]);
 
     return (
-        <div
-            className="fixed inset-0 overflow-hidden"
-            style={{
-                backgroundImage:
-                    "url('https://res.cloudinary.com/dptmeluy0/image/upload/v1767326297/f2aa6c44-eb73-41ea-9d68-5c11237a7cd5_uwielr.jpg')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-            }}
-        >
-            <div className="absolute inset-0 bg-black/30" />
+        <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-            <div className="relative z-10 h-full w-full flex items-center justify-center p-4">
+            {/* Background */}
+            <Image
+                src="https://res.cloudinary.com/dpukdla69/image/upload/v1765966152/Whisk_mtnhzwyxajzmdtyw0yn2mtotijzhrtllbjzh1sn_wpw850.jpg"
+                alt="City background"
+                fill
+                priority
+                className="absolute inset-0 object-cover"
+            />
+
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+            {/* Main Content */}
+            <div className="relative z-10 w-full flex items-center justify-center p-4">
                 <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16 max-w-full">
                     {/* Hero Text */}
                     <div className="hidden lg:block max-w-md text-center flex-shrink-0">

@@ -34,7 +34,7 @@ export default function RegisterAs() {
             />
 
             {/* Overlay */}
-            <div className="absolute inset-0 bg-white/60 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
             {/* Main Card */}
             <div className="relative z-10 w-full max-w-5xl px-4">

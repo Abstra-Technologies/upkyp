@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import useAuthStore from "@/zustand/authStore";
+import Image from "next/image";
 
 // Lazy load toast (non-blocking)
 const ToastContainer = dynamic(
@@ -136,12 +137,27 @@ export default function VerifyOTPClient() {
        🚀 FAST FIRST PAINT UI
     =============================== */
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="relative min-h-screen overflow-hidden">
 
-            {/* Lazy Toast */}
-            <ToastContainer />
+            {/* Background */}
+            <Image
+                src="https://res.cloudinary.com/dpukdla69/image/upload/v1765966152/Whisk_mtnhzwyxajzmdtyw0yn2mtotijzhrtllbjzh1sn_wpw850.jpg"
+                alt="City background"
+                fill
+                priority
+                className="absolute inset-0 object-cover"
+            />
 
-            <div className="w-full max-w-md bg-white rounded-2xl border border-gray-200 p-8">
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+            {/* Main Content */}
+            <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
+
+                {/* Lazy Toast */}
+                <ToastContainer />
+
+                <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl border border-white/20 p-8 shadow-xl">
 
                 {/* Title */}
                 <div className="text-center mb-6">
@@ -202,6 +218,7 @@ export default function VerifyOTPClient() {
                     )}
                 </div>
 
+            </div>
             </div>
         </div>
     );

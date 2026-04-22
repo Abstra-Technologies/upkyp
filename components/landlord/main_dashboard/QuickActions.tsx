@@ -16,6 +16,7 @@ import {
     ReceiptText,
     UserPen,
     Zap,
+    DollarSign,
 } from "lucide-react";
 
 import {
@@ -25,7 +26,7 @@ import {
 } from "@/constant/design-constants";
 
 import ScanUnitModal from "@/components/landlord/properties/units/ScanUnitModal";
-import BulkMeterReadingModal from "./BulkMeterReadingModal";
+import ExpenseModal from "@/components/landlord/main_dashboard/ExpenseModal";
 
 export default function QuickActions({
     onAddProperty,
@@ -44,6 +45,7 @@ export default function QuickActions({
 }) {
     const [scanOpen, setScanOpen] = useState(false);
     const [meterReadingOpen, setMeterReadingOpen] = useState(false);
+    const [expenseOpen, setExpenseOpen] = useState(false);
 
     const handleAction = (onClick: () => void) => {
         if (!emailVerified) return;
@@ -97,12 +99,12 @@ export default function QuickActions({
             disabled: !emailVerified,
         },
         {
-            id: "meterReading",
-            label: "Meter Reading",
-            icon: Zap,
-            onClick: () => handleAction(() => setMeterReadingOpen(true)),
-            gradient: "from-amber-500 to-orange-500",
-            iconColor: "text-amber-600",
+            id: "expense",
+            label: "Expense",
+            icon: DollarSign,
+            onClick: () => handleAction(() => setExpenseOpen(true)),
+            gradient: "from-rose-500 to-pink-600",
+            iconColor: "text-rose-600",
             disabled: !emailVerified,
         },
     ];
@@ -162,6 +164,13 @@ export default function QuickActions({
             icon: Construction,
             gradient: "from-yellow-500 to-amber-500",
         },
+        {
+            label: "Expenses",
+            icon: DollarSign,
+            gradient: "from-rose-500 to-pink-500",
+            onClick: () => setExpenseOpen(true),
+        },
+
     ];
 
     return (
@@ -173,21 +182,38 @@ export default function QuickActions({
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 px-2">
-                    {mobileActions.map(({ label, href, icon: Icon, gradient }) => (
-                        <Link
-                            key={label}
-                            href={href!}
-                            className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
-                        >
-                            <div
-                                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                    {mobileActions.map(({ label, href, icon: Icon, gradient, onClick }) => (
+                        onClick ? (
+                            <button
+                                key={label}
+                                onClick={onClick}
+                                className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
                             >
-                                <Icon className="w-5 h-5 text-white" />
-                            </div>
-                            <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
-                                {label}
-                            </span>
-                        </Link>
+                                <div
+                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                                >
+                                    <Icon className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
+                                    {label}
+                                </span>
+                            </button>
+                        ) : (
+                            <Link
+                                key={label}
+                                href={href!}
+                                className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                            >
+                                <div
+                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                                >
+                                    <Icon className="w-5 h-5 text-white" />
+                                </div>
+                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
+                                    {label}
+                                </span>
+                            </Link>
+                        )
                     ))}
                 </div>
             </div>
@@ -229,11 +255,12 @@ export default function QuickActions({
                 isOpen={scanOpen}
                 onClose={() => setScanOpen(false)}
             />
-            
-            <BulkMeterReadingModal
-                isOpen={meterReadingOpen}
-                onClose={() => setMeterReadingOpen(false)}
+
+            <ExpenseModal
+                isOpen={expenseOpen}
+                onClose={() => setExpenseOpen(false)}
             />
+
         </>
     );
 }

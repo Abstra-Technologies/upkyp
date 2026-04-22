@@ -60,7 +60,8 @@ create table Expenses
     category       varchar(50) default 'other'           null,
     description    varchar(255)                          null,
     created_by     int                                   null,
-    created_at     datetime    default CURRENT_TIMESTAMP null
+    created_at     datetime    default CURRENT_TIMESTAMP null,
+    property_id    varchar(12)                           null
 );
 
 create table IpAddresses
@@ -184,6 +185,28 @@ create table PlanLimits
 create index plan_id
     on PlanLimits (plan_id);
 
+create table PlanPrices
+(
+    id            int auto_increment
+        primary key,
+    plan_id       int                                      not null,
+    unit_range    varchar(50)                              not null comment 'e.g., 1-20, 21-50, 51-100',
+    min_units     int                                      not null,
+    max_units     int                                      not null,
+    monthly_price decimal(10, 2) default 0.00              not null,
+    annual_price  decimal(10, 2) default 0.00              not null,
+    created_at    timestamp      default CURRENT_TIMESTAMP null,
+    updated_at    timestamp      default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint uq_plan_unit_range
+        unique (plan_id, unit_range),
+    constraint PlanPrices_ibfk_1
+        foreign key (plan_id) references Plan (plan_id)
+            on delete cascade
+);
+
+create index idx_plan_prices_plan_id
+    on PlanPrices (plan_id);
+
 create table Property
 (
     property_id              varchar(12)                                                       not null
@@ -215,28 +238,28 @@ create table Property
     house_policy             longtext                                                          null
 );
 
-create table WaterConcessionaireBilling
+create table ConcessionaireBilling
 (
-    bill_id        int auto_increment
+    bill_id                 int auto_increment
         primary key,
-    property_id    varchar(12)                         not null,
-    period_start   date                                not null,
-    period_end     date                                not null,
-    consumption    decimal(10, 2)                      not null comment 'Water consumption in cubic meters (m³)',
-    total_amount   decimal(12, 2)                      not null comment 'Total amount in PHP',
-    rate_per_cubic decimal(10, 4)                      not null comment 'Rate per cubic meter',
-    created_at     timestamp default CURRENT_TIMESTAMP null,
-    updated_at     timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    constraint WaterConcessionaireBilling_ibfk_1
+    property_id             varchar(12)                         not null,
+    period_start            date                                not null,
+    period_end              date                                not null,
+    water_consumption       decimal(10, 2)                      null,
+    water_total             decimal(12, 2)                      null,
+    electricity_consumption decimal(10, 2)                      null,
+    electricity_total       decimal(12, 2)                      null,
+    created_at              timestamp default CURRENT_TIMESTAMP null,
+    updated_at              timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    water_rate              decimal(10, 4)                      null comment 'Computed rate: water_total / water_consumption',
+    electricity_rate        decimal(10, 4)                      null comment 'Computed rate: electricity_total / electricity_consumption',
+    constraint ConcessionaireBilling_ibfk_1
         foreign key (property_id) references Property (property_id)
             on delete cascade
 );
 
-create index water_concessionaire_period
-    on WaterConcessionaireBilling (period_start, period_end);
-
-create index water_concessionaire_property_id
-    on WaterConcessionaireBilling (property_id);
+create index property_id
+    on ConcessionaireBilling (property_id);
 
 create table ElectricityConcessionaireBilling
 (
@@ -460,35 +483,6 @@ create index idx_asset_status
 create index idx_asset_unit_id
     on Asset (unit_id);
 
-create table ElectricMeterReading
-(
-    reading_id             int auto_increment
-        primary key,
-    unit_id                varchar(12)                          not null,
-    period_start           date                                 not null,
-    period_end             date                                 not null,
-    reading_date           date                                 not null,
-    previous_reading       decimal(10, 2)                       not null,
-    current_reading        decimal(10, 2)                       not null,
-    consumption            decimal(10, 2) as ((`current_reading` - `previous_reading`)) stored,
-    concessionaire_bill_id int                                  null,
-    is_locked              tinyint(1) default 0                 null,
-    created_at             timestamp  default CURRENT_TIMESTAMP null,
-    updated_at             timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    constraint ElectricMeterReading_ibfk_1
-        foreign key (unit_id) references Unit (unit_id)
-            on delete cascade,
-    constraint ElectricMeterReading_ibfk_2
-        foreign key (concessionaire_bill_id) references ElectricityConcessionaireBilling (bill_id)
-            on delete set null
-);
-
-create index concessionaire_bill_id
-    on ElectricMeterReading (concessionaire_bill_id);
-
-create index unit_id
-    on ElectricMeterReading (unit_id);
-
 create table MeterReading
 (
     reading_id       int auto_increment
@@ -666,18 +660,21 @@ create index user_id
 
 create table Landlord
 (
-    landlord_id        varchar(20)                          not null
+    landlord_id          varchar(20)                          not null
         primary key,
-    user_id            char(36)                             not null,
-    createdAt          timestamp  default CURRENT_TIMESTAMP not null,
-    updatedAt          timestamp  default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
-    is_trial_used      tinyint(1) default 0                 null,
-    trial_used_at      datetime                             null,
-    citizenship        varchar(200)                         null,
-    is_verified        tinyint    default 0                 null,
-    setup_completed    tinyint(1) default 0                 null,
-    xendit_account_id  varchar(100)                         null,
-    xendit_customer_id varchar(100)                         null,
+    user_id              char(36)                             not null,
+    createdAt            timestamp  default CURRENT_TIMESTAMP not null,
+    updatedAt            timestamp  default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
+    is_trial_used        tinyint(1) default 0                 null,
+    trial_used_at        datetime                             null,
+    citizenship          varchar(200)                         null,
+    is_verified          tinyint    default 0                 null,
+    setup_completed      tinyint(1) default 0                 null,
+    xendit_account_id    varchar(100)                         null,
+    xendit_customer_id   varchar(100)                         null,
+    payment_token_id     varchar(100)                         null,
+    payment_method_type  varchar(50)                          null,
+    payment_method_last4 varchar(10)                          null,
     constraint uniq_xendit_account_id
         unique (xendit_account_id),
     constraint uniq_xendit_customer_id
@@ -831,6 +828,9 @@ create table BetaUsers
         foreign key (landlord_id) references Landlord (landlord_id)
             on delete cascade
 );
+
+create index idx_landlord_payment_token
+    on Landlord (payment_token_id);
 
 create index idx_landlord_user_id
     on Landlord (user_id);
@@ -1113,19 +1113,25 @@ create table Subscription
 (
     subscription_id          int auto_increment
         primary key,
-    landlord_id              varchar(20)                                                                         not null,
-    plan_name                varchar(50)                                                                         not null,
-    plan_code                enum ('FREE', 'STANDARD', 'PRO', 'ENTERPRISE', 'BETA')                              null,
-    start_date               date                                                                                not null,
-    end_date                 date                                                                                null,
-    payment_status           enum ('paid', 'unpaid', 'pending', 'failed', 'cancelled') default 'unpaid'          not null,
-    created_at               timestamp                                                 default CURRENT_TIMESTAMP null,
-    updated_at               timestamp                                                 default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
-    request_reference_number varchar(50)                                                                         not null,
-    is_trial                 tinyint(1)                                                default 0                 not null,
-    amount_paid              decimal(10, 2)                                            default 0.00              not null,
-    is_active                tinyint(1)                                                default 0                 null,
-    raw_xendit_payload       json                                                                                null,
+    landlord_id              varchar(20)                                                                            not null,
+    plan_name                varchar(50)                                                                            not null,
+    plan_code                varchar(50)                                                                            null,
+    xendit_subscription_id   varchar(100)                                                                           null,
+    start_date               date                                                                                   not null,
+    end_date                 date                                                                                   null,
+    next_billing_date        datetime                                                                               null,
+    last_payment_date        datetime                                                                               null,
+    cancelled_at             datetime                                                                               null,
+    paused_at                datetime                                                                               null,
+    payment_status           enum ('paid', 'unpaid', 'pending', 'failed', 'cancelled')    default 'pending'         null,
+    subscription_status      enum ('trial', 'active', 'past_due', 'cancelled', 'expired') default 'active'          null,
+    created_at               timestamp                                                    default CURRENT_TIMESTAMP null,
+    updated_at               timestamp                                                    default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    request_reference_number varchar(50)                                                                            not null,
+    is_trial                 tinyint(1)                                                   default 0                 not null,
+    amount_paid              decimal(10, 2)                                               default 0.00              not null,
+    is_active                tinyint(1)                                                   default 0                 null,
+    raw_xendit_payload       json                                                                                   null,
     constraint Subscription_ibfk_1
         foreign key (landlord_id) references Landlord (landlord_id)
             on update cascade on delete cascade
@@ -1137,8 +1143,42 @@ create index idx_subscription_active
 create index idx_subscription_landlord_id
     on Subscription (landlord_id);
 
+create index idx_subscription_status
+    on Subscription (subscription_status);
+
 create index idx_subscription_trial
     on Subscription (landlord_id, is_trial);
+
+create index idx_subscription_xendit_id
+    on Subscription (xendit_subscription_id);
+
+create table SubscriptionPayment
+(
+    payment_id        int auto_increment
+        primary key,
+    subscription_id   int                                                          not null,
+    landlord_id       varchar(20)                                                  not null,
+    xendit_payment_id varchar(100)                                                 null,
+    xendit_invoice_id varchar(100)                                                 null,
+    amount            decimal(10, 2)                                               not null,
+    currency          varchar(10)                        default 'PHP'             null,
+    status            enum ('pending', 'paid', 'failed') default 'pending'         null,
+    paid_at           datetime                                                     null,
+    created_at        timestamp                          default CURRENT_TIMESTAMP null,
+    raw_payload       json                                                         null,
+    constraint fk_payment_landlord
+        foreign key (landlord_id) references Landlord (landlord_id)
+            on delete cascade,
+    constraint fk_payment_subscription
+        foreign key (subscription_id) references Subscription (subscription_id)
+            on delete cascade
+);
+
+create index idx_payment_landlord
+    on SubscriptionPayment (landlord_id);
+
+create index idx_payment_subscription
+    on SubscriptionPayment (subscription_id);
 
 create table Tenant
 (
@@ -1188,6 +1228,41 @@ create table LeaseAgreement
         foreign key (unit_id) references Unit (unit_id)
             on delete cascade
 );
+
+create table ElectricMeterReading
+(
+    reading_id          int auto_increment
+        primary key,
+    unit_id             varchar(12)                          not null,
+    lease_id            varchar(20)                          null,
+    period_start        date                                 not null,
+    period_end          date                                 not null,
+    previous_reading    decimal(10, 2)                       not null,
+    current_reading     decimal(10, 2)                       not null,
+    consumption         decimal(10, 2) as ((`current_reading` - `previous_reading`)) stored,
+    electricity_bill_id int                                  null,
+    is_locked           tinyint(1) default 0                 null,
+    created_at          timestamp  default CURRENT_TIMESTAMP null,
+    updated_at          timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint ElectricMeterReading_ibfk_1
+        foreign key (unit_id) references Unit (unit_id)
+            on delete cascade,
+    constraint ElectricMeterReading_ibfk_2
+        foreign key (electricity_bill_id) references ConcessionaireBilling (bill_id)
+            on delete set null,
+    constraint fk_electric_meter_lease
+        foreign key (lease_id) references LeaseAgreement (agreement_id)
+            on update cascade on delete set null
+);
+
+create index concessionaire_bill_id
+    on ElectricMeterReading (electricity_bill_id);
+
+create index idx_electric_meter_lease_id
+    on ElectricMeterReading (lease_id);
+
+create index unit_id
+    on ElectricMeterReading (unit_id);
 
 create index tenant_id
     on LeaseAgreement (tenant_id);
@@ -1799,31 +1874,60 @@ create table WalletTransactionLock
 create index idx_wallet
     on WalletTransactionLock (wallet_id);
 
+create table WaterConcessionaireBilling
+(
+    bill_id        int auto_increment
+        primary key,
+    property_id    varchar(12)                         not null,
+    period_start   date                                not null,
+    period_end     date                                not null,
+    consumption    decimal(10, 2)                      not null comment 'Water consumption in cubic meters (m³)',
+    total_amount   decimal(12, 2)                      not null comment 'Total amount in PHP',
+    rate_per_cubic decimal(10, 4)                      not null comment 'Rate per cubic meter',
+    created_at     timestamp default CURRENT_TIMESTAMP null,
+    updated_at     timestamp default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint WaterConcessionaireBilling_ibfk_1
+        foreign key (property_id) references Property (property_id)
+            on delete cascade
+);
+
+create index water_concessionaire_period
+    on WaterConcessionaireBilling (period_start, period_end);
+
+create index water_concessionaire_property_id
+    on WaterConcessionaireBilling (property_id);
+
 create table WaterMeterReading
 (
-    reading_id             int auto_increment
+    reading_id       int auto_increment
         primary key,
-    unit_id                varchar(12)                          not null,
-    period_start           date                                 not null,
-    period_end             date                                 not null,
-    reading_date           date                                 not null,
-    previous_reading       decimal(10, 2)                       not null,
-    current_reading        decimal(10, 2)                       not null,
-    consumption            decimal(10, 2) as ((`current_reading` - `previous_reading`)) stored,
-    concessionaire_bill_id int                                  null,
-    is_locked              tinyint(1) default 0                 null,
-    created_at             timestamp  default CURRENT_TIMESTAMP null,
-    updated_at             timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    unit_id          varchar(12)                          not null,
+    lease_id         varchar(20)                          null,
+    period_start     date                                 not null,
+    period_end       date                                 not null,
+    previous_reading decimal(10, 2)                       not null,
+    current_reading  decimal(10, 2)                       not null,
+    consumption      decimal(10, 2) as ((`current_reading` - `previous_reading`)) stored,
+    water_bill_id    int                                  null,
+    is_locked        tinyint(1) default 0                 null,
+    created_at       timestamp  default CURRENT_TIMESTAMP null,
+    updated_at       timestamp  default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
     constraint WaterMeterReading_ibfk_1
         foreign key (unit_id) references Unit (unit_id)
             on delete cascade,
     constraint WaterMeterReading_ibfk_2
-        foreign key (concessionaire_bill_id) references WaterConcessionaireBilling (bill_id)
-            on delete set null
+        foreign key (water_bill_id) references ConcessionaireBilling (bill_id)
+            on delete set null,
+    constraint fk_water_meter_lease
+        foreign key (lease_id) references LeaseAgreement (agreement_id)
+            on update cascade on delete set null
 );
 
 create index concessionaire_bill_id
-    on WaterMeterReading (concessionaire_bill_id);
+    on WaterMeterReading (water_bill_id);
+
+create index idx_water_meter_lease_id
+    on WaterMeterReading (lease_id);
 
 create index unit_id
     on WaterMeterReading (unit_id);
@@ -1866,6 +1970,18 @@ create index idx_status
 
 create index idx_wallet
     on WithdrawalRequest (wallet_id);
+
+create table XenditWebhookLog
+(
+    id         int auto_increment
+        primary key,
+    event_id   varchar(100)                         not null,
+    event_type varchar(100)                         not null,
+    processed  tinyint(1) default 0                 null,
+    created_at timestamp  default CURRENT_TIMESTAMP null,
+    constraint uniq_event_id
+        unique (event_id)
+);
 
 create table payout_channels
 (

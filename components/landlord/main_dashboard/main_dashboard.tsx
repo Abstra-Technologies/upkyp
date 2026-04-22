@@ -151,11 +151,12 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
               <PaymentSummaryCard landlord_id={landlordId} />
             </Suspense>
             <Suspense fallback={<CardSkeleton />}>
-              <TodayCalendar landlordId={landlordId} />
+                <PendingMaintenanceDonut landlordId={landlordId} />
             </Suspense>
             <Suspense fallback={<CardSkeleton />}>
               <div id="dashboard-maintenance" className="h-full">
-                <PendingMaintenanceDonut landlordId={landlordId} />
+                  <TodayCalendar landlordId={landlordId} />
+
               </div>
             </Suspense>
           </div>
