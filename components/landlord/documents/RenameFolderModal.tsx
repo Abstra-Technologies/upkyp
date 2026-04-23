@@ -1,59 +1,64 @@
 "use client";
 
-import { useState } from "react";
-import { X, FolderPlus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Pencil } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
 
-interface Props {
-    reference_type?: string;
-    reference_id?: string;
-    isOpen: boolean;
-    onClose: () => void;
-    onCreated?: () => void;
-    disabled?: boolean;
+interface Folder {
+    folder_id: number;
+    name: string;
 }
 
-export default function CreateFolderModal({
-    reference_type,
-    reference_id,
+interface Props {
+    folder: Folder | null;
+    isOpen: boolean;
+    onClose: () => void;
+    onRenamed?: () => void;
+}
+
+export default function RenameFolderModal({
+    folder,
     isOpen,
     onClose,
-    onCreated,
-    disabled = false,
+    onRenamed,
 }: Props) {
     const [name, setName] = useState("");
     const [loading, setLoading] = useState(false);
 
-    if (!isOpen) return null;
+    useEffect(() => {
+        if (folder?.name) {
+            setName(folder.name);
+        }
+    }, [folder]);
 
-    const handleCreate = async () => {
+    if (!isOpen || !folder) return null;
+
+    const handleRename = async () => {
         if (!name.trim()) {
             Swal.fire("Folder name required", "", "warning");
+            return;
+        }
+
+        if (name.trim() === folder.name) {
+            onClose();
             return;
         }
 
         try {
             setLoading(true);
 
-            const payload: { name: string; reference_type?: string; reference_id?: string } = {
+            await axios.patch(`/api/landlord/documents/folders/${folder.folder_id}`, {
                 name: name.trim(),
-            };
-            if (reference_type && reference_id) {
-                payload.reference_type = reference_type;
-                payload.reference_id = reference_id;
-            }
+            });
 
-            await axios.post("/api/landlord/documents/folders", payload);
-
-            Swal.fire("Folder created", "", "success");
-            setName("");
-            onCreated?.();
+            Swal.fire("Renamed", "Folder renamed successfully", "success");
+            onRenamed?.();
             onClose();
         } catch (err: any) {
             Swal.fire(
                 "Error",
-                err?.response?.data?.error || "Failed to create folder",
+                err?.response?.data?.message || "Failed to rename folder",
                 "error"
             );
         } finally {
@@ -66,10 +71,8 @@ export default function CreateFolderModal({
             <div className="bg-white w-full max-w-md rounded-xl shadow-lg border">
                 <div className="flex items-center justify-between px-5 py-4 border-b">
                     <div className="flex items-center gap-2">
-                        <FolderPlus className="w-5 h-5 text-blue-600" />
-                        <h2 className="font-semibold text-gray-800">
-                            Create Folder
-                        </h2>
+                        <Pencil className="w-5 h-5 text-blue-600" />
+                        <h2 className="font-semibold text-gray-800">Rename Folder</h2>
                     </div>
 
                     <button onClick={onClose}>
@@ -86,16 +89,10 @@ export default function CreateFolderModal({
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            placeholder="e.g. Contracts, Permits, Receipts"
+                            placeholder="Enter new folder name"
                             className="w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                     </div>
-
-                    {disabled && (
-                        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
-                            Storage limit reached. Upgrade your plan to create more folders.
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex justify-end gap-2 px-5 py-4 border-t">
@@ -105,17 +102,16 @@ export default function CreateFolderModal({
                     >
                         Cancel
                     </button>
-
                     <button
-                        onClick={handleCreate}
-                        disabled={loading || disabled}
+                        onClick={handleRename}
+                        disabled={loading}
                         className={`px-4 py-2 text-sm rounded-lg font-semibold transition ${
-                            loading || disabled
+                            loading
                                 ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                                 : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-md"
                         }`}
                     >
-                        {loading ? "Creating..." : "Create"}
+                        {loading ? "Saving..." : "Save"}
                     </button>
                 </div>
             </div>

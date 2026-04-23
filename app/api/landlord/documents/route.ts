@@ -23,9 +23,11 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const reference_type = searchParams.get("reference_type");
         const reference_id = searchParams.get("reference_id");
+        const folder_id = searchParams.get("folder_id");
 
         let query = `
-            SELECT COALESCE(SUM(file_size), 0) AS total_bytes
+            SELECT document_id, file_name, file_mime_type, file_size, file_url, 
+                   reference_type, reference_id, folder_id, uploaded_by, created_at, updated_at
             FROM rentalley_db.Document
             WHERE landlord_id = ?`;
         const params: any[] = [session.landlord_id];
@@ -35,19 +37,23 @@ export async function GET(req: NextRequest) {
             params.push(reference_type, reference_id);
         }
 
+        if (folder_id) {
+            query += ` AND folder_id = ?`;
+            params.push(folder_id);
+        } else if (!reference_type || !reference_id) {
+            query += ` AND folder_id IS NULL`;
+        }
+
+        query += ` ORDER BY created_at DESC`;
+
         const [rows]: any = await db.query(query, params);
 
         return NextResponse.json(
-            {
-                success: true,
-                reference_type,
-                reference_id,
-                total_bytes: Number(rows[0]?.total_bytes || 0),
-            },
+            { success: true, documents: rows },
             { status: 200 }
         );
     } catch (error) {
-        console.error("[STORAGE_USAGE_API_ERROR]", error);
+        console.error("[GET_DOCUMENTS_ERROR]", error);
         return NextResponse.json(
             { error: "Internal server error." },
             { status: 500 }

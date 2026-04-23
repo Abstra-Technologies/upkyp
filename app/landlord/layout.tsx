@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import useSubscription from "@/hooks/landlord/useSubscription";
 import { IoFileTrayStacked } from "react-icons/io5";
+import { FaRegFolder } from "react-icons/fa";
 
 const NotificationSection = dynamic(
   () => import("@/components/notification/notifCenter"),
@@ -141,7 +142,7 @@ export default function LandlordLayout({
           },
           {
             id: "nav-tenants",
-            label: "Tenants",
+            label: "My Tenants",
             href: "/landlord/list_of_tenants",
             icon: Users,
           },
@@ -162,6 +163,12 @@ export default function LandlordLayout({
       {
         title: "Management",
         items: [
+            {
+                id: "nav-analytics",
+                label: "Analytics",
+                href: "/landlord/analytics/performance",
+                icon: ChartArea,
+            },
           {
             id: "nav-workorders",
             label: "Maintenance",
@@ -183,13 +190,13 @@ export default function LandlordLayout({
         ],
       },
       {
-        title: "Insights",
+        title: "Tools",
         items: [
           {
-            id: "nav-analytics",
-            label: "Analytics",
-            href: "/landlord/analytics/performance",
-            icon: ChartArea,
+            id: "nav-docs",
+            label: "Document Storage",
+            href: "/landlord/documents",
+            icon: FaRegFolder ,
           },
         ],
       },
@@ -202,17 +209,18 @@ export default function LandlordLayout({
             href: "/upkyp_stack",
             icon: IoFileTrayStacked,
           },
+            {
+                id: "nav-subscription",
+                label: "Subscription",
+                href: "/commons/landlord/subscription",
+                icon: CreditCard,
+            },
         ],
       },
       {
         title: "Help",
         items: [
-          {
-            id: "nav-subscription",
-            label: "Subscription",
-            href: "/commons/landlord/subscription",
-            icon: CreditCard,
-          },
+
           {
             id: "nav-help",
             label: "Help & Support",

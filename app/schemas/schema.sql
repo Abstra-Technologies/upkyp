@@ -50,6 +50,29 @@ create table Admin_archive
     deleted_at      datetime                                     not null
 );
 
+create table Document
+(
+    document_id    varchar(36)                                                                                not null
+        primary key,
+    reference_type enum ('property', 'unit', 'lease', 'tenant', 'maintenance', 'expense', 'vendor', 'others') not null,
+    reference_id   varchar(50)                                                                                not null,
+    document_type  varchar(50)                                                                                not null,
+    file_name      varchar(255)                                                                               not null,
+    file_url       text                                                                                       not null,
+    file_size      bigint                                                                                     null,
+    file_mime_type varchar(100)                                                                               null,
+    uploaded_by    char(36)                                                                                   null,
+    description    text                                                                                       null,
+    created_at     timestamp default CURRENT_TIMESTAMP                                                        null,
+    updated_at     timestamp default CURRENT_TIMESTAMP                                                        null on update CURRENT_TIMESTAMP
+);
+
+create index idx_reference
+    on Document (reference_type, reference_id);
+
+create index idx_uploaded_by
+    on Document (uploaded_by);
+
 create table Expenses
 (
     expense_id     int auto_increment
