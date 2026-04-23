@@ -216,7 +216,7 @@ export default function PropertyLayout({
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-5 py-4">
         <button
-          onClick={() => router.push("/landlord/property-listing")}
+          onClick={() => router.push("/landlord/properties")}
           className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors group mb-4"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

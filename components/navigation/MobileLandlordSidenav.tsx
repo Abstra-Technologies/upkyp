@@ -148,7 +148,7 @@ export default function MobileLandlordSidenav({
                                     ))
                                 )}
                                 <Link
-                                    href="/landlord/property-listing"
+                                    href="/landlord/properties"
                                     onClick={onClose}
                                     className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
                                 >

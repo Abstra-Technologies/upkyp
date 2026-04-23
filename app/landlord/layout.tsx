@@ -137,13 +137,13 @@ export default function LandlordLayout({
           {
             id: "nav-properties",
             label: "Properties",
-            href: "/landlord/property-listing",
+            href: "/landlord/properties",
             icon: Building,
           },
           {
             id: "nav-tenants",
             label: "My Tenants",
-            href: "/landlord/list_of_tenants",
+            href: "/landlord/tenants",
             icon: Users,
           },
           {
@@ -172,7 +172,7 @@ export default function LandlordLayout({
           {
             id: "nav-workorders",
             label: "Maintenance",
-            href: "/landlord/maintenance-request",
+            href: "/landlord/maintenance",
             icon: Construction,
           },
           {
@@ -184,7 +184,7 @@ export default function LandlordLayout({
           {
             id: "nav-announcements",
             label: "Announcements",
-            href: "/landlord/announcement",
+            href: "/landlord/announcements",
             icon: Megaphone,
           },
         ],
@@ -349,7 +349,7 @@ export default function LandlordLayout({
                   ))
                 )}
                 <Link
-                  href="/landlord/property-listing"
+                  href="/landlord/properties"
                   onClick={() => setShowPropertyDropdown(false)}
                   className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
                 >
