@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 import { sendPasswordResetOtpEmail } from "@/lib/email/sendPasswordResetOtpEmail";
+import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
 export async function POST(req: NextRequest) {
     const body = await req.json();
@@ -50,11 +51,11 @@ export async function POST(req: NextRequest) {
         await db.query(
             `
             INSERT INTO UserToken (user_id, token_type, token, created_at, expires_at)
-            VALUES (?, 'password_reset', ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 10 MINUTE))
+            VALUES (?, 'password_reset', ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 MINUTE))
             ON DUPLICATE KEY UPDATE
                 token = VALUES(token),
                 created_at = UTC_TIMESTAMP(),
-                expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 10 MINUTE)
+                expires_at = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 MINUTE)
             `,
             [user.user_id, otp]
         );
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
         const [expiryRows] = await db.query<any[]>(
             `
             SELECT CONVERT_TZ(
-                DATE_ADD(UTC_TIMESTAMP(), INTERVAL 10 MINUTE),
+                DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 MINUTE),
                 '+00:00',
                 ?
             ) AS local_expiry
@@ -72,20 +73,25 @@ export async function POST(req: NextRequest) {
         );
 
         const localExpiry = expiryRows[0]?.local_expiry;
+        const expiresAtStr = localExpiry instanceof Date
+            ? localExpiry.toLocaleString()
+            : String(localExpiry ?? "5 minutes");
+
+        const decryptedFirstName = safeDecrypt(user.firstName);
 
         // ✉️ SEND VIA RESEND
         await sendPasswordResetOtpEmail({
             email,
-            firstName: user.firstName,
+            firstName: decryptedFirstName || "there",
             otp,
-            expiresAt: localExpiry,
+            expiresAt: expiresAtStr,
             timezone: user.timezone || "UTC",
         });
 
         return NextResponse.json(
             {
                 message: "OTP sent to your email.",
-                expiresAt: localExpiry,
+                expiresAt: expiresAtStr,
                 timezone: user.timezone || "UTC",
             },
             { status: 200 }

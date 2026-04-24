@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import nodemailer from "nodemailer";
 import { db } from "@/lib/db";
+import { sendPasswordResetOtpEmail } from "@/lib/email/sendPasswordResetOtpEmail";
+import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,18 +12,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email is required." }, { status: 400 });
     }
 
-    const emailHash = crypto.createHash("sha256").update(email).digest("hex");
+    const emailHash = crypto.createHash("sha256").update(email.toLowerCase()).digest("hex");
 
-    const [user]: any[] = await db.query(
-      "SELECT user_id FROM User WHERE emailHashed = ?",
+    const [userRows]: any[] = await db.query(
+      "SELECT user_id, firstName, timezone FROM User WHERE emailHashed = ?",
       [emailHash]
     );
 
-    if (!user || user.length === 0) {
+    if (!userRows || userRows.length === 0) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    const userId = user[0].user_id;
+    const userId = userRows[0].user_id;
 
     // Clean up old OTP
     await db.query(
@@ -31,26 +32,37 @@ export async function POST(req: NextRequest) {
     );
 
     // Generate new OTP
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + 10 * 60 * 1000); // +10 mins
-
-    const nowUTC8 = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-    const expiresAtUTC8 = new Date(expiresAt.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
-
-    await db.query("SET time_zone = '+08:00'");
+    const newOtp = crypto.randomInt(100000, 999999).toString();
 
     await db.query(
       `INSERT INTO UserToken (user_id, token_type, token, created_at, expires_at)
-       VALUES (?, 'password_reset', ?, ?, ?)
+       VALUES (?, 'password_reset', ?, UTC_TIMESTAMP(), DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 MINUTE))
        ON DUPLICATE KEY UPDATE 
          token = VALUES(token), 
          created_at = VALUES(created_at), 
          expires_at = VALUES(expires_at)`,
-      [userId, newOtp, nowUTC8, expiresAtUTC8]
+      [userId, newOtp]
     );
 
-    await sendOtpEmail(email, newOtp);
+    const [expiryRows] = await db.query<any[]>(
+      `SELECT CONVERT_TZ(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 5 MINUTE), '+00:00', ?) AS local_expiry`,
+      [userRows[0].timezone || "UTC"]
+    );
+
+    const localExpiry = expiryRows[0]?.local_expiry;
+    const expiresAtStr = localExpiry instanceof Date
+      ? localExpiry.toLocaleString()
+      : String(localExpiry ?? "5 minutes");
+
+    const decryptedFirstName = safeDecrypt(userRows[0].firstName);
+
+    await sendPasswordResetOtpEmail({
+      email,
+      firstName: decryptedFirstName || "there",
+      otp: newOtp,
+      expiresAt: expiresAtStr,
+      timezone: userRows[0].timezone || "UTC",
+    });
 
     return NextResponse.json(
       { message: "New OTP has been sent to your email." },
@@ -63,26 +75,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-async function sendOtpEmail(toEmail: string, newOtp: string) {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER!,
-      pass: process.env.EMAIL_PASS!,
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
-
-  await transporter.sendMail({
-    from: process.env.EMAIL_USER!,
-    to: toEmail,
-    subject: "Hestia: Reset Password OTP",
-    text: `Your OTP is: ${newOtp}`,
-  });
-
-  console.log(`[Email] Password reset OTP sent to ${toEmail}`);
 }
