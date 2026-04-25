@@ -62,9 +62,7 @@ export function useMyUnits() {
         isLoading: loading,
         mutate,
     } = useSWR<any>(
-        user?.tenant_id
-            ? `/api/tenant/activeRent?tenantId=${user.tenant_id}`
-            : null,
+        user ? "/api/tenant/activeRent" : null,
         fetcher,
         {
             revalidateOnFocus: true,
@@ -85,10 +83,10 @@ export function useMyUnits() {
     }, [user, admin, fetchSession]);
 
     useEffect(() => {
-        if (user?.tenant_id) {
+        if (user) {
             mutate();
         }
-    }, [user?.tenant_id]);
+    }, [user]);
 
     useEffect(() => {
         setCurrentPage(1);

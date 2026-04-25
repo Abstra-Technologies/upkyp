@@ -1,15 +1,13 @@
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 import { NextRequest, NextResponse } from "next/server";
-import { unstable_cache } from "next/cache";
 import { getSessionUser } from "@/lib/auth/auth";
 
 const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
-const getTenantActiveLeases = unstable_cache(
-    async (tenantId: string) => {
-        const [rows]: any = await db.query(
-            `
+async function getTenantActiveLeases(tenantId: string) {
+    const [rows]: any = await db.query(
+        `
       SELECT
         la.agreement_id,
         la.status AS lease_status,
@@ -69,97 +67,91 @@ const getTenantActiveLeases = unstable_cache(
       GROUP BY la.agreement_id
       ORDER BY la.updated_at DESC
       `,
-            [tenantId]
-        );
+        [tenantId]
+    );
 
-        if (!rows?.length) return [];
+    if (!rows?.length) return [];
 
-        return rows.map((row: any) => {
-            /* ---------------------------
-               SIGNATURE STATUS
-            --------------------------- */
-            let leaseSignature = "pending";
+    return rows.map((row: any) => {
+        /* ---------------------------
+           SIGNATURE STATUS
+        --------------------------- */
+        let leaseSignature = "pending";
 
-            if (row.lease_status === "active") {
-                leaseSignature = "active";
-            } else if (row.landlord_sig === "signed" && row.tenant_sig === "signed") {
-                leaseSignature = "completed";
-            } else if (row.landlord_sig === "signed") {
-                leaseSignature = "landlord_signed";
-            } else if (row.tenant_sig === "signed") {
-                leaseSignature = "tenant_signed";
-            }
+        if (row.lease_status === "active") {
+            leaseSignature = "active";
+        } else if (row.landlord_sig === "signed" && row.tenant_sig === "signed") {
+            leaseSignature = "completed";
+        } else if (row.landlord_sig === "signed") {
+            leaseSignature = "landlord_signed";
+        } else if (row.tenant_sig === "signed") {
+            leaseSignature = "tenant_signed";
+        }
 
-            /* ---------------------------
-               DECRYPT LANDLORD NAME
-            --------------------------- */
-            let landlord_name = "Landlord";
-            try {
-                const first = decryptData(JSON.parse(row.enc_first_name), SECRET_KEY);
-                const last = decryptData(JSON.parse(row.enc_last_name), SECRET_KEY);
-                landlord_name = `${first} ${last}`;
-            } catch {}
+        /* ---------------------------
+           DECRYPT LANDLORD NAME
+        --------------------------- */
+        let landlord_name = "Landlord";
+        try {
+            const first = decryptData(JSON.parse(row.enc_first_name), SECRET_KEY);
+            const last = decryptData(JSON.parse(row.enc_last_name), SECRET_KEY);
+            landlord_name = `${first} ${last}`;
+        } catch {}
 
-            /* ---------------------------
-               DECRYPT PHOTOS
-            --------------------------- */
-            const unit_photos =
-                row.unit_photos
-                    ?.split("||")
-                    .map((photo: string) => {
-                        try {
-                            return decryptData(JSON.parse(photo), SECRET_KEY);
-                        } catch {
-                            return null;
-                        }
-                    })
-                    .filter(Boolean) || [];
+        /* ---------------------------
+           DECRYPT PHOTOS
+        --------------------------- */
+        const unit_photos =
+            row.unit_photos
+                ?.split("||")
+                .map((photo: string) => {
+                    try {
+                        return decryptData(JSON.parse(photo), SECRET_KEY);
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter(Boolean) || [];
 
-            return {
-                agreement_id: row.agreement_id,
-                lease_status: row.lease_status,
-                leaseSignature,
+        return {
+            agreement_id: row.agreement_id,
+            lease_status: row.lease_status,
+            leaseSignature,
 
-                start_date: row.start_date,
-                end_date: row.end_date,
-                move_in_date: row.move_in_date,
-                move_in_checklist: row.move_in_checklist,
+            start_date: row.start_date,
+            end_date: row.end_date,
+            move_in_date: row.move_in_date,
+            move_in_checklist: row.move_in_checklist,
 
-                unit_id: row.unit_id,
-                unit_name: row.unit_name,
-                unit_size: row.unit_size,
-                unit_style: row.unit_style,
-                rent_amount: row.rent_amount,
-                furnish: row.furnish,
-                unit_status: row.unit_status,
+            unit_id: row.unit_id,
+            unit_name: row.unit_name,
+            unit_size: row.unit_size,
+            unit_style: row.unit_style,
+            rent_amount: row.rent_amount,
+            furnish: row.furnish,
+            unit_status: row.unit_status,
 
-                property_id: row.property_id,
-                property_name: row.property_name,
-                property_type: row.property_type,
+            property_id: row.property_id,
+            property_name: row.property_name,
+            property_type: row.property_type,
 
-                street: row.street,
-                brgy_district: row.brgy_district,
-                city: row.city,
-                province: row.province,
-                zip_code: row.zip_code,
+            street: row.street,
+            brgy_district: row.brgy_district,
+            city: row.city,
+            province: row.province,
+            zip_code: row.zip_code,
 
-                landlord_user_id: row.landlord_user_id,
-                landlord_name,
+            landlord_user_id: row.landlord_user_id,
+            landlord_name,
 
-                unit_photos,
+            unit_photos,
 
-                has_signature_records: row.has_signature_records > 0,
-                tenant_sig: row.tenant_sig,
-                landlord_sig: row.landlord_sig,
-            };
-        });
-    },
-    (tenantId: string) => ["tenant-active-leases", tenantId],
-    {
-        revalidate: 60,
-        tags: ["tenant-leases"],
-    }
-);
+            has_signature_records: row.has_signature_records > 0,
+            tenant_sig: row.tenant_sig,
+            landlord_sig: row.landlord_sig,
+        };
+    });
+}
 
 /* =========================================================
    API HANDLER
@@ -175,17 +167,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const { searchParams } = new URL(req.url);
-        const tenantId = searchParams.get("tenantId");
-
-        if (!tenantId || tenantId !== sessionUser.tenant_id) {
-            return NextResponse.json(
-                { message: "Invalid tenant ID" },
-                { status: 400 }
-            );
-        }
-
-        const leases = await getTenantActiveLeases(tenantId);
+        const leases = await getTenantActiveLeases(sessionUser.tenant_id);
 
         return NextResponse.json(leases, { status: 200 });
 
