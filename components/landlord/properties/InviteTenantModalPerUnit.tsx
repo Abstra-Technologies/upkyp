@@ -126,6 +126,59 @@ export default function InviteTenantModalPerUnit({
       }
     }
 
+    if (existingInvite) {
+      const confirm = await Swal.fire({
+        title: "Active Invite Found",
+        text: "There is already an active invite for this unit. Generating a new code will delete the existing one. Continue?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, Generate New Code",
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      setLoading(true);
+      try {
+        const res = await axios.post("/api/invite/perUnit/regenerate", {
+          unitId,
+          existingInviteId: existingInvite.id,
+        });
+
+        const newInvite = {
+          code: res.data.code,
+          expiresAt: new Date(res.data.expiresAt),
+          email: inviteMethod === "email" ? email : null,
+        };
+
+        setInviteResult(newInvite);
+        setExistingInvite({
+          id: res.data.inviteId,
+          code: res.data.code,
+          email: inviteMethod === "email" ? email : "",
+          status: "PENDING",
+          expiresAt: res.data.expiresAt,
+          startDate: setDatesNow ? startDate : null,
+          endDate: setDatesNow ? endDate : null,
+          timeLeft: res.data.timeLeft,
+        });
+        setTimeLeft(res.data.timeLeft);
+        setCopied(false);
+
+        onInviteSent?.();
+      } catch (err: any) {
+        Swal.fire(
+          "Error",
+          err?.response?.data?.error || "Failed to generate new code.",
+          "error"
+        );
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const payload: any = {
@@ -175,306 +228,234 @@ export default function InviteTenantModalPerUnit({
     }
   };
 
-  const handleResend = async () => {
-    if (!activeCode) return;
-    
+  const handleGenerateNewCode = async () => {
+    const confirm = await Swal.fire({
+      title: "Generate New Code?",
+      text: "This will invalidate the existing invite code. The tenant will no longer be able to use the old code.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, Generate New Code",
+    });
+
+    if (!confirm.isConfirmed) return;
+
     setLoading(true);
     try {
-      const res = await axios.post("/api/invite/perUnit/resend", {
-        code: activeCode,
+      const res = await axios.post("/api/invite/perUnit/regenerate", {
         unitId,
-        unitName,
+        existingInviteId: existingInvite?.id,
       });
-      
+
       const newInvite = {
         code: res.data.code,
         expiresAt: new Date(res.data.expiresAt),
         email: res.data.email || "",
       };
-      
+
       setInviteResult(newInvite);
       setExistingInvite({
-        id: 0,
+        id: res.data.inviteId,
         code: res.data.code,
         email: res.data.email || "",
         status: "PENDING",
         expiresAt: res.data.expiresAt,
         startDate: existingInvite?.startDate || null,
         endDate: existingInvite?.endDate || null,
-        timeLeft: 600,
+        timeLeft: res.data.timeLeft,
       });
-      setTimeLeft(600);
+      setTimeLeft(res.data.timeLeft);
       setCopied(false);
+
+      Swal.fire("Success", "New invite code generated successfully.", "success");
     } catch (err: any) {
-      Swal.fire("Error", err?.response?.data?.error || "Failed to resend invite.", "error");
+      Swal.fire("Error", err?.response?.data?.error || "Failed to generate new code.", "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full relative">
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-          onClick={onClose}
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        <h2 className="text-xl font-semibold text-gray-800 mb-1">
-          Invite Tenant
-        </h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Unit: <span className="font-medium">{unitName}</span>
-        </p>
-
-        {existingInvite ? (
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-              <p className="text-sm text-amber-800 font-medium">
-                Active invite found for this unit
-              </p>
-              <p className="text-xs text-amber-600 mt-1">
-                Sent to: {existingInvite.email || "Code share"}
-              </p>
-            </div>
-
-            <div className="bg-gray-50 border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-gray-700">Invite Code</span>
-                <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="text-sm font-bold">{formatTime(timeLeft)}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-center gap-2 mb-3">
-                {formatCode(existingInvite.code).split(" ").map((char, idx) => (
-                  <div
-                    key={idx}
-                    className="w-12 h-14 bg-white border-2 border-blue-500 rounded-lg flex items-center justify-center"
-                  >
-                    <span className="text-2xl font-bold text-blue-600">{char}</span>
-                  </div>
-                ))}
-              </div>
-
-              <button
-                onClick={handleCopyCode}
-                className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy Code
-                  </>
-                )}
-              </button>
-              {copied && (
-                <p className="text-xs text-green-600 mt-2 text-center">Code copied to clipboard!</p>
-              )}
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={handleResend}
-                disabled={loading}
-                className="flex-1 py-2 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                New Code
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Done
-              </button>
-            </div>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden animate-in slide-in-from-bottom duration-300">
+        <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-white">Invite Tenant</h2>
+            <p className="text-xs text-white/80 truncate">Unit: {unitName}</p>
           </div>
-        ) : inviteResult ? (
-          <div className="space-y-4">
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-center">
-              <Check className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-              <p className="font-semibold text-emerald-800">
-                {inviteMethod === "email" ? "Invitation Sent!" : "Code Generated!"}
-              </p>
-              <p className="text-sm text-emerald-600">
-                {inviteMethod === "email" 
-                  ? `Invite sent to ${inviteResult.email}` 
-                  : "Share this code with the tenant"}
-              </p>
-            </div>
+          <button
+            className="p-2 hover:bg-white/20 rounded-xl transition"
+            onClick={onClose}
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
 
-            <div className="bg-gray-50 border rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-gray-700">Invite Code</span>
-                <div className="flex items-center gap-1.5 text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="text-sm font-bold">{formatTime(timeLeft)}</span>
+        <div className="p-5 sm:p-6">
+          {existingInvite || inviteResult ? (
+            <div className="space-y-5">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center gap-2 bg-amber-50 px-4 py-2 rounded-full mb-4">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                  <span className="text-3xl font-bold text-amber-700 tabular-nums">{formatTime(timeLeft)}</span>
                 </div>
-              </div>
-              
-              <div className="flex items-center justify-center gap-2 mb-3">
-                {formatCode(inviteResult.code).split(" ").map((char, idx) => (
-                  <div
-                    key={idx}
-                    className="w-12 h-14 bg-white border-2 border-blue-500 rounded-lg flex items-center justify-center"
-                  >
-                    <span className="text-2xl font-bold text-blue-600">{char}</span>
-                  </div>
-                ))}
+                <p className="text-sm text-gray-500">Expires in</p>
               </div>
 
-              <button
-                onClick={handleCopyCode}
-                className="w-full flex items-center justify-center gap-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                {copied ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Copied!
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-4 h-4" />
-                    Copy Code
-                  </>
-                )}
-              </button>
-              {copied && (
-                <p className="text-xs text-green-600 mt-2 text-center">Code copied to clipboard!</p>
-              )}
-            </div>
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-6">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide text-center mb-3">Invite Code</p>
+                <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4">
+                  {formatCode(activeCode).split(" ").map((char, idx) => (
+                    <div
+                      key={idx}
+                      className="w-12 h-14 sm:w-16 sm:h-16 bg-white border-2 border-blue-500 rounded-xl flex items-center justify-center shadow-sm"
+                    >
+                      <span className="text-2xl sm:text-3xl font-bold text-blue-600">{char}</span>
+                    </div>
+                  ))}
+                </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={handleResend}
-                disabled={loading}
-                className="flex-1 py-2 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                New Code
-              </button>
-              <button
-                onClick={onClose}
-                className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setInviteMethod("email")}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
-                  inviteMethod === "email"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Mail className="inline w-4 h-4 mr-1.5" />
-                Email
-              </button>
-              <button
-                onClick={() => setInviteMethod("code")}
-                className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition ${
-                  inviteMethod === "code"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                <Copy className="inline w-4 h-4 mr-1.5" />
-                Share Code
-              </button>
-            </div>
-
-            {inviteMethod === "email" && (
-              <>
-                <label className="text-sm font-medium text-gray-700">
-                  Tenant Email
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tenant@email.com"
-                  className="w-full mt-1 mb-4 px-3 py-2 border rounded-lg focus:ring-emerald-500"
-                />
-              </>
-            )}
-
-            {inviteMethod === "code" && (
-              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-700">
-                  Generate a shareable 4-character code that expires in 10 minutes. 
-                  The tenant can use this code to accept the invitation.
-                </p>
+                <button
+                  onClick={handleCopyCode}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition active:scale-95"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4" />
+                      Copy Code
+                    </>
+                  )}
+                </button>
               </div>
-            )}
 
-            {inviteMethod === "email" && (
-              <div className="mb-4 p-3 rounded-lg border bg-gray-50">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGenerateNewCode}
+                  disabled={loading}
+                  className="flex-1 py-3 flex items-center justify-center gap-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition disabled:opacity-50 active:scale-95"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                  New Code
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition active:scale-95"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setInviteMethod("email")}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition ${
+                    inviteMethod === "email"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <Mail className="inline w-4 h-4 mr-1.5" />
+                  Email
+                </button>
+                <button
+                  onClick={() => setInviteMethod("code")}
+                  className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold transition ${
+                    inviteMethod === "code"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  <Copy className="inline w-4 h-4 mr-1.5" />
+                  Share Code
+                </button>
+              </div>
+
+              {inviteMethod === "email" && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-1 block">
+                    Tenant Email
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={setDatesNow}
-                    onChange={() => setSetDatesNow((prev) => !prev)}
-                    className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tenant@email.com"
+                    className="w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   />
-                  Set lease dates now
-                </label>
-              </div>
-            )}
+                </div>
+              )}
 
-            {setDatesNow && (
-              <>
-                <label className="text-sm font-medium text-gray-700">
-                  Lease Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full mt-1 mb-3 px-3 py-2 border rounded-lg focus:ring-emerald-500"
-                />
+              {inviteMethod === "code" && (
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                  <p className="text-sm text-blue-700">
+                    Generate a shareable 4-character code that expires in 10 minutes.
+                  </p>
+                </div>
+              )}
 
-                <label className="text-sm font-medium text-gray-700">
-                  Lease End Date
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full mt-1 mb-4 px-3 py-2 border rounded-lg focus:ring-emerald-500"
-                />
-              </>
-            )}
+              {inviteMethod === "email" && (
+                <div className="p-3 rounded-xl border bg-gray-50">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={setDatesNow}
+                      onChange={() => setSetDatesNow((prev) => !prev)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    Set lease dates now
+                  </label>
+                </div>
+              )}
 
-            <button
-              onClick={handleInvite}
-              disabled={loading}
-              className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600
-                           text-white font-semibold rounded-lg shadow-md
-                           hover:from-blue-700 hover:to-emerald-700
-                           transition-all disabled:opacity-50"
-            >
-              {loading
-                ? "Sending..."
-                : inviteMethod === "email"
-                ? "Send Invitation"
-                : "Generate Code"}
-            </button>
-          </>
-        )}
+              {setDatesNow && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      Lease Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-1 block">
+                      Lease End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={handleInvite}
+                disabled={loading}
+                className="w-full py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all disabled:opacity-50 active:scale-95"
+              >
+                {loading
+                  ? "Sending..."
+                  : inviteMethod === "email"
+                  ? "Send Invitation"
+                  : "Generate Code"}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
