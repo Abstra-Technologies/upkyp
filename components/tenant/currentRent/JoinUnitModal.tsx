@@ -14,7 +14,6 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
-    const [unitInfo, setUnitInfo] = useState<{ unit_name: string; property_name: string } | null>(null);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
@@ -22,7 +21,6 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
             setCode(["", "", "", ""]);
             setError(null);
             setSuccess(false);
-            setUnitInfo(null);
             setTimeout(() => inputRefs.current[0]?.focus(), 100);
         }
     }, [isOpen]);
@@ -53,41 +51,6 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
             const newCode = pasted.split("");
             setCode(newCode);
             inputRefs.current[3]?.focus();
-        }
-    };
-
-    const validateCode = async () => {
-        const inviteCode = code.join("");
-        if (inviteCode.length !== 4) {
-            setError("Please enter all 4 characters");
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-
-        try {
-            const res = await fetch("/api/tenant/join-unit/validate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ code: inviteCode }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                setError(data.error || "Invalid invite code");
-                return;
-            }
-
-            setUnitInfo({
-                unit_name: data.unit_name,
-                property_name: data.property_name,
-            });
-        } catch {
-            setError("Something went wrong. Please try again.");
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -143,9 +106,7 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
                                 <CheckCircle className="w-10 h-10 text-emerald-600" />
                             </div>
                             <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome!</h2>
-                            <p className="text-gray-600 mb-6">
-                                You have successfully joined <span className="font-semibold">{unitInfo?.property_name}</span>
-                            </p>
+                            <p className="text-gray-600 mb-6">You have successfully joined your unit</p>
                             <button
                                 onClick={onClose}
                                 className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-xl font-bold text-base hover:shadow-lg transition-all"
@@ -174,21 +135,14 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
                                 </button>
                             </div>
 
-                            {unitInfo && (
-                                <div className="mx-6 mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                                    <p className="text-sm font-semibold text-blue-900">{unitInfo.property_name}</p>
-                                    <p className="text-xs text-blue-700">Unit {unitInfo.unit_name}</p>
-                                </div>
-                            )}
-
                             <div className="p-6 space-y-5">
                                 <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                                <p className="text-xs text-amber-800">
-                                    <span className="font-semibold">Need a code?</span> Ask your landlord for the 4-character invite code.
-                                </p>
-                            </div>
+                                    <p className="text-xs text-amber-800">
+                                        <span className="font-semibold">Need a code?</span> Ask your landlord for the 4-character invite code.
+                                    </p>
+                                </div>
 
-                            <div className="flex justify-center gap-3" onPaste={handlePaste}>
+                                <div className="flex justify-center gap-3" onPaste={handlePaste}>
                                     {code.map((digit, index) => (
                                         <input
                                             key={index}
@@ -217,51 +171,20 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
                                     </div>
                                 )}
 
-                                {!unitInfo ? (
-                                    <button
-                                        onClick={validateCode}
-                                        disabled={loading || code.some((d) => !d)}
-                                        className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-bold text-base hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                    >
-                                        {loading ? (
-                                            <>
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                <span>Validating...</span>
-                                            </>
-                                        ) : (
-                                            "Validate Code"
-                                        )}
-                                    </button>
-                                ) : (
-                                    <div className="space-y-3">
-                                        <button
-                                            onClick={joinUnit}
-                                            disabled={loading}
-                                            className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-xl font-bold text-base hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                                        >
-                                            {loading ? (
-                                                <>
-                                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                                    <span>Joining...</span>
-                                                </>
-                                            ) : (
-                                                "Confirm & Join"
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setCode(["", "", "", ""]);
-                                                setUnitInfo(null);
-                                                setError(null);
-                                                inputRefs.current[0]?.focus();
-                                            }}
-                                            disabled={loading}
-                                            className="w-full py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm hover:bg-gray-200 transition-all disabled:opacity-50"
-                                        >
-                                            Use Different Code
-                                        </button>
-                                    </div>
-                                )}
+                                <button
+                                    onClick={joinUnit}
+                                    disabled={loading || code.some((d) => !d)}
+                                    className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl font-bold text-base hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {loading ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <span>Joining...</span>
+                                        </>
+                                    ) : (
+                                        "Join Unit"
+                                    )}
+                                </button>
                             </div>
                         </>
                     )}
