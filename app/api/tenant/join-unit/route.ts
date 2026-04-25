@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
+import { generateLeaseId } from "@/utils/id_generator";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,8 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json();
         const { code } = body;
+
+        console.log('code join: ', code);
 
         if (!code || typeof code !== "string" || code.length !== 4) {
             return NextResponse.json(
@@ -116,6 +119,37 @@ export async function POST(req: NextRequest) {
                 [invite.id]
             );
 
+            let leaseId = generateLeaseId();
+            let unique = false;
+
+            while (!unique) {
+                const [exists]: any[] = await connection.execute(
+                    `SELECT 1 FROM LeaseAgreement WHERE agreement_id = ? LIMIT 1`,
+                    [leaseId]
+                );
+                if (!exists.length) unique = true;
+                else leaseId = generateLeaseId();
+            }
+
+            await connection.execute(
+                `
+                INSERT INTO LeaseAgreement (
+                    agreement_id, tenant_id, unit_id, start_date, end_date, status, created_at
+                )
+                VALUES (?, ?, ?, ?, ?, 'draft', CURRENT_TIMESTAMP)
+                `,
+                [leaseId, session.tenant_id, invite.unitId, invite.start_date, invite.end_date]
+            );
+
+            await connection.execute(
+                `
+                UPDATE Unit 
+                SET status = 'occupied', updated_at = CURRENT_TIMESTAMP 
+                WHERE unit_id = ?
+                `,
+                [invite.unitId]
+            );
+
             await connection.commit();
 
             return NextResponse.json(
@@ -123,6 +157,7 @@ export async function POST(req: NextRequest) {
                     message: "Successfully joined unit",
                     unit_id: invite.unitId,
                     property_id: invite.propertyId,
+                    lease_id: leaseId,
                 },
                 { status: 200 }
             );

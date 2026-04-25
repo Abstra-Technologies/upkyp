@@ -76,7 +76,7 @@ async function recordFailedAttempt(ip: string, email: string): Promise<void> {
     try {
         await db.execute(
             `INSERT INTO LoginAttempts (ip_address, email_hash, attempts, last_attempt_at, locked_until)
-             VALUES (?, ?, 1, NOW(), DATE_ADD(NOW(), INTERVAL ${LOCKOUT_DURATION} SECOND))
+             VALUES (?, ?, 1, NOW(), NULL)
              ON DUPLICATE KEY UPDATE
                 attempts = attempts + 1,
                 last_attempt_at = NOW(),
