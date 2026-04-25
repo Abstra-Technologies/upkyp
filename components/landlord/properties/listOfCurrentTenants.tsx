@@ -19,7 +19,7 @@ import useAuthStore from "@/zustand/authStore";
 import { useChatStore } from "@/zustand/chatStore";
 
 type Tenant = {
-  tenant_id: number;
+  tenant_id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -67,7 +67,7 @@ const TenantSkeleton = () => (
   </div>
 );
 
-export default function TenantList({ landlord_id }: { landlord_id: number }) {
+export default function TenantList({ landlord_id }: { landlord_id: string }) {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -113,21 +113,19 @@ export default function TenantList({ landlord_id }: { landlord_id: number }) {
     });
   }, [tenants, searchQuery]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredTenants.length / itemsPerPage);
   const currentTenants = filteredTenants.slice(
     (page - 1) * itemsPerPage,
     (page - 1) * itemsPerPage + itemsPerPage
   );
 
-  // Actions
   const handleMessageTenant = (tenant: Tenant) => {
-    const chatRoom = `chat_${[user.user_id, tenant.tenant_id]
+    const chatRoom = `chat_${[user?.user_id, tenant.tenant_id]
       .sort()
       .join("_")}`;
     useChatStore.getState().setPreselectedChat({
       chat_room: chatRoom,
-      landlord_id: user.landlord_id,
+      landlord_id: user?.landlord_id,
       tenant_id: tenant.tenant_id,
       name: `${tenant.firstName} ${tenant.lastName}`,
     });
@@ -135,7 +133,7 @@ export default function TenantList({ landlord_id }: { landlord_id: number }) {
   };
 
   const handleViewDetails = (id: number) =>
-    router.push(`/landlord/list_of_tenants/${id}`);
+    router.push(`/landlord/tenants/${id}`);
   const handleInviteTenant = () => router.push("/landlord/invite-tenant");
 
   if (loading) {
