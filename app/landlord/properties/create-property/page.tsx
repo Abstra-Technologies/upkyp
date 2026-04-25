@@ -1,14 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Building2, Loader2, CheckCircle } from "lucide-react";
+import { ArrowLeft, Building2, Loader2, CheckCircle, MapPin, FileText, Ruler, Heart, Zap, ImagePlus } from "lucide-react";
 import Swal from "sweetalert2";
 
 import useAuthStore from "@/zustand/authStore";
 import usePropertyStore from "@/zustand/property/usePropertyStore";
 import StepOneCreateProperty from "@/components/landlord/createProperty/StepOnePropertyDetails";
 import { GRADIENT_PRIMARY } from "@/constant/design-constants";
+
+const sections = [
+    { id: "property-type-section", label: "Property Type", icon: Building2 },
+    { id: "property-name-section", label: "Property Name", icon: Building2 },
+    { id: "location-section", label: "Location", icon: MapPin },
+    { id: "amenities-section", label: "Amenities", icon: Heart },
+    { id: "description-section", label: "Description", icon: FileText },
+    { id: "floor-area-section", label: "Property Size", icon: Ruler },
+    { id: "preferences-section", label: "Preferences", icon: Heart },
+    { id: "utility-billing-section", label: "Utility Billing", icon: Zap },
+    { id: "photos-section", label: "Photos", icon: ImagePlus },
+];
 
 export default function CreatePropertyPage() {
     const router = useRouter();
@@ -18,12 +30,41 @@ export default function CreatePropertyPage() {
     const [submitting, setSubmitting] = useState(false);
     const [step, setStep] = useState<"form" | "success">("form");
     const [createdPropertyId, setCreatedPropertyId] = useState<string | null>(null);
+    const [activeSection, setActiveSection] = useState(sections[0].id);
+    const formRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (!user) {
             fetchSession();
         }
     }, [user, fetchSession]);
+
+    // Scroll spy
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const visible = entries.find((e) => e.isIntersecting);
+                if (visible) {
+                    setActiveSection(visible.target.id);
+                }
+            },
+            { rootMargin: "-20% 0px -60% 0px", threshold: 0 }
+        );
+
+        sections.forEach(({ id }) => {
+            const el = document.getElementById(id);
+            if (el) observer.observe(el);
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
+    const scrollToSection = (id: string) => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    };
 
     const validate = (): boolean => {
         if (!property.propertyName?.trim()) {
@@ -131,7 +172,7 @@ export default function CreatePropertyPage() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-emerald-50/30">
             {/* Header */}
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-200">
-                <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <button
                         onClick={() => router.push("/landlord/properties")}
                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
@@ -149,26 +190,67 @@ export default function CreatePropertyPage() {
                 </div>
             </div>
 
-            {/* Form */}
-            <div className="max-w-4xl mx-auto px-4 py-6">
-                <StepOneCreateProperty />
+            {/* Desktop: Sidebar + Form | Mobile: Just Form */}
+            <div className="max-w-7xl mx-auto px-4 py-6">
+                <div className="flex gap-6">
+                    {/* Sidebar Progress - Desktop Only */}
+                    <div className="hidden lg:block w-64 flex-shrink-0">
+                        <div className="sticky top-24 bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
+                            <h3 className="text-sm font-bold text-gray-900 mb-4 px-2">Form Sections</h3>
+                            <nav className="space-y-1">
+                                {sections.map((section, index) => {
+                                    const Icon = section.icon;
+                                    const isActive = activeSection === section.id;
+                                    return (
+                                        <button
+                                            key={section.id}
+                                            onClick={() => scrollToSection(section.id)}
+                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all ${
+                                                isActive
+                                                    ? "bg-blue-50 text-blue-700 font-semibold"
+                                                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                            }`}
+                                        >
+                                            <span
+                                                className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                                                    isActive
+                                                        ? "bg-blue-600 text-white"
+                                                        : "bg-gray-100 text-gray-500"
+                                                }`}
+                                            >
+                                                {index + 1}
+                                            </span>
+                                            <Icon className="w-4 h-4 flex-shrink-0" />
+                                            <span className="text-sm truncate">{section.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+                        </div>
+                    </div>
 
-                {/* Submit */}
-                <div className="sticky bottom-4 mt-8 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200 p-4">
-                    <button
-                        onClick={handleSubmit}
-                        disabled={submitting}
-                        className={`w-full py-3.5 ${GRADIENT_PRIMARY} text-white rounded-xl font-bold text-base hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
-                    >
-                        {submitting ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Creating Property...</span>
-                            </>
-                        ) : (
-                            "Create Property"
-                        )}
-                    </button>
+                    {/* Form Content */}
+                    <div ref={formRef} className="flex-1 min-w-0 max-w-4xl">
+                        <StepOneCreateProperty />
+
+                        {/* Submit */}
+                        <div className="sticky bottom-4 mt-8 bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200 p-4">
+                            <button
+                                onClick={handleSubmit}
+                                disabled={submitting}
+                                className={`w-full py-3.5 ${GRADIENT_PRIMARY} text-white rounded-xl font-bold text-base hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
+                            >
+                                {submitting ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        <span>Creating Property...</span>
+                                    </>
+                                ) : (
+                                    "Create Property"
+                                )}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
