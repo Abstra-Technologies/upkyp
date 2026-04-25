@@ -232,7 +232,7 @@ export default function LandlordOnboardingFlow({
             return;
         }
 
-        router.push("/landlord/property-listing/create-property");
+        router.push("/landlord/properties/create-property");
     };
 
     if (dismissed || (!isStandalone && !isMinimized && allCompleted)) return null;

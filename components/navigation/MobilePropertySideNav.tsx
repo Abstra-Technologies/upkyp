@@ -109,7 +109,7 @@ export default function MobilePropertySidenav({
               {/* Back Button */}
               <button
                 onClick={() => {
-                  router.push("/landlord/property-listing");
+                  router.push("/landlord/properties");
                   onClose();
                 }}
                 className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors group mb-3 w-full"
@@ -172,7 +172,7 @@ export default function MobilePropertySidenav({
                         ))
                     )}
                     <Link
-                      href="/landlord/property-listing"
+                      href="/landlord/properties/create-property"
                       onClick={onClose}
                       className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
                     >

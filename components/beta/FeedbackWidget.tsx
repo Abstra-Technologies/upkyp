@@ -15,7 +15,7 @@ const HIDDEN_ROUTES = [
   "/find-rent",
   "/landlord/properties",
   "/landlord/maintenance-request",
-  "/landlord/property-listing/create-property",
+  "/landlord/properties/create-property",
 ];
 
 export default function FeedbackWidget() {

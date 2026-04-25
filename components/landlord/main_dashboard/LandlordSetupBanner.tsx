@@ -147,7 +147,7 @@ export default function LandlordOnboarding({ landlordId }: Props) {
             return;
         }
 
-        router.push("/landlord/property-listing/create-property");
+        router.push("/landlord/properties/create-property");
     };
 
     return (

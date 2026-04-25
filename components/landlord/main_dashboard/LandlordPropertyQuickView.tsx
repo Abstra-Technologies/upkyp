@@ -134,7 +134,7 @@ export default function LandlordPropertyMarquee({ landlordId }: Props) {
       return;
     }
 
-    router.push("/landlord/property-listing/create-property");
+    router.push("/landlord/properties/create-property");
   };
 
   /* =========================
@@ -296,7 +296,7 @@ export default function LandlordPropertyMarquee({ landlordId }: Props) {
       {properties.length > 5 && (
         <div className="mt-3 pt-3 border-t border-gray-100">
           <button
-            onClick={() => router.push("/landlord/property-listing")}
+            onClick={() => router.push("/landlord/properties")}
             className="w-full text-sm font-semibold text-blue-600 
                             py-2 rounded-lg flex items-center justify-center gap-1
                             hover:bg-blue-50 transition-colors duration-200"

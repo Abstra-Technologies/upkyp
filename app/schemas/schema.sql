@@ -2073,112 +2073,112 @@ create definer = rentalley_admin@`%` event ev_apply_late_fees_daily on schedule
         starts '2026-02-09 23:59:00'
     enable
     do
-    BEGIN
+BEGIN
         /* 1️⃣ Mark overdue */
-        UPDATE Billing b
-            JOIN LeaseAgreement la ON la.agreement_id = b.lease_id
-            JOIN Unit u ON u.unit_id = b.unit_id
-            JOIN Property p ON p.property_id = u.property_id
-            JOIN PropertyConfiguration pc ON pc.property_id = p.property_id
-        SET b.status = 'overdue'
-        WHERE
-            b.status IN ('unpaid', 'overdue')
-          AND b.paid_at IS NULL
-          AND CURDATE() > DATE_ADD(b.due_date, INTERVAL pc.gracePeriodDays DAY);
+UPDATE Billing b
+    JOIN LeaseAgreement la ON la.agreement_id = b.lease_id
+    JOIN Unit u ON u.unit_id = b.unit_id
+    JOIN Property p ON p.property_id = u.property_id
+    JOIN PropertyConfiguration pc ON pc.property_id = p.property_id
+    SET b.status = 'overdue'
+WHERE
+    b.status IN ('unpaid', 'overdue')
+  AND b.paid_at IS NULL
+  AND CURDATE() > DATE_ADD(b.due_date, INTERVAL pc.gracePeriodDays DAY);
 
-        /* 2️⃣ Insert late fee (ONE-TIME) */
-        INSERT INTO BillingAdditionalCharge (
-            billing_id,
-            charge_category,
-            charge_type,
-            amount
-        )
-        SELECT
-            b.billing_id,
-            'additional',
-            'Late Fee',
-            CASE
-                WHEN pc.lateFeeType = 'fixed'
-                    THEN pc.lateFeeAmount
-                WHEN pc.lateFeeType = 'percentage'
-                    THEN ROUND(la.rent_amount * (pc.lateFeeAmount / 100), 2)
-                ELSE 0
-                END
-        FROM Billing b
-                 JOIN LeaseAgreement la ON la.agreement_id = b.lease_id
-                 JOIN Unit u ON u.unit_id = b.unit_id
-                 JOIN Property p ON p.property_id = u.property_id
-                 JOIN PropertyConfiguration pc ON pc.property_id = p.property_id
-        WHERE
-            b.status = 'overdue'
-          AND b.paid_at IS NULL
-          AND pc.lateFeeAmount > 0
-          AND NOT EXISTS (
-            SELECT 1
-            FROM BillingAdditionalCharge c
-            WHERE c.billing_id = b.billing_id
-              AND c.charge_type = 'Late Fee'
-        );
+/* 2️⃣ Insert late fee (ONE-TIME) */
+INSERT INTO BillingAdditionalCharge (
+    billing_id,
+    charge_category,
+    charge_type,
+    amount
+)
+SELECT
+    b.billing_id,
+    'additional',
+    'Late Fee',
+    CASE
+        WHEN pc.lateFeeType = 'fixed'
+            THEN pc.lateFeeAmount
+        WHEN pc.lateFeeType = 'percentage'
+            THEN ROUND(la.rent_amount * (pc.lateFeeAmount / 100), 2)
+        ELSE 0
+        END
+FROM Billing b
+         JOIN LeaseAgreement la ON la.agreement_id = b.lease_id
+         JOIN Unit u ON u.unit_id = b.unit_id
+         JOIN Property p ON p.property_id = u.property_id
+         JOIN PropertyConfiguration pc ON pc.property_id = p.property_id
+WHERE
+    b.status = 'overdue'
+  AND b.paid_at IS NULL
+  AND pc.lateFeeAmount > 0
+  AND NOT EXISTS (
+    SELECT 1
+    FROM BillingAdditionalCharge c
+    WHERE c.billing_id = b.billing_id
+      AND c.charge_type = 'Late Fee'
+);
 
-        /* 3️⃣ Update total_amount_due */
-        UPDATE Billing b
-            JOIN BillingAdditionalCharge c
-            ON c.billing_id = b.billing_id
-                AND c.charge_type = 'Late Fee'
-        SET b.total_amount_due = IFNULL(b.total_amount_due, 0) + c.amount
-        WHERE
-            b.status = 'overdue'
-          AND b.paid_at IS NULL;
-    END;
+/* 3️⃣ Update total_amount_due */
+UPDATE Billing b
+    JOIN BillingAdditionalCharge c
+ON c.billing_id = b.billing_id
+    AND c.charge_type = 'Late Fee'
+    SET b.total_amount_due = IFNULL(b.total_amount_due, 0) + c.amount
+WHERE
+    b.status = 'overdue'
+  AND b.paid_at IS NULL;
+END;
 
 create definer = rentalley_admin@`%` event ev_daily_subscription_check on schedule
     every '1' DAY
         starts '2026-02-09 23:59:00'
     enable
     do
-    BEGIN
+BEGIN
         -- 1. Deactivate expired subscriptions
-        UPDATE rentalley_db.Subscription
-        SET
-            is_active = 0,
-            updated_at = CURRENT_TIMESTAMP
-        WHERE
-            is_active = 1
-          AND end_date IS NOT NULL
-          AND end_date < CURDATE();
+UPDATE rentalley_db.Subscription
+SET
+    is_active = 0,
+    updated_at = CURRENT_TIMESTAMP
+WHERE
+    is_active = 1
+  AND end_date IS NOT NULL
+  AND end_date < CURDATE();
 
-        -- 2. (Optional) Safety: ensure only ONE active subscription per landlord
-        UPDATE rentalley_db.Subscription s
-            JOIN (
-                SELECT landlord_id, MAX(subscription_id) AS latest_sub
-                FROM rentalley_db.Subscription
-                WHERE is_active = 1
-                GROUP BY landlord_id
-            ) latest
-            ON s.landlord_id = latest.landlord_id
-        SET s.is_active = 0
-        WHERE s.subscription_id <> latest.latest_sub
-          AND s.is_active = 1;
+-- 2. (Optional) Safety: ensure only ONE active subscription per landlord
+UPDATE rentalley_db.Subscription s
+    JOIN (
+    SELECT landlord_id, MAX(subscription_id) AS latest_sub
+    FROM rentalley_db.Subscription
+    WHERE is_active = 1
+    GROUP BY landlord_id
+    ) latest
+ON s.landlord_id = latest.landlord_id
+    SET s.is_active = 0
+WHERE s.subscription_id <> latest.latest_sub
+  AND s.is_active = 1;
 
-    END;
+END;
 
 create definer = rentalley_admin@`%` event ev_expire_leases on schedule
     every '1' DAY
         starts '2025-12-20 00:00:00'
     enable
     do
-    UPDATE LeaseAgreement
-    SET status = 'expired'
-    WHERE end_date < CURDATE()
-      AND status = 'active';
+UPDATE LeaseAgreement
+SET status = 'expired'
+WHERE end_date < CURDATE()
+  AND status = 'active';
 
 create definer = rentalley_admin@`%` event ev_expire_leases_sample on schedule
     at '2025-12-19 08:44:26'
     on completion preserve
     disable
     do
-    UPDATE LeaseAgreement
-    SET status = 'expired'
-    WHERE end_date < CURDATE()
-      AND status = 'active';
+UPDATE LeaseAgreement
+SET status = 'expired'
+WHERE end_date < CURDATE()
+  AND status = 'active';
 

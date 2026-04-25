@@ -218,7 +218,7 @@ export default function LandlordOnboardingModal({
             return;
         }
 
-        router.push("/landlord/property-listing/create-property");
+        router.push("/landlord/properties/create-property");
     };
 
     const handleStepClick = (key: string) => {

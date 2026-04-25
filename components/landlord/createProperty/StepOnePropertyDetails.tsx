@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 import usePropertyStore from "@/zustand/property/usePropertyStore";
 import { PROPERTY_TYPES } from "@/constant/propertyTypes";
 import { PROPERTY_PREFERENCES } from "@/constant/propertyPreferences";

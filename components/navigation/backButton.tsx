@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 export function BackButton({
     label = "Back",
-    landlordFallback = "/landlord/property-listing",
+    landlordFallback = "/landlord/properties",
     tenantFallback = "/tenant/myUnit",
     variant = "default",
 }: {

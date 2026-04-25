@@ -226,7 +226,7 @@ export default function LandlordOnboardingOverlay({
             return;
         }
 
-        router.push("/landlord/property-listing/create-property");
+        router.push("/landlord/properties/create-property");
     };
 
     const getStepStatus = (stepKey: string) => {

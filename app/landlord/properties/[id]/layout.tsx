@@ -280,7 +280,7 @@ export default function PropertyLayout({
                   ))
               )}
               <Link
-                href="/landlord/property-listing"
+                href="/landlord/properties"
                 onClick={() => setShowPropertyDropdown(false)}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
               >
@@ -369,7 +369,7 @@ export default function PropertyLayout({
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button
-            onClick={() => router.push("/landlord/property-listing")}
+            onClick={() => router.push("/landlord/properties")}
             className="p-1.5 rounded-lg hover:bg-white/10 transition-colors shrink-0"
           >
             <ChevronLeft className="w-5 h-5 text-white" />

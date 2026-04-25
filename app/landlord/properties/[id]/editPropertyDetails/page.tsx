@@ -41,7 +41,7 @@ export default function EditProperty() {
 
                 if (!propRes.data.length) {
                     await Swal.fire("Not Found", "Property does not exist.", "warning");
-                    return router.push("/landlord/property-listing");
+                    return router.push("/landlord/properties");
                 }
 
                 const propertyData = propRes.data[0];

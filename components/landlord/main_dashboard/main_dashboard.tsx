@@ -134,7 +134,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
         <div id="dashboard-quick-actions" className="flex justify-center">
           <QuickActions
             onAddProperty={() =>
-              router.push("/landlord/property-listing/create-property")
+              router.push("/landlord/properties/create-property")
             }
             onInviteTenant={() => router.push("/landlord/invite-tenant")}
             onAnnouncement={() =>

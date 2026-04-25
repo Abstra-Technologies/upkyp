@@ -124,7 +124,7 @@ export default function QuickActions({
         },
         {
             label: "Properties",
-            href: "/landlord/property-listing",
+            href: "/landlord/properties",
             icon: Building,
             gradient: "from-emerald-500 to-teal-500",
         },
