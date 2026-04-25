@@ -117,7 +117,7 @@ function InputField({
         className={`w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border rounded-xl transition-all outline-none ${
           readOnly
             ? "bg-gray-100 border-gray-200 text-gray-600 cursor-not-allowed"
-            : "border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            : "border-gray-300 bg-gray-100 lg:bg-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
         }`}
       />
     </div>
@@ -289,7 +289,7 @@ Floor Area: ${p.floorArea} sqm
      RENDER
   ========================================================= */
     return (
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-6 sm:space-y-8 lg:bg-gradient-to-br lg:from-gray-50 lg:via-blue-50/30 lg:to-emerald-50/30 lg:p-6 lg:rounded-2xl">
 
             {/* ===================================================== */}
             {/* 1️⃣ PROPERTY TYPE – SQUARE CARDS */}
@@ -439,7 +439,7 @@ Floor Area: ${p.floorArea} sqm
                     onChange={handleChange}
                     value={property.propDesc || ""}
                     placeholder="Describe what makes your property special..."
-                    className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+                    className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-xl bg-gray-100 lg:bg-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
                 />
             </div>
 
@@ -530,7 +530,7 @@ Floor Area: ${p.floorArea} sqm
                             className="
           w-full px-3 py-2.5 text-sm
           border border-gray-200 rounded-xl
-          bg-gray-50 focus:bg-white
+          bg-gray-100 lg:bg-gray-200 focus:bg-white
           focus:outline-none focus:ring-2 focus:ring-blue-500/20
           focus:border-blue-500 transition-all
         "
@@ -557,7 +557,7 @@ Floor Area: ${p.floorArea} sqm
                             className="
           w-full px-3 py-2.5 text-sm
           border border-gray-200 rounded-xl
-          bg-gray-50 focus:bg-white
+          bg-gray-100 lg:bg-gray-200 focus:bg-white
           focus:outline-none focus:ring-2 focus:ring-blue-500/20
           focus:border-blue-500 transition-all
         "
