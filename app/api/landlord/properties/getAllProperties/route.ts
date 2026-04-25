@@ -34,7 +34,6 @@ export async function GET(req: NextRequest) {
                 p.property_type,
                 p.status,
                 p.created_at,
-                pv.status AS verification_status,
                 u.unit_id,
                 u.unit_name,
                 u.status AS unit_status,
@@ -54,9 +53,10 @@ export async function GET(req: NextRequest) {
 
         const propertyIds = [...new Set(rows.map((r: any) => r.property_id))];
 
+        const placeholders = propertyIds.map(() => "?").join(",");
         const [photoRows]: any[] = await db.execute(
-            `SELECT photo_id, property_id, photo_url FROM PropertyPhoto WHERE property_id IN (?) ORDER BY photo_id ASC`,
-            [propertyIds]
+            `SELECT photo_id, property_id, photo_url FROM PropertyPhoto WHERE property_id IN (${placeholders}) ORDER BY photo_id ASC`,
+            propertyIds
         );
 
         const photosByProperty: Record<string, any[]> = {};
@@ -65,9 +65,13 @@ export async function GET(req: NextRequest) {
             if (!photosByProperty[pid]) {
                 photosByProperty[pid] = [];
             }
+            const decryptedUrl = safeDecrypt(photo.photo_url);
+            if (!decryptedUrl) {
+                console.error("Failed to decrypt photo:", { photo_id: photo.photo_id, raw_value_type: typeof photo.photo_url, raw_value_preview: photo.photo_url?.substring(0, 50) });
+            }
             photosByProperty[pid].push({
                 photo_id: photo.photo_id,
-                photo_url: safeDecrypt(photo.photo_url),
+                photo_url: decryptedUrl,
             });
         }
 

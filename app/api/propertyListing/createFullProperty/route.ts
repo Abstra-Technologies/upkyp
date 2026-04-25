@@ -45,7 +45,7 @@ async function uploadToS3(file: File, folder: string) {
 
     const url = `https://${process.env.NEXT_S3_BUCKET_NAME}.s3.${process.env.NEXT_AWS_REGION}.amazonaws.com/${key}`;
 
-    return encryptData(url, encryptionSecret);
+    return JSON.stringify(encryptData(url, encryptionSecret));
 }
 
 /* =====================================================

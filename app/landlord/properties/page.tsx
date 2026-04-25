@@ -57,6 +57,8 @@ export default function PropertiesPage() {
         }
     );
 
+    console.log('data api: ', data);
+
     useEffect(() => {
         if (!user) {
             fetchSession();
@@ -201,7 +203,7 @@ export default function PropertiesPage() {
                     </div>
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                            Properties
+                            Properties Portfolio
                         </h1>
                         <p className="text-xs sm:text-sm text-gray-600">
                             {properties.length} {properties.length === 1 ? "property" : "properties"} total
@@ -369,9 +371,11 @@ export default function PropertiesPage() {
                                                 className="object-cover w-full h-full"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center">
-                                                <Building2 className="h-10 w-10 text-gray-400" />
-                                            </div>
+                                            <img
+                                                src="https://res.cloudinary.com/dptmeluy0/image/upload/v1777092988/clean-square-placeholder-icon-for-a-real-estate-ap_ffjmwv.jpg"
+                                                alt="Property placeholder"
+                                                className="object-cover w-full h-full"
+                                            />
                                         )}
                                     </div>
 
