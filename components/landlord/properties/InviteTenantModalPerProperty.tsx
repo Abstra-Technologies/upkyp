@@ -1,5 +1,7 @@
 "use client";
 
+// USE CASE: inner property.
+
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";

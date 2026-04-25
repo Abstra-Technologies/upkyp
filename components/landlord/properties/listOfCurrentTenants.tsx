@@ -191,13 +191,17 @@ export default function TenantList({ landlord_id }: { landlord_id: string }) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+
             <div className="relative w-full sm:w-56">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tenants..."
-                className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search tenants..."
+                  className="w-full pl-9 pr-3 py-2 bg-gray-100 border-2 border-gray-400 rounded-xl
+               placeholder-gray-500 text-gray-800
+               focus:outline-none focus:ring-2 focus:ring-gray-400/30
+               transition-all text-sm"
               />
             </div>
 
