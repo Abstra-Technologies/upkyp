@@ -277,8 +277,8 @@ export default function InviteTenantModalPerUnit({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md mx-auto overflow-hidden animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-in zoom-in-95 duration-300">
         <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-5 py-4 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-white">Invite Tenant</h2>
