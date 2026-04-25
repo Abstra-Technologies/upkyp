@@ -28,10 +28,10 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
     }, [isOpen]);
 
     const handleChange = (index: number, value: string) => {
-        if (!/^\d*$/.test(value)) return;
+        if (!/^[a-zA-Z0-9]*$/.test(value)) return;
 
         const newCode = [...code];
-        newCode[index] = value.slice(-1);
+        newCode[index] = value.slice(-1).toUpperCase();
         setCode(newCode);
         setError(null);
 
@@ -48,7 +48,7 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
 
     const handlePaste = (e: React.ClipboardEvent) => {
         e.preventDefault();
-        const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
+        const pasted = e.clipboardData.getData("text").replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase();
         if (pasted.length === 4) {
             const newCode = pasted.split("");
             setCode(newCode);
@@ -59,7 +59,7 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
     const validateCode = async () => {
         const inviteCode = code.join("");
         if (inviteCode.length !== 4) {
-            setError("Please enter all 4 digits");
+            setError("Please enter all 4 characters");
             return;
         }
 
@@ -162,7 +162,7 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
                                     </div>
                                     <div>
                                         <h2 className="text-lg font-bold text-white">Join Unit</h2>
-                                        <p className="text-xs text-white/80">Enter your 4-digit invite code</p>
+                                        <p className="text-xs text-white/80">Enter your 4-character invite code from your landlord</p>
                                     </div>
                                 </div>
                                 <button
@@ -182,13 +182,19 @@ export default function JoinUnitModal({ isOpen, onClose, onJoined }: JoinUnitMod
                             )}
 
                             <div className="p-6 space-y-5">
-                                <div className="flex justify-center gap-3" onPaste={handlePaste}>
+                                <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                <p className="text-xs text-amber-800">
+                                    <span className="font-semibold">Need a code?</span> Ask your landlord for the 4-character invite code.
+                                </p>
+                            </div>
+
+                            <div className="flex justify-center gap-3" onPaste={handlePaste}>
                                     {code.map((digit, index) => (
                                         <input
                                             key={index}
                                             ref={(el) => { inputRefs.current[index] = el; }}
                                             type="text"
-                                            inputMode="numeric"
+                                            inputMode="text"
                                             maxLength={1}
                                             value={digit}
                                             onChange={(e) => handleChange(index, e.target.value)}
