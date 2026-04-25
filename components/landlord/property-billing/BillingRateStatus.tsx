@@ -40,24 +40,25 @@ export default function BillingRateStatus({
                 onClick={() => setIsModalOpen(true)}
                 className="w-full rounded-xl border border-emerald-200 bg-emerald-50 p-3 hover:bg-emerald-100 transition-colors text-left"
             >
-                <div className="flex items-center gap-1.5 mb-1">
-                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                    <span className="text-xs font-bold text-emerald-800">Rates set for {monthYear}</span>
-                </div>
-                <span className="text-[11px] text-emerald-600 font-medium">Update rates?</span>
-                <div className="flex gap-1.5 mt-2">
-                    {hasElectricity && electricityRate > 0 && (
-                        <span className="text-[10px] bg-white/70 text-amber-700 px-1.5 py-0.5 rounded font-medium">
-                            <Zap className="w-2.5 h-2.5 inline mr-0.5" />
-                            ₱{electricityRate.toFixed(2)}
-                        </span>
-                    )}
-                    {hasWater && waterRate > 0 && (
-                        <span className="text-[10px] bg-white/70 text-blue-700 px-1.5 py-0.5 rounded font-medium">
-                            <Droplet className="w-2.5 h-2.5 inline mr-0.5" />
-                            ₱{waterRate.toFixed(2)}
-                        </span>
-                    )}
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-emerald-600" />
+                        <span className="text-sm font-bold text-emerald-800">Rates set for {monthYear}</span>
+                    </div>
+                    <div className="flex gap-2">
+                        {hasElectricity && electricityRate > 0 && (
+                            <span className="text-xs bg-white/70 text-amber-700 px-2 py-1 rounded font-medium">
+                                <Zap className="w-3 h-3 inline mr-1" />
+                                ₱{electricityRate.toFixed(2)}
+                            </span>
+                        )}
+                        {hasWater && waterRate > 0 && (
+                            <span className="text-xs bg-white/70 text-blue-700 px-2 py-1 rounded font-medium">
+                                <Droplet className="w-3 h-3 inline mr-1" />
+                                ₱{waterRate.toFixed(2)}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </button>
         );
@@ -68,11 +69,13 @@ export default function BillingRateStatus({
             onClick={() => setIsModalOpen(true)}
             className="w-full rounded-xl border border-amber-200 bg-amber-50 p-3 hover:bg-amber-100 transition-colors text-left"
         >
-            <div className="flex items-center gap-1.5 mb-1">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-xs font-bold text-amber-800">Set rates for {monthYear}</span>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-500" />
+                    <span className="text-sm font-bold text-amber-800">Set rates for {monthYear}</span>
+                </div>
+                <span className="text-xs text-amber-600 font-medium">Tap to configure →</span>
             </div>
-            <span className="text-[11px] text-amber-600 font-medium">Tap to configure →</span>
         </button>
     );
 }

@@ -24,12 +24,6 @@ export default function BillingUnitListMobile({
       id="units-list-section-mobile"
       className="block md:hidden space-y-2 mb-4"
     >
-      <div className="px-1 mb-2">
-        <h3 className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-          <Building2 className="w-3.5 h-3.5 text-blue-600" />
-          Units ({bills.length})
-        </h3>
-      </div>
       {bills.map((bill: any) => {
         const status = statusConfig[bill.billing_status as keyof typeof statusConfig] || statusConfig.overdue;
         const StatusIcon = status.icon;

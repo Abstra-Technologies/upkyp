@@ -11,6 +11,7 @@ import {
     ArrowRightOnRectangleIcon,
     CalendarIcon,
     DocumentTextIcon,
+    BuildingOfficeIcon,
 } from "@heroicons/react/24/outline";
 
 import { Unit } from "@/types/units";
@@ -34,14 +35,16 @@ function isMoveInDay(moveInDate: string): boolean {
 }
 
 export default function UnitCardDesktop({
-                                              unit,
-                                              onContactLandlord,
-                                              onAccessPortal,
-                                              onRefresh,
-                                          }: {
+    unit,
+    onContactLandlord,
+    onAccessPortal,
+    onEndContract,
+    onRefresh,
+}: {
     unit: Unit;
     onContactLandlord: () => void;
     onAccessPortal: (agreementId: string) => void;
+    onEndContract?: (unitId: string, agreementId: string) => void;
     onRefresh?: () => void;
 }) {
     const [loadingDate, setLoadingDate] = useState(false);
@@ -113,154 +116,194 @@ export default function UnitCardDesktop({
     };
 
     return (
-        <article className="bg-white rounded-xl border shadow-sm hover:shadow-md transition-all overflow-hidden">
-            {/* IMAGE */}
+        <article className="group relative bg-white rounded-xl border-2 border-gray-300 shadow-sm hover:shadow-lg hover:border-blue-400 transition-all duration-300 overflow-hidden hover:-translate-y-0.5">
+            {/* Left accent border */}
+            <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                unit.leaseSignature === "active"
+                    ? "bg-gradient-to-b from-emerald-500 to-emerald-400"
+                    : needsSigning
+                    ? "bg-gradient-to-b from-amber-500 to-amber-400"
+                    : "bg-gradient-to-b from-gray-300 to-gray-200"
+            }`} />
 
-            <div className="relative h-48 overflow-hidden bg-gray-100">
-                <Image
-                    src={
-                        unit.unit_photos?.[0] ||
-                        process.env.NEXT_PUBLIC_UNIT_PLACEHOLDER!
-                    }
-                    fill
-                    className="object-cover"
-                    alt={`Unit ${unit.unit_name}`}
-                />
+            <div className="flex">
+                {/* Image Section */}
+                <div className="relative w-36 h-full min-h-[180px] overflow-hidden bg-gray-100 flex-shrink-0">
+                    <Image
+                        src={
+                            unit.unit_photos?.[0] ||
+                            process.env.NEXT_PUBLIC_UNIT_PLACEHOLDER!
+                        }
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        alt={`Unit ${unit.unit_name}`}
+                    />
 
-                {/* MOVE-IN DATE BANNER (SET) */}
-                {canAccessPortal && unit.move_in_date && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-emerald-600/90 text-white px-4 py-2.5 text-xs">
-                        <div className="flex justify-between items-center">
-                            <span className="flex items-center gap-1.5">
-                                <CalendarIcon className="w-4 h-4" />
-                                Move-in: {formatDate(unit.move_in_date)}
-                            </span>
-                            <span className="font-semibold">
-                                {daysUntilMoveIn !== null && daysUntilMoveIn > 0
-                                    ? `${daysUntilMoveIn} day${daysUntilMoveIn === 1 ? "" : "s"}`
-                                    : daysUntilMoveIn === 0
-                                        ? "Today!"
-                                        : "Ready"}
-                            </span>
+                    {/* Status Badge */}
+                    <div className="absolute top-2 left-2">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold backdrop-blur-sm ${
+                            unit.leaseSignature === "active"
+                                ? "bg-emerald-500/90 text-white"
+                                : unit.leaseSignature === "draft"
+                                ? "bg-amber-500/90 text-white"
+                                : "bg-gray-500/90 text-white"
+                        }`}>
+                            {unit.leaseSignature === "active" ? "Active" : unit.leaseSignature === "draft" ? "Draft" : "Pending"}
+                        </span>
+                    </div>
+
+                    {/* Countdown */}
+                    {showCountdown && unit.move_in_date && (
+                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm rounded-lg shadow-md p-2 text-center">
+                            <p className="text-[9px] font-medium text-blue-600 leading-none">Days Left</p>
+                            <p className="text-xl font-bold text-blue-700 leading-none mt-0.5">{daysUntilMoveIn}</p>
                         </div>
-                    </div>
-                )}
-
-                {/* COUNTDOWN TIMER OVERLAY */}
-                {showCountdown && unit.move_in_date && (
-                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg p-3 text-center min-w-[80px]">
-                        <p className="text-xs font-medium text-blue-600">Days Left</p>
-                        <p className="text-3xl font-bold text-blue-700 leading-none">{daysUntilMoveIn}</p>
-                    </div>
-                )}
-            </div>
-
-            {/* CONTENT */}
-            <div className="p-4 space-y-3">
-                <div>
-                    <h2 className="font-bold text-lg text-gray-900">
-                        Unit {unit.unit_name}
-                    </h2>
-                    <p className="text-sm font-medium text-gray-700">
-                        {unit.property_name}
-                    </p>
-
-                    <p className='text-sm text-gray-60'>Agrrement id: {unit?.agreement_id}</p>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-3 text-xs text-gray-600">
-                    <span className="flex items-center gap-1">
-                        <MapPinIcon className="w-3.5 h-3.5 text-blue-600" />
-                        {unit.city}, {unit.province}
-                    </span>
-
-                    <span className="text-gray-300">•</span>
-
-                    <span className="flex items-center gap-1">
-                        <HomeIcon className="w-3.5 h-3.5 text-emerald-600" />
-                        {unit.unit_size} sqm
-                    </span>
-                </div>
-
-                {/* MOVE-IN DATE PICKER */}
-                {showDatePicker && (
-                    <div className="border-t border-gray-100 pt-3">
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">
-                            <CalendarIcon className="w-4 h-4 inline mr-1" />
-                            Set Move-in Date to Access Portal
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="date"
-                                value={selectedDate}
-                                onChange={(e) => setSelectedDate(e.target.value)}
-                                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            />
-                            <button
-                                onClick={handleSetMoveInDate}
-                                disabled={loadingDate || !selectedDate}
-                                className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg disabled:opacity-50 hover:bg-blue-700"
-                            >
-                                {loadingDate ? "Saving..." : "Save"}
-                            </button>
+                {/* Content Section */}
+                <div className="flex-1 p-4 flex flex-col">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                                <HomeIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                                <h2 className="font-bold text-base text-gray-900 truncate">
+                                    Unit {unit.unit_name}
+                                </h2>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                                <BuildingOfficeIcon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                <span className="truncate">{unit.property_name}</span>
+                            </div>
                         </div>
-                    </div>
-                )}
 
-                {/* MOVE-IN DAY MESSAGE */}
-                {isToday && (
-                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
-                        <p className="text-sm font-bold text-emerald-700">
-                            Welcome Home! It's Move-in Day!
-                        </p>
+                        {/* Move-in date badge */}
+                        {canAccessPortal && unit.move_in_date && (
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-lg flex-shrink-0">
+                                <CalendarIcon className="w-3.5 h-3.5 text-emerald-600" />
+                                <div className="text-right">
+                                    <p className="text-[10px] text-emerald-600 leading-none">Move-in</p>
+                                    <p className="text-xs font-semibold text-emerald-700 leading-none mt-0.5">
+                                        {daysUntilMoveIn !== null && daysUntilMoveIn > 0
+                                            ? `${daysUntilMoveIn}d`
+                                            : daysUntilMoveIn === 0
+                                            ? "Today!"
+                                            : "Ready"}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
 
-                {/* ACTIONS */}
-                <div className="space-y-2 pt-2">
-                    {needsSigning ? (
-                        <button
-                            onClick={() => onAccessPortal(unit.agreement_id)}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg
-                            bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm"
-                        >
-                            <DocumentTextIcon className="w-4 h-4" />
-                            Sign Lease to Access Portal
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => onAccessPortal(unit.agreement_id)}
-                            disabled={!canAccessPortal}
-                            className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg
-                            font-semibold text-sm
-                            ${
-                                canAccessPortal
-                                    ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:opacity-95"
-                                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            }`}
-                        >
-                            <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                            {canAccessPortal
-                                ? unit.move_in_date
-                                    ? daysUntilMoveIn !== null && daysUntilMoveIn > 0
-                                        ? `Access Portal (${daysUntilMoveIn} days until move-in)`
-                                        : "Access Rental Portal"
-                                    : "Access Portal"
-                                : needsMoveInDate
-                                    ? "Set Move-in Date First"
-                                    : "Access Portal"}
-                        </button>
+                    {/* Location & Size */}
+                    <div className="flex items-center gap-3 text-xs text-gray-500 mb-3">
+                        <span className="flex items-center gap-1">
+                            <MapPinIcon className="w-3.5 h-3.5 text-blue-500" />
+                            {unit.city}, {unit.province}
+                        </span>
+                        {unit.unit_size && (
+                            <>
+                                <span className="text-gray-300">•</span>
+                                <span className="flex items-center gap-1">
+                                    <HomeIcon className="w-3.5 h-3.5 text-emerald-500" />
+                                    {unit.unit_size} sqm
+                                </span>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Move-in Date Picker */}
+                    {showDatePicker && (
+                        <div className="border-t border-gray-100 pt-3 mb-3">
+                            <label className="block text-xs font-semibold text-gray-700 mb-2">
+                                <CalendarIcon className="w-3.5 h-3.5 inline mr-1" />
+                                Set Move-in Date to Access Portal
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="date"
+                                    value={selectedDate}
+                                    onChange={(e) => setSelectedDate(e.target.value)}
+                                    className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                />
+                                <button
+                                    onClick={handleSetMoveInDate}
+                                    disabled={loadingDate || !selectedDate}
+                                    className="px-4 py-1.5 bg-blue-600 text-white text-sm font-semibold rounded-lg disabled:opacity-50 hover:bg-blue-700 transition-colors"
+                                >
+                                    {loadingDate ? "Saving..." : "Save"}
+                                </button>
+                            </div>
+                        </div>
                     )}
 
-                    <button
-                        onClick={onContactLandlord}
-                        className="w-full flex items-center justify-center gap-2 py-2.5
-                        bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg
-                        font-semibold text-sm"
-                    >
-                        <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                        Message Landlord
-                    </button>
+                    {/* Move-in Day Message */}
+                    {isToday && (
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-center mb-3">
+                            <p className="text-sm font-bold text-emerald-700">
+                                Welcome Home! It&apos;s Move-in Day!
+                            </p>
+                        </div>
+                    )}
+
+                    {/* Spacer to push actions to bottom */}
+                    <div className="flex-1" />
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-3 border-t border-gray-100">
+                        {needsSigning ? (
+                            <button
+                                onClick={() => onAccessPortal(unit.agreement_id)}
+                                className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg
+                                bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm transition-colors"
+                            >
+                                <DocumentTextIcon className="w-4 h-4" />
+                                Sign Lease
+                            </button>
+                        ) : (
+                            <button
+                                onClick={() => onAccessPortal(unit.agreement_id)}
+                                disabled={!canAccessPortal}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg
+                                font-semibold text-sm transition-all
+                                ${
+                                    canAccessPortal
+                                        ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:opacity-95 hover:shadow-md"
+                                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                }`}
+                            >
+                                <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                                {canAccessPortal
+                                    ? unit.move_in_date
+                                        ? daysUntilMoveIn !== null && daysUntilMoveIn > 0
+                                            ? `Access Portal (${daysUntilMoveIn}d)`
+                                            : "Access Portal"
+                                        : "Access Portal"
+                                    : needsMoveInDate
+                                    ? "Set Move-in Date First"
+                                    : "Access Portal"}
+                            </button>
+                        )}
+
+                        <button
+                            onClick={onContactLandlord}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg border border-gray-200 font-semibold text-sm transition-colors"
+                        >
+                            <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                            Chat Landlord
+                        </button>
+
+                        {unit.leaseSignature === "active" && onEndContract && (
+                            <button
+                                onClick={() => onEndContract?.(unit.unit_id, unit.agreement_id)}
+                                className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200 font-semibold text-sm transition-colors"
+                                title="End Lease"
+                            >
+                                <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </article>

@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import {
     ExclamationTriangleIcon,
     CheckCircleIcon,
     LockClosedIcon,
     DocumentTextIcon,
+    ArrowLeftIcon,
 } from "@heroicons/react/24/outline";
 import { useLeaseAuthentication } from "@/hooks/tenant/useLeaseAuthentication";
 
@@ -16,10 +18,11 @@ type GateStatus = {
 };
 
 export default function PortalAccessGate({
-                                             agreementId,
-                                         }: {
+    agreementId,
+}: {
     agreementId?: string;
 }) {
+    const router = useRouter();
     const [status, setStatus] = useState<GateStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [otpCode, setOtpCode] = useState("");
@@ -170,6 +173,14 @@ export default function PortalAccessGate({
                 <div className="pt-2 text-xs text-gray-500">
                     Access unlocks automatically once requirements are completed.
                 </div>
+
+                <button
+                    onClick={() => router.push("/tenant/my-unit")}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
+                >
+                    <ArrowLeftIcon className="w-5 h-5" />
+                    Back to My Units
+                </button>
             </div>
         </div>
     );

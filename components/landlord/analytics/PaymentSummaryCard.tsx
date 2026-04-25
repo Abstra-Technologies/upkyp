@@ -108,7 +108,7 @@ export default function PaymentSummaryCard({ landlord_id, onClick }: Props) {
     const series = useMemo(() => (total > 0 ? [collected, pending, overdue] : [1]), [collected, pending, overdue, total]);
 
     return (
-        <div onClick={onClick} className="bg-gray-50/50 rounded-2xl border border-gray-200 shadow-sm p-5 h-full flex flex-col hover:shadow-lg hover:border-blue-200 hover:bg-blue-50/30 transition-all cursor-pointer">
+        <div onClick={onClick} className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm p-5 h-full flex flex-col hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all cursor-pointer">
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h2 className="text-base font-bold text-gray-900">Tenant Payments</h2>

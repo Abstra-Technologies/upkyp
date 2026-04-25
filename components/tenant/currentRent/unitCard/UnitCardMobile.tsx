@@ -113,9 +113,9 @@ export default function UnitCardMobile({
     return (
         <article
             className="bg-white rounded-xl
-            border border-gray-200
+            border-2 border-gray-300
             shadow-sm overflow-hidden
-            hover:border-gray-300
+            hover:border-gray-400
             transition-colors"
         >
             {/* HEADER */}
@@ -201,7 +201,7 @@ export default function UnitCardMobile({
             )}
 
             {/* ACTIONS */}
-            <div className="px-2 pb-2 space-y-1.5">
+            <div className="px-2 pb-2">
                 {needsSigning ? (
                     <button
                         onClick={() => onAccessPortal(unit.agreement_id)}
@@ -212,11 +212,11 @@ export default function UnitCardMobile({
                         Sign Lease
                     </button>
                 ) : (
-                    <>
+                    <div className="flex gap-1.5">
                         <button
                             onClick={() => onAccessPortal(unit.agreement_id)}
                             disabled={!canAccessPortal}
-                            className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg
                             text-xs font-semibold
                             ${
                                 canAccessPortal
@@ -227,23 +227,23 @@ export default function UnitCardMobile({
                             <ArrowRightOnRectangleIcon className="w-3.5 h-3.5" />
                             {canAccessPortal
                                 ? unit.move_in_date && daysUntilMoveIn !== null && daysUntilMoveIn > 0
-                                    ? `Access Portal (${daysUntilMoveIn}d)`
-                                    : "Access Portal"
+                                    ? `Portal (${daysUntilMoveIn}d)`
+                                    : "Portal"
                                 : needsMoveInDate
-                                    ? "Set Move-in Date"
-                                    : "Access Portal"}
+                                ? "Set Date"
+                                : "Portal"}
                         </button>
 
                         <button
                             onClick={onContactLandlord}
-                            className="w-full flex items-center justify-center gap-1.5 py-1.5
+                            className="flex-1 flex items-center justify-center gap-1.5 py-1.5
                             bg-gray-100 hover:bg-gray-200
                             text-gray-700 rounded-lg text-xs font-semibold"
                         >
                             <ChatBubbleLeftRightIcon className="w-3.5 h-3.5" />
-                            Message Landlord
+                            Chat
                         </button>
-                    </>
+                    </div>
                 )}
             </div>
         </article>

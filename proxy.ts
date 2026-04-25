@@ -278,6 +278,20 @@ export async function proxy(req: NextRequest) {
         }
     }
 
+    /* =====================================================
+       GLOBAL: Redirect unverified tenants to verify-email
+    ===================================================== */
+
+    if (userToken && !adminToken) {
+        const decodedUser: any = await verifyToken(userToken);
+
+        if (decodedUser && decodedUser.userType === "tenant" && !decodedUser.emailVerified) {
+            if (pathname !== "/auth/verify-email" && !pathname.includes("/verify-email") && !pathname.startsWith("/api/auth")) {
+                return safeRedirect("/auth/verify-email", req);
+            }
+        }
+    }
+
     if (
         pathname.startsWith("/landlord") ||
         pathname.startsWith("/commons") ||

@@ -129,7 +129,7 @@ export default function RevenuePerformanceChart({ landlord_id }: Props) {
             onClick={() =>
                 router.push("/landlord/analytics/detailed/revenue")
             }
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer"
+            className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm p-5 hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all cursor-pointer"
         >
             {/* ================= HEADER ================= */}
             <div className="flex items-center justify-between mb-4">

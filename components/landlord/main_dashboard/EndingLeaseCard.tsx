@@ -110,7 +110,7 @@ export default function EndingLeaseCard({ landlord_id }: Props) {
 
   /* ================= RENDER ================= */
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col">
+    <div className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all h-full flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b flex items-center justify-between">
         <h3 className="text-sm font-semibold text-gray-900">Ending Leases</h3>

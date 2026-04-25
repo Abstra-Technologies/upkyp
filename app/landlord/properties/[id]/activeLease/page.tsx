@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { FileText, ReceiptText, HelpCircle, AlertTriangle, Banknote, Clock, Gauge, Download } from "lucide-react";
+import { FileText, ReceiptText, AlertTriangle, Banknote, Clock, Gauge, Download } from "lucide-react";
 
 import LeaseTable from "@/components/landlord/activeLease/LeaseTable";
 import LeaseStack from "@/components/landlord/activeLease/LeaseStack";
@@ -93,26 +93,36 @@ export default function PropertyLeasesPage() {
   const billingBlocked =
     billing.configMissing || billing.payoutMissing;
 
-  /* ================= LEASE LOADING ================= */
-  if (mode === "lease" && isLoading) {
+  const billingMonth = new Date().toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  /* ================= LOADING ================= */
+  if (isLoading || (mode === "billing" && billing.isInitialLoad)) {
     return (
       <div className="min-h-screen bg-gray-50 pb-24 md:pb-6">
         <div className="px-4 md:px-6 pt-20 md:pt-6">
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-gray-200 rounded-lg animate-pulse" />
-              <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
+              <div className="space-y-2">
                 <div className="h-6 bg-gray-200 rounded w-40 animate-pulse" />
-                <div className="h-4 bg-gray-100 rounded w-32 animate-pulse" />
+                <div className="h-3 bg-gray-100 rounded w-28 animate-pulse" />
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 mb-5">
-              <div className="h-12 sm:h-10 bg-gray-200 rounded-2xl sm:rounded-lg animate-pulse w-full sm:w-32" />
-              <div className="h-12 sm:h-10 bg-gray-200 rounded-2xl sm:rounded-lg animate-pulse w-full sm:w-32" />
+            <div className="flex gap-1 mb-0">
+              <div className="h-10 bg-gray-200 rounded-t-xl rounded-b-none w-32 animate-pulse" />
+              <div className="h-10 bg-gray-200 rounded-t-xl rounded-b-none w-24 animate-pulse" />
             </div>
+            <div className="h-12 bg-gray-200 rounded-b-xl rounded-t-none animate-pulse" />
 
-            <div className="h-10 bg-gray-200 rounded-lg w-full max-w-md animate-pulse mb-4" />
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="h-16 bg-gray-200 rounded-xl animate-pulse" />
+              <div className="h-16 bg-gray-200 rounded-xl animate-pulse" />
+              <div className="h-16 bg-gray-200 rounded-xl animate-pulse" />
+            </div>
           </div>
 
           <div className="block md:hidden">
@@ -150,12 +160,7 @@ export default function PropertyLeasesPage() {
     );
   }
 
-  /* ================= BILLING LOADING ================= */
-  if (mode === "billing" && billing.isInitialLoad) {
-    return <BillingSkeleton />;
-  }
-
-  /* ================= LEASE ERROR ================= */
+  /* ================= ERROR ================= */
   if (mode === "lease" && error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -169,337 +174,400 @@ export default function PropertyLeasesPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-24 md:pb-6">
       <div className="px-4 md:px-6 pt-20 md:pt-6">
-        {/* ================= MODE TOGGLE ================= */}
-        <div className="mb-6">
-          <div className="inline-flex bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
-            <button
-              onClick={() => setMode("lease")}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                mode === "lease"
-                  ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <FileText className="w-4 h-4" />
-              Active Leases
-            </button>
-            <button
-              onClick={() => setMode("billing")}
-              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md transition-all ${
-                mode === "billing"
-                  ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              <ReceiptText className="w-4 h-4" />
-              Billing
-            </button>
+        {/* ================= STATIC HEADER ================= */}
+        <div className="mb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/25">
+              <FileText className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg md:text-2xl font-bold text-gray-900">
+                Active Leases
+              </h1>
+              <p className="text-xs text-gray-500">
+                Manage leases and billing
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* ================= LEASE MODE ================= */}
-        {mode === "lease" && (
-          <div>
-            {/* HEADER */}
-            <div className="mb-6">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl md:text-2xl font-bold">Active Leases</h1>
-                  <p className="text-xs text-gray-600">
-                    {filteredLeases.length} records found
-                  </p>
-                </div>
-              </div>
+        {/* ================= FOLDER-STYLE TABS ================= */}
+        <div className="mb-0">
+          {/* Tab bar */}
+          <div className="flex items-end gap-1">
+            {/* Active Leases Tab */}
+            <button
+              onClick={() => setMode("lease")}
+              className={`relative px-5 py-2.5 text-sm font-bold rounded-t-xl rounded-b-none transition-all border-b-0 ${
+                mode === "lease"
+                  ? "bg-white text-blue-700 border-2 border-b-0 border-blue-600 shadow-sm z-10"
+                  : "bg-gray-200 text-gray-500 border-2 border-b-0 border-gray-300 hover:bg-gray-300 hover:text-gray-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                Active Leases
+              </span>
+            </button>
 
-              <div className="grid grid-cols-2 gap-3 mb-5">
-                <button
-                  onClick={() => setMode("billing")}
-                  className="w-full px-3 py-3 sm:px-5 sm:py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white text-sm sm:text-sm font-semibold rounded-xl sm:rounded-2xl shadow-md transition-all active:scale-95"
-                >
-                  Go to Billing
-                </button>
+            {/* Billing Tab */}
+            <button
+              onClick={() => setMode("billing")}
+              className={`relative px-5 py-2.5 text-sm font-bold rounded-t-xl rounded-b-none transition-all border-b-0 ${
+                mode === "billing"
+                  ? "bg-white text-emerald-700 border-2 border-b-0 border-emerald-600 shadow-sm z-10"
+                  : "bg-gray-200 text-gray-500 border-2 border-b-0 border-gray-300 hover:bg-gray-300 hover:text-gray-700"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <ReceiptText className="w-4 h-4" />
+                Billing
+              </span>
+            </button>
 
-                <button
-                  onClick={() =>
-                    router.push(`/landlord/properties/${id}/payments`)
-                  }
-                  className="w-full px-3 py-3 sm:px-5 sm:py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-800 text-sm sm:text-sm font-semibold rounded-xl sm:rounded-2xl shadow-sm transition-all active:scale-95"
-                >
-                  View Payments
-                </button>
-              </div>
-
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search unit, tenant, email, status…"
-                className="w-full max-w-md px-4 py-2 text-sm border rounded-lg"
-              />
-            </div>
-
-            <LeaseStack
-              leases={filteredLeases}
-              onPrimary={handlePrimaryAction}
-              onExtend={handleExtendLease}
-              onEnd={handleEndLease}
-              onKyp={(l) => {
-                setSelectedKypLease(l);
-                setKypOpen(true);
-              }}
-            />
-
-            <LeaseTable
-              leases={filteredLeases}
-              onPrimary={handlePrimaryAction}
-              onExtend={handleExtendLease}
-              onAuthenticate={handleAuthenticateLease}
-              onEnd={handleEndLease}
-              onKyp={(l) => {
-                setSelectedKypLease(l);
-                setKypOpen(true);
-              }}
-            />
-
-            <EKypModal
-              open={kypOpen}
-              lease={selectedKypLease}
-              onClose={() => {
-                setKypOpen(false);
-                setSelectedKypLease(null);
-              }}
-            />
-
-            <ChecklistModal
-              open={checklistOpen && !!selectedLease}
-              lease={selectedLease}
-              onClose={() => {
-                setChecklistOpen(false);
-                setSelectedLease(null);
-              }}
-              onContinue={handleChecklistContinue}
-            />
+            {/* Fill remaining space */}
+            <div className={`flex-1 border-b-2 ${mode === "lease" ? "border-blue-600" : "border-emerald-600"}`} />
           </div>
-        )}
 
-        {/* ================= BILLING MODE ================= */}
-        {mode === "billing" && (
-          <div className="w-full px-0 md:px-0">
-            {/* CONFIG MODAL */}
-            <ConfigRequiredModal
-              configModal={billing.configModal}
-              setConfigModal={billing.setConfigModal}
-              router={billing.router}
-              property_id={billing.property_id}
-            />
-
-            {/* HEADER */}
-            <div className="mb-5">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
-                    <ReceiptText className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                      Billing for{" "}
-                      {new Date().toLocaleDateString("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      })}
-                    </h1>
-                  </div>
-                </div>
-
-                <button
-                  onClick={billing.startTour}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  <span className="hidden sm:inline">Show Guide</span>
-                </button>
+          {/* Content panel connected to active tab */}
+          <div className={`bg-white border-2 rounded-b-xl rounded-t-none shadow-md -mt-px pt-4 pb-4 px-4 md:px-6 ${
+            mode === "lease" ? "border-blue-600" : "border-emerald-600"
+          }`}>
+            {/* Search bar (lease mode only) */}
+            {mode === "lease" && (
+              <div className="mb-4">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search unit, tenant, email, status…"
+                  className="w-full max-w-md px-4 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                />
               </div>
+            )}
 
-              {/* 3-COLUMN ROW: Summary + Rate Setter + Bulk Meter */}
-              {!billingBlocked && (
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {/* Col 1: Total Collected */}
-                  <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                        <Banknote className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="text-xs font-medium text-gray-500">Collected</span>
-                    </div>
-                    <p className="text-xl font-bold text-emerald-600">
-                      ₱{billing.bills
-                        .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
-                        .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
-                        .toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
-                    </p>
-                  </div>
+            {/* Billing month display (billing mode only) */}
+            {mode === "billing" && (
+              <div className="mb-3">
+                <h2 className="text-xl md:text-3xl font-bold text-gray-900">
+                  {billingMonth}
+                </h2>
+              </div>
+            )}
 
-                  {/* Col 2: Total Pending */}
-                  <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="text-xs font-medium text-gray-500">Pending</span>
-                    </div>
-                    <p className="text-xl font-bold text-amber-600">
-                      ₱{billing.bills
-                        .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
-                        .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
-                        .toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
-                    </p>
-                  </div>
-
-                  {/* Col 3: Rate Setter + Bulk Meter */}
-                  <div className="space-y-2">
-                    <BillingRateStatus
-                      propertyDetails={billing.propertyDetails}
-                      hasBillingForMonth={billing.hasBillingForMonth}
-                      billingData={billing.billingData}
-                      setIsModalOpen={billing.setIsModalOpen}
-                    />
-
-                    {(billing.propertyDetails?.water_billing_type === "submetered" ||
-                      billing.propertyDetails?.electricity_billing_type === "submetered") && (
-                      <button
-                        disabled={billing.configMissing}
-                        onClick={() => !billing.configMissing && setBulkMeterOpen(true)}
-                        className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl font-semibold text-xs shadow-sm ${
-                          billing.configMissing
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                        }`}
-                      >
-                        <Gauge className="w-3.5 h-3.5" />
-                        Bulk Meter
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ENTERPRISE VALIDATION CARD */}
-              {billing.payoutMissing && (
-                <div className="mb-5 p-4 rounded-xl border border-amber-300 bg-amber-50">
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-amber-800">
-                        Payout Account Required
-                      </p>
-                      <p className="text-sm text-amber-700 mt-1">
-                        You must set a default payout account before issuing billing.
-                        This ensures rent payments can be transferred to your bank.
-                      </p>
-
-                      <button
-                        onClick={() =>
-                          billing.router.push(
-                            "/landlord/settings/payout"
-                          )
-                        }
-                        className="mt-3 px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg"
-                      >
-                        Set Up Payout Account
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* SUMMARY DOWNLOAD */}
-              {!billingBlocked && (
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
-                  <button
-                    disabled={billing.configMissing}
-                    onClick={() =>
-                      billing.configMissing
-                        ? Swal.fire(
-                            "Configuration Required",
-                            "Please complete property configuration first.",
-                            "warning",
-                          )
-                        : billing.handleDownloadSummary()
-                    }
-                    className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-sm shadow-sm ${
-                      billing.configMissing
-                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
-                    }`}
-                  >
-                    <Download className="w-4 h-4" />
-                    Download Summary
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* MODALS & BILLING LIST */}
-            {!billingBlocked && (
-              <>
-                <PropertyRatesModal
-                  isOpen={billing.isModalOpen}
-                  onClose={() => billing.setIsModalOpen(false)}
-                  billingData={billing.billingData}
-                  billingForm={billing.billingForm}
-                  propertyDetails={billing.propertyDetails}
-                  hasBillingForMonth={billing.hasBillingForMonth}
-                  handleInputChange={billing.handleInputChange}
-                  handleSaveorUpdateRates={billing.handleSaveorUpdateRates}
-                  onBillingUpdated={(updated) => {
-                    billing.setBillingData(updated);
-                    billing.setHasBillingForMonth(true);
+            {/* ================= LEASE CONTENT ================= */}
+            {mode === "lease" && (
+              <div>
+                <LeaseStack
+                  leases={filteredLeases}
+                  onPrimary={handlePrimaryAction}
+                  onExtend={handleExtendLease}
+                  onEnd={handleEndLease}
+                  onKyp={(l) => {
+                    setSelectedKypLease(l);
+                    setKypOpen(true);
                   }}
                 />
 
-                <UnitMeterReadingsModal
-                  isOpen={billing.openMeterList}
-                  onClose={() => billing.setOpenMeterList(false)}
-                  property_id={billing.property_id}
+                <LeaseTable
+                  leases={filteredLeases}
+                  onPrimary={handlePrimaryAction}
+                  onExtend={handleExtendLease}
+                  onAuthenticate={handleAuthenticateLease}
+                  onEnd={handleEndLease}
+                  onKyp={(l) => {
+                    setSelectedKypLease(l);
+                    setKypOpen(true);
+                  }}
                 />
 
-                <PropertyBulkMeterReadingModal
-                  isOpen={bulkMeterOpen}
-                  onClose={() => setBulkMeterOpen(false)}
-                  property_id={String(id)}
+                <EKypModal
+                  open={kypOpen}
+                  lease={selectedKypLease}
+                  onClose={() => {
+                    setKypOpen(false);
+                    setSelectedKypLease(null);
+                  }}
                 />
 
-                <BillingUnitListMobile
-                  bills={billing.bills}
-                  loadingBills={billing.loadingBills}
-                  propertyDetails={billing.propertyDetails}
+                <ChecklistModal
+                  open={checklistOpen && !!selectedLease}
+                  lease={selectedLease}
+                  onClose={() => {
+                    setChecklistOpen(false);
+                    setSelectedLease(null);
+                  }}
+                  onContinue={handleChecklistContinue}
+                />
+              </div>
+            )}
+
+            {/* ================= BILLING CONTENT ================= */}
+            {mode === "billing" && (
+              <div className="w-full">
+                {/* CONFIG MODAL */}
+                <ConfigRequiredModal
+                  configModal={billing.configModal}
+                  setConfigModal={billing.setConfigModal}
                   router={billing.router}
                   property_id={billing.property_id}
-                  guardActionWithConfig={billing.guardBillingAction}
-                  getStatusConfig={billing.getStatusConfig}
                 />
 
-                <BillingUnitTableDesktop
-                  bills={billing.bills}
-                  loadingBills={billing.loadingBills}
-                  propertyDetails={billing.propertyDetails}
-                  router={billing.router}
-                  property_id={billing.property_id}
-                  guardActionWithConfig={billing.guardBillingAction}
-                  getStatusConfig={billing.getStatusConfig}
-                />
-              </>
+                {/* Scorecards + Rates row */}
+                {!billingBlocked && (
+                  <div className="mb-4">
+                    {/* Label */}
+                    <p className="text-xs font-semibold text-gray-500 mb-2">
+                      Billing period for the month
+                    </p>
+
+                    {/* Desktop: 3 columns (Collected, Pending, Rates+Bulk) */}
+                    <div className="hidden md:grid md:grid-cols-3 gap-2">
+                      {/* Col 1: Total Collected */}
+                      <div className="bg-gray-50 rounded-xl border border-gray-200 p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shrink-0">
+                            <Banknote className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="text-xs font-medium text-gray-500">Collected</span>
+                        </div>
+                        <p className="text-xl font-bold text-emerald-600">
+                          ₱{billing.bills
+                            .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
+                            .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
+                            .toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
+                        </p>
+                      </div>
+
+                      {/* Col 2: Total Pending */}
+                      <div className="bg-gray-50 rounded-xl border border-gray-200 p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-7 h-7 rounded-md bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
+                            <Clock className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="text-xs font-medium text-gray-500">Pending</span>
+                        </div>
+                        <p className="text-xl font-bold text-amber-600">
+                          ₱{billing.bills
+                            .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
+                            .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
+                            .toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
+                        </p>
+                      </div>
+
+                      {/* Col 3: Rates + Bulk Meter */}
+                      <div className="space-y-2">
+                        <BillingRateStatus
+                          propertyDetails={billing.propertyDetails}
+                          hasBillingForMonth={billing.hasBillingForMonth}
+                          billingData={billing.billingData}
+                          setIsModalOpen={billing.setIsModalOpen}
+                        />
+                        {(billing.propertyDetails?.water_billing_type === "submetered" ||
+                          billing.propertyDetails?.electricity_billing_type === "submetered") && (
+                          <button
+                            disabled={billing.configMissing}
+                            onClick={() => !billing.configMissing && setBulkMeterOpen(true)}
+                            className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl font-semibold text-xs shadow-sm ${
+                              billing.configMissing
+                                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+                            }`}
+                          >
+                            <Gauge className="w-3.5 h-3.5" />
+                            Bulk Meter
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mobile: Scorecards in one row, rates below */}
+                    <div className="md:hidden">
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {/* Col 1: Total Collected */}
+                        <div className="bg-gray-50 rounded-xl border border-gray-200 p-2.5">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shrink-0">
+                              <Banknote className="w-3 h-3 text-white" />
+                            </div>
+                            <span className="text-[10px] font-medium text-gray-500 truncate">Collected</span>
+                          </div>
+                          <p className="text-sm font-bold text-emerald-600 truncate">
+                            ₱{billing.bills
+                              .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
+                              .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
+                              .toLocaleString("en-PH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">
+                            {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
+                          </p>
+                        </div>
+
+                        {/* Col 2: Total Pending */}
+                        <div className="bg-gray-50 rounded-xl border border-gray-200 p-2.5">
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
+                              <Clock className="w-3 h-3 text-white" />
+                            </div>
+                            <span className="text-[10px] font-medium text-gray-500 truncate">Pending</span>
+                          </div>
+                          <p className="text-sm font-bold text-amber-600 truncate">
+                            ₱{billing.bills
+                              .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
+                              .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
+                              .toLocaleString("en-PH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </p>
+                          <p className="text-[9px] text-gray-400 mt-0.5">
+                            {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
+                          </p>
+                        </div>
+
+                        {/* Col 3: Bulk Meter */}
+                        <div className="flex flex-col justify-center">
+                          {(billing.propertyDetails?.water_billing_type === "submetered" ||
+                            billing.propertyDetails?.electricity_billing_type === "submetered") && (
+                            <button
+                              disabled={billing.configMissing}
+                              onClick={() => !billing.configMissing && setBulkMeterOpen(true)}
+                              className={`w-full inline-flex items-center justify-center gap-1 px-2 py-2 rounded-lg font-semibold text-[10px] shadow-sm ${
+                                billing.configMissing
+                                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                  : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+                              }`}
+                            >
+                              <Gauge className="w-3 h-3" />
+                              Bulk
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Rates row (full width on mobile) */}
+                      <BillingRateStatus
+                        propertyDetails={billing.propertyDetails}
+                        hasBillingForMonth={billing.hasBillingForMonth}
+                        billingData={billing.billingData}
+                        setIsModalOpen={billing.setIsModalOpen}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ENTERPRISE VALIDATION CARD */}
+                {billing.payoutMissing && (
+                  <div className="mb-5 p-4 rounded-xl border border-amber-300 bg-amber-50">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-amber-800">
+                          Payout Account Required
+                        </p>
+                        <p className="text-sm text-amber-700 mt-1">
+                          You must set a default payout account before issuing billing.
+                          This ensures rent payments can be transferred to your bank.
+                        </p>
+
+                        <button
+                          onClick={() =>
+                            billing.router.push(
+                              "/landlord/settings/payout"
+                            )
+                          }
+                          className="mt-3 px-4 py-2 text-sm font-medium bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-lg shadow-md shadow-amber-500/25 transition-all active:scale-95"
+                        >
+                          Set Up Payout Account
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUMMARY DOWNLOAD */}
+                {!billingBlocked && (
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
+                    <button
+                      disabled={billing.configMissing}
+                      onClick={() =>
+                        billing.configMissing
+                          ? Swal.fire(
+                              "Configuration Required",
+                              "Please complete property configuration first.",
+                              "warning",
+                            )
+                          : billing.handleDownloadSummary()
+                      }
+                      className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-md transition-all active:scale-95 ${
+                        billing.configMissing
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white shadow-lg shadow-blue-500/25"
+                      }`}
+                    >
+                      <Download className="w-4 h-4" />
+                      Download Summary
+                    </button>
+                  </div>
+                )}
+
+                {/* MODALS & BILLING LIST */}
+                {!billingBlocked && (
+                  <>
+                    <PropertyRatesModal
+                      isOpen={billing.isModalOpen}
+                      onClose={() => billing.setIsModalOpen(false)}
+                      billingData={billing.billingData}
+                      billingForm={billing.billingForm}
+                      propertyDetails={billing.propertyDetails}
+                      hasBillingForMonth={billing.hasBillingForMonth}
+                      handleInputChange={billing.handleInputChange}
+                      handleSaveorUpdateRates={billing.handleSaveorUpdateRates}
+                      onBillingUpdated={(updated) => {
+                        billing.setBillingData(updated);
+                        billing.setHasBillingForMonth(true);
+                      }}
+                    />
+
+                    <UnitMeterReadingsModal
+                      isOpen={billing.openMeterList}
+                      onClose={() => billing.setOpenMeterList(false)}
+                      property_id={billing.property_id}
+                    />
+
+                    <PropertyBulkMeterReadingModal
+                      isOpen={bulkMeterOpen}
+                      onClose={() => setBulkMeterOpen(false)}
+                      property_id={String(id)}
+                    />
+
+                    <BillingUnitListMobile
+                      bills={billing.bills}
+                      loadingBills={billing.loadingBills}
+                      propertyDetails={billing.propertyDetails}
+                      router={billing.router}
+                      property_id={billing.property_id}
+                      guardActionWithConfig={billing.guardBillingAction}
+                      getStatusConfig={billing.getStatusConfig}
+                    />
+
+                    <BillingUnitTableDesktop
+                      bills={billing.bills}
+                      loadingBills={billing.loadingBills}
+                      propertyDetails={billing.propertyDetails}
+                      router={billing.router}
+                      property_id={billing.property_id}
+                      guardActionWithConfig={billing.guardBillingAction}
+                      getStatusConfig={billing.getStatusConfig}
+                    />
+                  </>
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

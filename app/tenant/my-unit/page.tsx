@@ -5,7 +5,7 @@ import {
     HomeIcon,
     EnvelopeIcon,
     ArrowPathIcon,
-    QrCodeIcon,
+    LinkIcon,
 } from "@heroicons/react/24/outline";
 
 import { useMyUnits } from "@/hooks/tenant/useMyUnits";
@@ -15,7 +15,8 @@ import SearchAndFilter from "@/components/Commons/SearchAndFilterUnits";
 import Pagination from "@/components/Commons/Pagination";
 import EmptyState from "@/components/Commons/EmptyStateUnitSearch";
 import RenewalRequestForm from "@/components/tenant/currentRent/RenewalRequestForm";
-import ScanUnitModal from "@/components/landlord/properties/units/ScanUnitModal";
+import JoinUnitModal from "@/components/tenant/currentRent/JoinUnitModal";
+import { mutate } from "swr";
 
 export default function MyUnit() {
     const router = useRouter();
@@ -36,6 +37,7 @@ export default function MyUnit() {
         loadingRenewal,
         isScanOpen,
         setIsScanOpen,
+        mutateUnits,
         handlePageChange,
         handleRefresh,
         handleContactLandlord,
@@ -98,37 +100,40 @@ export default function MyUnit() {
                     </div>
                 </div>
 
+                {/*Action Buttons */}
+
                 <div className="flex items-center gap-2">
                     <button
                         onClick={handleRefresh}
                         disabled={isRefetching}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 font-semibold text-sm disabled:opacity-50"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 lg:px-5 lg:py-2.5 bg-white border border-gray-200 rounded-lg text-gray-700 font-semibold text-sm lg:text-base disabled:opacity-50"
                     >
                         <ArrowPathIcon
-                            className={`w-4 h-4 ${isRefetching ? "animate-spin" : ""}`}
+                            className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefetching ? "animate-spin" : ""}`}
                         />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
 
                     <button
                         onClick={() => setIsScanOpen(true)}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 lg:px-5 lg:py-2.5
                    bg-gradient-to-r from-indigo-600 to-blue-600
-                   text-white rounded-lg font-semibold text-sm
+                   text-white rounded-lg font-semibold text-sm lg:text-base
                    hover:from-indigo-700 hover:to-blue-700"
                     >
-                        <QrCodeIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">Scan QR</span>
+                        <LinkIcon className="w-4 h-4 lg:w-5 lg:h-5" />
+                        <span className="hidden sm:inline">Join Unit</span>
                     </button>
 
                     <button
                         onClick={() => router.push("/tenant/viewInvites")}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold text-sm"
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 lg:px-5 lg:py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-semibold text-sm lg:text-base"
                     >
-                        <EnvelopeIcon className="w-4 h-4" />
+                        <EnvelopeIcon className="w-4 h-4 lg:w-5 lg:h-5" />
                         <span className="hidden sm:inline">Invitations</span>
                     </button>
                 </div>
+
             </header>
 
             {!error && (
@@ -149,7 +154,7 @@ export default function MyUnit() {
                         />
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-6">
                                 {paginatedUnits.map((unit) => (
                                     <UnitCard
                                         key={unit.unit_id}
@@ -190,9 +195,10 @@ export default function MyUnit() {
                 </>
             )}
 
-            <ScanUnitModal
+            <JoinUnitModal
                 isOpen={isScanOpen}
                 onClose={() => setIsScanOpen(false)}
+                onJoined={() => mutateUnits()}
             />
         </div>
     );

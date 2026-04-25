@@ -16,6 +16,25 @@ import {
     BanknotesIcon,
 } from "@heroicons/react/24/outline";
 
+const gradients = [
+    "from-blue-100 to-emerald-100",
+    "from-violet-100 to-pink-100",
+    "from-amber-100 to-orange-100",
+    "from-cyan-100 to-sky-100",
+    "from-rose-100 to-red-100",
+    "from-indigo-100 to-purple-100",
+    "from-teal-100 to-green-100",
+    "from-fuchsia-100 to-pink-100",
+    "from-lime-100 to-emerald-100",
+    "from-sky-100 to-blue-100",
+    "from-orange-100 to-rose-100",
+    "from-purple-100 to-indigo-100",
+    "from-emerald-100 to-teal-100",
+    "from-pink-100 to-rose-100",
+    "from-amber-100 to-yellow-100",
+    "from-cyan-100 to-teal-100",
+];
+
 const PropertyCard = ({
                           property,
                           index,
@@ -24,167 +43,211 @@ const PropertyCard = ({
                           handleEdit,
                           handleDelete,
                       }: any) => {
-    /* =========================
-       SUBSCRIPTION LOCK LOGIC
-    ========================== */
     const maxProperties = subscription?.limits?.maxProperties ?? null;
+    const isLockedByPlan = maxProperties !== null && index + 1 > maxProperties;
 
-    const isLockedByPlan =
-        maxProperties !== null && index + 1 > maxProperties;
+    const [gradientBg] = React.useState(() => gradients[Math.floor(Math.random() * gradients.length)]);
 
-    /* =========================
-       VERIFICATION STATUS
-    ========================== */
     const isRejected = property?.verification_status === "Rejected";
     const isPending = property?.verification_status === "Pending";
     const isVerified = property?.verification_status === "Verified";
 
     const getStatusConfig = () => {
         if (isLockedByPlan)
-            return {
-                badge: "bg-gray-200 text-gray-700",
-                icon: <LockClosedIcon className="w-4 h-4" />,
-                text: "Locked",
-            };
+            return { badge: "bg-gray-200 text-gray-700", icon: <LockClosedIcon className="w-3 h-3" />, text: "Locked" };
         if (isRejected)
-            return {
-                badge: "bg-red-100 text-red-700",
-                icon: <XCircleIcon className="w-4 h-4" />,
-                text: "Rejected",
-            };
+            return { badge: "bg-red-100 text-red-700", icon: <XCircleIcon className="w-3 h-3" />, text: "Rejected" };
         if (isPending)
-            return {
-                badge: "bg-yellow-100 text-yellow-700",
-                icon: <ClockIcon className="w-4 h-4" />,
-                text: "Pending",
-            };
+            return { badge: "bg-yellow-100 text-yellow-700", icon: <ClockIcon className="w-3 h-3" />, text: "Pending" };
         if (isVerified)
-            return {
-                badge: "bg-green-100 text-green-700",
-                icon: <CheckCircleIcon className="w-4 h-4" />,
-                text: "Verified",
-            };
-
-        return {
-            badge: "bg-gray-100 text-gray-600",
-            icon: <ClockIcon className="w-4 h-4" />,
-            text: "Unknown",
-        };
+            return { badge: "bg-green-100 text-green-700", icon: <CheckCircleIcon className="w-3 h-3" />, text: "Verified" };
+        return { badge: "bg-gray-100 text-gray-600", icon: <ClockIcon className="w-3 h-3" />, text: "Unknown" };
     };
 
     const statusConfig = getStatusConfig();
 
-    /* =========================
-       ANALYTICS
-    ========================== */
+    const totalUnits = property.total_units || 0;
+    const occupiedUnits = property.occupied_units || 0;
     const totalIncome = property.total_income || 0;
-    const totalUnits = property.total_units;
-    const occupiedUnits = property.occupied_units;
 
     let occupancyRate = 0;
-    if (typeof totalUnits === "number" && totalUnits > 0) {
+    if (totalUnits > 0) {
         occupancyRate = Math.round((occupiedUnits / totalUnits) * 100);
     }
 
+    const getOccupancyColor = (rate: number) => {
+        if (rate >= 80) return "from-emerald-500 to-emerald-400";
+        if (rate >= 50) return "from-amber-500 to-amber-400";
+        if (rate > 0) return "from-red-500 to-red-400";
+        return "from-gray-400 to-gray-300";
+    };
+
     return (
         <div
-            className={`flex flex-col sm:flex-row items-center gap-3 w-full bg-white
-        rounded-lg shadow-sm border border-gray-200 hover:shadow-md
-        transition-all duration-300 p-3
-        ${isLockedByPlan ? "opacity-60 pointer-events-none" : ""}`}
+            className={`group relative rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer bg-gradient-to-br ${gradientBg} ${isLockedByPlan ? "opacity-60 pointer-events-none" : ""}`}
         >
-            {/* Image */}
-            <div className="relative flex-shrink-0 w-full sm:w-28 h-24 overflow-hidden rounded-md">
-                {property?.photos?.length ? (
-                    <Image
-                        src={property.photos[0].photo_url}
-                        alt={property.property_name || "Property image"}
-                        width={300}
-                        height={200}
-                        className="object-cover w-full h-full"
-                    />
-                ) : (
-                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <BuildingOffice2Icon className="h-8 w-8 text-gray-400" />
-                    </div>
-                )}
+            {/* Battery fill background */}
+            <div
+                className={`absolute inset-0 bg-gradient-to-t ${getOccupancyColor(occupancyRate)} opacity-[0.08] pointer-events-none`}
+                style={{ clipPath: `inset(${100 - occupancyRate}% 0 0 0)` }}
+            />
 
-                {/* Status Badge */}
-
+            {/* Left edge battery bar */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/50 pointer-events-none">
+                <div
+                    className={`w-full bg-gradient-to-b ${getOccupancyColor(occupancyRate)} transition-all duration-700`}
+                    style={{ height: `${occupancyRate}%`, position: "absolute", bottom: 0 }}
+                />
             </div>
 
-            {/* Main Content */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-3">
-                {/* Info */}
-                <div className="flex-1 min-w-[180px]">
-                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 line-clamp-1">
+            {/* Desktop: Square card layout */}
+            <div className="hidden sm:flex relative h-full flex-col p-4">
+                {/* Top: Status + Property Image */}
+                <div className="relative w-full h-32 rounded-xl overflow-hidden mb-3">
+                    {property?.photos?.length && property.photos[0]?.photo_url ? (
+                        <Image
+                            src={property.photos[0].photo_url}
+                            alt={property.property_name || "Property image"}
+                            width={300}
+                            height={200}
+                            className="object-cover w-full h-full"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-white/60 flex items-center justify-center">
+                            <BuildingOffice2Icon className="h-10 w-10 text-gray-400" />
+                        </div>
+                    )}
+
+                    {/* Status Badge */}
+                    {/*<div className="absolute top-2 left-2">*/}
+                    {/*    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium ${statusConfig.badge}`}>*/}
+                    {/*        {statusConfig.icon}*/}
+                    {/*        {statusConfig.text}*/}
+                    {/*    </span>*/}
+                    {/*</div>*/}
+                </div>
+
+                {/* Property Name + Location */}
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 line-clamp-1 mb-0.5">
                         {property.property_name || "Unnamed Property"}
                     </h3>
-                    <div className="flex items-start text-gray-600 text-xs mt-0.5">
-                        <MapPinIcon className="h-3.5 w-3.5 mr-1 text-blue-500 flex-shrink-0" />
+                    <div className="flex items-center text-gray-500 text-xs mb-3">
+                        <MapPinIcon className="h-3 w-3 mr-1 flex-shrink-0" />
                         <p className="line-clamp-1">
-                            {[property.street, property.city, property.province]
-                                .filter(Boolean)
-                                .join(", ") || "Address not specified"}
+                            {[property.city, property.province].filter(Boolean).join(", ") || "No address"}
                         </p>
                     </div>
-                </div>
 
-                {/* Analytics */}
-                <div className="flex flex-1 justify-evenly sm:justify-around text-xs sm:text-sm">
-                    <div className="flex items-center gap-1.5">
-                        <UsersIcon className="h-4 w-4 text-emerald-600" />
-                        <div>
-                            <p className="text-gray-500 font-medium leading-tight">
-                                Occupancy
-                            </p>
-                            <p className="font-semibold text-gray-800">
+                    {/* Occupancy Battery Bar */}
+                    <div className="mb-3">
+                        <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-medium text-gray-600">Occupancy</span>
+                            <span className={`text-xs font-bold bg-gradient-to-r ${getOccupancyColor(occupancyRate)} bg-clip-text text-transparent`}>
                                 {occupancyRate}%
-                            </p>
+                            </span>
                         </div>
+                        <div className="h-2.5 bg-white/70 rounded-full overflow-hidden border border-gray-200/50">
+                            <div
+                                className={`h-full bg-gradient-to-r ${getOccupancyColor(occupancyRate)} rounded-full transition-all duration-700`}
+                                style={{ width: `${occupancyRate}%` }}
+                            />
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-1">
+                            {occupiedUnits} of {totalUnits} units occupied
+                        </p>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    {/* Income */}
+                    <div className="flex items-center gap-1.5 p-2 bg-white/60 rounded-lg">
                         <BanknotesIcon className="h-4 w-4 text-blue-600" />
                         <div>
-                            <p className="text-gray-500 font-medium leading-tight">
-                                Total Income
-                            </p>
-                            <p className="font-semibold text-gray-800">
-                                ₱{totalIncome.toLocaleString()}
-                            </p>
+                            <p className="text-[10px] text-gray-500 leading-tight">Monthly Income</p>
+                            <p className="text-sm font-bold text-gray-800">₱{totalIncome.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex flex-wrap gap-2 sm:gap-2.5 justify-end">
+                {/* Action Buttons */}
+                <div className="flex gap-2 mt-3">
                     <button
                         onClick={(e) => handleView(property, e)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg
-              text-xs sm:text-sm font-semibold bg-gradient-to-r
-              from-blue-500 to-emerald-500 text-white shadow-sm hover:shadow-md transition-all"
+                        className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-sm hover:shadow-md transition-all"
                     >
-                        <HomeIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">View</span>
+                        <HomeIcon className="w-3.5 h-3.5" />
+                        View
                     </button>
 
                     <button
                         onClick={(e) => handleEdit(property.property_id, e)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg
-              text-xs sm:text-sm font-medium bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors"
+                        className="p-2 rounded-lg text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200 hover:bg-orange-100 transition-colors"
                     >
-                        <PencilSquareIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">Edit</span>
+                        <PencilSquareIcon className="w-3.5 h-3.5" />
                     </button>
 
                     <button
                         onClick={(e) => handleDelete(property.property_id, e)}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg
-              text-xs sm:text-sm font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
+                        className="p-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
                     >
-                        <TrashIcon className="w-4 h-4" />
-                        <span className="hidden sm:inline">Delete</span>
+                        <TrashIcon className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile: Compact stack layout */}
+            <div className="sm:hidden relative flex flex-col p-3">
+                {/* Name + Status */}
+                <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold text-gray-900 line-clamp-1 flex-1 mr-2">
+                        {property.property_name || "Unnamed Property"}
+                    </h3>
+                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0 ${statusConfig.badge}`}>
+                        {statusConfig.icon}
+                        {statusConfig.text}
+                    </span>
+                </div>
+
+                {/* Occupancy Bar */}
+                <div className="mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-gray-600">Occupancy</span>
+                        <span className={`text-xs font-bold bg-gradient-to-r ${getOccupancyColor(occupancyRate)} bg-clip-text text-transparent`}>
+                            {occupancyRate}%
+                        </span>
+                    </div>
+                    <div className="h-2 bg-white/70 rounded-full overflow-hidden border border-gray-200/50">
+                        <div
+                            className={`h-full bg-gradient-to-r ${getOccupancyColor(occupancyRate)} rounded-full transition-all duration-700`}
+                            style={{ width: `${occupancyRate}%` }}
+                        />
+                    </div>
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                        {occupiedUnits}/{totalUnits} units
+                    </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                    <button
+                        onClick={(e) => handleView(property, e)}
+                        className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-sm"
+                    >
+                        <HomeIcon className="w-3.5 h-3.5" />
+                        View
+                    </button>
+
+                    <button
+                        onClick={(e) => handleEdit(property.property_id, e)}
+                        className="p-2 rounded-lg text-xs font-medium bg-orange-50 text-orange-600 border border-orange-200"
+                    >
+                        <PencilSquareIcon className="w-3.5 h-3.5" />
+                    </button>
+
+                    <button
+                        onClick={(e) => handleDelete(property.property_id, e)}
+                        className="p-2 rounded-lg text-xs font-medium bg-red-50 text-red-600 border border-red-200"
+                    >
+                        <TrashIcon className="w-3.5 h-3.5" />
                     </button>
                 </div>
             </div>

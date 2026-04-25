@@ -153,10 +153,10 @@ export const useRegisterForm = () => {
             if (res.ok) {
                 await Swal.fire({
                     title: "Success!",
-                    text: "Account successfully registered! Redirecting to onboarding...",
+                    text: "Account successfully registered! Please verify your email.",
                     icon: "success",
                 });
-                window.location.href = "/auth/landlord-onboarding";
+                window.location.href = "/auth/verify-email";
                 return;
             }
 

@@ -69,8 +69,10 @@ export function useMyUnits() {
         {
             revalidateOnFocus: true,
             revalidateOnReconnect: true,
+            revalidateOnMount: true,
             refreshInterval: 0,
             keepPreviousData: false,
+            dedupingInterval: 0,
         }
     );
 

@@ -33,12 +33,6 @@ export default function LeaseTable({
             id="units-list-section"
             className="hidden md:block bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden"
         >
-            <div className="bg-gradient-to-r from-slate-100 to-gray-100 px-4 py-3 border-b border-gray-200">
-                <h3 className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-blue-600" />
-                    Active Lease List
-                </h3>
-            </div>
             <table className="min-w-full divide-y divide-gray-100">
                 <thead className="bg-transparent">
                     <tr>

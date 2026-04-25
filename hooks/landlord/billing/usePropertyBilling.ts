@@ -5,9 +5,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { propertyBillingSteps } from "@/lib/onboarding/propertyBilling";
-import useAuthStore from "@/zustand/authStore"; // ✅ important
+import useAuthStore from "@/zustand/authStore";
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
 
@@ -36,14 +34,6 @@ export function usePropertyBilling(property_id: string) {
         electricityTotal: "",
         waterConsumption: "",
         waterTotal: "",
-    });
-
-    /* ================= ONBOARDING ================= */
-
-    const { startTour } = useOnboarding({
-        tourId: "property-billing",
-        steps: propertyBillingSteps,
-        autoStart: true,
     });
 
     /* ================= DATA ================= */
@@ -265,6 +255,5 @@ export function usePropertyBilling(property_id: string) {
         handleDownloadSummary,
         guardBillingAction,
         getStatusConfig,
-        startTour,
     };
 }

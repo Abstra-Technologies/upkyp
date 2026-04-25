@@ -36,14 +36,16 @@ const PendingMaintenanceDonut = dynamic(
   { ssr: false, loading: () => <CardSkeleton /> },
 );
 
-const RevenuePerformanceChart = dynamic(
-  () => import("../analytics/revenuePerformance"),
-  { ssr: false, loading: () => <CardSkeleton /> },
-);
 
 const TodayCalendar = dynamic(
   () => import("@/components/landlord/main_dashboard/TodayCalendar"),
   { ssr: false, loading: () => <CardSkeleton /> },
+);
+
+
+const RevenuePerformanceChart = dynamic(
+    () => import("../analytics/revenuePerformance"),
+    { ssr: false, loading: () => <CardSkeleton /> },
 );
 
 const MobileLandlordDashboard = dynamic(

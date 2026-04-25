@@ -7,13 +7,10 @@ import {
   X,
   Zap,
   Droplet,
-  HelpCircle,
   ChevronRight,
   Calendar,
 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatter/formatters";
-import { useOnboarding } from "@/hooks/useOnboarding";
-import { propertyRatesModalSteps } from "@/lib/onboarding/propertyBilling";
 
 interface PropertyRatesModalProps {
   isOpen: boolean;
@@ -53,12 +50,6 @@ export default function PropertyRatesModal({
   onBillingUpdated,
 }: PropertyRatesModalProps) {
   const [showInfo, setShowInfo] = useState(false);
-
-  const { startTour } = useOnboarding({
-    tourId: "property-rates-modal",
-    steps: propertyRatesModalSteps,
-    autoStart: false,
-  });
 
   useEffect(() => {
     if (!isOpen || !billingData) return;
@@ -121,9 +112,6 @@ export default function PropertyRatesModal({
             </div>
 
             <div className="flex items-center gap-1 flex-shrink-0">
-              <button onClick={startTour} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Show guide">
-                <HelpCircle className="h-5 w-5" />
-              </button>
               <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
                 <X className="h-5 w-5" />
               </button>

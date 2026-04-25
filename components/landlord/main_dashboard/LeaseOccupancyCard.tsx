@@ -118,7 +118,7 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
 
   /* ================= RENDER ================= */
   return (
-    <div className="bg-gray-50/50 rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg hover:border-blue-200 hover:bg-blue-50/30 transition-all h-full flex flex-col">
+    <div className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all h-full flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b">
         <h3 className="text-sm font-semibold text-gray-900">

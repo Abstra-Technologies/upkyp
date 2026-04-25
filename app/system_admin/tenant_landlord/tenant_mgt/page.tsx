@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useAuthStore from "@/zustand/authStore";
-import SideNavAdmin from "@/components/navigation/sidebar-admin";
 import LoadingScreen from "@/components/loadingScreen";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { TableCell, TableRow, TableSortLabel, TextField, Paper, TableContainer, Table, TableHead, TableBody, Button } from "@mui/material";
+import { Eye } from "lucide-react";
 
 export default function TenantList() {
     const [tenants, setTenants] = useState([]);
