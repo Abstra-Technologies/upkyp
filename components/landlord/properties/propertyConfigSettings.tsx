@@ -4,10 +4,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import {
-  Settings,
   Bell,
   Droplets,
-  Zap,
   DollarSign,
   AlertCircle,
   Mail,
@@ -41,7 +39,6 @@ export default function PropertyConfiguration({
     electricity_billing_type: "included",
   });
 
-  // Initialize onboarding
   const { startTour } = useOnboarding({
     tourId: "property-configuration",
     steps: propertyConfigSteps,
@@ -70,7 +67,6 @@ export default function PropertyConfiguration({
               res.data.electricity_billing_type || "included",
           });
         }
-        console.log("property config", res.data);
       } catch (err) {
         console.error("Failed to fetch property config:", err);
       } finally {
@@ -114,64 +110,62 @@ export default function PropertyConfiguration({
     }));
   };
 
-    const handleSave = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSubmitting(true);
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-        try {
-            await axios.post("/api/landlord/properties/configuration", {
-                property_id: propertyId,
-                ...configForm,
-            });
+    try {
+      await axios.post("/api/landlord/properties/configuration", {
+        property_id: propertyId,
+        ...configForm,
+      });
 
-            Swal.fire(
-                "Saved!",
-                "Property configuration updated.",
-                "success"
-            ).then(() => {
-                if (onUpdate) onUpdate();
-            });
-        } catch (error: any) {
-            console.error("Failed to save config:", error);
+      Swal.fire(
+        "Saved!",
+        "Property configuration updated.",
+        "success"
+      ).then(() => {
+        if (onUpdate) onUpdate();
+      });
+    } catch (error: any) {
+      console.error("Failed to save config:", error);
 
-            // Default message
-            let title = "Error";
-            let message = "Could not save configuration. Please try again.";
+      let title = "Error";
+      let message = "Could not save configuration. Please try again.";
 
-            if (axios.isAxiosError(error)) {
-                const status = error.response?.status;
-                const apiMessage = error.response?.data?.error;
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const apiMessage = error.response?.data?.error;
 
-                if (status === 409) {
-                    title = "Changes Locked";
-                    message =
-                        apiMessage ||
-                        "Configuration cannot be modified because billing has already been generated for the current month.";
-                } else if (status === 400) {
-                    title = "Invalid Data";
-                    message = apiMessage || "Some configuration values are invalid.";
-                } else if (status === 500) {
-                    title = "Server Error";
-                    message =
-                        apiMessage ||
-                        "Something went wrong on the server. Please try again later.";
-                } else if (apiMessage) {
-                    message = apiMessage;
-                }
-            }
-
-            Swal.fire({
-                icon: "error",
-                title,
-                text: message,
-                confirmButtonText: "OK",
-            });
-        } finally {
-            setSubmitting(false);
+        if (status === 409) {
+          title = "Changes Locked";
+          message =
+            apiMessage ||
+            "Configuration cannot be modified because billing has already been generated for the current month.";
+        } else if (status === 400) {
+          title = "Invalid Data";
+          message = apiMessage || "Some configuration values are invalid.";
+        } else if (status === 500) {
+          title = "Server Error";
+          message =
+            apiMessage ||
+            "Something went wrong on the server. Please try again later.";
+        } else if (apiMessage) {
+          message = apiMessage;
         }
-    };
+      }
 
-  // Expose startTour to parent component
+      Swal.fire({
+        icon: "error",
+        title,
+        text: message,
+        confirmButtonText: "OK",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       (window as any).startPropertyConfigTour = startTour;
@@ -190,148 +184,108 @@ export default function PropertyConfiguration({
       </div>
     );
 
+  const DaySelector = ({ name, value, onChange, label, icon: Icon, description }: {
+    name: string;
+    value: number;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    label: string;
+    icon: React.ElementType;
+    description: string;
+  }) => (
+    <div className="space-y-2">
+      <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+        {label}
+      </label>
+      <div className="relative">
+        <select
+          name={name}
+          value={value}
+          onChange={onChange}
+          className="w-full appearance-none rounded-lg border border-gray-300 bg-white pl-4 pr-10 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        >
+          {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+            <option key={day} value={day}>
+              {day}
+            </option>
+          ))}
+        </select>
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+          <Icon className="w-4 h-4 text-gray-400" />
+        </div>
+      </div>
+      <p className="text-xs text-gray-500">{description}</p>
+    </div>
+  );
+
   return (
-    <form onSubmit={handleSave} className="space-y-5">
+    <form onSubmit={handleSave} className="space-y-4">
       {/* Notifications Section */}
       <div
         id="notifications-section"
         className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
       >
-        <div className="bg-gradient-to-r from-blue-50 to-emerald-50 px-4 sm:px-5 py-4 border-b border-gray-200">
+        <div className="bg-gradient-to-r from-blue-50 to-emerald-50 px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
-              <Bell className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Bell className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">
+              <h3 className="text-sm font-bold text-gray-900">
                 Notification & Reminders
               </h3>
-              <p className="text-xs text-gray-600 mt-0.5">
+              <p className="text-xs text-gray-600">
                 Set billing schedule dates
               </p>
             </div>
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 space-y-5">
+        <div className="p-4 space-y-4">
           {/* Info Banner */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-blue-800">
-                <span className="font-semibold">For Submetered Properties:</span> Make sure to set the meter reading date to include utility charges in monthly billing. Without this date, only rent charges will be generated.
+              <p className="text-xs text-blue-800 leading-relaxed">
+                <span className="font-semibold">Submetered:</span> Set the meter reading date to include utility charges. Without it, only rent will be billed.
               </p>
             </div>
           </div>
 
-          {/* Date Pickers Grid */}
+          {/* Date Pickers - Stacked on mobile, grid on tablet */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Meter Reading Day */}
-            <div id="meter-reading-day" className="space-y-2">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Meter Reading Day
-              </label>
-              <div className="relative">
-                <select
-                  name="meterReadingDay"
-                  value={configForm.meterReadingDay}
-                  onChange={handleChange}
-                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                      {day === 1
-                        ? "st"
-                        : day === 2
-                        ? "nd"
-                        : day === 3
-                        ? "rd"
-                        : "th"}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <Droplets className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">Day to record meter readings</p>
-            </div>
-
-            {/* Billing Generation Day */}
-            <div id="reminder-day" className="space-y-2">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Billing Generation Day
-              </label>
-              <div className="relative">
-                <select
-                  name="billingReminderDay"
-                  value={configForm.billingReminderDay}
-                  onChange={handleChange}
-                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                      {day === 1
-                        ? "st"
-                        : day === 2
-                        ? "nd"
-                        : day === 3
-                        ? "rd"
-                        : "th"}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <Bell className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">Day to generate monthly billing</p>
-            </div>
-
-            {/* Due Date Day */}
-            <div id="due-day" className="space-y-2">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Billing Due Date
-              </label>
-              <div className="relative">
-                <select
-                  name="billingDueDay"
-                  value={configForm.billingDueDay}
-                  onChange={handleChange}
-                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                      {day === 1
-                        ? "st"
-                        : day === 2
-                        ? "nd"
-                        : day === 3
-                        ? "rd"
-                        : "th"}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <DollarSign className="w-4 h-4 text-gray-400" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500">Payment due date of each month</p>
-            </div>
+            <DaySelector
+              name="meterReadingDay"
+              value={configForm.meterReadingDay}
+              onChange={handleChange}
+              label="Meter Reading Day"
+              icon={Droplets}
+              description="Record meter readings"
+            />
+            <DaySelector
+              name="billingReminderDay"
+              value={configForm.billingReminderDay}
+              onChange={handleChange}
+              label="Generate Billing Day"
+              icon={Bell}
+              description="Generate monthly billing"
+            />
+            <DaySelector
+              name="billingDueDay"
+              value={configForm.billingDueDay}
+              onChange={handleChange}
+              label="Due Date Day"
+              icon={DollarSign}
+              description="Payment due date"
+            />
           </div>
 
-          
-
           {/* Notification Channels */}
-          <div id="notification-channels" className="pt-4 border-t border-gray-100">
-            <label className="block text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">
+          <div className="pt-3 border-t border-gray-100">
+            <label className="block text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">
               Notification Channels
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200">
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200">
                 <input
                   type="checkbox"
                   name="notifyEmail"
@@ -339,12 +293,12 @@ export default function PropertyConfiguration({
                   onChange={handleChange}
                   className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
                 />
-                <Mail className="w-5 h-5 text-gray-600" />
-                <span className="text-sm text-gray-700 font-medium">
+                <Mail className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span className="text-xs text-gray-700 font-medium truncate">
                   Email
                 </span>
               </label>
-              <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200">
+              <label className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200">
                 <input
                   type="checkbox"
                   name="notifySms"
@@ -352,8 +306,8 @@ export default function PropertyConfiguration({
                   onChange={handleChange}
                   className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
                 />
-                <MessageSquare className="w-5 h-5 text-gray-600" />
-                <span className="text-sm text-gray-700 font-medium">
+                <MessageSquare className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                <span className="text-xs text-gray-700 font-medium truncate">
                   SMS
                 </span>
               </label>
@@ -365,35 +319,35 @@ export default function PropertyConfiguration({
       {/* Utility Billing Section */}
       <div
         id="utility-billing-section"
-        className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
       >
-        <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-5 py-4 border-b border-gray-200">
+        <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-4 py-3 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center">
-              <Droplets className="w-5 h-5 text-white" />
+            <div className="w-9 h-9 bg-gradient-to-br from-cyan-600 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Droplets className="w-4 h-4 text-white" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-gray-900">
+              <h3 className="text-sm font-bold text-gray-900">
                 Utility Billing
               </h3>
-              <p className="text-xs text-gray-600 mt-0.5">
-                Configure water and electricity billing types
+              <p className="text-xs text-gray-600">
+                Configure water and electricity billing
               </p>
             </div>
           </div>
         </div>
 
-        <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div id="water-billing-type">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                Water Billing Type
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                Water Billing
               </label>
               <select
                 name="water_billing_type"
                 value={configForm.water_billing_type}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors bg-white"
               >
                 {UTILITY_BILLING_TYPES.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -403,15 +357,15 @@ export default function PropertyConfiguration({
               </select>
             </div>
 
-            <div id="electricity-billing-type">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                Electricity Billing Type
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                Electricity Billing
               </label>
               <select
                 name="electricity_billing_type"
                 value={configForm.electricity_billing_type}
                 onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors bg-white"
               >
                 {UTILITY_BILLING_TYPES.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -422,12 +376,11 @@ export default function PropertyConfiguration({
             </div>
           </div>
 
-          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-800">
-                ⚠️ Changing these settings affects how future tenant billings
-                are generated for this property.
+              <p className="text-xs text-amber-800 leading-relaxed">
+                Changing these affects future tenant billings.
               </p>
             </div>
           </div>
@@ -435,118 +388,112 @@ export default function PropertyConfiguration({
       </div>
 
       {/* Late Payment Section */}
-        <div
-            id="late-payment-section"
-            className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
-        >
-            <div className="bg-gradient-to-r from-red-50 to-rose-50 px-5 py-4 border-b border-gray-200">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-rose-600 rounded-lg flex items-center justify-center">
-                        <DollarSign className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                        <h3 className="text-base font-bold text-gray-900">
-                            Late Payment Penalty
-                        </h3>
-                        <p className="text-xs text-gray-600 mt-0.5">
-                            Configure late fee penalties and grace periods
-                        </p>
-                    </div>
-                </div>
+      <div
+        id="late-payment-section"
+        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
+      >
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 px-4 py-3 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-red-600 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
+              <DollarSign className="w-4 h-4 text-white" />
             </div>
-
-            <div className="p-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    {/* Penalty Type */}
-                    <div id="penalty-type">
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                            Penalty Type
-                        </label>
-                        <select
-                            name="lateFeeType"
-                            value={configForm.lateFeeType}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                        >
-                            <option value="fixed">Fixed Amount</option>
-                            <option value="percentage">Percentage (% per day)</option>
-                        </select>
-                    </div>
-
-                    {/* NEW: Fixed Penalty Application */}
-                    {configForm.lateFeeType === "fixed" && (
-                        <div id="penalty-frequency">
-                            <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                                Penalty Application
-                            </label>
-                            <select
-                                name="lateFeeFrequency"
-                                value={configForm.lateFeeFrequency}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                            >
-                                <option value="one_time">One-time penalty</option>
-                                <option value="per_day">Per day of delay</option>
-                            </select>
-                        </div>
-                    )}
-
-                    {/* Penalty Amount */}
-                    <div id="penalty-amount">
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                            {configForm.lateFeeType === "fixed"
-                                ? configForm.lateFeeFrequency === "one_time"
-                                    ? "Penalty Amount (₱ one-time)"
-                                    : "Penalty Amount (₱ per day)"
-                                : "Penalty Rate (% per day)"}
-                        </label>
-                        <input
-                            type="number"
-                            name="lateFeeAmount"
-                            min="0"
-                            step="0.01"
-                            value={configForm.lateFeeAmount}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                        />
-                    </div>
-
-                    {/* Grace Period */}
-                    <div id="grace-period">
-                        <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                            Grace Period (Days)
-                        </label>
-                        <input
-                            type="number"
-                            name="gracePeriodDays"
-                            min="0"
-                            value={configForm.gracePeriodDays}
-                            onChange={handleChange}
-                            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
-                        />
-                    </div>
-
-                    <div className="flex items-center">
-                        <p className="text-xs text-gray-600">
-                            Penalties apply after the grace period.
-                            Fixed penalties can be one-time or per day.
-                            Percentage penalties are always per day.
-                        </p>
-                    </div>
-                </div>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900">
+                Late Payment Penalty
+              </h3>
+              <p className="text-xs text-gray-600">
+                Configure penalties and grace periods
+              </p>
             </div>
+          </div>
         </div>
 
+        <div className="p-4 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Penalty Type */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                Penalty Type
+              </label>
+              <select
+                name="lateFeeType"
+                value={configForm.lateFeeType}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white"
+              >
+                <option value="fixed">Fixed Amount</option>
+                <option value="percentage">Percentage (% per day)</option>
+              </select>
+            </div>
 
-        {/* Save Button */}
-      <div id="save-button" className="flex justify-end pt-2">
+            {/* Penalty Frequency */}
+            {configForm.lateFeeType === "fixed" && (
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                  Penalty Application
+                </label>
+                <select
+                  name="lateFeeFrequency"
+                  value={configForm.lateFeeFrequency || "one_time"}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors bg-white"
+                >
+                  <option value="one_time">One-time</option>
+                  <option value="per_day">Per day</option>
+                </select>
+              </div>
+            )}
+
+            {/* Penalty Amount */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                {configForm.lateFeeType === "fixed"
+                  ? configForm.lateFeeFrequency === "per_day"
+                    ? "Amount (₱/day)"
+                    : "Amount (₱)"
+                  : "Rate (%/day)"}
+              </label>
+              <input
+                type="number"
+                name="lateFeeAmount"
+                min="0"
+                step="0.01"
+                value={configForm.lateFeeAmount}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+              />
+            </div>
+
+            {/* Grace Period */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                Grace Period (Days)
+              </label>
+              <input
+                type="number"
+                name="gracePeriodDays"
+                min="0"
+                value={configForm.gracePeriodDays}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
+              />
+            </div>
+          </div>
+
+          <p className="text-xs text-gray-500">
+            Penalties apply after grace period. Fixed can be one-time or per day.
+          </p>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="pt-2">
         <button
           type="submit"
           disabled={submitting}
-          className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-lg font-semibold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white rounded-lg font-semibold text-sm transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? "Submitting..." : "Save Configuration"}
+          {submitting ? "Saving..." : "Save Configuration"}
         </button>
       </div>
     </form>
