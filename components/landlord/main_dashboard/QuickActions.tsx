@@ -181,20 +181,20 @@ export default function QuickActions({
                     <h2 className={`${SECTION_TITLE} text-sm`}>Quick Actions</h2>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 px-2">
+                <div className="grid grid-cols-4 gap-1.5 px-1">
                     {mobileActions.map(({ label, href, icon: Icon, gradient, onClick }) => (
                         onClick ? (
                             <button
                                 key={label}
                                 onClick={onClick}
-                                className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                                className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
                             >
                                 <div
-                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                                    className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
                                 >
-                                    <Icon className="w-5 h-5 text-white" />
+                                    <Icon className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
+                                <span className="text-[9px] font-medium text-gray-700 text-center leading-tight truncate w-full">
                                     {label}
                                 </span>
                             </button>
@@ -202,14 +202,14 @@ export default function QuickActions({
                             <Link
                                 key={label}
                                 href={href!}
-                                className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                                className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
                             >
                                 <div
-                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                                    className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
                                 >
-                                    <Icon className="w-5 h-5 text-white" />
+                                    <Icon className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
+                                <span className="text-[9px] font-medium text-gray-700 text-center leading-tight truncate w-full">
                                     {label}
                                 </span>
                             </Link>

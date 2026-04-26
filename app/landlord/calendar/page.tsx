@@ -322,7 +322,7 @@ const BookingAppointment = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border-b border-gray-200 pt-20 pb-5 md:pt-6 md:pb-5 px-4 md:px-8 lg:px-12 xl:px-16"
+        className="bg-white border-b border-gray-200 pt-3 pb-3 md:pt-6 md:pb-5 px-4 md:px-8 lg:px-12 xl:px-16"
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
           <div className="flex items-center gap-4">
@@ -339,42 +339,42 @@ const BookingAppointment = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="bg-amber-50 rounded-xl border border-amber-200 p-4">
-            <div className="flex items-center justify-between mb-1">
-              <Clock className="w-5 h-5 text-amber-600" />
-              <span className="text-2xl font-bold text-amber-700">
+        <div className="grid grid-cols-4 lg:grid-cols-4 gap-2">
+          <div className="bg-amber-50 rounded-lg border border-amber-200 p-3">
+            <div className="flex flex-col items-center text-center">
+              <Clock className="w-4 h-4 text-amber-600 mb-1" />
+              <span className="text-lg font-bold text-amber-700">
                 {statusCounts.pending || 0}
               </span>
+              <p className="text-[10px] text-amber-600 mt-0.5">Pending</p>
             </div>
-            <p className="text-sm text-amber-600">Pending</p>
           </div>
-          <div className="bg-emerald-50 rounded-xl border border-emerald-200 p-4">
-            <div className="flex items-center justify-between mb-1">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              <span className="text-2xl font-bold text-emerald-700">
+          <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-3">
+            <div className="flex flex-col items-center text-center">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 mb-1" />
+              <span className="text-lg font-bold text-emerald-700">
                 {statusCounts.approved || 0}
               </span>
+              <p className="text-[10px] text-emerald-600 mt-0.5">Approved</p>
             </div>
-            <p className="text-sm text-emerald-600">Approved</p>
           </div>
-          <div className="bg-orange-50 rounded-xl border border-orange-200 p-4">
-            <div className="flex items-center justify-between mb-1">
-              <XCircle className="w-5 h-5 text-orange-600" />
-              <span className="text-2xl font-bold text-orange-700">
+          <div className="bg-orange-50 rounded-lg border border-orange-200 p-3">
+            <div className="flex flex-col items-center text-center">
+              <XCircle className="w-4 h-4 text-orange-600 mb-1" />
+              <span className="text-lg font-bold text-orange-700">
                 {statusCounts.disapproved || 0}
               </span>
+              <p className="text-[10px] text-orange-600 mt-0.5">Declined</p>
             </div>
-            <p className="text-sm text-orange-600">Declined</p>
           </div>
-          <div className="bg-blue-50 rounded-xl border border-blue-200 p-4">
-            <div className="flex items-center justify-between mb-1">
-              <CalendarDays className="w-5 h-5 text-blue-600" />
-              <span className="text-2xl font-bold text-blue-700">
+          <div className="bg-blue-50 rounded-lg border border-blue-200 p-3">
+            <div className="flex flex-col items-center text-center">
+              <CalendarDays className="w-4 h-4 text-blue-600 mb-1" />
+              <span className="text-lg font-bold text-blue-700">
                 {visitsByDate[dayjs().format("YYYY-MM-DD")]?.length || 0}
               </span>
+              <p className="text-[10px] text-blue-600 mt-0.5">Today</p>
             </div>
-            <p className="text-sm text-blue-600">Today</p>
           </div>
         </div>
       </motion.div>

@@ -177,7 +177,7 @@ const usePropertyStore = create<PropertyStore>()(
             /* ================= API ================= */
 
             fetchAllProperties: async (landlordId) => {
-                set({ loading: true, error: null });
+                set({ loading: true, error: null, properties: [] });
 
                 try {
                     const [propertiesRes, photosRes] = await Promise.all([
@@ -191,8 +191,9 @@ const usePropertyStore = create<PropertyStore>()(
                     const photos = photosRes.data || [];
 
                     const combined = properties.map((p: any) => {
+                        const propId = String(p.property_id);
                         const matchedPhotos = photos.filter(
-                            (photo: any) => photo.property_id === p.property_id
+                            (photo: any) => String(photo.property_id) === propId
                         );
                         return { ...p, photos: matchedPhotos };
                     });

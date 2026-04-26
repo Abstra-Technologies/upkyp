@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
@@ -8,19 +8,24 @@ import { MapPin, Home, Eye } from "lucide-react";
 import usePropertyStore from "@/zustand/property/usePropertyStore";
 
 interface Props {
-  landlordId: number | undefined;
+  landlordId: string | undefined;
 }
 
 export default function LandlordPropertyMarqueeMobile({ landlordId }: Props) {
   const router = useRouter();
   const { properties, loading, fetchAllProperties } = usePropertyStore();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (landlordId) fetchAllProperties(landlordId);
+    if (landlordId) {
+      setCurrentIndex(0);
+      setIsInitialized(false);
+      fetchAllProperties(landlordId).then(() => setIsInitialized(true));
+    }
   }, [landlordId, fetchAllProperties]);
 
-  if (loading) {
+  if (loading || !isInitialized) {
     return (
       <div className="px-4">
         <div className="h-[480px] rounded-3xl bg-gray-100 animate-pulse" />
@@ -44,6 +49,8 @@ export default function LandlordPropertyMarqueeMobile({ landlordId }: Props) {
 
   const currentProperty = properties[currentIndex];
   const nextProperty = properties[currentIndex + 1];
+
+  if (!currentProperty) return null;
 
   const handleNext = () => {
     if (currentIndex < properties.length - 1) {
@@ -84,7 +91,7 @@ export default function LandlordPropertyMarqueeMobile({ landlordId }: Props) {
         <AnimatePresence mode="popLayout">
           <motion.div
             key={currentProperty.property_id}
-            layoutId={currentProperty.property_id}
+            layoutId={String(currentProperty.property_id)}
             className="relative z-10"
             initial={{ scale: 0.95, opacity: 0, y: 50 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}

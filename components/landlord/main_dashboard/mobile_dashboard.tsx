@@ -7,13 +7,10 @@ interface Props {
 }
 
 export default function MobileLandlordDashboard({ landlordId }: Props) {
-    // Convert string to number for the property component
-    const landlordIdNumber = parseInt(landlordId, 10);
-
     return (
         <div className="block md:hidden w-full space-y-6 pb-6 pt-10">
             {/* Property Carousel */}
-            <LandlordPropertyMarqueeMobile landlordId={landlordIdNumber} />
+            <LandlordPropertyMarqueeMobile landlordId={landlordId} />
         </div>
     );
 }
