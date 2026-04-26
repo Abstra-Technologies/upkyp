@@ -10,6 +10,8 @@ import {
   Zap,
   DollarSign,
   AlertCircle,
+  Mail,
+  MessageSquare,
 } from "lucide-react";
 import { UTILITY_BILLING_TYPES } from "@/constant/utilityBillingType";
 import { useOnboarding } from "@/hooks/useOnboarding";
@@ -29,6 +31,7 @@ export default function PropertyConfiguration({
   const [configForm, setConfigForm] = useState({
     billingReminderDay: 1,
     billingDueDay: 30,
+    meterReadingDay: 1,
     notifyEmail: false,
     notifySms: false,
     lateFeeType: "fixed",
@@ -50,12 +53,13 @@ export default function PropertyConfiguration({
     const fetchConfig = async () => {
       try {
         const res = await axios.get(
-          `/api/properties/configuration?id=${propertyId}`
+          `/api/landlord/properties/configuration?id=${propertyId}`
         );
         if (res.data) {
           setConfigForm({
             billingReminderDay: res.data.billingReminderDay || 1,
             billingDueDay: res.data.billingDueDay || 1,
+            meterReadingDay: res.data.meterReadingDay || 1,
             notifyEmail: !!res.data.notifyEmail,
             notifySms: !!res.data.notifySms,
             lateFeeType: res.data.lateFeeType || "fixed",
@@ -104,7 +108,7 @@ export default function PropertyConfiguration({
       [name]:
         type === "checkbox"
           ? checked
-          : ["lateFeeAmount", "gracePeriodDays"].includes(name)
+          : ["lateFeeAmount", "gracePeriodDays", "billingReminderDay", "billingDueDay", "meterReadingDay"].includes(name)
           ? Number(value)
           : value,
     }));
@@ -115,7 +119,7 @@ export default function PropertyConfiguration({
         setSubmitting(true);
 
         try {
-            await axios.post("/api/properties/configuration", {
+            await axios.post("/api/landlord/properties/configuration", {
                 property_id: propertyId,
                 ...configForm,
             });
@@ -191,118 +195,168 @@ export default function PropertyConfiguration({
       {/* Notifications Section */}
       <div
         id="notifications-section"
-        className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+        className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
       >
-        <div className="bg-gradient-to-r from-blue-50 to-emerald-50 px-5 py-4 border-b border-gray-200">
+        <div className="bg-gradient-to-r from-blue-50 to-emerald-50 px-4 sm:px-5 py-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
               <Bell className="w-5 h-5 text-white" />
             </div>
             <div>
               <h3 className="text-base font-bold text-gray-900">
-                Property Notifications
+                Notification & Reminders
               </h3>
               <p className="text-xs text-gray-600 mt-0.5">
-                Configure billing reminders and notification channels
+                Set billing schedule dates
               </p>
             </div>
           </div>
         </div>
 
-        <div className="p-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div id="reminder-day">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                Reminder Day of Month
-              </label>
-              <select
-                name="billingReminderDay"
-                value={configForm.billingReminderDay}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                  <option key={day} value={day}>
-                    {day}
-                    {day === 1
-                      ? "st"
-                      : day === 2
-                      ? "nd"
-                      : day === 3
-                      ? "rd"
-                      : "th"}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div id="due-day">
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5 uppercase tracking-wider">
-                Billing Due Date (Day of Month)
-              </label>
-              <select
-                name="billingDueDay"
-                value={configForm.billingDueDay}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                  <option key={day} value={day}>
-                    {day}
-                    {day === 1
-                      ? "st"
-                      : day === 2
-                      ? "nd"
-                      : day === 3
-                      ? "rd"
-                      : "th"}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1.5">
-                Rent billings will be due every{" "}
-                <b>{configForm.billingDueDay}</b>
-                {configForm.billingDueDay === 1
-                  ? "st"
-                  : configForm.billingDueDay === 2
-                  ? "nd"
-                  : configForm.billingDueDay === 3
-                  ? "rd"
-                  : "th"}{" "}
-                of the month.
+        <div className="p-4 sm:p-5 space-y-5">
+          {/* Info Banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-800">
+                <span className="font-semibold">For Submetered Properties:</span> Make sure to set the meter reading date to include utility charges in monthly billing. Without this date, only rent charges will be generated.
               </p>
             </div>
+          </div>
 
-            <div id="notification-channels" className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wider">
-                Notification Channels
+          {/* Date Pickers Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Meter Reading Day */}
+            <div id="meter-reading-day" className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Meter Reading Day
               </label>
-              <div className="flex gap-6">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="notifyEmail"
-                    checked={configForm.notifyEmail}
-                    onChange={handleChange}
-                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 font-medium">
-                    Email
-                  </span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="notifySms"
-                    checked={configForm.notifySms}
-                    onChange={handleChange}
-                    className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
-                  />
-                  <span className="ml-2 text-sm text-gray-700 font-medium">
-                    SMS
-                  </span>
-                </label>
+              <div className="relative">
+                <select
+                  name="meterReadingDay"
+                  value={configForm.meterReadingDay}
+                  onChange={handleChange}
+                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                      {day === 1
+                        ? "st"
+                        : day === 2
+                        ? "nd"
+                        : day === 3
+                        ? "rd"
+                        : "th"}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <Droplets className="w-4 h-4 text-gray-400" />
+                </div>
               </div>
+              <p className="text-xs text-gray-500">Day to record meter readings</p>
+            </div>
+
+            {/* Billing Generation Day */}
+            <div id="reminder-day" className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Billing Generation Day
+              </label>
+              <div className="relative">
+                <select
+                  name="billingReminderDay"
+                  value={configForm.billingReminderDay}
+                  onChange={handleChange}
+                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                      {day === 1
+                        ? "st"
+                        : day === 2
+                        ? "nd"
+                        : day === 3
+                        ? "rd"
+                        : "th"}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <Bell className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">Day to generate monthly billing</p>
+            </div>
+
+            {/* Due Date Day */}
+            <div id="due-day" className="space-y-2">
+              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                Billing Due Date
+              </label>
+              <div className="relative">
+                <select
+                  name="billingDueDay"
+                  value={configForm.billingDueDay}
+                  onChange={handleChange}
+                  className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 pr-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                >
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                      {day === 1
+                        ? "st"
+                        : day === 2
+                        ? "nd"
+                        : day === 3
+                        ? "rd"
+                        : "th"}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                  <DollarSign className="w-4 h-4 text-gray-400" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500">Payment due date of each month</p>
+            </div>
+          </div>
+
+          
+
+          {/* Notification Channels */}
+          <div id="notification-channels" className="pt-4 border-t border-gray-100">
+            <label className="block text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wider">
+              Notification Channels
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200">
+                <input
+                  type="checkbox"
+                  name="notifyEmail"
+                  checked={configForm.notifyEmail}
+                  onChange={handleChange}
+                  className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                />
+                <Mail className="w-5 h-5 text-gray-600" />
+                <span className="text-sm text-gray-700 font-medium">
+                  Email
+                </span>
+              </label>
+              <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200">
+                <input
+                  type="checkbox"
+                  name="notifySms"
+                  checked={configForm.notifySms}
+                  onChange={handleChange}
+                  className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4"
+                />
+                <MessageSquare className="w-5 h-5 text-gray-600" />
+                <span className="text-sm text-gray-700 font-medium">
+                  SMS
+                </span>
+              </label>
             </div>
           </div>
         </div>
