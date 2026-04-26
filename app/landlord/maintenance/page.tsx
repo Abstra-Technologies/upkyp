@@ -547,7 +547,7 @@ export default function MaintenanceRequestPage() {
                             </motion.button>
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="hidden md:flex gap-2">
                         <div className="relative flex-1 min-w-0">
                             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
@@ -631,38 +631,56 @@ export default function MaintenanceRequestPage() {
                     </p>
                 </div>
 
-                {/* Board */}
+                {/* Board - Desktop Only */}
                 <div
-                    className="px-3 md:px-6 py-2 md:py-4 pb-24 md:pb-8"
+                    className="hidden md:block px-3 md:px-6 py-2 md:py-4 pb-24 md:pb-8"
                     style={{ maxWidth: "100%", overflowX: "hidden" }}
                 >
-                    {/* Desktop kanban - shown on md+ */}
-                    <div className="hidden md:block">
-                        <div className="md:grid md:grid-cols-5 gap-4">
-                            {KANBAN_COLUMNS.map((col) => (
-                                <KanbanColumn
-                                    key={col.id}
-                                    column={col}
-                                    requests={getColRequests(col)}
-                                    onCardClick={(r) => {
-                                        setSelectedRequest(r);
-                                        setShowDetailsModal(true);
-                                    }}
-                                    onStatusChange={updateRequestStatus}
-                                    onDragStart={handleDragStart}
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    onDragEnd={handleDragEnd}
-                                    isDragOver={dragOverColumn === col.id}
-                                    draggedItem={draggedItem}
-                                />
-                            ))}
-                        </div>
+                    <div className="md:grid md:grid-cols-5 gap-4">
+                        {KANBAN_COLUMNS.map((col) => (
+                            <KanbanColumn
+                                key={col.id}
+                                column={col}
+                                requests={getColRequests(col)}
+                                onCardClick={(r) => {
+                                    setSelectedRequest(r);
+                                    setShowDetailsModal(true);
+                                }}
+                                onStatusChange={updateRequestStatus}
+                                onDragStart={handleDragStart}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                onDragEnd={handleDragEnd}
+                                isDragOver={dragOverColumn === col.id}
+                                draggedItem={draggedItem}
+                            />
+                        ))}
                     </div>
                 </div>
 
-                <div className="block md:hidden">
+                {/* Mobile View */}
+                <div className="block md:hidden -mx-3">
+                    <div className="px-3 mb-3">
+                        <div className="relative min-w-0">
+                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-xl bg-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                            />
+                            {search && (
+                                <button
+                                    onClick={() => setSearch("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5"
+                                >
+                                    <X className="w-4 h-4 text-gray-400" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
                     <MaintenanceMobileView
                         columns={KANBAN_COLUMNS}
                         requests={filtered}
