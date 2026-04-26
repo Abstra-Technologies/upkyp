@@ -1,15 +1,18 @@
+import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
+import {checkExpiringLeases} from "@/utils/cronjobs/leaseCron";
 
-import { checkExpiringLeases } from "@/utils/leaseCron";
-
-export async function POST() {
+export const POST = verifySignatureAppRouter(async (request: Request) => {
     try {
         const count = await checkExpiringLeases();
-        return Response.json({ ok: true, message: `Checked ${count} leases` });
-    } catch (err) {
-
-        return Response.json(// @ts-ignore
-            { ok: false, error: err.message },
+        return new Response(JSON.stringify({ ok: true, message: `Checked ${count} leases` }), { status: 200 });
+    } catch (error: unknown) {
+        console.error("LEASE CHECK ERROR:", error);
+        return new Response(
+            JSON.stringify({
+                ok: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+            }),
             { status: 500 }
         );
     }
-}
+});

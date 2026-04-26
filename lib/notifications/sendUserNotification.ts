@@ -15,7 +15,7 @@ type SendUserNotificationParams = {
     title: string;
     body: string;
     url?: string;
-    conn?: any; // optional transaction connection
+    conn?: any;
 };
 
 export async function sendUserNotification({
