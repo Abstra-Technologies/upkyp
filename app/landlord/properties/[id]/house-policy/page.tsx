@@ -102,7 +102,7 @@ export default function HousePolicyPage() {
             </div>
 
             <div className="bg-white rounded-2xl shadow-lg border p-4 sm:p-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-1">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-1">
                     House Rules & Policies
                 </h1>
                 <p className="text-sm text-gray-500 mb-6">

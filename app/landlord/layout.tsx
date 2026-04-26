@@ -12,33 +12,31 @@ import LoadingScreen from "@/components/loadingScreen";
 import MobileLandlordSidenav from "@/components/navigation/MobileLandlordSidenav";
 
 import {
-  Home,
-  Building,
-  Wallet,
-  ChartArea,
-  LogOut,
-  MessageSquareMore,
-  Calendar,
-  Construction,
-  Megaphone,
-  Menu,
-  Users,
-  Settings,
-  AlertCircle,
-  Handshake,
-  CreditCard,
-  ChevronDown,
-  LayoutDashboard,
-  FolderOpen,
-  Stack,
-  CreditCard2,
-  HelpCircle,
-  BookOpen,
-  ChevronRight,
-} from "lucide-react";
-import useSubscription from "@/hooks/landlord/useSubscription";
-import { IoFileTrayStacked } from "react-icons/io5";
+  IoHome,
+  IoBusiness,
+  IoWallet,
+  IoAnalytics,
+  IoLogOut,
+  IoChatbubbleEllipses,
+  IoCalendar,
+  IoHammer,
+  IoMegaphone,
+  IoMenu,
+  IoPeople,
+  IoSettings,
+  IoAlertCircle,
+  IoHelp,
+  IoCard,
+  IoChevronDown,
+  IoChevronForward,
+  IoGrid,
+  IoFolderOpen,
+  IoLayers,
+  IoBook,
+  IoHelpCircle,
+} from "react-icons/io5";
 import { FaRegFolder } from "react-icons/fa";
+import useSubscription from "@/hooks/landlord/useSubscription";
 
 const NotificationSection = dynamic(
   () => import("@/components/notification/notifCenter"),
@@ -142,44 +140,45 @@ export default function LandlordLayout({
     {
       section: "Overview",
       items: [
-        { id: "nav-dashboard", label: "Dashboard", href: "/landlord/dashboard", icon: Home },
-        { id: "nav-properties", label: "Properties", href: "/landlord/properties", icon: Building },
-        { id: "nav-tenants", label: "My Tenants", href: "/landlord/tenants", icon: Users },
-        { id: "nav-payments", label: "Payments", href: "/landlord/payments", icon: Wallet },
+        { id: "nav-dashboard", label: "Dashboard", href: "/landlord/dashboard", icon: IoHome },
+        { id: "nav-properties", label: "Properties", href: "/landlord/properties", icon: IoBusiness },
+        { id: "nav-tenants", label: "My Tenants", href: "/landlord/tenants", icon: IoPeople },
+        { id: "nav-payments", label: "Payments", href: "/landlord/payments", icon: IoWallet },
       ]
     },
     {
       section: "Operations",
       items: [
-        { id: "nav-workorders", label: "Maintenance", href: "/landlord/maintenance", icon: Construction },
-        { id: "nav-calendar", label: "Calendar", href: "/landlord/calendar", icon: Calendar },
-        { id: "nav-announcements", label: "Announcements", href: "/landlord/announcements", icon: Megaphone },
+        { id: "nav-announcements", label: "Announcements", href: "/landlord/announcement", icon: IoMegaphone },
+        { id: "nav-workorders", label: "Maintenance", href: "/landlord/maintenance", icon: IoHammer },
+        { id: "nav-calendar", label: "Calendar", href: "/landlord/calendar", icon: IoCalendar },
+
       ]
     },
     {
       section: "Insights",
       items: [
-        { id: "nav-analytics", label: "Analytics", href: "/landlord/analytics/performance", icon: ChartArea },
+        { id: "nav-analytics", label: "Analytics", href: "/landlord/analytics/performance", icon: IoAnalytics },
       ]
     },
     {
       section: "Resources",
       items: [
-        { id: "nav-docs", label: "Documents", href: "/landlord/documents", icon: FolderOpen },
+        { id: "nav-docs", label: "Documents", href: "/landlord/documents", icon: IoFolderOpen },
       ]
     },
     {
-      section: "Account",
+      section: "Platform",
       items: [
-        { id: "nav-upkyp", label: "Upkyp Stack", href: "/upkyp_stack", icon: Stack },
-        { id: "nav-subscription", label: "Subscription", href: "/commons/landlord/subscription", icon: CreditCard2 },
+        { id: "nav-upkyp", label: "Upkyp Stack", href: "/upkyp_stack", icon: IoLayers },
+        { id: "nav-subscription", label: "Subscription", href: "/commons/landlord/subscription", icon: IoCard },
       ]
     },
     {
       section: "Support",
       items: [
-        { id: "nav-help", label: "Help Center", href: "/public/help", icon: HelpCircle },
-        { id: "nav-guide", label: "User Guide", href: "/public/guide", icon: BookOpen },
+        { id: "nav-help", label: "Help Center", href: "/public/help", icon: IoHelpCircle },
+        { id: "nav-guide", label: "User Guide", href: "/public/guide", icon: IoBook },
       ]
     },
   ];
@@ -198,23 +197,23 @@ export default function LandlordLayout({
   return (
     <div className="flex min-h-screen bg-gray-50 scrollbar-none">
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-white border-r border-gray-200 z-40">
+      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 border-r border-gray-800 z-40">
         <div className="flex flex-col h-full">
           {/* HEADER / BRAND */}
-          <div className="px-4 py-5 border-b border-gray-100">
+          <div className="px-4 py-5 border-b border-gray-800">
             <Link id="nav-brand" href="/landlord/dashboard" className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center shadow-sm">
-                <LayoutDashboard className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg">
+                <IoGrid className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-base font-bold text-gray-900">Upkyp</h1>
-                <p className="text-[10px] text-gray-500">Landlord Portal</p>
+                <h1 className="text-base font-bold text-white">Upkyp</h1>
+                <p className="text-[10px] text-gray-400">Landlord Portal</p>
               </div>
             </Link>
           </div>
 
           {/* USER PROFILE */}
-          <div className="px-4 py-4 border-b border-gray-100">
+          <div className="px-4 py-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <Image
@@ -225,12 +224,12 @@ export default function LandlordLayout({
                   alt="Profile"
                   width={36}
                   height={36}
-                  className="rounded-lg object-cover border border-gray-200"
+                  className="rounded-lg object-cover border border-gray-700"
                 />
-                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-gray-900"></div>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-gray-900 truncate">
+                <p className="font-semibold text-sm text-white truncate">
                   {user.firstName && user.lastName
                     ? `${user.firstName} ${user.lastName}`
                     : user?.companyName || user.email}
@@ -238,10 +237,10 @@ export default function LandlordLayout({
                 <span
                   className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                     subscription?.plan_name === "pro"
-                      ? "bg-emerald-100 text-emerald-700"
+                      ? "bg-emerald-500/20 text-emerald-400"
                       : subscription?.plan_name === "enterprise"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-gray-100 text-gray-600"
+                        ? "bg-purple-500/20 text-purple-400"
+                        : "bg-gray-700 text-gray-300"
                   }`}
                 >
                   {loadingSubscription
@@ -251,54 +250,54 @@ export default function LandlordLayout({
                       : "FREE"}
                 </span>
               </div>
-              <Link href="/commons/profile" className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors">
-                <Settings className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+              <Link href="/commons/profile" className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors">
+                <IoSettings className="w-4 h-4 text-gray-400 hover:text-white" />
               </Link>
             </div>
           </div>
 
           {/* PROPERTY SELECTOR */}
-          <div className="px-3 py-3 border-b border-gray-100">
+          <div className="px-3 py-3 border-b border-gray-800">
             <button
               onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 hover:border-gray-300 transition-all text-left"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-800 hover:border-gray-600 transition-all text-left"
             >
-              <Building className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <IoBusiness className="w-4 h-4 text-gray-400 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-700 truncate">
+                <p className="text-xs font-medium text-gray-200 truncate">
                   {selectedProperty ? selectedProperty.property_name : "Select Property"}
                 </p>
               </div>
-              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+              <IoChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
             </button>
 
             {/* Dropdown */}
             {showPropertyDropdown && (
-              <div className="absolute left-3 right-3 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-56 overflow-y-auto">
+              <div className="absolute left-3 right-3 mt-1 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-56 overflow-y-auto">
                 {loadingProperties ? (
-                  <div className="p-3 text-center text-xs text-gray-500">Loading...</div>
+                  <div className="p-3 text-center text-xs text-gray-400">Loading...</div>
                 ) : properties.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-gray-500">No properties yet</div>
+                  <div className="p-3 text-center text-xs text-gray-400">No properties yet</div>
                 ) : (
                   properties.map((prop) => (
                     <button
                       key={prop.property_id}
                       onClick={() => handlePropertySelect(prop)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0 ${
-                        selectedProperty?.property_id === prop.property_id ? "bg-blue-50" : ""
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 ${
+                        selectedProperty?.property_id === prop.property_id ? "bg-blue-600/20" : ""
                       }`}
                     >
-                      <div className="w-6 h-6 rounded bg-blue-100 flex items-center justify-center flex-shrink-0">
-                        <Building className="w-3 h-3 text-blue-600" />
+                      <div className="w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                        <IoBusiness className="w-3 h-3 text-blue-400" />
                       </div>
-                      <p className="text-xs font-medium text-gray-800 truncate">{prop.property_name}</p>
+                      <p className="text-xs font-medium text-gray-200 truncate">{prop.property_name}</p>
                     </button>
                   ))
                 )}
                 <Link
                   href="/landlord/properties"
                   onClick={() => setShowPropertyDropdown(false)}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium text-blue-400 hover:bg-gray-700 transition-colors border-t border-gray-700"
                 >
                   + Add New Property
                 </Link>
@@ -314,12 +313,12 @@ export default function LandlordLayout({
                 <div key={group.section} className="mb-4">
                   <button
                     onClick={() => toggleSection(group.section)}
-                    className="w-full flex items-center justify-between px-2 mb-1.5 group"
+                    className="w-full flex items-center justify-between px-2 mb-1.5 group hover:bg-gray-800/50 rounded-lg p-1 -mx-1 transition-colors"
                   >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 group-hover:text-gray-300">
                       {group.section}
                     </span>
-                    <ChevronRight className={`w-3 h-3 text-gray-300 transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
+                    <IoChevronForward className={`w-3 h-3 text-gray-600 group-hover:text-gray-400 transition-all duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
                   </button>
                   {!isCollapsed && group.items.map(({ id, label, href, icon: Icon }) => {
                     const active = pathname === href || (href !== "/landlord/dashboard" && pathname.startsWith(href + "/"));
@@ -328,7 +327,7 @@ export default function LandlordLayout({
                       return (
                         <div
                           key={href}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-50 cursor-not-allowed text-gray-400"
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-50 cursor-not-allowed text-gray-500"
                           title="Verify your email first"
                         >
                           <Icon className="w-4 h-4" />
@@ -342,13 +341,13 @@ export default function LandlordLayout({
                         key={href}
                         id={id}
                         href={href}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 ${
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 group ${
                           active
-                            ? "bg-blue-600 text-white font-medium shadow-sm"
-                            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                            ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-medium shadow-lg shadow-blue-500/20"
+                            : "text-gray-300 hover:bg-gray-800 hover:text-white"
                         }`}
                       >
-                        <Icon className={`w-4 h-4 ${active ? "" : "text-gray-400"}`} />
+                        <Icon className={`w-4 h-4 transition-colors ${active ? "" : "text-gray-500 group-hover:text-gray-300"}`} />
                         <span>{label}</span>
                       </Link>
                     );
@@ -359,15 +358,15 @@ export default function LandlordLayout({
           </nav>
 
           {/* FOOTER */}
-          <div className="p-3 border-t border-gray-100">
+          <div className="p-3 border-t border-gray-800">
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors"
             >
-              <LogOut className="w-4 h-4" />
+              <IoLogOut className="w-4 h-4" />
               <span>Sign Out</span>
             </button>
-            <p className="text-center text-[10px] text-gray-400 mt-2">
+            <p className="text-center text-[10px] text-gray-600 mt-2">
               © {new Date().getFullYear()} UpKyp
             </p>
           </div>
@@ -381,7 +380,7 @@ export default function LandlordLayout({
       >
         <Link href="/landlord/dashboard" className="flex items-center gap-2">
           <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-            <LayoutDashboard className="w-4 h-4 text-white" />
+            <IoGrid className="w-4 h-4 text-white" />
           </div>
           <h1 className="text-sm font-bold text-white">Upkyp</h1>
         </Link>
@@ -392,7 +391,7 @@ export default function LandlordLayout({
             onClick={() => setIsSidebarOpen(true)}
             className="p-1.5 rounded-lg hover:bg-white/10"
           >
-            <Menu className="w-5 h-5 text-white" />
+            <IoMenu className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
@@ -419,7 +418,7 @@ export default function LandlordLayout({
           <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl">
             <div className="text-center mb-4">
               <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-7 h-7 text-red-600" />
+                <IoAlertCircle className="w-7 h-7 text-red-600" />
               </div>
               <h3 className="font-bold text-lg">Confirm Logout</h3>
               <p className="text-sm text-gray-600 mt-1">

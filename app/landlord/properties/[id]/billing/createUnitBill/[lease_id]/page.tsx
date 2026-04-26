@@ -101,7 +101,7 @@ export default function CreateUnitBill() {
               <Receipt className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
                 Billing Statement
               </h1>
               <div className="flex items-center gap-1.5 text-xs text-gray-500 truncate">

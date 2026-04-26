@@ -512,7 +512,7 @@ export default function MaintenanceRequestPage() {
                             </div>
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <h1 className="text-base sm:text-lg lg:text-2xl font-bold text-gray-900 truncate">
+                                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
                                         Work Orders
                                     </h1>
                                     <span className="text-[11px] sm:text-xs lg:text-sm text-gray-400">

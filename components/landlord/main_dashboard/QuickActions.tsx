@@ -110,18 +110,7 @@ export default function QuickActions({
     ];
 
     const mobileActions = [
-        {
-            label: "Payouts",
-            href: "/landlord/payouts",
-            icon: Wallet,
-            gradient: "from-cyan-500 to-blue-500",
-        },
-        {
-            label: "My Profile",
-            href: "/commons/profile",
-            icon: UserPen,
-            gradient: "from-blue-500 to-indigo-500",
-        },
+
         {
             label: "Properties",
             href: "/landlord/properties",
@@ -130,10 +119,17 @@ export default function QuickActions({
         },
         {
             label: "My Tenants",
-            href: "/landlord/list_of_tenants",
+            href: "/landlord/tenants",
             icon: Users,
             gradient: "from-purple-500 to-pink-500",
         },
+        {
+            label: "Payouts",
+            href: "/landlord/payouts",
+            icon: Wallet,
+            gradient: "from-cyan-500 to-blue-500",
+        },
+
         {
             label: "Announcements",
             href: "/landlord/announcement",
@@ -152,12 +148,13 @@ export default function QuickActions({
             icon: Calendar,
             gradient: "from-rose-500 to-pink-500",
         },
-        {
-            label: "Transactions",
-            href: "/landlord/payments",
-            icon: ReceiptText,
-            gradient: "from-amber-500 to-orange-500",
-        },
+
+        // {
+        //     label: "Transactions",
+        //     href: "/landlord/payments",
+        //     icon: ReceiptText,
+        //     gradient: "from-amber-500 to-orange-500",
+        // },
         {
             label: "Work Orders",
             href: "/landlord/maintenance-request",
@@ -169,6 +166,12 @@ export default function QuickActions({
             icon: DollarSign,
             gradient: "from-rose-500 to-pink-500",
             onClick: () => setExpenseOpen(true),
+        },
+        {
+            label: "My Profile",
+            href: "/commons/profile",
+            icon: UserPen,
+            gradient: "from-blue-500 to-indigo-500",
         },
 
     ];

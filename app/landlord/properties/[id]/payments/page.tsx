@@ -154,7 +154,7 @@ export default function PropertyPaymentsPage() {
                     <ReceiptText className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold">Property Payments</h1>
+                    <h1 className="text-xl md:text-2xl font-bold">Property Payments</h1>
                     <p className="text-sm text-gray-600">
                         Complete payment history
                     </p>

@@ -181,7 +181,7 @@ export default function PropertyLeasesPage() {
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg md:text-2xl font-bold text-gray-900">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">
                 Active Leases
               </h1>
               <p className="text-xs text-gray-500">

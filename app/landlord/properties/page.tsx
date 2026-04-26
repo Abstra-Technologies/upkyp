@@ -202,7 +202,7 @@ export default function PropertiesPage() {
                         <Building2 className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">
                             Properties Portfolio
                         </h1>
                         <p className="text-xs sm:text-sm text-gray-600">

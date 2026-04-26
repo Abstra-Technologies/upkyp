@@ -190,8 +190,7 @@ export default function PaymentsPage() {
 
                     {/* Text Content */}
                     <div className="min-w-0">
-                        <h1 className="text-lg sm:text-2xl lg:text-3xl
-                       font-bold text-gray-900 leading-tight">
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
                             Payment Transactions
                         </h1>
 

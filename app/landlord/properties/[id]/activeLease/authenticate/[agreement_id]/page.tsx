@@ -103,7 +103,7 @@ export default function AuthenticateLeasePage() {
                 {/* HEADER */}
                 <div className="flex items-center justify-center mb-6">
                     <FileText className="w-6 h-6 text-blue-600 mr-2" />
-                    <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    <h1 className="text-xl md:text-2xl font-bold text-gray-800">
                         Lease Authentication
                     </h1>
                 </div>

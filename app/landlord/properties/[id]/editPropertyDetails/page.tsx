@@ -112,7 +112,7 @@ export default function EditProperty() {
         <div className="min-h-screen bg-gray-50 pb-24">
 
             <div className="px-4 pt-4 pb-2">
-                <h1 className="text-xl font-bold">Edit Property</h1>
+                <h1 className="text-xl md:text-2xl font-bold">Edit Property</h1>
                 <p className="text-sm text-gray-500">
                     Update your property details
                 </p>

@@ -399,7 +399,7 @@ export default function UnitListingForm() {
           <div className="mb-4 sm:mb-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
                   Create New Unit:{" "}
                   <span className="bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
                     {propertyName}

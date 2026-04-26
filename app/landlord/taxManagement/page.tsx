@@ -148,7 +148,7 @@ export default function LandlordTaxProfilePage() {
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm sm:shadow-lg p-4 sm:p-6 md:p-8 border border-gray-200 mb-4 sm:mb-6">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800 mb-1 sm:mb-2">
             Tax Information
           </h1>
           <p className="text-xs sm:text-sm text-gray-500">

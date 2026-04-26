@@ -162,7 +162,7 @@ export default function ExtendOrRenewLeasePage() {
                     ) : (
                         <CalendarDays className="w-6 h-6 text-emerald-600" />
                     )}
-                    <h1 className="text-xl font-bold">
+                    <h1 className="text-xl md:text-2xl font-bold">
                         {mode === "renew" ? "Renew Lease" : "Extend Lease"}
                     </h1>
                 </div>

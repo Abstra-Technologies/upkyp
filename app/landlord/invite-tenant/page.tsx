@@ -153,7 +153,7 @@ export default function InviteTenantPage() {
                         <div className="mx-auto w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3">
                             <UserPlus className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                         </div>
-                        <h1 className="text-lg sm:text-2xl font-bold">Invite Tenant</h1>
+                        <h1 className="text-xl md:text-2xl font-bold">Invite Tenant</h1>
                         <p className="text-gray-500 text-xs sm:text-sm mt-1">
                             Send an invitation with lease details
                         </p>

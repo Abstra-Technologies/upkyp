@@ -312,7 +312,7 @@ export default function LeaseDetailsPage() {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+                  <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
                     {lease.property_name}
                   </h1>
                   <span

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { X, LogOut, Settings, Building, ChevronDown } from "lucide-react";
+import { IoClose, IoLogOut, IoSettings, IoBusiness, IoChevronDown } from "react-icons/io5";
 
 interface Property {
   property_id: number;
@@ -77,7 +77,7 @@ export default function MobileLandlordSidenav({
                         <span className="text-[10px] text-white/70 font-medium">Landlord Portal</span>
                     </div>
                     <button onClick={onClose}>
-                        <X className="w-5 h-5" />
+                        <IoClose className="w-5 h-5" />
                     </button>
                 </div>
 
@@ -108,7 +108,7 @@ export default function MobileLandlordSidenav({
                             </div>
 
                             <Link href="/commons/profile" onClick={onClose}>
-                                <Settings className="w-4 h-4 text-gray-500 hover:text-blue-600" />
+                                <IoSettings className="w-4 h-4 text-gray-500 hover:text-blue-600" />
                             </Link>
                         </div>
                     </div>
@@ -122,13 +122,13 @@ export default function MobileLandlordSidenav({
                             onClick={() => setShowPropertyDropdown && setShowPropertyDropdown(!showPropertyDropdown)}
                             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-all text-left"
                         >
-                            <Building className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                            <IoBusiness className="w-3 h-3 text-gray-500 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium text-gray-800 truncate">
                                     {selectedProperty ? selectedProperty.property_name : "Select Property"}
                                 </p>
                             </div>
-                            <ChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+                            <IoChevronDown className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
                         </button>
 
                         {/* Dropdown */}
@@ -151,7 +151,7 @@ export default function MobileLandlordSidenav({
                                             }`}
                                         >
                                             <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
-                                                <Building className="w-3 h-3 text-blue-600" />
+                                                <IoBusiness className="w-3 h-3 text-blue-600" />
                                             </div>
                                             <p className="text-xs font-medium text-gray-800 truncate">{prop.property_name}</p>
                                         </button>
@@ -220,7 +220,7 @@ export default function MobileLandlordSidenav({
                             }}
                             className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 text-white hover:bg-red-700 transition-colors font-medium text-xs shadow-md"
                         >
-                            <LogOut className="w-4 h-4" />
+                            <IoLogOut className="w-4 h-4" />
                             Logout
                         </button>
                     </div>

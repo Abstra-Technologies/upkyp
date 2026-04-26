@@ -330,7 +330,7 @@ const BookingAppointment = () => {
               <Calendar className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">My Calendar</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">My Calendar</h1>
               <p className="text-gray-600 text-sm">
                 Manage property visit requests
               </p>
