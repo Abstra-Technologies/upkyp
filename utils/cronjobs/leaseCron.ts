@@ -1,6 +1,6 @@
-import { db } from "lib/db";
-import { decryptData } from "crypto/encrypt";
-import { sendUserNotification } from "lib/notifications/sendUserNotification";
+import { db } from "@/lib/db";
+import { decryptData } from "@/crypto/encrypt";
+import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 
 export const checkExpiringLeases = async () => {
   const [expiringLeases]: any = await db.execute(`
