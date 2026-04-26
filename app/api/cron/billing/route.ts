@@ -1,15 +1,10 @@
+import { verifySignature } from "@upstash/qstash/nextjs";
+import {sendBillingNotifications} from "@/utils/cronjobs/billingCron";
 
-import sendBillingNotifications from "@/utils/billingCron";
+export const POST = verifySignature(async () => {
+    console.log("Running billing notification cron...");
 
-export async function POST() {
-    try {
-        const result = await sendBillingNotifications();
-        return Response.json({ ok: true, message: result });
-    } catch (error) {
+    await sendBillingNotifications();
 
-        return Response.json(// @ts-ignore
-            { ok: false, error: error.message },
-            { status: 500 }
-        );
-    }
-}
+    return Response.json({ success: true });
+});

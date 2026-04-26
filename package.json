@@ -34,6 +34,7 @@
     "@photo-sphere-viewer/core": "^5.14.1",
     "@react-email/components": "^1.0.2",
     "@react-email/render": "^2.0.0",
+    "@upstash/qstash": "^2.10.1",
     "@upstash/redis": "^1.35.3",
     "@vercel/analytics": "^2.0.1",
     "@vercel/edge-config": "^1.4.3",
