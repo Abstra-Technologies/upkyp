@@ -183,60 +183,30 @@ export default function InstallPrompt() {
                     </motion.div>
 
                     {/* =========================
-             MOBILE BANNER (Top)
-          ========================== */}
+              MOBILE FAB (Bottom Left)
+           ========================== */}
                     <motion.div
-                        initial={{ opacity: 0, y: -100 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -100 }}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0 }}
                         transition={{
                             type: "spring",
                             damping: 25,
                             stiffness: 260,
                         }}
-                        className="sm:hidden fixed top-0 left-0 right-0 z-[90] safe-area-top"
+                        className="sm:hidden fixed bottom-6 left-4 z-[90]"
                     >
-                        <div className="bg-gradient-to-r from-blue-600 to-emerald-500 px-4 py-3 shadow-xl">
-                            <div className="flex items-center gap-3">
-
-                                {/* Icon */}
-                                <div className="w-11 h-11 bg-white/20 backdrop-blur rounded-2xl flex items-center justify-center">
-                                    <Smartphone className="w-5 h-5 text-white" />
-                                </div>
-
-                                {/* Text */}
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold text-white">
-                                        Install Upkyp
-                                    </p>
-                                    <p className="text-xs text-white/80">
-                                        Add to your home screen
-                                    </p>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleDismiss}
-                                        className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-
-                                    <button
-                                        onClick={handleInstallClick}
-                                        disabled={isInstalling}
-                                        className="px-4 py-2 text-sm font-semibold text-blue-600 bg-white rounded-xl hover:bg-gray-100 shadow transition flex items-center gap-2 disabled:opacity-70"
-                                    >
-                                        {isInstalling ? (
-                                            <div className="w-4 h-4 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin" />
-                                        ) : (
-                                            "Install"
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                        <button
+                            onClick={handleInstallClick}
+                            disabled={isInstalling}
+                            className="w-12 h-12 bg-gradient-to-r from-blue-600 to-emerald-500 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-70"
+                        >
+                            {isInstalling ? (
+                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            ) : (
+                                <Download className="w-5 h-5" />
+                            )}
+                        </button>
                     </motion.div>
                 </>
             )}

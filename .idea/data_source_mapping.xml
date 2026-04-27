@@ -4,9 +4,5 @@
     <file url="file://$PROJECT_DIR$/app/api/analytics/landlord/getMaintenanceStatuses/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/analytics/landlord/getRevenuePerformance/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/payments/years/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
-    <file url="file://$PROJECT_DIR$/app/api/landlord/properties/policy/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
-    <file url="file://$PROJECT_DIR$/app/api/tenant/activeRent/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
-    <file url="file://$PROJECT_DIR$/utils/cronjobs/billingCron.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
-    <file url="file://$PROJECT_DIR$/utils/cronjobs/leaseCron.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
   </component>
 </project>
