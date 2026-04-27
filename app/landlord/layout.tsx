@@ -379,7 +379,7 @@ export default function LandlordLayout({
       {/* MOBILE HEADER */}
       <div
         id="mobile-header"
-        className="lg:hidden relative h-12 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
+        className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
         <Link href="/landlord/dashboard" className="flex items-center gap-2">
           <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
@@ -446,7 +446,7 @@ export default function LandlordLayout({
         </div>
       )}
       {/* MAIN */}
-      <main className="flex-1 lg:pl-64 min-h-screen scrollbar-none transition-all duration-300">{children}</main>
+      <main className="flex-1 lg:pl-64 pt-14 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">{children}</main>
     </div>
   );
 }
