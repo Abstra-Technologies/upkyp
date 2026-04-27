@@ -62,6 +62,8 @@ export default function PaymentSummaryCard({ landlord_id, onClick }: Props) {
 
     const currentMonthNum = currentMonth + 1;
     const prevMonthNum = prevMonth + 1;
+    const currentMonthDays = new Date(currentYear, currentMonthNum, 0).getDate();
+    const prevMonthDays = new Date(prevYear, prevMonthNum, 0).getDate();
 
     /* Current month receivables */
     const currentStatsKey = landlord_id
@@ -84,7 +86,7 @@ export default function PaymentSummaryCard({ landlord_id, onClick }: Props) {
 
     /* Current month expenses */
     const currentExpensesKey = landlord_id
-        ? `/api/landlord/expenses${selectedPropertyId !== "all" ? `?property_id=${selectedPropertyId}` : ""}&start_date=${currentYear}-${String(currentMonthNum).padStart(2, "0")}-01&end_date=${currentYear}-${String(currentMonthNum).padStart(2, "0")}-31&page=1&limit=1`
+        ? `/api/landlord/expenses${selectedPropertyId !== "all" ? `?property_id=${selectedPropertyId}` : ""}&start_date=${currentYear}-${String(currentMonthNum).padStart(2, "0")}-01&end_date=${currentYear}-${String(currentMonthNum).padStart(2, "0")}-${currentMonthDays}&page=1&limit=1`
         : null;
 
     const { data: currentExpensesData } = useSWR(currentExpensesKey, fetcher, {
@@ -94,7 +96,7 @@ export default function PaymentSummaryCard({ landlord_id, onClick }: Props) {
 
     /* Previous month expenses */
     const prevExpensesKey = landlord_id
-        ? `/api/landlord/expenses${selectedPropertyId !== "all" ? `?property_id=${selectedPropertyId}` : ""}&start_date=${prevYear}-${String(prevMonthNum).padStart(2, "0")}-01&end_date=${prevYear}-${String(prevMonthNum).padStart(2, "0")}-31&page=1&limit=1`
+        ? `/api/landlord/expenses${selectedPropertyId !== "all" ? `?property_id=${selectedPropertyId}` : ""}&start_date=${prevYear}-${String(prevMonthNum).padStart(2, "0")}-01&end_date=${prevYear}-${String(prevMonthNum).padStart(2, "0")}-${prevMonthDays}&page=1&limit=1`
         : null;
 
     const { data: prevExpensesData } = useSWR(prevExpensesKey, fetcher, {

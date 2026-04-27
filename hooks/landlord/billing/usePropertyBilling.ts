@@ -25,7 +25,6 @@ export function usePropertyBilling(property_id: string) {
     const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const [configMissing, setConfigMissing] = useState(false);
-    const [configModal, setConfigModal] = useState(false);
     const [payoutMissing, setPayoutMissing] = useState(false);
 
     const [billingForm, setBillingForm] = useState({
@@ -74,19 +73,26 @@ export function usePropertyBilling(property_id: string) {
 
     const checkPropertyConfig = async () => {
         try {
-            const res = await axios.get("/api/properties/configuration", {
-                params: { id: property_id },
-            });
+            const [configRes, propRes] = await Promise.all([
+                axios.get("/api/landlord/properties/configuration", { params: { id: property_id } }),
+                axios.get("/api/propertyListing/getPropDetailsById", { params: { property_id } }),
+            ]);
 
-            if (!res.data?.billingDueDay) {
+            const config = configRes.data;
+            const property = propRes.data.property;
+            const isSubmetered = property?.is_submetered === 1 || property?.is_submetered === true;
+
+            const missingDueDay = config?.billingDueDay == null;
+            const missingReminderDay = config?.billingReminderDay == null;
+            const missingMeterDate = isSubmetered && config?.meter_reading_date == null;
+
+            if (missingDueDay || missingReminderDay || missingMeterDate) {
                 setConfigMissing(true);
-                setConfigModal(true);
             } else {
                 setConfigMissing(false);
             }
         } catch {
             setConfigMissing(true);
-            setConfigModal(true);
         }
     };
 
@@ -237,7 +243,6 @@ export function usePropertyBilling(property_id: string) {
         billingForm,
         hasBillingForMonth,
         configMissing,
-        configModal,
         payoutMissing,
         bills,
         loadingBills,
@@ -246,7 +251,6 @@ export function usePropertyBilling(property_id: string) {
 
         setIsModalOpen,
         setOpenMeterList,
-        setConfigModal,
         setBillingData,
         setHasBillingForMonth,
 
