@@ -1,6 +1,6 @@
 {
-  "name": "Upkyp – Property Management & Rental Platform ",
-  "short_name": "Upkyp – Integrated Property Rental Listing & Management Platform",
+  "name": "Upkyp ",
+  "short_name": "Upkyp",
   "description": "Upkyp helps landlords and renters connect with ease. Browse properties, manage rentals, track billing, send notifications, and automate landlord workflows.",
   "start_url": "/",
   "scope": "/",

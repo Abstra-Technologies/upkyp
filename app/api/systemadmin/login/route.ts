@@ -160,11 +160,11 @@ export async function POST(req: NextRequest) {
             permissions: user.permissions
                 ? user.permissions.split(",").map((p: string) => p.trim())
                 : [],
-
-            // 👇 PASS IP CONTEXT TO MIDDLEWARE
             ip_hash: ipHash,
         })
             .setProtectedHeader({ alg: "HS256" })
+            .setIssuer(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setAudience(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
             .setIssuedAt()
             .setExpirationTime("2h")
             .setSubject(user.admin_id.toString())

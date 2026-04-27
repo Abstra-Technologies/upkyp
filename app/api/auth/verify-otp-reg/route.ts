@@ -152,7 +152,11 @@ export async function POST(req: NextRequest) {
 
         const newToken = await new SignJWT(newTokenPayload)
             .setProtectedHeader({ alg: "HS256" })
+            .setIssuer(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setAudience(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setIssuedAt()
             .setExpirationTime("2h")
+            .setSubject(user_id)
             .sign(secret);
 
         await connection.commit();

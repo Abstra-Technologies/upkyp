@@ -177,7 +177,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
         let payload: TokenPayload;
         try {
             const { payload: verifiedPayload } = await jwtVerify(token, secret, {
-                issuer: process.env.NEXT_PUBLIC_BASE_URL || "upkyp",
+                issuer: process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com",
+                audience: process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com",
             });
             payload = verifiedPayload as unknown as TokenPayload;
         } catch (jwtError) {
@@ -293,9 +294,10 @@ export async function createSecureToken(
 
     const token = await new SignJWT({
         ...payload,
-        iss: process.env.NEXT_PUBLIC_BASE_URL || "upkyp",
     })
         .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+        .setIssuer(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+        .setAudience(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
         .setIssuedAt()
         .setExpirationTime(`${Math.floor(expiresInSeconds)}s`)
         .setSubject(payload.user_id)

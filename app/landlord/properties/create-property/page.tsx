@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Building2, Loader2, CheckCircle, MapPin, FileText, Ruler, Heart, Zap, ImagePlus } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -24,6 +24,8 @@ const sections = [
 
 export default function CreatePropertyPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const isFromOnboarding = searchParams.get("onboarding") === "true";
     const { user, fetchSession } = useAuthStore();
     const { property, photos, reset } = usePropertyStore();
 
@@ -142,10 +144,10 @@ export default function CreatePropertyPage() {
                     </p>
                     <div className="flex flex-col gap-3">
                         <button
-                            onClick={() => router.push(`/landlord/properties/${createdPropertyId}`)}
+                            onClick={() => isFromOnboarding ? router.push("/landlord/onboarding") : router.push(`/landlord/properties/${createdPropertyId}`)}
                             className={`w-full py-3 ${GRADIENT_PRIMARY} text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all`}
                         >
-                            View Property
+                            {isFromOnboarding ? "Continue Setup" : "View Property"}
                         </button>
                         <button
                             onClick={() => {
@@ -157,10 +159,10 @@ export default function CreatePropertyPage() {
                             Add Another Property
                         </button>
                         <button
-                            onClick={() => router.push("/landlord/properties")}
+                            onClick={() => isFromOnboarding ? router.push("/landlord/onboarding") : router.push("/landlord/properties")}
                             className="w-full py-3 text-gray-500 rounded-xl font-medium text-sm hover:text-gray-700 transition-all"
                         >
-                            Back to Properties
+                            {isFromOnboarding ? "Back to Setup" : "Back to Properties"}
                         </button>
                     </div>
                 </div>
@@ -174,7 +176,7 @@ export default function CreatePropertyPage() {
             <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
                     <button
-                        onClick={() => router.push("/landlord/properties")}
+                        onClick={() => isFromOnboarding ? router.push("/landlord/onboarding") : router.push("/landlord/properties")}
                         className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />

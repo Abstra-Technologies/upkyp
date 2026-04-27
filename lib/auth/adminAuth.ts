@@ -15,7 +15,10 @@ export async function verifyAdmin(request: NextRequest) {
 
         const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
 
-        const { payload } = await jwtVerify(cookies.admin_token, secretKey);
+        const { payload } = await jwtVerify(cookies.admin_token, secretKey, {
+            issuer: process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com",
+            audience: process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com",
+        });
 
         if (!payload.admin_id) {
             return { error: "Invalid token", status: 401 };

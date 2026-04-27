@@ -129,6 +129,8 @@ export default function LandlordLayout({
     [pathname],
   );
 
+  const isOnboarding = pathname === "/landlord/onboarding";
+
   const toggleSection = (title: string) => {
     setCollapsedSections(prev => ({
       ...prev,
@@ -193,6 +195,7 @@ export default function LandlordLayout({
   if (!user || user.userType !== "landlord")
     return <LoadingScreen message="Redirecting..." />;
   if (isInsideProperty) return <main className="min-h-screen">{children}</main>;
+  if (isOnboarding) return <main className="min-h-screen">{children}</main>;
 
   return (
     <div className="flex min-h-screen bg-gray-50 scrollbar-none">

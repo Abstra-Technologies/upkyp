@@ -236,7 +236,7 @@ export async function POST(req: NextRequest) {
         const tokenPayload = {
             user_id,
             userType: role,
-            role: null, // only system admins have role
+            role: null,
             emailVerified,
             status: "pending",
             permissions: [],
@@ -245,7 +245,11 @@ export async function POST(req: NextRequest) {
 
         const token = await new SignJWT(tokenPayload)
             .setProtectedHeader({ alg: "HS256" })
+            .setIssuer(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setAudience(process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setIssuedAt()
             .setExpirationTime("2h")
+            .setSubject(user_id)
             .sign(new TextEncoder().encode(process.env.JWT_SECRET!));
 
         await connection.commit();

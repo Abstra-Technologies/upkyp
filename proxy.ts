@@ -25,7 +25,10 @@ function hashIp(ip: string) {
 async function verifyToken(token: string) {
     try {
         const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-        const { payload } = await jwtVerify(token, secret);
+        const { payload } = await jwtVerify(token, secret, {
+            issuer: process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com",
+            audience: process.env.NEXT_PUBLIC_BASE_URL || "https://upkyp.com",
+        });
         return payload;
     } catch {
         return null;
@@ -261,7 +264,8 @@ export async function proxy(req: NextRequest) {
 
         const { userType, emailVerified, status } = decodedUser;
 
-        if (status && status !== "active") {
+        const validStatuses = ["active", "pending", "unverified"];
+        if (status && !validStatuses.includes(status)) {
             return safeRedirect("/error/accountSuspended", req);
         }
 
@@ -314,14 +318,19 @@ export async function proxy(req: NextRequest) {
             return res;
         }
 
-        const { userType, status } = decodedUser;
+        const { userType, emailVerified, status } = decodedUser;
 
-        if (status && status !== "active") {
+        const validStatuses = ["active", "pending", "unverified"];
+        if (status && !validStatuses.includes(status)) {
             return safeRedirect("/error/accountSuspended", req);
         }
 
         if ((pathname.startsWith("/landlord") || pathname.startsWith("/pages/landlord")) && userType !== "landlord") {
             return safeRedirect("/error/accessDenied", req);
+        }
+
+        if (!emailVerified && pathname !== "/auth/verify-email" && !pathname.includes("/verify-email") && pathname !== "/landlord/onboarding") {
+            return safeRedirect("/auth/verify-email", req);
         }
     }
 

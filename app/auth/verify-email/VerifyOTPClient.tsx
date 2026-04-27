@@ -38,7 +38,7 @@ export default function VerifyOTPClient() {
         router.replace(
             user.userType === "tenant"
                 ? "/tenant/feeds"
-                : "/landlord/dashboard"
+                : "/landlord/onboarding"
         );
     }, [user]);
 
@@ -95,7 +95,7 @@ export default function VerifyOTPClient() {
                 router.replace(
                     data.userType === "tenant"
                         ? "/tenant/feeds"
-                        : "/landlord/dashboard"
+                        : "/landlord/onboarding"
                 );
             }, 800);
 

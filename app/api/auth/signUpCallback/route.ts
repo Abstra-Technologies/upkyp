@@ -315,7 +315,11 @@ export async function GET(req: NextRequest) {
             emailVerified,
         })
             .setProtectedHeader({ alg: "HS256" })
+            .setIssuer(NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setAudience(NEXT_PUBLIC_BASE_URL || "https://upkyp.com")
+            .setIssuedAt()
             .setExpirationTime("2h")
+            .setSubject(user_id)
             .sign(
                 new TextEncoder().encode(JWT_SECRET!)
             );
@@ -328,9 +332,7 @@ export async function GET(req: NextRequest) {
 
         sendOtpEmail(email, firstName, otp);
 
-        const redirectUrl = role === "tenant"
-            ? `${NEXT_PUBLIC_BASE_URL}/auth/verify-email`
-            : `${NEXT_PUBLIC_BASE_URL}/landlord/dashboard`;
+        const redirectUrl = `${NEXT_PUBLIC_BASE_URL}/auth/verify-email`;
 
         const response = NextResponse.redirect(redirectUrl);
 
