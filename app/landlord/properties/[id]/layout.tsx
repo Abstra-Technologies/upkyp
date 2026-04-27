@@ -124,7 +124,9 @@ export default function PropertyLayout({
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property);
     setShowPropertyDropdown(false);
-    window.location.href = `/landlord/properties/${property.property_id}`;
+    const prefix = `/landlord/properties/${id}`;
+    const suffix = pathname.startsWith(prefix) ? pathname.slice(prefix.length) : "";
+    window.location.href = `/landlord/properties/${property.property_id}${suffix}`;
   };
 
   const { data, isLoading } = useSWR(
@@ -153,7 +155,7 @@ export default function PropertyLayout({
       items: [
         { id: "prop-nav-edit", label: "Edit Property", href: `/landlord/properties/${id}/editPropertyDetails?${id}`, icon: CopyMinus },
         { id: "prop-nav-policy", label: "House Policy", href: `/landlord/properties/${id}/house-policy?${id}`, icon: NotebookText },
-        { id: "prop-nav-units", label: "Units", href: `/landlord/properties/${id}`, icon: Home },
+        { id: "prop-nav-units", label: "Units", href: `/landlord/properties/${id}`, icon: Home, exact: true },
       ]
     },
     {
@@ -180,7 +182,8 @@ export default function PropertyLayout({
     },
   ];
 
-  const isActive = (href: string) => {
+  const isActive = (href: string, exact = false) => {
+    if (exact) return pathname === href;
     return pathname === href || pathname.startsWith(href + "/");
   };
 
@@ -336,8 +339,8 @@ export default function PropertyLayout({
                     </span>
                     <IoChevronForward className={`w-3 h-3 text-gray-600 group-hover:text-gray-400 transition-all duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
                   </button>
-                  {!isCollapsed && group.items.map(({ id, label, href, icon: Icon }) => {
-                    const active = isActive(href);
+                  {!isCollapsed && group.items.map(({ id, label, href, icon: Icon, exact }) => {
+                    const active = isActive(href, exact);
 
                     if (!emailVerified) {
                       return (
@@ -426,7 +429,7 @@ export default function PropertyLayout({
         province={province}
         propertyId={String(id)}
         user={user}
-        isActive={(menuId: string, href: string) => isActive(href)}
+        isActive={(menuId: string, href: string, exact?: boolean) => isActive(href, exact)}
       />
 
       {/* LOGOUT CONFIRM */}
