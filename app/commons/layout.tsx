@@ -373,7 +373,7 @@ export default function SideNavProfile({
       {/*---------------------------------------------*/}
       {/* MOBILE HEADER - Matching landlord sidebar */}
       {/*---------------------------------------------*/}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50">
+      <div className="lg:hidden relative h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50">
         <Link href="/landlord/dashboard">
           <h1 className="text-xl font-bold text-white">Upkyp</h1>
         </Link>
@@ -555,7 +555,7 @@ export default function SideNavProfile({
       {/*---------------------------------------------*/}
       {/* MAIN CONTENT */}
       {/*---------------------------------------------*/}
-      <main className="flex-1 lg:pl-72 pt-14 lg:pt-0">{children}</main>
+      <main className="flex-1 lg:pl-72">{children}</main>
 
       {/* Animation Keyframes */}
       <style jsx global>{`

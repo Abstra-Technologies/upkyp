@@ -396,7 +396,7 @@ export default function PropertyLayout({
       {/* MOBILE HEADER */}
       <div
         id="prop-mobile-header"
-        className="lg:hidden fixed top-0 left-0 right-0 h-12 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
+        className="lg:hidden relative h-12 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
         <Link href="/landlord/properties" className="flex items-center gap-2">
           <ChevronLeft className="w-5 h-5 text-white" />
@@ -464,7 +464,7 @@ export default function PropertyLayout({
       )}
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 lg:pl-64 pt-12 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">
+      <main className="flex-1 lg:pl-64 min-h-screen scrollbar-none transition-all duration-300">
         <div className="px-3 sm:px-4 lg:p-6 max-w-md sm:max-w-none mx-auto">
           {children}
         </div>
