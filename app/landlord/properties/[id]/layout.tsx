@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useRouter, usePathname, useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
-import useSWR from "swr";
 import axios from "axios";
-import { motion } from "motion/react";
+import useSWR from "swr";
 
 import useAuthStore from "@/zustand/authStore";
-import NotificationSection from "@/components/notification/notifCenter";
+import LoadingScreen from "@/components/loadingScreen";
 import MobilePropertySidenav from "@/components/navigation/MobilePropertySideNav";
 
 import {
@@ -34,8 +34,30 @@ import {
   HandCoins,
   Building,
 } from "lucide-react";
+import {
+  IoGrid,
+  IoLogOut,
+  IoSettings,
+  IoAlertCircle,
+  IoChevronDown as IoChevronDownIcon,
+  IoChevronForward,
+  IoBusiness,
+} from "react-icons/io5";
+import useSubscription from "@/hooks/landlord/useSubscription";
+
+const NotificationSection = dynamic(
+  () => import("@/components/notification/notifCenter"),
+  { ssr: false },
+);
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+interface Property {
+  property_id: number;
+  property_name: string;
+  city: string;
+  province: string;
+}
 
 export default function PropertyLayout({
   children,
@@ -45,32 +67,64 @@ export default function PropertyLayout({
   const { id } = useParams();
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, fetchSession, signOut } = useAuthStore();
   const landlordId = user?.landlord_id;
+  const { subscription, loadingSubscription } = useSubscription(landlordId);
+  const emailVerified = user?.emailVerified ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
-  const [otherProperties, setOtherProperties] = useState<any[]>([]);
-  const [loadingOtherProperties, setLoadingOtherProperties] = useState(false);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const fetchOtherProperties = async () => {
-      setLoadingOtherProperties(true);
+    if (!user) {
+      fetchSession().finally(() => setAuthReady(true));
+    } else {
+      setAuthReady(true);
+    }
+  }, [user, fetchSession]);
+
+  useEffect(() => {
+    if (authReady && user && user.userType !== "landlord") {
+      router.replace("/auth/login");
+    }
+  }, [authReady, user, router]);
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = isSidebarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    const fetchProperties = async () => {
+      setLoadingProperties(true);
       try {
         const res = await axios.get(`/api/landlord/properties/getAllPropertieName`);
-        setOtherProperties(res.data || []);
+        setProperties(res.data || []);
       } catch (err) {
         console.error("Error fetching properties:", err);
       } finally {
-        setLoadingOtherProperties(false);
+        setLoadingProperties(false);
       }
     };
-    fetchOtherProperties();
+    fetchProperties();
   }, []);
 
-  const handleSwitchProperty = (propertyId: number) => {
+  const handlePropertySelect = (property: Property) => {
+    setSelectedProperty(property);
     setShowPropertyDropdown(false);
-    window.location.href = `/landlord/properties/${propertyId}`;
+    window.location.href = `/landlord/properties/${property.property_id}`;
   };
 
   const { data, isLoading } = useSWR(
@@ -83,339 +137,335 @@ export default function PropertyLayout({
   const city = property?.city || "";
   const province = property?.province || "";
 
+  const toggleSection = (title: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [title]: !prev[title]
+    }));
+  };
+
   /* ============================
      MENU GROUPS — navId added for Driver.js targeting
   ============================ */
   const menuGroups = [
     {
-      title: "Property Setup",
+      section: "Property Setup",
       items: [
-        {
-          id: "edit",
-          navId: "prop-nav-edit",
-          label: "Edit Property",
-          href: `/landlord/properties/${id}/editPropertyDetails?${id}`,
-          icon: CopyMinus,
-        },
-        {
-          id: "policy",
-          navId: "prop-nav-policy",
-          label: "House Policy",
-          href: `/landlord/properties/${id}/house-policy?${id}`,
-          icon: NotebookText,
-        },
-        {
-          id: "units",
-          navId: "prop-nav-units",
-          label: "Units",
-          href: `/landlord/properties/${id}`,
-          icon: Home,
-        },
-      ],
+        { id: "prop-nav-edit", label: "Edit Property", href: `/landlord/properties/${id}/editPropertyDetails?${id}`, icon: CopyMinus },
+        { id: "prop-nav-policy", label: "House Policy", href: `/landlord/properties/${id}/house-policy?${id}`, icon: NotebookText },
+        { id: "prop-nav-units", label: "Units", href: `/landlord/properties/${id}`, icon: Home },
+      ]
     },
     {
-      title: "Operations",
+      section: "Operations",
       items: [
-        {
-          id: "active-lease",
-          navId: "prop-nav-active-lease",
-          label: "Active Lease",
-          href: `/landlord/properties/${id}/activeLease`,
-          icon: ScrollText,
-        },
-        {
-          id: "prospectives",
-          navId: "prop-nav-prospectives",
-          label: "Prospectives",
-          href: `/landlord/properties/${id}/prospectives`,
-          icon: Users,
-        },
-        {
-          id: "assets",
-          navId: "prop-nav-assets",
-          label: "Assets",
-          href: `/landlord/properties/${id}/assets_management`,
-          icon: Videotape,
-        },
-        // {
-        //   id: "documents",
-        //   label: "Documents",
-        //   href: `/landlord/properties/${id}/documents`,
-        //   icon: FileText,
-        // },
-      ],
+        { id: "prop-nav-active-lease", label: "Active Lease", href: `/landlord/properties/${id}/activeLease`, icon: ScrollText },
+        { id: "prop-nav-prospectives", label: "Prospectives", href: `/landlord/properties/${id}/prospectives`, icon: Users },
+        { id: "prop-nav-assets", label: "Assets", href: `/landlord/properties/${id}/assets_management`, icon: Videotape },
+      ]
     },
     {
-      title: "Finance",
+      section: "Finance",
       items: [
-        {
-          id: "payments",
-          navId: "prop-nav-payments",
-          label: "Payments",
-          href: `/landlord/properties/${id}/payments`,
-          icon: Wallet,
-        },
-        // {
-        //   id: "pdc-management",
-        //   navId: "prop-nav-pdc-management",
-        //   label: "PDC Management",
-        //   href: `/landlord/properties/${id}/pdcManagement`,
-        //   icon: FileText,
-        // },
-        {
-          id: "finance",
-          navId: "prop-nav-finance",
-          label: "Financials",
-          href: `/landlord/properties/${id}/financials`,
-          icon: HandCoins,
-        },
-      ],
+        { id: "prop-nav-payments", label: "Payments", href: `/landlord/properties/${id}/payments`, icon: Wallet },
+        { id: "prop-nav-finance", label: "Financials", href: `/landlord/properties/${id}/financials`, icon: HandCoins },
+      ]
     },
     {
-      title: "Utilities & Settings",
+      section: "Utilities & Settings",
       items: [
-        {
-          id: "utilities",
-          navId: "prop-nav-utilities",
-          label: "Utilities",
-          href: `/landlord/properties/${id}/utilities`,
-          icon: Zap,
-        },
-        {
-          id: "configuration",
-          navId: "prop-nav-configuration",
-          label: "Configuration",
-          href: `/landlord/properties/${id}/configurations`,
-          icon: SlidersHorizontal,
-        },
-      ],
+        { id: "prop-nav-utilities", label: "Utilities", href: `/landlord/properties/${id}/utilities`, icon: Zap },
+        { id: "prop-nav-configuration", label: "Configuration", href: `/landlord/properties/${id}/configurations`, icon: SlidersHorizontal },
+      ]
     },
   ];
 
-  const isActive = (menuId: string, href: string) => {
-    if (menuId === "units") return pathname === href;
+  const isActive = (href: string) => {
     return pathname === href || pathname.startsWith(href + "/");
   };
 
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [pathname]);
+  const handleLogout = async () => {
+    await signOut();
+    router.push("/auth/login");
+  };
 
-  useEffect(() => {
-    document.body.style.overflow = isSidebarOpen ? "hidden" : "unset";
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [isSidebarOpen]);
-
-  /* ============================
-     SIDEBAR CONTENT
-  ============================ */
-  const SidebarContent = () => (
-    <>
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-5 py-4">
-        <button
-          onClick={() => router.push("/landlord/properties")}
-          className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors group mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Properties
-        </button>
-
-        {/* Current Property Display */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-base font-bold text-white truncate">
-                {propertyName}
-              </h1>
-              {city && province && (
-                <p className="text-sm text-white/80 flex items-center gap-1 mt-1">
-                  <MapPin className="w-3 h-3" />
-                  {city}, {province}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Property Switcher */}
-        <div className="mt-3 relative">
-          <button
-            onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-left"
-          >
-            <Building className="w-4 h-4 text-white/80 flex-shrink-0" />
-            <span className="text-sm text-white/90 truncate flex-1">Switch Property</span>
-            <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
-          </button>
-
-          {/* Dropdown */}
-          {showPropertyDropdown && (
-            <div className="absolute left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-56 overflow-y-auto">
-              {loadingOtherProperties ? (
-                <div className="p-4 text-center text-sm text-gray-500">Loading...</div>
-              ) : otherProperties.length === 0 ? (
-                <div className="p-4 text-center text-sm text-gray-500">No other properties</div>
-              ) : (
-                otherProperties
-                  .filter((p: any) => String(p.property_id) !== String(id))
-                  .map((prop: any) => (
-                    <button
-                      key={prop.property_id}
-                      onClick={() => handleSwitchProperty(prop.property_id)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
-                        <Building className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-800 truncate">{prop.property_name}</p>
-                      </div>
-                    </button>
-                  ))
-              )}
-              <Link
-                href="/landlord/properties"
-                onClick={() => setShowPropertyDropdown(false)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
-              >
-                + Add New Property
-              </Link>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Navigation — navId applied to each Link for Driver.js */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        {menuGroups.map((group) => (
-          <div key={group.title}>
-            <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">
-              {group.title}
-            </p>
-            <ul className="space-y-1">
-              {group.items.map(
-                ({ id: menuId, navId, label, href, icon: Icon }) => {
-                  const active = isActive(menuId, href);
-                  return (
-                    <motion.li
-                      key={menuId}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                    >
-                      <Link
-                        href={href}
-                        id={navId}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
-                          active
-                            ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg shadow-blue-500/25"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        <Icon
-                          className={`w-5 h-5 ${
-                            active
-                              ? ""
-                              : "text-gray-400 group-hover:text-blue-600"
-                          }`}
-                        />
-                        <span className="flex-1 text-sm font-medium">
-                          {label}
-                        </span>
-                        {active && <ChevronRight className="w-4 h-4" />}
-                      </Link>
-                    </motion.li>
-                  );
-                },
-              )}
-            </ul>
-          </div>
-        ))}
-      </nav>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} UpKyp
-          </p>
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-xs text-gray-500">Connected</span>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  if (!authReady)
+    return <LoadingScreen message="Preparing your workspace..." />;
+  if (!user || user.userType !== "landlord")
+    return <LoadingScreen message="Redirecting..." />;
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-emerald-50/20">
+    <div className="flex min-h-screen bg-gray-50 scrollbar-none">
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-72 bg-white shadow-xl z-40">
-        <SidebarContent />
+      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 border-r border-gray-800 z-40">
+        <div className="flex flex-col h-full">
+          {/* HEADER / BRAND */}
+          <div className="px-4 py-5 border-b border-gray-800">
+            <Link id="nav-brand" href="/landlord/dashboard" className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg">
+                <IoGrid className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-base font-bold text-white">Upkyp</h1>
+                <p className="text-[10px] text-gray-400">Property Management</p>
+              </div>
+            </Link>
+          </div>
+
+          {/* USER PROFILE */}
+          <div className="px-4 py-4 border-b border-gray-800">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Image
+                  src={
+                    user.profilePicture ||
+                    "https://res.cloudinary.com/dptmeluy0/image/upload/v1766715365/profile-icon-design-free-vector_la6rgj.jpg"
+                  }
+                  alt="Profile"
+                  width={36}
+                  height={36}
+                  className="rounded-lg object-cover border border-gray-700"
+                />
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-gray-900"></div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-white truncate">
+                  {user.firstName && user.lastName
+                    ? `${user.firstName} ${user.lastName}`
+                    : user?.companyName || user.email}
+                </p>
+                <span
+                  className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                    subscription?.plan_name === "pro"
+                      ? "bg-emerald-500/20 text-emerald-400"
+                      : subscription?.plan_name === "enterprise"
+                        ? "bg-purple-500/20 text-purple-400"
+                        : "bg-gray-700 text-gray-300"
+                  }`}
+                >
+                  {loadingSubscription
+                    ? "..."
+                    : subscription?.plan_name
+                      ? subscription.plan_name.toUpperCase()
+                      : "FREE"}
+                </span>
+              </div>
+              <Link href="/commons/profile" className="p-1.5 hover:bg-gray-800 rounded-lg transition-colors">
+                <IoSettings className="w-4 h-4 text-gray-400 hover:text-white" />
+              </Link>
+            </div>
+          </div>
+
+          {/* BACK TO PROPERTIES */}
+          <div className="px-3 py-3 border-b border-gray-800">
+            <Link
+              href="/landlord/properties"
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-800 hover:border-gray-600 transition-all text-left"
+            >
+              <ArrowLeft className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <p className="text-xs font-medium text-gray-200 truncate">Back to Properties</p>
+            </Link>
+          </div>
+
+          {/* PROPERTY SELECTOR */}
+          <div className="px-3 py-3 border-b border-gray-800">
+            <button
+              onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
+              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-800 hover:border-gray-600 transition-all text-left"
+            >
+              <IoBusiness className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-200 truncate">
+                  {propertyName}
+                </p>
+                {city && province && (
+                  <p className="text-[10px] text-gray-500 truncate">{city}, {province}</p>
+                )}
+              </div>
+              <IoChevronDownIcon className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Dropdown */}
+            {showPropertyDropdown && (
+              <div className="absolute left-3 right-3 mt-1 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-56 overflow-y-auto">
+                {loadingProperties ? (
+                  <div className="p-3 text-center text-xs text-gray-400">Loading...</div>
+                ) : properties.length === 0 ? (
+                  <div className="p-3 text-center text-xs text-gray-400">No properties yet</div>
+                ) : (
+                  properties
+                    .filter((p) => String(p.property_id) !== String(id))
+                    .map((prop) => (
+                      <button
+                        key={prop.property_id}
+                        onClick={() => handlePropertySelect(prop)}
+                        className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 ${
+                          String(prop.property_id) === String(id) ? "bg-blue-600/20" : ""
+                        }`}
+                      >
+                        <div className="w-6 h-6 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                          <IoBusiness className="w-3 h-3 text-blue-400" />
+                        </div>
+                        <p className="text-xs font-medium text-gray-200 truncate">{prop.property_name}</p>
+                      </button>
+                    ))
+                )}
+                <Link
+                  href="/landlord/properties"
+                  onClick={() => setShowPropertyDropdown(false)}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-medium text-blue-400 hover:bg-gray-700 transition-colors border-t border-gray-700"
+                >
+                  + Add New Property
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* NAVIGATION */}
+          <nav className="flex-1 px-3 py-3 overflow-y-auto">
+            {menuGroups.map((group) => {
+              const isCollapsed = collapsedSections[group.section];
+              return (
+                <div key={group.section} className="mb-4">
+                  <button
+                    onClick={() => toggleSection(group.section)}
+                    className="w-full flex items-center justify-between px-2 mb-1.5 group hover:bg-gray-800/50 rounded-lg p-1 -mx-1 transition-colors"
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 group-hover:text-gray-300">
+                      {group.section}
+                    </span>
+                    <IoChevronForward className={`w-3 h-3 text-gray-600 group-hover:text-gray-400 transition-all duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
+                  </button>
+                  {!isCollapsed && group.items.map(({ id, label, href, icon: Icon }) => {
+                    const active = isActive(href);
+
+                    if (!emailVerified) {
+                      return (
+                        <div
+                          key={href}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg opacity-50 cursor-not-allowed text-gray-500"
+                          title="Verify your email first"
+                        >
+                          <Icon className="w-4 h-4" />
+                          <span className="text-sm">{label}</span>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={href}
+                        id={id}
+                        href={href}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 mb-0.5 group ${
+                          active
+                            ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-medium shadow-lg shadow-blue-500/20"
+                            : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 transition-colors ${active ? "" : "text-gray-500 group-hover:text-gray-300"}`} />
+                        <span>{label}</span>
+                        {active && <ChevronRight className="w-3 h-3 ml-auto" />}
+                      </Link>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </nav>
+
+          {/* FOOTER */}
+          <div className="p-3 border-t border-gray-800">
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors"
+            >
+              <IoLogOut className="w-4 h-4" />
+              <span>Sign Out</span>
+            </button>
+            <p className="text-center text-[10px] text-gray-600 mt-2">
+              © {new Date().getFullYear()} UpKyp
+            </p>
+          </div>
+        </div>
       </aside>
 
       {/* MOBILE HEADER */}
       <div
         id="prop-mobile-header"
-        className="lg:hidden fixed top-0 left-0 right-0 h-14
-                      bg-gradient-to-r from-blue-600 to-emerald-600
-                      flex items-center justify-between px-4 z-50 shadow-lg"
+        className="lg:hidden fixed top-0 left-0 right-0 h-12 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <button
-            onClick={() => router.push("/landlord/properties")}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors shrink-0"
-          >
-            <ChevronLeft className="w-5 h-5 text-white" />
-          </button>
+        <Link href="/landlord/properties" className="flex items-center gap-2">
+          <ChevronLeft className="w-5 h-5 text-white" />
           <div className="flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-white truncate">
-              {propertyName}
-            </h1>
-            {city && (
-              <p className="text-[10px] text-white/80 truncate">
-                {city}, {province}
-              </p>
+            <h1 className="text-sm font-bold text-white truncate">{propertyName}</h1>
+            {city && province && (
+              <p className="text-[10px] text-white/80 truncate">{city}, {province}</p>
             )}
           </div>
-        </div>
-        <div className="flex gap-2 shrink-0">
+        </Link>
+        <div className="flex gap-1">
           <NotificationSection user={user} admin={null} />
           <button
             id="prop-mobile-menu-btn"
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-white/10"
           >
             <Menu className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
 
-      {/* MOBILE SIDEBAR */}
+      {/* MOBILE SIDENAV */}
       <MobilePropertySidenav
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        menuGroups={menuGroups}
+        menuGroups={menuGroups.map(g => ({ title: g.section, items: g.items }))}
         propertyName={propertyName}
         city={city}
         province={province}
         propertyId={String(id)}
         user={user}
-        isActive={isActive}
+        isActive={(menuId: string, href: string) => isActive(href)}
       />
 
-      {/* MAIN CONTENT */}
-        <main className="flex-1 lg:pl-72 pt-2 sm:pt-4 lg:pt-0">
-            <div className="px-3 sm:px-4 lg:p-6 max-w-md sm:max-w-none mx-auto">
-                {children}
+      {/* LOGOUT CONFIRM */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl">
+            <div className="text-center mb-4">
+              <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <IoAlertCircle className="w-7 h-7 text-red-600" />
+              </div>
+              <h3 className="font-bold text-lg">Confirm Logout</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Are you sure you want to logout?
+              </p>
             </div>
-        </main>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 border rounded-xl py-3"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 bg-red-600 text-white rounded-xl py-3"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 lg:pl-64 pt-12 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">
+        <div className="px-3 sm:px-4 lg:p-6 max-w-md sm:max-w-none mx-auto">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

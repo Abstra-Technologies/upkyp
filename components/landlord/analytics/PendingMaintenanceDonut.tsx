@@ -1,197 +1,119 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { PieChart, Pie, Cell } from "recharts";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import axios from "axios";
-import { Wrench, Clock, AlertTriangle } from "lucide-react";
-import {
-    CARD_CONTAINER_INTERACTIVE,
-    SECTION_HEADER,
-    GRADIENT_DOT,
-    SECTION_TITLE,
-} from "@/constant/design-constants";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 
-/* --------------------------------------------------
-   Fetcher
--------------------------------------------------- */
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-/* --------------------------------------------------
-   Status config (UI-driven)
--------------------------------------------------- */
 const STATUS_CONFIG = [
-    { key: "pending", label: "Pending", color: "#F59E0B" },
-    { key: "approved", label: "Approved", color: "#3B82F6" },
-    { key: "scheduled", label: "Scheduled", color: "#06B6D4" },
-    { key: "in-progress", label: "In Progress", color: "#8B5CF6" },
-    { key: "completed", label: "Completed", color: "#10B981" },
+    { key: "pending", label: "Pending", color: "#F59E0B", bg: "#FFFBEB", text: "#B45309" },
+    { key: "approved", label: "Approved", color: "#3B82F6", bg: "#EFF6FF", text: "#1D4ED8" },
+    { key: "scheduled", label: "Scheduled", color: "#06B6D4", bg: "#ECFEFF", text: "#0E7490" },
+    { key: "in-progress", label: "In Progress", color: "#8B5CF6", bg: "#F5F3FF", text: "#6D28D9" },
 ];
 
-/* --------------------------------------------------
-   Component
--------------------------------------------------- */
 export default function PendingMaintenanceDonut({
-                                                    landlordId,
-                                                }: {
+    landlordId,
+}: {
     landlordId?: string;
 }) {
-    /* ---------------- Primary data ---------------- */
-    const {
-        data: statusData,
-        error: statusError,
-        isLoading: statusLoading,
-    } = useSWR(
+    const router = useRouter();
+
+    const { data, error, isLoading } = useSWR(
         landlordId
             ? `/api/analytics/landlord/getMaintenanceStatuses?landlord_id=${landlordId}`
             : null,
         fetcher,
-        {
-            revalidateOnFocus: false,
-            dedupingInterval: 60_000,
-            fallbackData: {},
-        }
+        { revalidateOnFocus: false, dedupingInterval: 60_000, fallbackData: {} },
     );
 
-    /* ---------------- Secondary data ---------------- */
-    const { data: todayWorkOrders } = useSWR(
-        landlordId
-            ? `/api/analytics/landlord/getTodayMaintenance?landlord_id=${landlordId}`
-            : null,
-        fetcher,
-        {
-            revalidateOnFocus: false,
-            dedupingInterval: 120_000,
+    const counts = useMemo(() => {
+        const result: Record<string, number> = {};
+        for (const s of STATUS_CONFIG) {
+            result[s.key] = Number(data?.data?.[s.key] ?? data?.[s.key] ?? 0);
         }
-    );
-
-    /* ---------------- Derived ---------------- */
-    const donutData = useMemo(
-        () =>
-            STATUS_CONFIG.map((s) => ({
-                key: s.key,
-                name: s.label,
-                color: s.color,
-                value: Number(statusData?.data?.[s.key] ?? statusData?.[s.key] ?? 0),
-            })),
-        [statusData]
-    );
+        return result;
+    }, [data]);
 
     const total = useMemo(
-        () => donutData.reduce((sum, s) => sum + s.value, 0),
-        [donutData]
+        () => Object.values(counts).reduce((sum, c) => sum + c, 0),
+        [counts],
     );
 
-    const isAllZero = total === 0;
+    const handleViewAll = () => {
+        router.push("/landlord/maintenance");
+    };
 
-    /* --------------------------------------------------
-       UI
-    -------------------------------------------------- */
     return (
-        <div className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm p-5 h-full flex flex-col hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all">
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 h-full flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-base font-semibold text-gray-900">Maintenance Overview</h2>
+                    <h2 className="text-base font-semibold text-gray-900">Maintenance Status</h2>
+                    <p className="text-xs text-gray-500 mt-0.5">Current open work orders</p>
                 </div>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{total} total</span>
+                <button
+                    onClick={handleViewAll}
+                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                >
+                    View All Requests
+                    <ArrowRight className="w-4 h-4" />
+                </button>
             </div>
 
-            {/* Loading / Error */}
-            {statusLoading && (
+            {isLoading ? (
                 <div className="flex-1 flex items-center justify-center text-xs text-gray-500">
                     Loading maintenance data…
                 </div>
-            )}
-
-            {statusError && (
+            ) : error ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-red-500 gap-2 text-xs">
                     <AlertTriangle className="w-4 h-4" />
                     Failed to load maintenance data
                 </div>
-            )}
-
-            {!statusLoading && !statusError && (
+            ) : (
                 <>
-                    {/* Chart + Legend */}
-                    <div className="flex items-center justify-center gap-6 mb-4 min-h-[140px]">
-                        {/* Chart */}
-                        {!isAllZero ? (
-                            <PieChart width={120} height={120}>
-                                <Pie
-                                    data={donutData}
-                                    dataKey="value"
-                                    innerRadius={40}
-                                    outerRadius={55}
-                                    paddingAngle={2}
-                                    stroke="none"
-                                >
-                                    {donutData.map((d) => (
-                                        <Cell key={d.key} fill={d.color} />
-                                    ))}
-                                </Pie>
-                            </PieChart>
+                    {/* Progress Bar */}
+                    <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-5 flex">
+                        {total > 0 ? (
+                            STATUS_CONFIG.map((s) =>
+                                counts[s.key] > 0 ? (
+                                    <div
+                                        key={s.key}
+                                        className="transition-all duration-500"
+                                        style={{
+                                            backgroundColor: s.color,
+                                            width: `${(counts[s.key] / total) * 100}%`,
+                                        }}
+                                    />
+                                ) : null,
+                            )
                         ) : (
-                            <div className="w-[120px] h-[120px] rounded-full border-4 border-gray-200 flex items-center justify-center shadow-inner">
-                                <Wrench className="w-6 h-6 text-gray-400" />
-                            </div>
+                            <div className="w-full bg-gray-200" />
                         )}
-
-                        {/* Legend */}
-                        <div className="flex flex-col gap-2">
-                            {!isAllZero ? (
-                                donutData.map((item) => (
-                                    <div key={item.key} className="flex items-center gap-2">
-                    <span
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                    />
-                                        <span className="text-xs text-gray-700">
-                      {item.name} ({item.value})
-                    </span>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-xs text-gray-500">
-                                    No maintenance requests
-                                </p>
-                            )}
-                        </div>
                     </div>
 
-                    {/* Today's Work */}
-                    <div className="border-t border-gray-100 pt-3 flex-1 flex flex-col">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Clock className="w-4 h-4 text-blue-600" />
-                            <h3 className="text-sm font-semibold text-gray-900">
-                                Today&apos;s Scheduled Work
-                            </h3>
-                        </div>
-
-                        {!todayWorkOrders || todayWorkOrders.length === 0 ? (
-                            <p className="text-xs text-gray-500 text-center py-4">
-                                No work scheduled today
-                            </p>
-                        ) : (
-                            <div className="space-y-2 overflow-y-auto flex-1">
-                                {todayWorkOrders.map((work: any, idx: number) => (
-                                    <div
-                                        key={idx}
-                                        className="p-2.5 bg-gray-50 border border-gray-200 rounded-lg
-                      transition-all duration-200
-                      hover:bg-blue-50 hover:border-blue-200 hover:shadow-md"
-                                    >
-                                        <p className="font-medium text-xs text-gray-900">
-                                            {work.subject}
-                                        </p>
-                                        <p className="text-xs text-gray-600">
-                                            {work.unit_name ?? "Property-level"} •{" "}
-                                            {work.schedule_time}
-                                        </p>
-                                    </div>
-                                ))}
+                    {/* Stat Cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        {STATUS_CONFIG.map((s) => (
+                            <div
+                                key={s.key}
+                                className="rounded-xl p-4 text-center border"
+                                style={{ backgroundColor: s.bg, borderColor: s.color + "33" }}
+                            >
+                                <p className="text-xl font-bold" style={{ color: s.text }}>
+                                    {counts[s.key]}
+                                </p>
+                                <p
+                                    className="text-[10px] font-semibold uppercase mt-1 tracking-wide"
+                                    style={{ color: s.text + "B3" }}
+                                >
+                                    {s.label}
+                                </p>
                             </div>
-                        )}
+                        ))}
                     </div>
                 </>
             )}

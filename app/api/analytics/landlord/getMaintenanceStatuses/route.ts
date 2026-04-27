@@ -1,18 +1,11 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-/**
- * @endpoint GET /api/analytics/landlord/getMaintenanceStatuses
- * @used_by pendingMaintenanceWidget
- * @inputs landlord_id (query)
- * @outputs status counts
- * @notes unit_id and property_id may be NULL
- */
-
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
         const landlordId = searchParams.get("landlord_id");
+        const propertyId = searchParams.get("property_id");
 
         if (!landlordId) {
             return NextResponse.json(
@@ -21,48 +14,61 @@ export async function GET(req: Request) {
             );
         }
 
-        /**
-         * IMPORTANT:
-         * - unit_id can be NULL
-         * - property_id can be NULL
-         * - landlord match can come from EITHER path
-         */
+        const params: any[] = [landlordId];
+        let propertyFilter = "";
+        if (propertyId) {
+            propertyFilter = "AND mr.property_id = ?";
+            params.push(propertyId);
+        }
+
+        /* Current maintenance statuses */
         const [rows]: any = await db.query(
             `
-            SELECT mr.status
+            SELECT mr.status, COUNT(*) as count
             FROM MaintenanceRequest mr
-            LEFT JOIN Unit u
-                ON mr.unit_id = u.unit_id
-            LEFT JOIN Property p_unit
-                ON u.property_id = p_unit.property_id
-            LEFT JOIN Property p_direct
-                ON mr.property_id = p_direct.property_id
-            WHERE
-                p_unit.landlord_id = ?
-                OR p_direct.landlord_id = ?
+            JOIN Property p ON mr.property_id = p.property_id
+            WHERE p.landlord_id = ?
+            ${propertyFilter}
+            GROUP BY mr.status
             `,
-            [landlordId, landlordId]
+            params
         );
 
-        // Normalize statuses (use DB values, not UI labels)
-        const statusCounts: Record<string, number> = {
-            pending: 0,
-            approved: 0,
-            scheduled: 0,
-            "in-progress": 0,
-            completed: 0,
-        };
+        /* Previous period (30 days ago) maintenance statuses */
+        const [prevRows]: any = await db.query(
+            `
+            SELECT mr.status, COUNT(*) as count
+            FROM MaintenanceRequest mr
+            JOIN Property p ON mr.property_id = p.property_id
+            WHERE p.landlord_id = ?
+            AND mr.created_at <= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            ${propertyFilter}
+            GROUP BY mr.status
+            `,
+            params
+        );
 
-        rows.forEach((row: any) => {
-            const status = row.status?.toLowerCase();
-            if (status && statusCounts[status] !== undefined) {
-                statusCounts[status]++;
-            }
-        });
+        const buildCounts = (queryRows: any[]) => {
+            const counts: Record<string, number> = {
+                pending: 0,
+                approved: 0,
+                scheduled: 0,
+                "in-progress": 0,
+                completed: 0,
+            };
+            queryRows.forEach((row: any) => {
+                const status = row.status?.toLowerCase();
+                if (status && counts[status] !== undefined) {
+                    counts[status] = Number(row.count);
+                }
+            });
+            return counts;
+        };
 
         return NextResponse.json({
             success: true,
-            data: statusCounts,
+            data: buildCounts(rows),
+            prevData: buildCounts(prevRows),
         });
     } catch (error) {
         console.error("[MAINTENANCE_STATUS_WIDGET_ERROR]", error);

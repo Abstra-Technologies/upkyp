@@ -12,15 +12,22 @@ import { db } from "@/lib/db";
    CACHED DB QUERY
    - landlord only
    - OR landlord + property
+   - filtered by month/year
 -------------------------------------------------- */
 const getReceivablesSummary = unstable_cache(
-    async (landlord_id: string, property_id?: string | null) => {
+    async (landlord_id: string, property_id?: string | null, month?: number, year?: number) => {
         const params: any[] = [landlord_id];
 
         let propertyFilter = "";
         if (property_id) {
             propertyFilter = "AND pr.property_id = ?";
             params.push(property_id);
+        }
+
+        let dateFilter = "";
+        if (month && year) {
+            dateFilter = "AND MONTH(b.due_date) = ? AND YEAR(b.due_date) = ?";
+            params.push(month, year);
         }
 
         const [rows]: any = await db.query(
@@ -63,6 +70,7 @@ const getReceivablesSummary = unstable_cache(
       JOIN Property pr ON u.property_id = pr.property_id
       WHERE pr.landlord_id = ?
       ${propertyFilter}
+      ${dateFilter}
       `,
             params
         );
@@ -77,15 +85,17 @@ const getReceivablesSummary = unstable_cache(
     },
 
     /* 🔑 CACHE KEY */
-    (landlord_id: string, property_id?: string | null) => [
+    (landlord_id: string, property_id?: string | null, month?: number, year?: number) => [
         "receivables-summary",
         landlord_id,
         property_id ?? "all",
+        month ?? "all",
+        year ?? "all",
     ],
 
     /* ⏱ CACHE CONFIG */
     {
-        revalidate: 60, // 1 minute
+        revalidate: 60,
         tags: ["receivables-summary"],
     }
 );
@@ -97,7 +107,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
 
     const landlord_id = searchParams.get("landlord_id");
-    const property_id = searchParams.get("property_id"); // 👈 OPTIONAL
+    const property_id = searchParams.get("property_id");
+    const month = searchParams.get("month") ? parseInt(searchParams.get("month")!) : undefined;
+    const year = searchParams.get("year") ? parseInt(searchParams.get("year")!) : undefined;
 
     if (!landlord_id) {
         return NextResponse.json(
@@ -109,7 +121,9 @@ export async function GET(req: Request) {
     try {
         const result = await getReceivablesSummary(
             landlord_id,
-            property_id
+            property_id,
+            month,
+            year
         );
 
         return NextResponse.json(result, { status: 200 });
