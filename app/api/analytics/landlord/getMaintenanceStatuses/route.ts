@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 export async function GET(req: Request) {
     try {
-        const { searchParams } = new URL(req.url);
-        const landlordId = searchParams.get("landlord_id");
-        const propertyId = searchParams.get("property_id");
-
-        if (!landlordId) {
-            return NextResponse.json(
-                { error: "Missing landlord_id" },
-                { status: 400 }
-            );
+        const session = await getSessionUser();
+        if (!session || session.userType !== "landlord") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const params: any[] = [landlordId];
+        const { searchParams } = new URL(req.url);
+        const propertyId = searchParams.get("property_id");
+
+        const params: any[] = [session.landlord_id];
         let propertyFilter = "";
         if (propertyId) {
             propertyFilter = "AND mr.property_id = ?";
@@ -28,20 +26,6 @@ export async function GET(req: Request) {
             FROM MaintenanceRequest mr
             JOIN Property p ON mr.property_id = p.property_id
             WHERE p.landlord_id = ?
-            ${propertyFilter}
-            GROUP BY mr.status
-            `,
-            params
-        );
-
-        /* Previous period (30 days ago) maintenance statuses */
-        const [prevRows]: any = await db.query(
-            `
-            SELECT mr.status, COUNT(*) as count
-            FROM MaintenanceRequest mr
-            JOIN Property p ON mr.property_id = p.property_id
-            WHERE p.landlord_id = ?
-            AND mr.created_at <= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
             ${propertyFilter}
             GROUP BY mr.status
             `,
@@ -62,13 +46,16 @@ export async function GET(req: Request) {
                     counts[status] = Number(row.count);
                 }
             });
+            console.log('mantence counts: ', counts);
+
             return counts;
+
         };
+
 
         return NextResponse.json({
             success: true,
             data: buildCounts(rows),
-            prevData: buildCounts(prevRows),
         });
     } catch (error) {
         console.error("[MAINTENANCE_STATUS_WIDGET_ERROR]", error);

@@ -24,7 +24,7 @@ export default function PendingMaintenanceDonut({
 
     const { data, error, isLoading } = useSWR(
         landlordId
-            ? `/api/analytics/landlord/getMaintenanceStatuses?landlord_id=${landlordId}`
+            ? `/api/analytics/landlord/getMaintenanceStatuses`
             : null,
         fetcher,
         { revalidateOnFocus: false, dedupingInterval: 60_000, fallbackData: {} },

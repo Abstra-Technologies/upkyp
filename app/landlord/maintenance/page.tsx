@@ -504,7 +504,7 @@ export default function MaintenanceRequestPage() {
                 className="bg-white w-full"
             >
                 {/* Header */}
-                <div className="bg-white border-b border-gray-200 px-4 py-2 lg:px-8 lg:py-4 sticky top-14 lg:top-0 z-30">
+                <div className="bg-white border-b border-gray-200 px-4 py-2 lg:px-8 lg:py-4 sticky top-0 z-30">
                     <div className="flex items-center justify-between mb-2 lg:mb-3">
                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                             <div className="hidden sm:flex w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">

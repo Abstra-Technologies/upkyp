@@ -132,25 +132,25 @@ const BookingAppointment = () => {
   const VisitCard = ({ visit, compact = false }: any) => (
     <motion.div
       variants={fadeInUp}
-      className="bg-white border border-gray-100 rounded-xl p-4 hover:shadow-lg hover:border-blue-200 transition-all duration-200"
+      className="bg-white border border-gray-100 rounded-xl p-3 md:p-4 hover:shadow-lg hover:border-blue-200 transition-all duration-200"
     >
-      <div className="flex justify-between gap-3">
+      <div className="flex justify-between gap-2 md:gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900">
+          <p className="font-semibold text-gray-900 text-sm md:text-base">
             {visit.tenant_first_name} {visit.tenant_last_name}
           </p>
-          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+          <p className="text-[10px] md:text-xs text-gray-500 flex items-center gap-1 mt-1">
             <MapPin className="w-3 h-3" />
             {visit.property_name} • {visit.unit_name}
           </p>
           {/* ✅ FIXED: Use UTC to display correct date */}
-          <p className="text-xs text-gray-600 mt-1 flex items-center gap-1">
+          <p className="text-[10px] md:text-xs text-gray-600 mt-1 flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {dayjs.utc(visit.visit_date).format("MMM D, YYYY")} •{" "}
             {visit.visit_time}
           </p>
           {visit.disapproval_reason && (
-            <p className="text-xs text-orange-600 mt-2 bg-orange-50 px-2 py-1 rounded-lg">
+            <p className="text-[10px] md:text-xs text-orange-600 mt-2 bg-orange-50 px-2 py-1 rounded-lg">
               Reason: {visit.disapproval_reason}
             </p>
           )}
@@ -232,7 +232,7 @@ const BookingAppointment = () => {
           ))}
         </div>
 
-        <div className="grid grid-cols-7 gap-1 p-3">
+        <div className="grid grid-cols-7 gap-1 p-2 md:p-3">
           {days.map((date) => {
             const key = date.format("YYYY-MM-DD");
             const dayVisits = visitsByDate[key] || [];
@@ -244,16 +244,16 @@ const BookingAppointment = () => {
               <button
                 key={key}
                 onClick={() => setSelectedDate(date)}
-                className={`p-2 min-h-[70px] border rounded-xl transition-all duration-200 text-left ${
+                className={`p-1 md:p-2 min-h-[36px] md:min-h-[70px] border rounded-lg md:rounded-xl transition-all duration-200 text-left ${
                   isSelected
                     ? "bg-gradient-to-br from-blue-50 to-emerald-50 border-blue-300 shadow-sm"
                     : "border-gray-100 hover:border-gray-200 hover:bg-gray-50"
                 } ${!isCurrentMonth ? "opacity-40" : ""}`}
               >
                 <span
-                  className={`text-sm font-medium ${
+                  className={`text-[10px] md:text-sm font-medium ${
                     isToday
-                      ? "w-7 h-7 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-full flex items-center justify-center"
+                      ? "w-4 h-4 md:w-7 md:h-7 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-full flex items-center justify-center"
                       : "text-gray-700"
                   }`}
                 >
@@ -261,11 +261,11 @@ const BookingAppointment = () => {
                 </span>
 
                 {dayVisits.length > 0 && (
-                  <div className="mt-1.5 flex flex-wrap gap-1">
+                  <div className="mt-0.5 md:mt-1.5 flex flex-wrap gap-0.5 md:gap-1">
                     {dayVisits.slice(0, 2).map((v, i) => (
                       <div
                         key={i}
-                        className={`w-2 h-2 rounded-full ${
+                        className={`w-1 h-1 md:w-2 md:h-2 rounded-full ${
                           v.status === "approved"
                             ? "bg-emerald-500"
                             : v.status === "pending"
@@ -275,7 +275,7 @@ const BookingAppointment = () => {
                       />
                     ))}
                     {dayVisits.length > 2 && (
-                      <span className="text-[10px] text-gray-500">
+                      <span className="text-[7px] md:text-[10px] text-gray-500">
                         +{dayVisits.length - 2}
                       </span>
                     )}
@@ -339,41 +339,41 @@ const BookingAppointment = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 lg:grid-cols-4 gap-2">
-          <div className="bg-amber-50 rounded-lg border border-amber-200 p-3">
+        <div className="grid grid-cols-4 gap-1.5 md:gap-2">
+          <div className="bg-amber-50 rounded-lg border border-amber-200 p-2 md:p-3">
             <div className="flex flex-col items-center text-center">
-              <Clock className="w-4 h-4 text-amber-600 mb-1" />
-              <span className="text-lg font-bold text-amber-700">
+              <Clock className="w-3 h-3 md:w-4 md:h-4 text-amber-600 mb-1" />
+              <span className="text-base md:text-lg font-bold text-amber-700">
                 {statusCounts.pending || 0}
               </span>
-              <p className="text-[10px] text-amber-600 mt-0.5">Pending</p>
+              <p className="text-[8px] md:text-[10px] text-amber-600 mt-0.5">Pending</p>
             </div>
           </div>
-          <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-3">
+          <div className="bg-emerald-50 rounded-lg border border-emerald-200 p-2 md:p-3">
             <div className="flex flex-col items-center text-center">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 mb-1" />
-              <span className="text-lg font-bold text-emerald-700">
+              <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 text-emerald-600 mb-1" />
+              <span className="text-base md:text-lg font-bold text-emerald-700">
                 {statusCounts.approved || 0}
               </span>
-              <p className="text-[10px] text-emerald-600 mt-0.5">Approved</p>
+              <p className="text-[8px] md:text-[10px] text-emerald-600 mt-0.5">Approved</p>
             </div>
           </div>
-          <div className="bg-orange-50 rounded-lg border border-orange-200 p-3">
+          <div className="bg-orange-50 rounded-lg border border-orange-200 p-2 md:p-3">
             <div className="flex flex-col items-center text-center">
-              <XCircle className="w-4 h-4 text-orange-600 mb-1" />
-              <span className="text-lg font-bold text-orange-700">
+              <XCircle className="w-3 h-3 md:w-4 md:h-4 text-orange-600 mb-1" />
+              <span className="text-base md:text-lg font-bold text-orange-700">
                 {statusCounts.disapproved || 0}
               </span>
-              <p className="text-[10px] text-orange-600 mt-0.5">Declined</p>
+              <p className="text-[8px] md:text-[10px] text-orange-600 mt-0.5">Declined</p>
             </div>
           </div>
-          <div className="bg-blue-50 rounded-lg border border-blue-200 p-3">
+          <div className="bg-blue-50 rounded-lg border border-blue-200 p-2 md:p-3">
             <div className="flex flex-col items-center text-center">
-              <CalendarDays className="w-4 h-4 text-blue-600 mb-1" />
-              <span className="text-lg font-bold text-blue-700">
+              <CalendarDays className="w-3 h-3 md:w-4 md:h-4 text-blue-600 mb-1" />
+              <span className="text-base md:text-lg font-bold text-blue-700">
                 {visitsByDate[dayjs().format("YYYY-MM-DD")]?.length || 0}
               </span>
-              <p className="text-[10px] text-blue-600 mt-0.5">Today</p>
+              <p className="text-[8px] md:text-[10px] text-blue-600 mt-0.5">Today</p>
             </div>
           </div>
         </div>
@@ -407,9 +407,9 @@ const BookingAppointment = () => {
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
           {/* Main Area */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             {activeTab === "calendar" && (
               <>
                 <CalendarView />
@@ -492,8 +492,8 @@ const BookingAppointment = () => {
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
+          {/* Sidebar - Desktop Only */}
+          <div className="hidden lg:block lg:col-span-1 space-y-6">
             {/* Pending Requests */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}

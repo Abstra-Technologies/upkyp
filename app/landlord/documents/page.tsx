@@ -343,7 +343,7 @@ export default function DocumentsPage() {
     if (loadingSubscription || loadingStorage) {
         return (
             <div className="pb-24 md:pb-6">
-                <div className="w-full px-4 md:px-6 pt-20 md:pt-6">
+                <div className="w-full px-4 md:px-6 pt-4 md:pt-6">
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex-1 space-y-2">
                             <div className="h-6 bg-gray-200 rounded w-40 animate-pulse" />
@@ -375,7 +375,7 @@ export default function DocumentsPage() {
             onDragLeave={() => setDragOverFolderId(null)}
             onDrop={handleRootDrop}
         >
-            <div className={`w-full px-4 md:px-6 pt-20 md:pt-6 ${dragOverFolderId === -1 ? "bg-blue-50" : ""}`}>
+            <div className={`w-full px-4 md:px-6 pt-4 md:pt-6 ${dragOverFolderId === -1 ? "bg-blue-50" : ""}`}>
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <div className="flex-1">

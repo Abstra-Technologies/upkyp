@@ -24,6 +24,5 @@ export default function TenantsPage() {
         );
     }
 
-    return <TenantList landlord_id={
-        user?.landlord_id} />;
+    return <TenantList landlord_id={user?.landlord_id} />;
 }

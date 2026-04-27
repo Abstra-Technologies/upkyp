@@ -197,7 +197,21 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
         </div>
 
         {/* Mobile */}
-        <div className="md:hidden">
+        <div className="md:hidden space-y-4">
+          {/* Quick Actions */}
+          <QuickActions
+            onAddProperty={() =>
+              router.push("/landlord/properties/create-property")
+            }
+            onInviteTenant={() => router.push("/landlord/invite-tenant")}
+            onAnnouncement={() =>
+              router.push("/landlord/announcement/create-announcement")
+            }
+            onWorkOrder={() => setShowNewModal(true)}
+            onIncome={() => router.push("/landlord/payouts")}
+            emailVerified={emailVerified}
+          />
+
           <Suspense fallback={null}>
             <MobileLandlordDashboard landlordId={landlordId} />
           </Suspense>

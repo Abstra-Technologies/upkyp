@@ -205,32 +205,32 @@ export default function RevenuePerformanceChart() {
             </div>
 
             {/* ================= CHART ================= */}
-            <Chart
-                type="bar"
-                height={320}
-                series={series}
-                options={{
-                    ...baseOptions,
-                    plotOptions: {
-                        bar: { columnWidth: "50%", borderRadius: 8 },
-                    },
-                }}
-            />
+            <div className="relative">
+                <Chart
+                    type="bar"
+                    height={320}
+                    series={series}
+                    options={{
+                        ...baseOptions,
+                        plotOptions: {
+                            bar: { columnWidth: "50%", borderRadius: 8 },
+                        },
+                    }}
+                />
 
-            {/* ================= EMPTY ================= */}
-            {!hasValidData && !isLoading && (
-                <div className="text-center py-8 mt-4 border-t border-gray-100">
-                    <div className={EMPTY_STATE_ICON}>
-                        <DollarSign className="w-8 h-8 text-emerald-600" />
+                {/* ================= EMPTY OVERLAY ================= */}
+                {!hasValidData && !isLoading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px] rounded-lg">
+                        <DollarSign className="w-10 h-10 text-emerald-600 mb-2" />
+                        <p className="text-sm font-medium text-gray-700">
+                            No revenue recorded yet
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                            Revenue will appear once tenants start making payments.
+                        </p>
                     </div>
-                    <p className="text-sm font-medium text-gray-700">
-                        No revenue recorded yet
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                        Revenue will appear once tenants start making payments.
-                    </p>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* ================= HOVER REDIRECT LABEL ================= */}
             <div className="

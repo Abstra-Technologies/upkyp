@@ -135,7 +135,7 @@ export default function TenantList({ landlord_id }: { landlord_id: string }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 pt-16 sm:pt-6 pb-4 px-4 md:px-8 lg:px-12">
+        <div className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-4 px-4 md:px-8 lg:px-12">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
@@ -176,7 +176,7 @@ export default function TenantList({ landlord_id }: { landlord_id: string }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 pt-16 sm:pt-6 pb-4 px-4 md:px-8 lg:px-12">
+      <div className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-4 px-4 md:px-8 lg:px-12">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center shadow-md shadow-blue-500/20">

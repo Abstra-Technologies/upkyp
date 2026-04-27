@@ -33,7 +33,7 @@ import {
 ========================= */
 const PaymentsSkeleton = () => (
     <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 pt-20 pb-5 px-6">
+        <div className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-5 px-4 sm:px-6">
             <div className="h-8 bg-gray-200 rounded w-60 animate-pulse mb-4" />
             <div className="grid grid-cols-3 gap-4">
                 {[1, 2, 3].map((i) => (
@@ -173,7 +173,7 @@ export default function PaymentsPage() {
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border-b border-gray-200 pt-20 sm:pt-10 md:pt-6 pb-4 sm:pb-6 px-4 sm:px-6"
+                className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-4 sm:pb-6 px-4 sm:px-6"
             >
                 {/* Title */}
                 <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
