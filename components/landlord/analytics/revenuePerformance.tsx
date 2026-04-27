@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import axios from "axios";
 import useSWR from "swr";
-import { Calendar, DollarSign, ArrowUpRight } from "lucide-react";
+import { Calendar, DollarSign, ArrowUpRight, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
     CARD_CONTAINER_INTERACTIVE,
@@ -40,18 +40,28 @@ interface YearsApiResponse {
     currentYear: number;
 }
 
-interface Props {
-    landlord_id: string;
+interface Property {
+    property_id: string;
+    property_name: string;
 }
 
-export default function RevenuePerformanceChart({ landlord_id }: Props) {
+export default function RevenuePerformanceChart() {
     const router = useRouter();
+
+    /* ---------------- PROPERTIES ---------------- */
+    const { data: propertiesData } = useSWR<Property[]>(
+        "/api/landlord/properties/getAllPropertieName",
+        fetcher,
+        { revalidateOnFocus: false }
+    );
+
+    const [selectedPropertyId, setSelectedPropertyId] = useState<string>("all");
 
     /* ---------------- YEARS ---------------- */
     const { data: yearsData } = useSWR<YearsApiResponse>(
-        landlord_id
-            ? `/api/landlord/payments/years?landlord_id=${landlord_id}`
-            : null,
+        selectedPropertyId !== "all"
+            ? `/api/landlord/payments/years?property_id=${selectedPropertyId}`
+            : `/api/landlord/payments/years`,
         fetcher,
         { revalidateOnFocus: false }
     );
@@ -75,8 +85,8 @@ export default function RevenuePerformanceChart({ landlord_id }: Props) {
 
     /* ---------------- REVENUE DATA ---------------- */
     const { data = [], isLoading } = useSWR<RevenueData[]>(
-        landlord_id && selectedYear
-            ? `/api/analytics/landlord/getRevenuePerformance?landlordId=${landlord_id}&year=${selectedYear}`
+        selectedYear
+            ? `/api/analytics/landlord/getRevenuePerformance?year=${selectedYear}${selectedPropertyId !== "all" ? `&propertyId=${selectedPropertyId}` : ""}`
             : null,
         fetcher,
         { revalidateOnFocus: false, keepPreviousData: true }
@@ -124,12 +134,16 @@ export default function RevenuePerformanceChart({ landlord_id }: Props) {
         dataLabels: { enabled: false },
     };
 
+    const selectedPropertyName = selectedPropertyId === "all"
+        ? "All Properties"
+        : propertiesData?.find((p) => p.property_id === selectedPropertyId)?.property_name || "";
+
     return (
         <div
             onClick={() =>
                 router.push("/landlord/analytics/detailed/revenue")
             }
-            className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm p-5 hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all cursor-pointer"
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow cursor-pointer"
         >
             {/* ================= HEADER ================= */}
             <div className="flex items-center justify-between mb-4">
@@ -137,33 +151,57 @@ export default function RevenuePerformanceChart({ landlord_id }: Props) {
                     <h2 className="text-base font-semibold text-gray-900">
                         Overall Revenue Performance
                     </h2>
-                    <p className="text-xs text-gray-500">
-                        Monthly revenue · {selectedYear ?? ""}
+                    <p className="text-lg font-semibold text-gray-700">
+                        {selectedPropertyName} · {selectedYear ?? ""}
                     </p>
                 </div>
 
-                {/* Year Selector */}
-                {years.length > 0 && selectedYear && (
-                    <div
-                        className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                        <select
-                            value={selectedYear}
-                            onChange={(e) =>
-                                setSelectedYear(Number(e.target.value))
-                            }
-                            className="text-sm font-medium bg-transparent focus:outline-none cursor-pointer"
+                <div className="flex items-center gap-2">
+                    {/* Property Selector */}
+                    {propertiesData && propertiesData.length > 0 && (
+                        <div
+                            className="relative"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            {years.map((year) => (
-                                <option key={year} value={year}>
-                                    {year}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
+                            <select
+                                value={selectedPropertyId}
+                                onChange={(e) => setSelectedPropertyId(e.target.value)}
+                                className="appearance-none text-sm font-medium text-gray-700 bg-gray-50 border rounded-lg pl-3 pr-10 py-2 cursor-pointer focus:outline-none"
+                            >
+                                <option value="all">All Properties</option>
+                                {propertiesData.map((property) => (
+                                    <option key={property.property_id} value={property.property_id}>
+                                        {property.property_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        </div>
+                    )}
+
+                    {/* Year Selector */}
+                    {years.length > 0 && selectedYear && (
+                        <div
+                            className="relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <select
+                                value={selectedYear}
+                                onChange={(e) =>
+                                    setSelectedYear(Number(e.target.value))
+                                }
+                                className="appearance-none text-sm font-medium text-gray-700 bg-gray-50 border rounded-lg pl-3 pr-10 py-2 cursor-pointer focus:outline-none"
+                            >
+                                {years.map((year) => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* ================= CHART ================= */}

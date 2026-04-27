@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 /* --------------------------------------------------
-   CACHED MONTHLY REVENUE QUERY (PER LANDLORD + YEAR)
+   CACHED MONTHLY REVENUE QUERY (PER LANDLORD + YEAR + PROPERTY)
 -------------------------------------------------- */
 const getMonthlyRevenueCached = unstable_cache(
-    async (landlordId: string, year: number) => {
+    async (landlordId: string, year: number, propertyId?: string) => {
+        const params: any[] = [landlordId, year];
+        let propertyFilter = "";
+        if (propertyId) {
+            propertyFilter = "AND u.property_id = ?";
+            params.push(propertyId);
+        }
+
         const [rows]: any = await db.execute(
             `
       SELECT
@@ -19,10 +27,11 @@ const getMonthlyRevenueCached = unstable_cache(
       WHERE pr.landlord_id = ?
         AND p.payment_status = 'confirmed'
         AND YEAR(p.payment_date) = ?
+        ${propertyFilter}
       GROUP BY month_num
       ORDER BY month_num ASC
       `,
-            [landlordId, year]
+            params
         );
 
         /* -------- Normalize to 12 months for requested year -------- */
@@ -46,15 +55,16 @@ const getMonthlyRevenueCached = unstable_cache(
         });
     },
 
-    /* 🔑 Cache key MUST include year */
-    (landlordId: string, year: number) => [
+    /* 🔑 Cache key MUST include year and propertyId */
+    (landlordId: string, year: number, propertyId?: string) => [
         "monthly-revenue",
         landlordId,
         year,
+        propertyId || "all",
     ],
 
     {
-        revalidate: 300, // 5 minutes
+        revalidate: 300,
         tags: ["monthly-revenue"],
     }
 );
@@ -63,14 +73,18 @@ const getMonthlyRevenueCached = unstable_cache(
    API HANDLER
 -------------------------------------------------- */
 export async function GET(req: Request) {
+    const session = await getSessionUser();
+    if (!session || session.userType !== "landlord") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
-
-    const landlordId = searchParams.get("landlordId");
     const yearParam = searchParams.get("year");
+    const propertyId = searchParams.get("propertyId");
 
-    if (!landlordId || !yearParam) {
+    if (!yearParam) {
         return NextResponse.json(
-            { error: "landlordId and year are required" },
+            { error: "year is required" },
             { status: 400 }
         );
     }
@@ -84,7 +98,7 @@ export async function GET(req: Request) {
     }
 
     try {
-        const result = await getMonthlyRevenueCached(landlordId, year);
+        const result = await getMonthlyRevenueCached(session.landlord_id, year, propertyId || undefined);
         return NextResponse.json(result, { status: 200 });
     } catch (err) {
         console.error("[MONTHLY_REVENUE_CACHE_ERROR]", err);

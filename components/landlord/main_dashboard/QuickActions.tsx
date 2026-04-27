@@ -73,7 +73,7 @@ export default function QuickActions({
         },
         {
             id: "announcement",
-            label: "Announcement",
+            label: " Create Announcement",
             icon: Megaphone,
             onClick: () => handleAction(onAnnouncement),
             gradient: "from-purple-500 to-purple-600",
@@ -82,25 +82,25 @@ export default function QuickActions({
         },
         {
             id: "workOrder",
-            label: "Work Order",
+            label: "Create Work Order",
             icon: List,
             onClick: () => handleAction(onWorkOrder),
             gradient: "from-orange-500 to-orange-600",
             iconColor: "text-orange-600",
             disabled: !emailVerified,
         },
-        {
-            id: "income",
-            label: "Payouts",
-            icon: Wallet,
-            onClick: () => handleAction(onIncome),
-            gradient: "from-cyan-500 to-cyan-600",
-            iconColor: "text-cyan-600",
-            disabled: !emailVerified,
-        },
+        // {
+        //     id: "income",
+        //     label: "Payouts",
+        //     icon: Wallet,
+        //     onClick: () => handleAction(onIncome),
+        //     gradient: "from-cyan-500 to-cyan-600",
+        //     iconColor: "text-cyan-600",
+        //     disabled: !emailVerified,
+        // },
         {
             id: "expense",
-            label: "Expense",
+            label: "Record Expense",
             icon: DollarSign,
             onClick: () => handleAction(() => setExpenseOpen(true)),
             gradient: "from-rose-500 to-pink-600",
@@ -245,7 +245,7 @@ export default function QuickActions({
                                         />
                                     </div>
                                 </div>
-                                <span className={`text-xs font-semibold ${disabled ? "text-gray-400" : "text-gray-700"}`}>
+                                <span className={`text-[11px] font-semibold ${disabled ? "text-gray-400" : "text-gray-700"}`}>
                                     {label}
                                 </span>
                             </button>

@@ -181,7 +181,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
 
               {/* Calendar */}
               <Suspense fallback={<CardSkeleton />}>
-                <div id="dashboard-maintenance" className="h-full">
+                <div id="dashboard-maintenance" className="h-[350px]">
                   <TodayCalendar landlordId={landlordId} />
                 </div>
               </Suspense>

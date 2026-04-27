@@ -56,8 +56,6 @@ export async function PUT(req: NextRequest) {
   const conn = await db.getConnection();
   try {
     const body = await req.json();
-    console.log("📦 Incoming update payload:", body);
-
     const {
       request_id,
       status,

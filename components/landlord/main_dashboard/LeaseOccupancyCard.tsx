@@ -138,11 +138,11 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
 
   /* ================= RENDER ================= */
   return (
-    <div className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all h-full flex flex-col">
+    <div className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all h-[350px] flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b">
         <h3 className="text-sm font-semibold text-gray-900">
-          Lease & Occupancy
+          Actions Required
         </h3>
       </div>
 
@@ -155,9 +155,9 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
           Failed to load lease data
         </div>
       ) : (
-        <>
+        <div className="flex-1 overflow-y-auto">
           <Section title="Ending Leases" count={ending.length}>
-            <div className="max-h-[180px] overflow-y-auto divide-y">
+            <div className="divide-y">
               {ending.length
                 ? ending.slice(0, 3).map((lease, idx) => (
                     <Item key={`ending-${idx}`} lease={lease} idx={idx} />
@@ -167,7 +167,7 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
           </Section>
 
           <Section title="Prospective" count={prospective.length}>
-            <div className="max-h-[180px] overflow-y-auto divide-y">
+            <div className="divide-y">
               {prospective.length
                 ? prospective.slice(0, 3).map((lease, idx) => (
                     <Item key={`prospective-${idx}`} lease={lease} idx={idx} />
@@ -177,7 +177,7 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
           </Section>
 
           <Section title="Draft Leases" count={drafts.length}>
-            <div className="max-h-[180px] overflow-y-auto divide-y">
+            <div className="divide-y">
               {drafts.length
                 ? drafts.slice(0, 3).map((lease, idx) => (
                     <Item key={`draft-${idx}`} lease={lease} idx={idx} />
@@ -185,7 +185,7 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
                 : Empty("No draft leases")}
             </div>
           </Section>
-        </>
+        </div>
       )}
     </div>
   );
