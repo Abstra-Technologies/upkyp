@@ -1720,7 +1720,7 @@ export default function ProfilePage() {
 
     setProfileData(user as ProfileData);
     setProfilePicture(
-      user.profilePicture || "https://via.placeholder.com/150",
+      user.profilePicture || "https://res.cloudinary.com/dptmeluy0/image/upload/v1766715365/profile-icon-design-free-vector_la6rgj.jpg",
     );
     setFormData({
       firstName: user?.firstName || "",

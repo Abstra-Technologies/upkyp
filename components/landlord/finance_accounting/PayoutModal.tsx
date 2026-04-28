@@ -64,10 +64,10 @@ export default function PayoutModal({
     return (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
 
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-lg flex flex-col max-h-[85vh]">
+            <div className="bg-white w-full max-w-md rounded-2xl shadow-lg flex flex-col max-h-[90vh]">
 
                 {/* HEADER */}
-                <div className="px-5 py-4 border-b">
+                <div className="px-4 sm:px-5 py-4 border-b flex-shrink-0">
                     <h2 className="font-semibold text-gray-900">
                         Assigned Properties ({safeProperties.length})
                     </h2>
@@ -76,15 +76,15 @@ export default function PayoutModal({
                     </p>
                 </div>
 
-                {/* 🔥 ADD PROPERTY */}
-                <div className="p-4 border-b space-y-2">
+                {/* ADD PROPERTY */}
+                <div className="px-4 sm:px-5 py-4 border-b space-y-2 flex-shrink-0">
                     <p className="text-xs text-gray-500">Add Property</p>
 
                     <div className="flex gap-2">
                         <select
                             value={selectedProperty}
                             onChange={(e) => setSelectedProperty(e.target.value)}
-                            className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                            className="flex-1 border rounded-lg px-3 py-2 text-sm min-w-0"
                         >
                             <option value="">Select property</option>
 
@@ -98,7 +98,7 @@ export default function PayoutModal({
                         <button
                             onClick={handleAssign}
                             disabled={!selectedProperty}
-                            className="px-3 py-2 text-sm rounded-lg
+                            className="px-4 py-2 text-sm rounded-lg flex-shrink-0
                             bg-emerald-600 text-white hover:bg-emerald-700
                             disabled:opacity-50 transition"
                         >
@@ -108,7 +108,7 @@ export default function PayoutModal({
                 </div>
 
                 {/* CONTENT */}
-                <div className="p-4 space-y-2 overflow-y-auto">
+                <div className="px-4 sm:px-5 py-4 space-y-2 overflow-y-auto flex-1">
 
                     {safeProperties.length === 0 ? (
                         <p className="text-sm text-gray-500 text-center py-6">
@@ -118,15 +118,15 @@ export default function PayoutModal({
                         safeProperties.map((p: any) => (
                             <div
                                 key={p.property_id}
-                                className="flex justify-between items-center border rounded-lg px-3 py-2 text-sm hover:bg-gray-50 transition"
+                                className="flex justify-between items-center gap-2 border rounded-lg px-3 py-2.5 text-sm hover:bg-gray-50 transition"
                             >
-                                <span className="text-gray-800">
+                                <span className="text-gray-800 truncate min-w-0 flex-1">
                                     {p.property_name}
                                 </span>
 
                                 <button
                                     onClick={() => handleDeassign(p)}
-                                    className="text-xs px-2 py-1 rounded-md
+                                    className="text-xs px-3 py-1.5 rounded-md flex-shrink-0
                                     bg-red-100 text-red-700 hover:bg-red-200 transition"
                                 >
                                     Remove
@@ -137,10 +137,10 @@ export default function PayoutModal({
                 </div>
 
                 {/* FOOTER */}
-                <div className="p-4 border-t">
+                <div className="px-4 sm:px-5 py-4 border-t flex-shrink-0">
                     <button
                         onClick={onClose}
-                        className="w-full py-2 rounded-xl text-sm font-semibold
+                        className="w-full py-2.5 rounded-xl text-sm font-semibold
                         bg-gray-900 text-white hover:bg-black transition"
                     >
                         Close

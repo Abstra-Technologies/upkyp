@@ -1,57 +1,62 @@
 "use client";
 
-export default function PayoutCard({ acc, actions }: any) {
+import { Trash2, Pencil } from "lucide-react";
 
+export default function PayoutCard({ acc, actions }: any) {
     return (
-        <div className="rounded-xl border bg-white px-3 py-3 space-y-2 shadow-sm">
+        <div className="rounded-xl border bg-white px-3 py-2.5 shadow-sm relative">
+            {/* DELETE ICON - TOP RIGHT */}
+            <button
+                onClick={() => actions.delete(acc)}
+                disabled={acc.is_active === 1}
+                className={`absolute top-2 right-2 p-1.5 rounded-lg transition ${
+                    acc.is_active === 1 ? "text-gray-300 cursor-not-allowed" : "text-gray-400 hover:text-red-600 hover:bg-red-50"
+                }`}
+            >
+                <Trash2 className="w-4 h-4" />
+            </button>
 
             {/* HEADER */}
-            <div className="flex justify-between items-start">
-                <div>
-                    <p className="font-semibold text-sm text-gray-900 leading-tight">
+            <div className="flex items-center justify-between gap-2 pr-8">
+                <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm text-gray-900 leading-tight truncate">
                         {acc.bank_name}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 truncate">
                         {acc.account_name}
                     </p>
                 </div>
+                <span
+                    className={`px-2 py-0.5 text-[10px] rounded-full font-semibold flex-shrink-0
+                    ${acc.is_active === 1
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                >
+                    {acc.is_active === 1 ? "Active" : "Inactive"}
+                </span>
             </div>
 
             {/* ACCOUNT NUMBER */}
-            <p className="font-mono text-sm tracking-wide text-gray-800">
+            <p className="font-mono text-xs tracking-wide text-gray-800 mt-1">
                 {acc.account_number}
             </p>
 
-            {/* ACTIONS */}
-            <div className="flex gap-1.5 pt-1">
-
-                {/* VIEW */}
+            {/* BOTTOM ACTIONS */}
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
                 <button
                     onClick={() => actions.viewProperties(acc)}
-                    className="flex-1 text-[11px] py-1.5 rounded-lg
-                    bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition"
+                    className="flex-1 text-xs py-1.5 rounded-lg font-medium text-center px-2
+                    bg-indigo-600 text-white hover:bg-indigo-700 transition"
                 >
-                    View
+                    View Linked Properties
                 </button>
-
-                {/* EDIT */}
                 <button
                     onClick={() => actions.edit(acc)}
-                    className="flex-1 text-[11px] py-1.5 rounded-lg
-                    bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
+                    className="ml-2 p-1.5 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition"
                 >
-                    Edit
+                    <Pencil className="w-4 h-4" />
                 </button>
-
-                {/* DELETE */}
-                <button
-                    onClick={() => actions.delete(acc)}
-                    className="flex-1 text-[11px] py-1.5 rounded-lg
-                    bg-red-100 text-red-700 hover:bg-red-200 transition"
-                >
-                    Delete
-                </button>
-
             </div>
         </div>
     );

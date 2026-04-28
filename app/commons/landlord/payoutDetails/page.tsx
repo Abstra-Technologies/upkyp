@@ -83,21 +83,23 @@ export default function Page() {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-4 md:px-6 lg:px-8 py-4 lg:py-6">
-                <div className="flex items-center gap-3 lg:gap-4">
-                    <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl lg:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/25">
-                        <Landmark className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
-                            Accounting
-                        </h1>
-                        <p className="text-sm text-gray-500">
-                            Manage your bank accounts and linked properties where money is sent
-                        </p>
+            <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/25">
+                            <Landmark className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-xl font-bold text-gray-900 truncate">
+                                Accounting
+                            </h1>
+                            <p className="text-sm text-gray-500 truncate">
+                                Manage bank accounts and linked properties
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="ml-auto">
+                    <div className="sm:ml-auto w-full sm:w-auto">
                         <AddPayoutAccount
                             onSuccess={(newAccount: any) =>
                                 setAccounts((prev: any) => [newAccount, ...prev])
@@ -108,9 +110,10 @@ export default function Page() {
             </div>
 
             {/* Main Content */}
-            <div className="px-4 md:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+            <div className="px-4 sm:px-6 py-6 pb-24">
                 <div className="max-w-6xl mx-auto space-y-4">
-                    <div className="bg-white border border-gray-300 rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)] p-4">
+                    {/* Desktop Table */}
+                    <div className="hidden sm:block bg-white border border-gray-300 rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)] p-4">
                         <PayoutTable
                             data={accounts}
                             onEdit={actions.edit}
@@ -119,6 +122,7 @@ export default function Page() {
                         />
                     </div>
 
+                    {/* Mobile List */}
                     <div className="sm:hidden">
                         <PayoutMobileList
                             accounts={accounts}

@@ -95,8 +95,8 @@ export default function EditPayoutAccountModal({
     );
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md p-4 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
 
                 {/* HEADER */}
                 <div>
@@ -112,7 +112,7 @@ export default function EditPayoutAccountModal({
                 <div className="relative">
                     <input
                         placeholder="Search bank / e-wallet"
-                        className="w-full border rounded-xl px-4 py-2 text-sm"
+                        className="w-full border rounded-xl px-4 py-2.5 text-sm"
                         value={search}
                         onChange={(e) => {
                             setSearch(e.target.value);
@@ -148,7 +148,7 @@ export default function EditPayoutAccountModal({
 
                 {/* ACCOUNT NAME */}
                 <input
-                    className="w-full border rounded-xl px-4 py-2 text-sm"
+                    className="w-full border rounded-xl px-4 py-2.5 text-sm"
                     placeholder="Account Name"
                     value={form.account_name}
                     onChange={(e) =>
@@ -158,7 +158,7 @@ export default function EditPayoutAccountModal({
 
                 {/* ACCOUNT NUMBER */}
                 <input
-                    className="w-full border rounded-xl px-4 py-2 text-sm"
+                    className="w-full border rounded-xl px-4 py-2.5 text-sm"
                     placeholder="Account / Mobile Number"
                     value={form.account_number}
                     onChange={(e) =>
@@ -168,10 +168,9 @@ export default function EditPayoutAccountModal({
 
                 {/* REMINDER */}
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2">
-                    <span className="text-amber-600 text-sm">⚠️</span>
+                    <span className="text-amber-600 text-sm flex-shrink-0">⚠️</span>
                     <p className="text-xs text-amber-800 font-medium leading-snug">
-                        Ensure your account details are accurate and correct.
-                        Incorrect information may result in failed or delayed payouts.
+                        Ensure your account details are accurate. Incorrect information may result in failed or delayed payouts.
                     </p>
                 </div>
 
@@ -180,14 +179,14 @@ export default function EditPayoutAccountModal({
                     <button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex-1 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
+                        className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
                     >
                         {saving ? "Saving..." : "Save Changes"}
                     </button>
 
                     <button
                         onClick={onClose}
-                        className="flex-1 py-2 border rounded-xl text-sm"
+                        className="flex-1 py-2.5 border rounded-xl text-sm"
                     >
                         Cancel
                     </button>

@@ -2,6 +2,7 @@
 
 import { MaterialReactTable, MRT_ColumnDef } from "material-react-table";
 import { useMemo } from "react";
+import { Building2 } from "lucide-react";
 
 export default function PayoutTable({
                                         data,
@@ -59,10 +60,11 @@ export default function PayoutTable({
                         {/* VIEW LINKED PROPERTIES */}
                         <button
                             onClick={() => onViewProperties(acc)}
-                            className="px-3 py-1.5 text-xs font-semibold rounded-lg
+                            className="px-2.5 py-1 text-[10px] font-semibold rounded-lg flex items-center gap-1
                             bg-indigo-100 text-indigo-700 hover:bg-indigo-200 transition"
                         >
-                            View Linked Properties
+                            <Building2 className="w-3 h-3" />
+                            Linked
                         </button>
 
                         {/* EDIT */}

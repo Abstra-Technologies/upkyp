@@ -84,25 +84,25 @@ export default function AddPayoutAccount({ onSuccess }: any) {
             {/* TRIGGER */}
             <button
                 onClick={() => setOpen(true)}
-                className="px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl text-sm font-semibold flex items-center gap-2"
+                className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 w-full sm:w-auto"
             >
-                <Plus className="w-4 h-4" />
+                <Plus className="w-4 h-4 flex-shrink-0" />
                 Add Account
             </button>
 
             {/* MODAL */}
             {open && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-4">
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-md p-4 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
 
                         <h2 className="text-lg font-bold">
                             Add Payout Account
                         </h2>
 
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex gap-2">
-                            <span className="text-amber-600 text-sm">⚠️</span>
+                            <span className="text-amber-600 text-sm flex-shrink-0">⚠️</span>
                             <p className="text-xs text-amber-700 leading-snug">
-                                Please ensure your account details are accurate and correct.
+                                Please ensure your account details are accurate.
                                 Incorrect information may result in failed or delayed payouts.
                             </p>
                         </div>
@@ -111,7 +111,7 @@ export default function AddPayoutAccount({ onSuccess }: any) {
                         <div className="relative">
                             <input
                                 placeholder="Search bank / e-wallet"
-                                className="w-full border rounded-xl px-4 py-2"
+                                className="w-full border rounded-xl px-4 py-2.5 text-sm"
                                 value={search}
                                 onChange={(e) => {
                                     setSearch(e.target.value);
@@ -148,7 +148,7 @@ export default function AddPayoutAccount({ onSuccess }: any) {
                         {/* ACCOUNT NAME */}
                         <input
                             placeholder="Account Name"
-                            className="w-full border rounded-xl px-4 py-2"
+                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
                             value={form.account_name}
                             onChange={(e) =>
                                 setForm({ ...form, account_name: e.target.value })
@@ -158,7 +158,7 @@ export default function AddPayoutAccount({ onSuccess }: any) {
                         {/* ACCOUNT NUMBER */}
                         <input
                             placeholder="Account / Mobile Number"
-                            className="w-full border rounded-xl px-4 py-2"
+                            className="w-full border rounded-xl px-4 py-2.5 text-sm"
                             value={form.account_number}
                             onChange={(e) =>
                                 setForm({ ...form, account_number: e.target.value })
@@ -170,14 +170,14 @@ export default function AddPayoutAccount({ onSuccess }: any) {
                             <button
                                 onClick={handleSubmit}
                                 disabled={saving}
-                                className="flex-1 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
+                                className="flex-1 py-2.5 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-xl text-sm font-semibold"
                             >
                                 {saving ? "Saving..." : "Save"}
                             </button>
 
                             <button
                                 onClick={() => setOpen(false)}
-                                className="flex-1 py-2 border rounded-xl text-sm"
+                                className="flex-1 py-2.5 border rounded-xl text-sm"
                             >
                                 Cancel
                             </button>
