@@ -198,9 +198,9 @@ export default function LandlordLayout({
       ]
     },
     {
-      section: "Platform",
+      section: "Developer",
       items: [
-        { id: "nav-upkyp", label: "Upkyp Stack", href: "/upkyp_stack", icon: IoLayers },
+        { id: "nav-upkyp", label: "Upkyp Stack", href: "/landlord/upkyp_stack", icon: IoLayers },
         { id: "nav-subscription", label: "Subscription", href: "/commons/landlord/subscription", icon: IoCard },
       ]
     },

@@ -15,9 +15,9 @@ export default function UpkypStackLayout({
     const pathname = usePathname();
 
     const navItems = [
-        { label: "Marketplace", href: "/upkyp_stack" },
-        { label: "My API", href: "/upkyp_stack/myAPI" },
-        { label: "API Documentation", href: "/upkyp_stack/documentation" },
+        { label: "Marketplace", href: "/landlord/upkyp_stack" },
+        { label: "My API", href: "/landlord/upkyp_stack/myAPI" },
+        { label: "API Documentation", href: "/landlord/upkyp_stack/documentation" },
     ];
 
     return (

@@ -84,9 +84,9 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
     =============================== */
     if (isLoading) {
         return (
-            <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <p className="mt-3 text-sm text-gray-600">
+            <div className="bg-white rounded-lg border border-gray-300 p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)]">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-gray-700"></div>
+                <p className="mt-2 text-xs text-gray-500">
                     Loading your subscription…
                 </p>
             </div>
@@ -98,13 +98,13 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
     =============================== */
     if (error?.response?.status === 404) {
         return (
-            <div className="bg-white border border-gray-200 rounded-lg p-6 text-center">
-                <p className="text-sm text-gray-600 mb-4">
+            <div className="bg-white border border-gray-300 rounded-lg p-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)]">
+                <p className="text-xs text-gray-500 mb-3">
                     No subscription subscribed yet.
                 </p>
                 <Link
                     href="/landlord/subsciption_plan/pricing"
-                    className="inline-block bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm font-semibold py-2.5 px-5 rounded-lg"
+                    className="inline-block bg-blue-600 text-white text-xs font-semibold py-2 px-4 rounded-md hover:bg-blue-700 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all"
                 >
                     Subscribe Now
                 </Link>
@@ -117,12 +117,12 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
     =============================== */
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4">
+            <div className="bg-red-50 border border-red-300 text-red-700 rounded-lg p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                 <div className="flex items-start gap-2">
-                    <AlertTriangle className="w-5 h-5 mt-0.5" />
+                    <AlertTriangle className="w-4 h-4 mt-0.5" />
                     <div>
-                        <p className="font-medium">Something went wrong</p>
-                        <p className="text-sm mt-1">
+                        <p className="text-xs font-medium">Something went wrong</p>
+                        <p className="text-xs mt-0.5 text-red-600">
                             Unable to load subscription details.
                         </p>
                     </div>
@@ -135,27 +135,27 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
        Active Subscription UI
     =============================== */
     return (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-            <div className="p-4 sm:p-6 space-y-4">
+        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)] hover:border-gray-400 hover:shadow-[inset_0_1px_0_rgba(255,255,255,1),0_2px_4px_rgba(0,0,0,0.08)] transition-all">
+            <div className="p-3 space-y-3">
 
                 {/* Header */}
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center">
-                            <Crown className="w-4 h-4 text-white" />
+                        <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
+                            <Crown className="w-3.5 h-3.5 text-white" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">
+                        <h3 className="text-base font-bold text-gray-900">
                             {subscription.plan_name}
                         </h3>
                     </div>
 
                     <span
-                        className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                        className={`px-2 py-0.5 text-xs font-semibold rounded-md border ${
                             isCancelled
-                                ? "bg-amber-100 text-amber-700"
+                                ? "bg-amber-50 text-amber-700 border-amber-300"
                                 : subscription.is_active
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-red-100 text-red-700"
+                                    ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                                    : "bg-red-50 text-red-700 border-red-300"
                         }`}
                     >
                         {isCancelled
@@ -167,14 +167,14 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <InfoCard
-                        icon={<Calendar className="w-4 h-4 text-blue-600" />}
+                        icon={<Calendar className="w-3.5 h-3.5 text-blue-600" />}
                         label="Start Date"
                         value={subscription.start_date}
                     />
                     <InfoCard
-                        icon={<Clock className="w-4 h-4 text-emerald-600" />}
+                        icon={<Clock className="w-3.5 h-3.5 text-emerald-600" />}
                         label="End Date"
                         value={subscription.end_date}
                         suffix=" at 11:59 PM"
@@ -182,25 +182,25 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
                 </div>
 
                 {/* Payment Status */}
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700">
+                <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-md border border-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+                    <span className="text-xs font-medium text-gray-600">
                         Payment Status
                     </span>
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-gray-200 text-gray-700">
+                    <span className="px-2 py-0.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 border border-gray-300">
                         {subscription.payment_status}
                     </span>
                 </div>
 
                 {/* Cancelled Banner */}
                 {isCancelled && (
-                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <div className="flex items-start gap-3">
-                            <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-md shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+                        <div className="flex items-start gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />
                             <div>
-                                <p className="text-sm font-semibold text-amber-900">
+                                <p className="text-xs font-semibold text-amber-800">
                                     Subscription Cancelled
                                 </p>
-                                <p className="text-sm text-amber-800 mt-1">
+                                <p className="text-xs text-amber-700 mt-0.5">
                                     Your subscription remains active until{" "}
                                     <strong>
                                         {new Date(subscription.end_date).toLocaleDateString(
@@ -217,10 +217,10 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
 
                 {/* Trial Banner */}
                 {subscription.is_trial === 1 && (
-                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5" />
-                            <p className="text-sm text-emerald-900">
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+                        <div className="flex items-start gap-2">
+                            <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5" />
+                            <p className="text-xs text-emerald-800">
                                 Free trial until{" "}
                                 <strong>
                                     {new Date(subscription.end_date).toLocaleDateString()}
@@ -232,10 +232,10 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
 
                 {/* Actions */}
                 {subscription.is_active && subscription.is_trial === 0 && (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         <Link
                             href="/landlord/subsciption_plan/pricing"
-                            className="block bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-sm font-semibold py-3 px-4 rounded-lg text-center"
+                            className="block bg-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-md text-center hover:bg-blue-700 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all"
                         >
                             {isCancelled ? "Reactivate / Upgrade Plan" : "Upgrade Plan"}
                         </Link>
@@ -243,9 +243,9 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
                         {!isCancelled && (
                             <button
                                 onClick={handleCancelSubscription}
-                                className="w-full flex items-center justify-center gap-2 text-sm font-semibold py-2.5 px-4 rounded-lg border border-red-300 text-red-700 hover:bg-red-50"
+                                className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-4 rounded-md border border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 transition-all"
                             >
-                                <XCircle className="w-4 h-4" />
+                                <XCircle className="w-3.5 h-3.5" />
                                 Cancel Subscription
                             </button>
                         )}
@@ -261,13 +261,13 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
 =============================== */
 function InfoCard({ icon, label, value, suffix = "" }) {
     return (
-        <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-md border border-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-gray-400 transition-all">
             {icon}
             <div>
-                <p className="text-xs font-semibold text-gray-600 uppercase">
+                <p className="text-xs font-semibold text-gray-500 uppercase">
                     {label}
                 </p>
-                <p className="text-sm text-gray-900 mt-0.5">
+                <p className="text-xs text-gray-900 mt-0.5">
                     {value
                         ? `${new Date(value).toLocaleDateString("en-US", {
                             year: "numeric",

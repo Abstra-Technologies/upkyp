@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Landmark } from "lucide-react";
 
 import { usePayout } from "@/hooks/landlord/finance/usePayout";
 import { usePayoutProperty } from "@/hooks/landlord/finance/useAssignProperty";
@@ -64,7 +65,7 @@ export default function Page() {
                 setSelectedAccount(acc);
                 setModalOpen(true);
 
-                // 🔥 fetch BOTH in parallel
+                //  fetch BOTH in parallel
                 const [assigned, all] = await Promise.all([
                     getAssignedProperties(acc.payout_id),
                     fetchAllProperties(),
@@ -79,69 +80,60 @@ export default function Page() {
         },
     };
 
-    /* ======================
-       HEADER
-    ====================== */
-    const Header = ({ isMobile = false }: { isMobile?: boolean }) => (
-        <div className="bg-white border rounded-2xl px-4 py-4 shadow-sm">
-            <div className="flex justify-between items-center">
-
-                <div>
-                    <h2 className={`${isMobile ? "text-lg" : "text-xl"} font-bold text-gray-900`}>
-                        Accounting
-                    </h2>
-                    <p className={`${isMobile ? "text-xs" : "text-sm"} text-gray-500`}>
-                        Manage your bank accounts and linked properties where money is sent
-                    </p>
-                </div>
-
-                <AddPayoutAccount
-                    onSuccess={(newAccount: any) =>
-                        setAccounts((prev: any) => [newAccount, ...prev])
-                    }
-                />
-
-            </div>
-        </div>
-    );
-
     return (
-        <div className="max-w-6xl mx-auto p-4 space-y-4">
+        <div className="min-h-screen bg-gray-50">
+            {/* Header */}
+            <div className="bg-white border-b border-gray-200 px-4 md:px-6 lg:px-8 py-4 lg:py-6">
+                <div className="flex items-center gap-3 lg:gap-4">
+                    <div className="w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl lg:rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/25">
+                        <Landmark className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl lg:text-2xl font-bold text-gray-900">
+                            Accounting
+                        </h1>
+                        <p className="text-sm text-gray-500">
+                            Manage your bank accounts and linked properties where money is sent
+                        </p>
+                    </div>
 
-            {/* DESKTOP */}
-            <div className="hidden md:block space-y-4">
-
-                <Header />
-
-                <div className="bg-white border rounded-2xl p-4 shadow-sm">
-                    <PayoutTable
-                        data={accounts}
-                        onEdit={actions.edit}
-                        onDelete={actions.delete}
-                        onViewProperties={actions.viewProperties}
-                    />
+                    <div className="ml-auto">
+                        <AddPayoutAccount
+                            onSuccess={(newAccount: any) =>
+                                setAccounts((prev: any) => [newAccount, ...prev])
+                            }
+                        />
+                    </div>
                 </div>
-
             </div>
 
-            {/* MOBILE */}
-            <div className="md:hidden space-y-4">
+            {/* Main Content */}
+            <div className="px-4 md:px-6 lg:px-8 py-6 pb-24 lg:pb-8">
+                <div className="max-w-6xl mx-auto space-y-4">
+                    <div className="bg-white border border-gray-300 rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)] p-4">
+                        <PayoutTable
+                            data={accounts}
+                            onEdit={actions.edit}
+                            onDelete={actions.delete}
+                            onViewProperties={actions.viewProperties}
+                        />
+                    </div>
 
-                <Header isMobile />
-
-                <PayoutMobileList
-                    accounts={accounts}
-                    actions={actions}
-                />
-
+                    <div className="sm:hidden">
+                        <PayoutMobileList
+                            accounts={accounts}
+                            actions={actions}
+                        />
+                    </div>
+                </div>
             </div>
 
-            {/* 🔥 VIEW / MANAGE PROPERTIES MODAL */}
+            {/*  VIEW / MANAGE PROPERTIES MODAL */}
             <PayoutModal
                 open={modalOpen}
                 onClose={() => setModalOpen(false)}
                 properties={properties}
-                allProperties={allProperties} // 🔥 REQUIRED FIX
+                allProperties={allProperties}
                 payout_id={selectedAccount?.payout_id}
                 setProperties={setProperties}
             />

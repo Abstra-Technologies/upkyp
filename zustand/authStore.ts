@@ -23,6 +23,7 @@ interface User {
     is_verified?: boolean | null;
     is_trial_used?: boolean | null;
     subscription?: any;
+    civil_status?: string | null;
 }
 
 interface Admin {
