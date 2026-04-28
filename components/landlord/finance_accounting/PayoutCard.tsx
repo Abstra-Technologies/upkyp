@@ -19,11 +19,9 @@ export default function PayoutCard({ acc, actions }: any) {
             {/* HEADER */}
             <div className="flex items-center justify-between gap-2 pr-8">
                 <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-sm text-gray-900 leading-tight truncate">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-none">Bank</p>
+                    <p className="font-semibold text-sm text-gray-900 leading-tight truncate mt-0.5">
                         {acc.bank_name}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                        {acc.account_name}
                     </p>
                 </div>
                 <span
@@ -37,10 +35,21 @@ export default function PayoutCard({ acc, actions }: any) {
                 </span>
             </div>
 
-            {/* ACCOUNT NUMBER */}
-            <p className="font-mono text-xs tracking-wide text-gray-800 mt-1">
-                {acc.account_number}
-            </p>
+            {/* ACCOUNT NAME & NUMBER */}
+            <div className="grid grid-cols-2 gap-2 mt-2">
+                <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-none">Account Name</p>
+                    <p className="text-xs text-gray-900 truncate mt-0.5">
+                        {acc.account_name}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-none">Account Number</p>
+                    <p className="font-mono text-xs tracking-wide text-gray-900 mt-0.5">
+                        {acc.account_number}
+                    </p>
+                </div>
+            </div>
 
             {/* BOTTOM ACTIONS */}
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
