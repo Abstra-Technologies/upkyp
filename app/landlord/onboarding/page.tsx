@@ -146,7 +146,7 @@ export default function LandlordOnboardingPage() {
             <ToastContainer />
 
             {/* Progress Bar */}
-            <div className="fixed top-0 left-0 right-0 h-1 bg-gray-200/50 z-50">
+            <div className="fixed top-14 left-0 right-0 lg:top-0 lg:left-64 h-1 bg-gray-200/50 z-50">
                 <div
                     className="h-full bg-gradient-to-r from-blue-600 to-emerald-500 transition-all duration-500 ease-out"
                     style={{ width: `${progress}%` }}
@@ -154,7 +154,7 @@ export default function LandlordOnboardingPage() {
             </div>
 
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md border-b border-gray-200/50 z-40 shadow-sm">
+            <header className="fixed top-14 left-0 right-0 lg:top-0 lg:left-64 bg-white/90 backdrop-blur-md border-b border-gray-200/50 z-40 shadow-sm">
                 <div className="max-w-2xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         {currentStep !== "welcome" && currentStep !== "complete" && (
@@ -181,7 +181,7 @@ export default function LandlordOnboardingPage() {
             </header>
 
             {/* Main Content */}
-            <main className="pt-20 pb-16 px-4 sm:px-6">
+            <main className="pt-20 pb-16 px-4 sm:px-6 lg:px-8">
                 <div
                     className={`max-w-2xl mx-auto transition-all duration-200 ${
                         isTransitioning ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
