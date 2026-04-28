@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { IoClose, IoLogOut, IoSettings, IoBusiness, IoChevronDown, IoChevronForward } from "react-icons/io5";
+import { IoClose, IoLogOut, IoSettings, IoBusiness, IoChevronDown, IoChevronForward, IoAlertCircle } from "react-icons/io5";
 
 interface Property {
   property_id: number;
@@ -26,6 +26,7 @@ export default function MobileLandlordSidenav({
     showPropertyDropdown,
     setShowPropertyDropdown,
     loadingProperties = false,
+    onboardingIncomplete = false,
 }: {
     isOpen: boolean;
     onClose: () => void;
@@ -42,8 +43,10 @@ export default function MobileLandlordSidenav({
     showPropertyDropdown?: boolean;
     setShowPropertyDropdown?: (show: boolean) => void;
     loadingProperties?: boolean;
+    onboardingIncomplete?: boolean;
 }) {
     const pathname = usePathname();
+    const router = useRouter();
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
     const isActive = (href: string) => {
@@ -122,6 +125,19 @@ export default function MobileLandlordSidenav({
 
                     {/* PROPERTY SELECTOR */}
                     <div className="px-4 py-2.5 border-b border-gray-100 relative">
+                        {onboardingIncomplete && (
+                            <button
+                                onClick={() => {
+                                    router.push("/landlord/onboarding");
+                                    onClose();
+                                }}
+                                className="w-full flex items-center gap-2 px-2.5 py-2 mb-2 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-all text-left"
+                            >
+                                <IoAlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                                <span className="text-xs font-medium text-amber-600 flex-1">Complete Setup</span>
+                                <IoChevronForward className="w-3 h-3 text-amber-500" />
+                            </button>
+                        )}
                         <button
                             onClick={() => setShowPropertyDropdown && setShowPropertyDropdown(!showPropertyDropdown)}
                             className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all text-left"

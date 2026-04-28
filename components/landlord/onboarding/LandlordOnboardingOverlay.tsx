@@ -416,7 +416,7 @@ export default function LandlordOnboardingOverlay({
                                 onPayoutDone={() => handleStepComplete("payout")}
                                 onPropertyAdded={() => handleStepComplete("property")}
                                 onOpenAgreement={() => setShowAgreementModal(true)}
-                                onOpenVerification={() => window.location.href = "/landlord/verification"}
+                                onOpenVerification={() => router.push("/landlord/verification")}
                                 onOpenPayout={() => setShowPayoutModal(true)}
                                 onOpenProperty={handleCreateProperty}
                             />
@@ -605,7 +605,7 @@ function StepContent({
                         </div>
                         <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1 md:mb-2 text-center">Verify Your Identity</h4>
                         <p className="text-xs md:text-sm text-gray-500 text-center max-w-xs md:max-w-sm mb-4 md:mb-6">
-                            Upload a valid ID to verify your identity.
+                            Complete identity verification through Diddit using a valid government ID.
                         </p>
                         {verificationDone ? (
                             <div className="flex items-center gap-2 text-green-600">
@@ -620,7 +620,7 @@ function StepContent({
                         ) : (
                             <button
                                 onClick={onOpenVerification}
-                                className="px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 transition-all shadow-md text-xs md:text-sm"
+                                className="px-4 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium text-white bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 transition-all shadow-md text-xs md:text-sm"
                             >
                                 Start Verification
                             </button>

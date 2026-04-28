@@ -75,6 +75,7 @@ export default function LandlordLayout({
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [onboardingIncomplete, setOnboardingIncomplete] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -115,6 +116,33 @@ export default function LandlordLayout({
     };
     fetchProperties();
   }, []);
+
+  useEffect(() => {
+    if (!landlordId) return;
+
+    const checkOnboarding = async () => {
+      try {
+        const [verificationRes, payoutRes, agreementRes, propertiesRes] = await Promise.all([
+          axios.get(`/api/landlord/${landlordId}/profileStatus`).catch(() => null),
+          axios.get(`/api/landlord/payout/${landlordId}`).catch(() => null),
+          axios.get(`/api/landlord/platformAgreement/${landlordId}`).catch(() => null),
+          axios.get(`/api/propertyListing/getAllpropertyListing?landlord_id=${landlordId}`).catch(() => null),
+        ]);
+
+        const verificationDone = verificationRes?.data?.status === "verified";
+        const payoutDone = payoutRes?.data?.status === "completed";
+        const agreementDone = agreementRes?.data?.accepted === true;
+        const hasProperty = Array.isArray(propertiesRes?.data) && propertiesRes.data.length > 0;
+
+        const allCompleted = emailVerified && agreementDone && verificationDone && payoutDone && hasProperty;
+        setOnboardingIncomplete(!allCompleted);
+      } catch (err) {
+        console.error("Error checking onboarding status:", err);
+      }
+    };
+
+    checkOnboarding();
+  }, [landlordId, emailVerified]);
 
   const handlePropertySelect = (property: Property) => {
     setSelectedProperty(property);
@@ -261,6 +289,16 @@ export default function LandlordLayout({
 
           {/* PROPERTY SELECTOR */}
           <div className="px-3 py-3 border-b border-gray-800">
+            {onboardingIncomplete && (
+              <button
+                onClick={() => router.push("/landlord/onboarding")}
+                className="w-full flex items-center gap-2 px-3 py-2 mb-2 rounded-lg bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 transition-all text-left"
+              >
+                <IoAlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                <span className="text-xs font-medium text-amber-400 flex-1">Complete Setup</span>
+                <IoChevronForward className="w-3 h-3 text-amber-400" />
+              </button>
+            )}
             <button
               onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
               className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800/50 hover:bg-gray-800 hover:border-gray-600 transition-all text-left"
@@ -413,6 +451,7 @@ export default function LandlordLayout({
         showPropertyDropdown={showPropertyDropdown}
         setShowPropertyDropdown={setShowPropertyDropdown}
         loadingProperties={loadingProperties}
+        onboardingIncomplete={onboardingIncomplete}
       />
 
       {/* LOGOUT CONFIRM */}

@@ -960,6 +960,8 @@ create table LandlordVerification
     id            char(36)                                                 default (uuid())          not null
         primary key,
     landlord_id   varchar(20)                                                                        not null,
+    didit_session_id varchar(255)                                                                    null,
+    didit_workflow_id  varchar(255)                                                                  null,
     document_type varchar(50)                                                                        not null,
     document_url  text                                                                               not null,
     selfie_url    text                                                                               not null,
