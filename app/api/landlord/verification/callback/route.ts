@@ -20,6 +20,78 @@ function verifyWebhookSignature(payload: string, signature: string): boolean {
     return timingSafeEqual(expectedBuffer, signatureBuffer);
 }
 
+/* ============================================================
+   GET – Browser redirect callback (Diddit redirects user here)
+============================================================ */
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const session_id =
+            searchParams.get("session_id") ||
+            searchParams.get("verificationSessionId");
+        const status = searchParams.get("status");
+        const vendor_data = searchParams.get("vendor_data");
+
+        console.log("[DIDIT_CALLBACK_GET]", { session_id, status, vendor_data });
+
+        if (session_id && status && vendor_data) {
+            const landlord_id = vendor_data;
+
+            let dbStatus: string;
+            switch (status.toLowerCase()) {
+                case "approved":
+                case "passed":
+                case "completed":
+                    dbStatus = "approved";
+                    break;
+                case "rejected":
+                case "failed":
+                case "denied":
+                    dbStatus = "rejected";
+                    break;
+                case "pending":
+                case "processing":
+                    dbStatus = "pending";
+                    break;
+                default:
+                    dbStatus = "rejected";
+            }
+
+            await db.query(
+                `
+                UPDATE LandlordVerification
+                SET status = ?, updated_at = NOW()
+                WHERE didit_session_id = ? AND landlord_id = ?
+                `,
+                [dbStatus, session_id, landlord_id]
+            );
+
+            if (dbStatus === "approved") {
+                await db.query(
+                    `UPDATE Landlord SET is_verified = 1 WHERE landlord_id = ?`,
+                    [landlord_id]
+                );
+            }
+
+            console.log(`[DIDIT_CALLBACK_GET] Updated landlord ${landlord_id} to ${dbStatus}`);
+        }
+
+        const redirectUrl = status
+            ? `/landlord/verification?status=${status.toLowerCase()}`
+            : "/landlord/verification";
+
+        return NextResponse.redirect(new URL(redirectUrl, req.url));
+    } catch (err) {
+        console.error("[DIDIT_CALLBACK_GET_ERROR]", err);
+        return NextResponse.redirect(
+            new URL("/landlord/verification?error=callback_failed", req.url)
+        );
+    }
+}
+
+/* ============================================================
+   POST – Server-to-server webhook (Diddit sends status updates)
+============================================================ */
 export async function POST(req: NextRequest) {
     try {
         const rawBody = await req.text();
@@ -47,7 +119,7 @@ export async function POST(req: NextRequest) {
         const landlord_id = vendor_data;
 
         let dbStatus: string;
-        switch (status) {
+        switch (status.toLowerCase()) {
             case "approved":
             case "passed":
             case "completed":
