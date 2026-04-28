@@ -1,10 +1,14 @@
 /* -------------------------------------------------------------------------- */
-/* XENDIT SUBSCRIPTION CHECKOUT API (Enterprise Grade)                             */
+/* XENDIT SUBSCRIPTION CHECKOUT API                                           */
 /* -------------------------------------------------------------------------- */
-/* Supports:                                                               */
-/* - PAY_AND_SAVE: First payment + save card for recurring                                */
-/* - PAY_With_Token: Recurring payments using saved token                           */
-/* - INVOICE: One-time/lifetime payments                                        */
+/* Per Xendit docs: https://docs.xendit.co/docs/fixed-amount-subscriptions   */
+/*                                                                          */
+/* Flow:                                                                    */
+/* 1. POST /v2/sessions with session_type: "SUBSCRIPTION"                   */
+/* 2. Returns payment_link_url → redirect user to Xendit hosted page        */
+/* 3. User links payment method on Xendit page                              */
+/* 4. Webhooks: payment_token.activated, recurring_plan.activated           */
+/* 5. Xendit auto-processes recurring cycles                                */
 /* -------------------------------------------------------------------------- */
 
 export const runtime = "nodejs";
@@ -12,7 +16,6 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
-import crypto from "crypto";
 import { createXenditCustomer } from "@/lib/payments/xenditCustomer";
 import { SUBSCRIPTION_PLANS } from "@/constant/subscription/subscriptionPlans";
 
@@ -29,7 +32,8 @@ const {
     NEXT_PUBLIC_BASE_URL,
 } = process.env;
 
-const XENDIT_PAYMENT_REQUESTS = "https://api.xendit.co/v3/payment_requests";
+const XENDIT_SESSIONS = "https://api.xendit.co/v2/sessions";
+const XENDIT_RECURRING_PLANS = "https://api.xendit.co/v2/recurring/plans";
 const XENDIT_INVOICES = "https://api.xendit.co/v2/invoices";
 const CURRENCY = "PHP";
 const COUNTRY = "PH";
@@ -54,12 +58,6 @@ interface CheckoutBody {
     lastName?: string;
     payment_token_id?: string;
     channel_code?: string;
-    card_details?: {
-        card_number: string;
-        expiry_month: string;
-        expiry_year: string;
-        cvn?: string;
-    };
 }
 
 interface PlanInfo {
@@ -116,6 +114,136 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Create a Payment Session for fixed-amount subscription
+ * Uses session_type: "SUBSCRIPTION" with embedded schedule
+ * Returns payment_link_url for Xendit hosted checkout page
+ * 
+ * Per Xendit docs: https://docs.xendit.co/docs/fixed-amount-subscriptions
+ * Option 2: If you need Xendit Hosted Page via Payment Session
+ */
+async function createSubscriptionSession(
+    customerId: string,
+    amount: number,
+    description: string,
+    redirectUrls: RedirectUrls,
+    referenceId: string,
+    email?: string,
+    firstName?: string,
+    lastName?: string,
+    interval: string = "MONTH",
+    intervalCount: number = 1,
+    totalRecurrence: number = 100
+) {
+    const anchorDate = new Date().toISOString();
+
+    const payload = {
+        reference_id: referenceId,
+        customer: {
+            reference_id: `landlord-${referenceId}`,
+            type: "INDIVIDUAL" as const,
+            individual_detail: {
+                given_names: firstName || "Customer",
+                surname: lastName || "",
+            },
+            email: email || "customer@example.com",
+        },
+        session_type: "SUBSCRIPTION" as const,
+        subscription: {
+            schedule: {
+                interval: interval as "DAY" | "WEEK" | "MONTH" | "YEAR",
+                interval_count: intervalCount,
+                anchor_date: anchorDate,
+                total_recurrence: totalRecurrence,
+                retry_interval: "DAY" as const,
+                retry_interval_count: 5,
+                total_retry: 7,
+                failed_attempt_notifications: [1, 3, 5],
+            },
+            immediate_payment: false,
+            failed_cycle_action: "RESUME" as const,
+        },
+        currency: CURRENCY,
+        amount,
+        mode: "PAYMENT_LINK" as const,
+        country: COUNTRY,
+        locale: "en",
+        description,
+        success_return_url: redirectUrls.success,
+        cancel_return_url: redirectUrls.cancel || redirectUrls.failure,
+    };
+
+    const res = await fetch(XENDIT_SESSIONS, {
+        method: "POST",
+        headers: getXenditHeaders(referenceId),
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Subscription Session creation failed");
+
+    return data;
+}
+
+/**
+ * Create a recurring subscription plan using a saved payment token
+ */
+async function createRecurringPlan(
+    customerId: string,
+    paymentTokenId: string,
+    amount: number,
+    description: string,
+    referenceId: string,
+    interval: string = "MONTH",
+    intervalCount: number = 1,
+    totalRecurrence: number = 100
+) {
+    const anchorDate = new Date().toISOString();
+
+    const payload = {
+        reference_id: referenceId,
+        customer_id: customerId,
+        currency: CURRENCY,
+        amount,
+        payment_tokens: [
+            {
+                payment_token_id: paymentTokenId,
+                rank: 1,
+            },
+        ],
+        schedule: {
+            interval: interval as "DAY" | "WEEK" | "MONTH" | "YEAR",
+            interval_count: intervalCount,
+            anchor_date: anchorDate,
+            total_recurrence: totalRecurrence,
+            retry_interval: "DAY" as const,
+            retry_interval_count: 5,
+            total_retry: 7,
+            failed_attempt_notifications: [1, 3, 5],
+        },
+        immediate_payment: false,
+        failed_cycle_action: "RESUME" as const,
+        notification_channels: ["EMAIL" as const],
+        locale: "en",
+        payment_link_for_failed_attempt: true,
+        description,
+        metadata: {
+            source: "subscription_checkout",
+        },
+    };
+
+    const res = await fetch(XENDIT_RECURRING_PLANS, {
+        method: "POST",
+        headers: getXenditHeaders(referenceId),
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Recurring Plan creation failed");
+
+    return data;
+}
+
+/**
  * Create a one-time invoice payment (for LIFETIME plans)
  */
 async function createInvoicePayment(
@@ -123,17 +251,25 @@ async function createInvoicePayment(
     amount: number,
     description: string,
     redirectUrls: RedirectUrls,
-    referenceId: string
+    referenceId: string,
+    email?: string,
+    firstName?: string,
+    lastName?: string
 ) {
     const payload = {
         external_id: referenceId,
         amount,
         currency: CURRENCY,
         description,
-        customer: { customer_id: customerId },
+        customer: {
+            customer_id: customerId,
+            email: email || undefined,
+            given_names: firstName || undefined,
+            surname: lastName || undefined,
+        },
         success_redirect_url: redirectUrls.success,
         failure_redirect_url: redirectUrls.failure,
-        cancel_redirect_url: redirectUrls.cancel,
+        should_send_email: false,
     };
 
     const res = await fetch(XENDIT_INVOICES, {
@@ -144,122 +280,6 @@ async function createInvoicePayment(
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Invoice creation failed");
-
-    return data;
-}
-
-/**
- * Create PAY_AND_SAVE payment (first payment + save card)
- */
-async function createPayAndSavePayment(
-    customerId: string,
-    amount: number,
-    description: string,
-    redirectUrls: RedirectUrls,
-    referenceId: string,
-    channelCode: string,
-    cardDetails?: {
-        card_number: string;
-        expiry_month: string;
-        expiry_year: string;
-        cvn?: string;
-    },
-    email?: string,
-    firstName?: string,
-    lastName?: string
-) {
-    const customer = {
-        reference_id: `cust-${referenceId}`,
-        type: "INDIVIDUAL" as const,
-        individual_detail: {
-            given_names: firstName || "Customer",
-            surname: lastName || "",
-        },
-        email: email || "customer@example.com",
-    };
-
-    const channelProperties: Record<string, unknown> = {
-        failure_return_url: redirectUrls.failure,
-        success_return_url: redirectUrls.success,
-    };
-
-    if (cardDetails) {
-        Object.assign(channelProperties, {
-            card_details: {
-                ...cardDetails,
-                cardholder_email: email,
-                cardholder_first_name: firstName,
-                cardholder_last_name: lastName,
-            },
-        });
-    }
-
-    const payload = {
-        reference_id: referenceId,
-        customer,
-        type: "PAY_AND_SAVE",
-        country: COUNTRY,
-        currency: CURRENCY,
-        request_amount: amount,
-        capture_method: "AUTOMATIC",
-        channel_code: channelCode,
-        channel_properties: channelProperties,
-        description,
-        metadata: { source: "subscription_checkout" },
-    };
-
-    const res = await fetch(XENDIT_PAYMENT_REQUESTS, {
-        method: "POST",
-        headers: getXenditHeaders(referenceId),
-        body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "PAY_AND_SAVE failed");
-
-    return data;
-}
-
-/**
- * Create payment with saved token (recurring payments)
- */
-async function createPaymentWithToken(
-    paymentTokenId: string,
-    amount: number,
-    description: string,
-    redirectUrls: RedirectUrls,
-    referenceId: string,
-    customerId?: string
-) {
-    const payload: Record<string, unknown> = {
-        reference_id: referenceId,
-        payment_token_id: paymentTokenId,
-        type: "PAY",
-        country: COUNTRY,
-        currency: CURRENCY,
-        request_amount: amount,
-        capture_method: "AUTOMATIC",
-        channel_code: "CARDS",
-        channel_properties: {
-            card_on_file_type: "RECURRING",
-            success_return_url: redirectUrls.success,
-            failure_return_url: redirectUrls.failure,
-        },
-        description,
-    };
-
-    if (customerId) {
-        payload.customer_id = customerId;
-    }
-
-    const res = await fetch(XENDIT_PAYMENT_REQUESTS, {
-        method: "POST",
-        headers: getXenditHeaders(referenceId),
-        body: JSON.stringify(payload),
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Payment with token failed");
 
     return data;
 }
@@ -320,8 +340,8 @@ async function saveSubscription(
     const [result] = await conn.execute<mysql.ResultSetHeader>(
         `INSERT INTO Subscription 
         (landlord_id, plan_name, plan_code, start_date, end_date, payment_status, created_at, 
-         request_reference_number, amount_paid, is_active, raw_xendit_payload) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 1, ?)`,
+         request_reference_number, amount_paid, is_active, raw_xendit_payload, payment_session_id, recurring_plan_id) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, 1, ?, ?)`,
         [
             landlordId,
             plan.name,
@@ -332,6 +352,8 @@ async function saveSubscription(
             referenceId,
             amount,
             JSON.stringify(xenditData),
+            (xenditData as any).payment_session_id || null,
+            (xenditData as any).recurring_plan_id || null,
         ]
     );
 
@@ -358,7 +380,6 @@ export async function POST(req: NextRequest) {
             lastName,
             payment_token_id,
             channel_code = "CARDS",
-            card_details,
         } = body;
 
         const landlord_id = sanitizeString(rawLandlordId);
@@ -418,7 +439,10 @@ export async function POST(req: NextRequest) {
                 amount,
                 `${plan.name} - Lifetime Subscription`,
                 finalRedirectUrls,
-                referenceId
+                referenceId,
+                email,
+                firstName,
+                lastName
             );
 
             await saveSubscription(
@@ -434,71 +458,74 @@ export async function POST(req: NextRequest) {
                 type: "invoice",
                 checkoutUrl: invoiceData.invoice_url,
                 invoiceId: invoiceData.id,
+                referenceId: referenceId,
             });
         }
 
-        // === RECURRING PLANS ===
-
-        // First payment: Require PAY_AND_SAVE or card details
-        if (!payment_token_id && !card_details) {
-            const payAndSaveData = await createPayAndSavePayment(
+        // === RECURRING PLANS: Fixed-Amount Subscription via Payment Session ===
+        // Per Xendit docs: https://docs.xendit.co/docs/fixed-amount-subscriptions
+        // Option 2: Xendit Hosted Page via Payment Session
+        // Returns payment_link_url for user to link payment method on Xendit hosted page
+        if (!payment_token_id) {
+            const sessionData = await createSubscriptionSession(
                 customerId,
                 amount,
-                `${plan.name} - Initial Payment`,
+                `${plan.name} - Monthly Subscription`,
                 finalRedirectUrls,
                 referenceId,
-                channel_code,
-                card_details,
                 email,
                 firstName,
-                lastName
+                lastName,
+                "MONTH",
+                1,
+                100
             );
 
+            // Save pending subscription record (activated via webhook)
             await saveSubscription(
                 connection,
                 landlord_id,
                 plan,
                 amount,
-                payAndSaveData,
+                sessionData,
                 referenceId
             );
 
             return NextResponse.json({
-                type: "PAY_AND_SAVE",
-                paymentRequestId: payAndSaveData.payment_request_id,
-                customerId: payAndSaveData.customer_id,
-                actions: payAndSaveData.actions,
-                status: payAndSaveData.status,
-                requiresAction: payAndSaveData.status === "REQUIRES_ACTION",
+                type: "subscription_session",
+                checkoutUrl: sessionData.payment_link_url,
+                paymentSessionId: sessionData.payment_session_id,
+                recurringPlanId: sessionData.recurring_plan_id,
+                customerId: sessionData.customer_id,
+                referenceId: referenceId,
+                status: sessionData.status,
             });
         }
 
-        // Subsequent payment: Use saved token
+        // === EXISTING TOKEN: Direct recurring plan creation ===
+        // Used when user already has a saved payment token
         if (payment_token_id) {
-            const tokenPaymentData = await createPaymentWithToken(
+            const planData = await createRecurringPlan(
+                customerId,
                 payment_token_id,
                 amount,
-                `${plan.name} - Recurring Payment`,
-                finalRedirectUrls,
+                `${plan.name} - Recurring Subscription`,
                 referenceId,
-                customerId
+                "MONTH",
+                1,
+                100
             );
 
-            await saveSubscription(
-                connection,
-                landlord_id,
-                plan,
-                amount,
-                tokenPaymentData,
-                referenceId
+            await connection.execute(
+                "UPDATE Subscription SET recurring_plan_id = ?, payment_token_id = ?, payment_status = 'active' WHERE request_reference_number = ?",
+                [planData.id, payment_token_id, referenceId]
             );
 
             return NextResponse.json({
-                type: "PAY_WITH_TOKEN",
-                paymentRequestId: tokenPaymentData.payment_request_id,
-                status: tokenPaymentData.status,
-                requiresAction: tokenPaymentData.status === "REQUIRES_ACTION",
-                actions: tokenPaymentData.actions,
+                type: "recurring_plan",
+                recurringPlanId: planData.id,
+                status: planData.status,
+                referenceId: referenceId,
             });
         }
 

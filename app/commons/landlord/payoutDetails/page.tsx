@@ -63,9 +63,8 @@ export default function Page() {
         viewProperties: async (acc: any) => {
             try {
                 setSelectedAccount(acc);
-                setModalOpen(true);
 
-                //  fetch BOTH in parallel
+                //  fetch BOTH in parallel FIRST
                 const [assigned, all] = await Promise.all([
                     getAssignedProperties(acc.payout_id),
                     fetchAllProperties(),
@@ -73,6 +72,9 @@ export default function Page() {
 
                 setProperties(Array.isArray(assigned) ? assigned : []);
                 setAllProperties(Array.isArray(all) ? all : []);
+
+                // THEN open modal
+                setModalOpen(true);
 
             } catch (error) {
                 console.error("Failed to fetch properties", error);
