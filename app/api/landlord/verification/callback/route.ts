@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { createHmac, timingSafeEqual } from "crypto";
 
 export async function GET(req: NextRequest) {
     try {
@@ -72,9 +73,40 @@ export async function GET(req: NextRequest) {
     }
 }
 
+function verifyWebhookSignature(payload: string, signature: string): boolean {
+    const secret = process.env.DIDDIT_WEBHOOK_TOKEN;
+    if (!secret) {
+        console.warn("[DIDIT_WEBHOOK] DIDDIT_WEBHOOK_TOKEN not configured");
+        return false;
+    }
+
+    const expected = createHmac("sha256", secret).update(payload).digest("hex");
+    const expectedBuffer = Buffer.from(expected);
+    const signatureBuffer = Buffer.from(signature);
+
+    if (expectedBuffer.length !== signatureBuffer.length) {
+        return false;
+    }
+
+    return timingSafeEqual(expectedBuffer, signatureBuffer);
+}
+
 export async function POST(req: NextRequest) {
     try {
-        const body = await req.json();
+        const rawBody = await req.text();
+        const signature = req.headers.get("x-didit-signature") || req.headers.get("x-signature");
+
+        if (!signature) {
+            console.warn("[DIDIT_WEBHOOK] Missing signature header");
+            return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+        }
+
+        if (!verifyWebhookSignature(rawBody, signature)) {
+            console.warn("[DIDIT_WEBHOOK] Invalid signature");
+            return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+        }
+
+        const body = JSON.parse(rawBody);
         console.log("[DIDIT_WEBHOOK]", JSON.stringify(body, null, 2));
 
         const { session_id, status, vendor_data } = body;
