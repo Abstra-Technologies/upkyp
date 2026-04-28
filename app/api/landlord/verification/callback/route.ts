@@ -96,6 +96,9 @@ export async function POST(req: NextRequest) {
         const rawBody = await req.text();
         const signature = req.headers.get("x-didit-signature") || req.headers.get("x-signature");
 
+
+        console.log('POST DATA DIDDIT: ', rawBody);
+
         if (!signature) {
             console.warn("[DIDIT_WEBHOOK] Missing signature header");
             return NextResponse.json({ error: "Missing signature" }, { status: 401 });

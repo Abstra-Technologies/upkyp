@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { parse } from "cookie";
-import { jwtVerify } from "jose";
+import { getSessionUser } from "@/lib/auth/auth";
 
 type VerificationStatus =
     | "pending"
@@ -11,34 +10,27 @@ type VerificationStatus =
 
 export async function GET(req: NextRequest) {
     try {
-        /* ------------------------------------------------
-           1. Authenticate user via cookie JWT
-        ------------------------------------------------ */
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
+        const session = await getSessionUser();
 
-        if (!cookies?.token) {
+        if (!session || session.userType !== "landlord") {
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401 }
             );
         }
 
-        const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-        const { payload } = await jwtVerify(cookies.token, secret);
-        const user_id = payload.user_id as string;
+        const landlord_id = session.landlord_id;
 
-        /* ------------------------------------------------
-           2. Resolve landlord
-        ------------------------------------------------ */
+        if (!landlord_id) {
+            return NextResponse.json(
+                { error: "Landlord not found" },
+                { status: 404 }
+            );
+        }
+
         const [landlords]: any = await db.query(
-            `
-            SELECT landlord_id, is_verified
-            FROM Landlord
-            WHERE user_id = ?
-            LIMIT 1
-            `,
-            [user_id]
+            `SELECT is_verified FROM Landlord WHERE landlord_id = ? LIMIT 1`,
+            [landlord_id]
         );
 
         if (!landlords.length) {
@@ -48,20 +40,10 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const landlord = landlords[0];
-
-        /* ------------------------------------------------
-           3. If already verified → short-circuit
-        ------------------------------------------------ */
-        if (landlord.is_verified === 1) {
-            return NextResponse.json({
-                status: "approved",
-            });
+        if (landlords[0].is_verified === 1) {
+            return NextResponse.json({ status: "approved" });
         }
 
-        /* ------------------------------------------------
-           4. Get latest verification record
-        ------------------------------------------------ */
         const [verifications]: any = await db.query(
             `
             SELECT status
@@ -70,7 +52,7 @@ export async function GET(req: NextRequest) {
             ORDER BY updated_at DESC
             LIMIT 1
             `,
-            [landlord.landlord_id]
+            [landlord_id]
         );
 
         let status: VerificationStatus = "not verified";
