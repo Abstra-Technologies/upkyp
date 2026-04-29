@@ -43,17 +43,35 @@ async function getDbConnection() {
 
 async function handlePlanActivation(conn: mysql.Connection, data: any) {
     const { recurring_plan_id, customer_id, payment_session_id, reference_id, status, subscription } = data;
-    console.log("[SUBSCRIPTION WEBHOOK] Activating plan:", { recurring_plan_id, reference_id, status });
+    const subRefId = subscription?.reference_id || reference_id;
+    console.log("[SUBSCRIPTION WEBHOOK] Activating plan:", { recurring_plan_id, reference_id: subRefId, status, subscription });
+
+    const updateFields: string[] = [
+        "payment_status = 'paid'",
+        "subscription_status = 'active'",
+        "is_active = 1"
+    ];
+    const params: any[] = [];
+    const conditions: string[] = [];
+
+    if (recurring_plan_id) {
+        updateFields.push("recurring_plan_id = ?");
+        params.push(recurring_plan_id);
+        conditions.push("recurring_plan_id = ?");
+    }
+
+    if (subRefId) {
+        conditions.push("request_reference_number = ?");
+        params.push(subRefId);
+    }
+
+    if (conditions.length === 0) {
+        return { processed: false, message: "No identifier provided" };
+    }
 
     await conn.execute(
-        `UPDATE Subscription
-         SET payment_status = 'paid',
-             subscription_status = 'active',
-             is_active = 1,
-             recurring_plan_id = COALESCE(?, recurring_plan_id),
-             xendit_subscription_id = COALESCE(?, xendit_subscription_id)
-         WHERE request_reference_number = ?`,
-        [recurring_plan_id || null, recurring_plan_id || null, reference_id]
+        `UPDATE Subscription SET ${updateFields.join(", ")} WHERE ${conditions.join(" OR ")}`,
+        params
     );
 
     return { processed: true, message: "Plan activated", recurring_plan_id };
@@ -127,16 +145,28 @@ async function handleCycleFailed(conn: mysql.Connection, data: any) {
 }
 
 async function handleCycleCreated(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, cycle_number, amount, due_date } = data;
-    console.log("[SUBSCRIPTION WEBHOOK] Cycle created:", { recurring_plan_id, cycle_number, amount, due_date });
+    const { recurring_plan_id, cycle_number, amount, due_date, reference_id } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle created:", { recurring_plan_id, cycle_number, amount, due_date, reference_id });
 
-    await conn.execute(
-        `UPDATE Subscription
-         SET next_billing_date = ?,
-             payment_status = 'pending'
-         WHERE recurring_plan_id = ?`,
-        [due_date ? new Date(due_date) : null, recurring_plan_id || null]
-    );
+    if (recurring_plan_id) {
+        await conn.execute(
+            `UPDATE Subscription
+             SET next_billing_date = ?,
+                 payment_status = 'pending'
+             WHERE recurring_plan_id = ?`,
+            [due_date ? new Date(due_date) : null, recurring_plan_id]
+        );
+    }
+
+    if (reference_id) {
+        await conn.execute(
+            `UPDATE Subscription
+             SET next_billing_date = ?,
+                 payment_status = 'pending'
+             WHERE request_reference_number = ?`,
+            [due_date ? new Date(due_date) : null, reference_id]
+        );
+    }
 
     return { processed: true, message: "Cycle created recorded", cycle_number };
 }
