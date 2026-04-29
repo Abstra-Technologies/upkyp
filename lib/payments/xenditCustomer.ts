@@ -6,13 +6,13 @@
  */
 
 export async function createXenditCustomer({
-                                               referenceId,
-                                               email,
-                                               firstName,
-                                               lastName,
-                                               secretKey,
-                                               forUserId,
-                                           }: {
+    referenceId,
+    email,
+    firstName,
+    lastName,
+    secretKey,
+    forUserId,
+}: {
     referenceId: string;
     email?: string;
     firstName?: string;
@@ -20,15 +20,32 @@ export async function createXenditCustomer({
     secretKey: string;
     forUserId?: string;
 }) {
+    // Check if customer already exists in Xendit
+    const listResp = await fetch(
+        `https://api.xendit.co/customers?reference_id=${encodeURIComponent(referenceId)}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Basic " + Buffer.from(`${secretKey}:`).toString("base64"),
+                ...(forUserId && { "for-user-id": forUserId }),
+            },
+        }
+    );
 
+    const listData = await listResp.json();
+    if (listResp.ok && listData.data && listData.data.length > 0) {
+        console.log("[XENDIT CUSTOMER] Found existing customer:", listData.data[0].id);
+        return listData.data[0].id as string;
+    }
+
+    // Create new customer if not found
     const resp = await fetch("https://api.xendit.co/customers", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization:
                 "Basic " + Buffer.from(`${secretKey}:`).toString("base64"),
-
-            // ✅ MOVE IT HERE (if you REALLY want subaccount)
             ...(forUserId && { "for-user-id": forUserId }),
         },
         body: JSON.stringify({
@@ -39,8 +56,6 @@ export async function createXenditCustomer({
                 surname: lastName || referenceId,
             },
             email,
-            // ❌ REMOVE THIS
-            // for_user_id: forUserId
         }),
     });
 
@@ -52,5 +67,5 @@ export async function createXenditCustomer({
         );
     }
 
-    return data.id as string; // ← REAL customer.id
+    return data.id as string;
 }

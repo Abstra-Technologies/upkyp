@@ -125,6 +125,64 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
 /* -------------------------------------------------------------------------- */
 
 /**
+ * Create a Payment Session for Pay (immediate charge + save card)
+ * Uses session_type: "PAY" with charge_immediately to charge immediately AND save payment method
+ *
+ * Per Xendit docs: https://docs.xendit.co/docs/pay-and-save-3
+ * This charges the customer immediately and saves their payment method for future use
+ */
+async function createPayAndSaveSession(
+    customerId: string,
+    amount: number,
+    description: string,
+    redirectUrls: RedirectUrls,
+    referenceId: string,
+    email?: string,
+    firstName?: string,
+    lastName?: string
+) {
+    const payload = {
+        reference_id: referenceId,
+        customer: {
+            reference_id: `landlord-${referenceId}`,
+            type: "INDIVIDUAL" as const,
+            individual_detail: {
+                given_names: firstName || "Customer",
+                surname: lastName || "",
+            },
+            email: email || "customer@example.com",
+        },
+        session_type: "PAY" as const,
+        payment_method_options: {
+            payment_amount: amount,
+            charge_immediately: true,
+        },
+        currency: CURRENCY,
+        amount,
+        mode: "PAYMENT_LINK" as const,
+        country: COUNTRY,
+        locale: "en",
+        description,
+        success_return_url: redirectUrls.success,
+        cancel_return_url: redirectUrls.cancel || redirectUrls.failure,
+    };
+
+    console.log("[CHECKOUT] Pay: Sending request to Xendit sessions API", { url: XENDIT_SESSIONS, payload });
+
+    const res = await fetch(XENDIT_SESSIONS, {
+        method: "POST",
+        headers: getXenditHeaders(referenceId),
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    console.log("[CHECKOUT] Pay: Xendit response", { status: res.status, ok: res.ok, data });
+    if (!res.ok) throw new Error(data.message || "Pay Session creation failed");
+
+    return data;
+}
+
+/**
  * Create a Payment Session for fixed-amount subscription
  * Uses session_type: "SUBSCRIPTION" with embedded schedule
  * Returns payment_link_url for Xendit hosted checkout page
@@ -170,7 +228,7 @@ async function createSubscriptionSession(
                 total_retry: 7,
                 failed_attempt_notifications: [1, 3, 5],
             },
-            immediate_payment: false,
+            immediate_payment: true,
             failed_cycle_action: "RESUME" as const,
         },
         currency: CURRENCY,
@@ -234,7 +292,7 @@ async function createRecurringPlan(
             total_retry: 7,
             failed_attempt_notifications: [1, 3, 5],
         },
-        immediate_payment: false,
+        immediate_payment: true,
         failed_cycle_action: "RESUME" as const,
         notification_channels: ["EMAIL" as const],
         locale: "en",
@@ -306,6 +364,7 @@ async function createInvoicePayment(
 
 /**
  * Get or create Xendit customer
+ * Checks DB first, then checks Xendit if not found
  */
 async function getOrCreateCustomer(
     conn: mysql.Connection,
@@ -314,6 +373,7 @@ async function getOrCreateCustomer(
     firstName?: string,
     lastName?: string
 ): Promise<string> {
+    // Check DB first
     const [rows] = await conn.execute<mysql.RowDataPacket[]>(
         "SELECT xendit_customer_id FROM Landlord WHERE landlord_id = ? LIMIT 1",
         [landlordId]
@@ -321,20 +381,26 @@ async function getOrCreateCustomer(
 
     let customerId = rows[0]?.xendit_customer_id;
 
-    if (!customerId) {
-        customerId = await createXenditCustomer({
-            referenceId: `landlord-${landlordId}`,
-            email,
-            firstName,
-            lastName,
-            secretKey: XENDIT_TEXT_SECRET_KEY!,
-        });
-
-        await conn.execute(
-            "UPDATE Landlord SET xendit_customer_id = ? WHERE landlord_id = ?",
-            [customerId, landlordId]
-        );
+    // If DB has it, return immediately
+    if (customerId) {
+        console.log("[CHECKOUT] Customer found in DB:", { customerId });
+        return customerId;
     }
+
+    // Create in Xendit (createXenditCustomer now checks if exists internally)
+    customerId = await createXenditCustomer({
+        referenceId: `landlord-${landlordId}`,
+        email,
+        firstName,
+        lastName,
+        secretKey: XENDIT_TEXT_SECRET_KEY!,
+    });
+
+    // Update DB
+    await conn.execute(
+        "UPDATE Landlord SET xendit_customer_id = ? WHERE landlord_id = ?",
+        [customerId, landlordId]
+    );
 
     return customerId;
 }
@@ -499,14 +565,13 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // === RECURRING PLANS: Fixed-Amount Subscription via Payment Session ===
-        // Per Xendit docs: https://docs.xendit.co/docs/fixed-amount-subscriptions
-        // Option 2: Xendit Hosted Page via Payment Session
-        // Returns payment_link_url for user to link payment method on Xendit hosted page
+        // === RECURRING PLANS: Pay (immediate charge + save payment method) ===
+        // Per Xendit docs: https://docs.xendit.co/docs/pay-and-save-3
+        // Uses session_type: "PAY" with charge_immediately to charge immediately AND save payment method
         if (!payment_token_id) {
-            console.log("[CHECKOUT] Stage 6b: Creating subscription session (no payment token)");
+            console.log("[CHECKOUT] Stage 6b: Creating Pay session for immediate charge + save");
 
-            const sessionData = await createSubscriptionSession(
+            const sessionData = await createPayAndSaveSession(
                 customerId,
                 amount,
                 `${plan.name} - Monthly Subscription`,
@@ -514,14 +579,15 @@ export async function POST(req: NextRequest) {
                 referenceId,
                 email,
                 firstName,
-                lastName,
-                "MONTH",
-                1,
-                100
+                lastName
             );
-            console.log("[CHECKOUT] Stage 6b: Subscription session created", { paymentSessionId: sessionData.payment_session_id });
+            console.log("[CHECKOUT] Stage 6b: Pay-and-Save session created", { 
+                paymentSessionId: sessionData.payment_session_id,
+                customerId: sessionData.customer_id,
+                status: sessionData.status
+            });
 
-            // Save pending subscription record (activated via webhook)
+            // Save pending subscription record (charged + activated via webhook)
             console.log("[CHECKOUT] Stage 6b: Saving subscription to database");
             await saveSubscription(
                 connection,
@@ -533,9 +599,9 @@ export async function POST(req: NextRequest) {
             );
             console.log("[CHECKOUT] Stage 6b: Subscription saved");
 
-            console.log("[CHECKOUT] Stage 7: Returning subscription session response");
+            console.log("[CHECKOUT] Stage 7: Returning Pay session response");
             return NextResponse.json({
-                type: "subscription_session",
+                type: "pay",
                 checkoutUrl: sessionData.payment_link_url,
                 paymentSessionId: sessionData.payment_session_id,
                 recurringPlanId: sessionData.recurring_plan_id,
