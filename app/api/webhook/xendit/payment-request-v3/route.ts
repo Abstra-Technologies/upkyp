@@ -299,16 +299,18 @@ async function handlePlanInactivated(conn: mysql.Connection, data: any) {
 }
 
 async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
-    const { payment_token_id, customer_id, recurring_plan_id } = data;
+    const { payment_token_id, customer_id, recurring_plan_id, subscription } = data;
     console.log("[SUBSCRIPTION WEBHOOK] Payment token activated:", { payment_token_id, recurring_plan_id });
 
-    await conn.execute(
-        `UPDATE Landlord
-         SET payment_token_id = COALESCE(?, payment_token_id),
-             payment_method_type = COALESCE('CARDS', payment_method_type)
-         WHERE xendit_customer_id = ?`,
-        [payment_token_id || null, customer_id]
-    );
+    if (payment_token_id) {
+        await conn.execute(
+            `UPDATE Landlord
+             SET payment_token_id = COALESCE(?, payment_token_id),
+                 payment_method_type = COALESCE('CARDS', payment_method_type)
+             WHERE xendit_customer_id = ?`,
+            [payment_token_id, customer_id]
+        );
+    }
 
     if (recurring_plan_id) {
         await conn.execute(
@@ -317,8 +319,28 @@ async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
                  recurring_plan_id = COALESCE(?, recurring_plan_id),
                  raw_xendit_payload = COALESCE(raw_xendit_payload, ?)
              WHERE recurring_plan_id = ?`,
-            [payment_token_id || null, recurring_plan_id || null, JSON.stringify(data), recurring_plan_id]
+            [payment_token_id, recurring_plan_id, JSON.stringify(data), recurring_plan_id]
         );
+    }
+
+    if (!recurring_plan_id && customer_id) {
+        const [subs] = await conn.execute(
+            `SELECT s.subscription_id FROM Subscription s
+             JOIN Landlord l ON s.landlord_id = l.landlord_id
+             WHERE l.xendit_customer_id = ? AND s.payment_token_id IS NULL
+             ORDER BY s.created_at DESC LIMIT 1`,
+            [customer_id]
+        ) as any;
+
+        if (subs.length > 0) {
+            await conn.execute(
+                `UPDATE Subscription
+                 SET payment_token_id = ?,
+                     raw_xendit_payload = COALESCE(raw_xendit_payload, ?)
+                 WHERE subscription_id = ?`,
+                [payment_token_id, JSON.stringify(data), subs[0].subscription_id]
+            );
+        }
     }
 
     return { processed: true, message: "Payment token recorded", payment_token_id };
