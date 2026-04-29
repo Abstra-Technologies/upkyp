@@ -116,14 +116,29 @@ async function handleCycleFailed(conn: mysql.Connection, data: any) {
     console.log("[SUBSCRIPTION WEBHOOK] Cycle failed:", { recurring_plan_id, cycle_number, reason });
 
     await conn.execute(
-        `UPDATE Subscription 
+        `UPDATE Subscription
          SET payment_status = 'failed',
              subscription_status = 'past_due'
          WHERE recurring_plan_id = ?`,
-        [recurring_plan_id]
+        [recurring_plan_id || null]
     );
 
     return { processed: true, message: "Cycle failure recorded", cycle_number };
+}
+
+async function handleCycleCreated(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, cycle_number, amount, due_date } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle created:", { recurring_plan_id, cycle_number, amount, due_date });
+
+    await conn.execute(
+        `UPDATE Subscription
+         SET next_billing_date = ?,
+             payment_status = 'pending'
+         WHERE recurring_plan_id = ?`,
+        [due_date ? new Date(due_date) : null, recurring_plan_id || null]
+    );
+
+    return { processed: true, message: "Cycle created recorded", cycle_number };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -167,6 +182,10 @@ export async function POST(req: Request) {
 
             case "recurring.cycle.failed":
                 response = await handleCycleFailed(conn, payload.data || payload);
+                break;
+
+            case "recurring.cycle.created":
+                response = await handleCycleCreated(conn, payload.data || payload);
                 break;
 
             default:
