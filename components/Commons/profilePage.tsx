@@ -65,7 +65,7 @@ type VerificationStatus =
   | "not verified"
   | null;
 
-type MobileTab = "personal" | "subscription" | "settings";
+type MobileTab = "personal" | "bank" | "settings";
 
 /* ===============================
    Animation Variants
@@ -639,7 +639,7 @@ function EditButtons({
 
 /* ===============================
    Mobile Tab Navigation
-=============================== */
+============================== */
 const MOBILE_TABS: {
   id: MobileTab;
   label: string;
@@ -651,9 +651,9 @@ const MOBILE_TABS: {
     icon: <User className="w-4 h-4" />,
   },
   {
-    id: "subscription",
-    label: "Subscription",
-    icon: <Sparkles className="w-4 h-4" />,
+    id: "bank",
+    label: "Bank",
+    icon: <Briefcase className="w-4 h-4" />,
   },
   {
     id: "settings",
@@ -671,27 +671,21 @@ function MobileTabNav({
 }) {
   return (
     <div className="lg:hidden mb-4">
-      <div className="bg-white rounded-xl shadow-sm border
-        border-gray-100 p-1"
-      >
-        <div className="flex gap-1">
-          {MOBILE_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => onChange(tab.id)}
-              className={`flex-1 flex items-center justify-center
-                gap-1.5 px-2 py-2.5 text-xs font-medium rounded-lg
-                transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-sm"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+        {MOBILE_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+              activeTab === tab.id
+                ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {tab.icon}
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -1179,39 +1173,415 @@ function MobileSubscriptionTab({
 }
 
 /* ===============================
-   Mobile Settings Tab
-=============================== */
-function MobileSettingsTab({
+   Mobile Personal Tab (with Delete Account)
+============================== */
+function MobilePersonalTab({
+  profileData,
+  formData,
+  editing,
+  onChange,
   userId,
   userType,
 }: {
+  profileData: ProfileData;
+  formData: FormData;
+  editing: boolean;
+  onChange: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => void;
   userId: string;
   userType: string;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border
-      border-red-100 overflow-hidden"
-    >
-      <div className="px-4 py-3 border-b border-red-100
-        bg-red-50"
+    <div className="space-y-3">
+      <div className="bg-white rounded-xl shadow-sm border
+        border-gray-100 overflow-hidden"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 bg-red-100 rounded-lg">
-            <AlertTriangle className="w-4 h-4 text-red-600" />
+        <div className="px-4 py-3 border-b border-gray-100
+          bg-gradient-to-r from-gray-50 to-white"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <User className="w-4 h-4 text-blue-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Personal Information
+            </h3>
           </div>
-          <h3 className="text-sm font-semibold text-red-900">
-            Danger Zone
-          </h3>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Field
+              label="First Name"
+              value={profileData?.firstName}
+              editElement={
+                editing ? (
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={onChange}
+                    className="w-full px-3 py-2.5 text-sm border
+                      border-gray-200 rounded-lg focus:ring-2
+                      focus:ring-blue-500/20 focus:border-blue-500
+                      transition-all outline-none"
+                    placeholder="First name"
+                  />
+                ) : undefined
+              }
+            />
+            <Field
+              label="Last Name"
+              value={profileData?.lastName}
+              editElement={
+                editing ? (
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={onChange}
+                    className="w-full px-3 py-2.5 text-sm border
+                      border-gray-200 rounded-lg focus:ring-2
+                      focus:ring-blue-500/20 focus:border-blue-500
+                      transition-all outline-none"
+                    placeholder="Last name"
+                  />
+                ) : undefined
+              }
+            />
+            <Field
+              label="Birth Date"
+              value={profileData?.birthDate}
+              icon={<Calendar className="w-3.5 h-3.5" />}
+              editElement={
+                editing ? (
+                  <input
+                    type="date"
+                    name="birthDate"
+                    value={formData.birthDate || ""}
+                    onChange={onChange}
+                    className="w-full px-3 py-2.5 text-sm border
+                      border-gray-200 rounded-lg focus:ring-2
+                      focus:ring-blue-500/20 focus:border-blue-500
+                      transition-all outline-none"
+                  />
+                ) : undefined
+              }
+            />
+            <Field
+              label="Civil Status"
+              value={profileData?.civil_status}
+              icon={<Heart className="w-3.5 h-3.5" />}
+              editElement={
+                editing ? (
+                  <select
+                    name="civil_status"
+                    value={formData.civil_status}
+                    onChange={onChange}
+                    className="w-full px-3 py-2.5 text-sm border
+                      border-gray-200 rounded-lg focus:ring-2
+                      focus:ring-blue-500/20 focus:border-blue-500
+                      transition-all outline-none bg-white"
+                  >
+                    <option value="">Select</option>
+                    <option value="single">Single</option>
+                    <option value="married">Married</option>
+                    <option value="widowed">Widowed</option>
+                    <option value="divorced">Divorced</option>
+                    <option value="separated">Separated</option>
+                    <option value="other">Other</option>
+                  </select>
+                ) : undefined
+              }
+            />
+          </div>
         </div>
       </div>
-      <div className="p-4">
-        <p className="text-xs text-gray-600 mb-3">
-          Once you delete your account, there is no going back.
-        </p>
-        <DeleteAccountButton
-          user_id={userId}
-          userType={userType}
-        />
+
+      <div className="bg-white rounded-xl shadow-sm border
+        border-gray-100 overflow-hidden"
+      >
+        <div className="px-4 py-3 border-b border-gray-100
+          bg-gradient-to-r from-gray-50 to-white"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-100 rounded-lg">
+              <Briefcase className="w-4 h-4 text-emerald-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Professional Details
+            </h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          <Field
+            label="Occupation"
+            value={
+              occupations.find(
+                (o) => o.value === profileData?.occupation,
+              )?.label
+            }
+            editElement={
+              editing ? (
+                <select
+                  name="occupation"
+                  value={formData.occupation}
+                  onChange={onChange}
+                  className="w-full px-3 py-2.5 text-sm border
+                    border-gray-200 rounded-lg focus:ring-2
+                    focus:ring-blue-500/20 focus:border-blue-500
+                    transition-all outline-none bg-white"
+                >
+                  <option value="">Select</option>
+                  {occupations.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+              ) : undefined
+            }
+          />
+          <Field
+            label="Citizenship"
+            value={
+              CITIZENSHIPS.find(
+                (c) => c.value === profileData?.citizenship,
+              )?.label
+            }
+            icon={<Globe className="w-3.5 h-3.5" />}
+            editElement={
+              editing ? (
+                <select
+                  name="citizenship"
+                  value={formData.citizenship}
+                  onChange={onChange}
+                  className="w-full px-3 py-2.5 text-sm border
+                    border-gray-200 rounded-lg focus:ring-2
+                    focus:ring-blue-500/20 focus:border-blue-500
+                    transition-all outline-none bg-white"
+                >
+                  <option value="">Select</option>
+                  {CITIZENSHIPS.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              ) : undefined
+            }
+          />
+          <Field
+            label="Address"
+            value={profileData?.address}
+            icon={<MapPin className="w-3.5 h-3.5" />}
+            editElement={
+              editing ? (
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={onChange}
+                  rows={2}
+                  className="w-full px-3 py-2.5 text-sm border
+                    border-gray-200 rounded-lg focus:ring-2
+                    focus:ring-blue-500/20 focus:border-blue-500
+                    transition-all outline-none resize-none"
+                  placeholder="Enter address"
+                />
+              ) : undefined
+            }
+          />
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border
+        border-gray-100 overflow-hidden"
+      >
+        <div className="px-4 py-3 border-b border-gray-100
+          bg-gradient-to-r from-gray-50 to-white"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-violet-100 rounded-lg">
+              <Mail className="w-4 h-4 text-violet-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Contact Information
+            </h3>
+          </div>
+        </div>
+        <div className="p-4 space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-500
+              uppercase tracking-wide"
+            >
+              Email Address
+            </label>
+            <div className="px-3 py-2.5 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-2 text-sm
+                text-gray-900 font-medium"
+              >
+                <Mail className="w-4 h-4 text-gray-400
+                  flex-shrink-0"
+                />
+                <span className="truncate">
+                  {profileData?.email}
+                </span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 flex items-center
+              gap-1"
+            >
+              <Shield className="w-3 h-3" />
+              Protected - cannot be changed
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-gray-500
+              uppercase tracking-wide"
+            >
+              Phone Number
+            </label>
+            {editing ? (
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={onChange}
+                className="w-full px-3 py-2.5 text-sm border
+                  border-gray-200 rounded-lg focus:ring-2
+                  focus:ring-blue-500/20 focus:border-blue-500
+                  transition-all outline-none"
+                placeholder="Enter phone number"
+              />
+            ) : (
+              <div className="px-3 py-2.5 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2 text-sm
+                  text-gray-900 font-medium"
+                >
+                  <Phone className="w-4 h-4 text-gray-400
+                    flex-shrink-0"
+                  />
+                  {profileData?.phoneNumber || (
+                    <span className="text-gray-400">
+                      Not provided
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border
+        border-red-100 overflow-hidden"
+      >
+        <div className="px-4 py-3 border-b border-red-100
+          bg-red-50"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-red-900">
+              Danger Zone
+            </h3>
+          </div>
+        </div>
+        <div className="p-4">
+          <p className="text-xs text-gray-600 mb-3">
+            Once you delete your account, there is no going back.
+          </p>
+          <DeleteAccountButton
+            user_id={userId}
+            userType={userType}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===============================
+   Mobile Bank Tab
+============================== */
+function MobileBankTab({
+  router,
+}: {
+  router: ReturnType<typeof useRouter>;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-xl shadow-sm border
+        border-gray-100 overflow-hidden"
+      >
+        <div className="px-4 py-3 border-b border-gray-100
+          bg-gradient-to-r from-gray-50 to-white"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-100 rounded-lg">
+              <Briefcase className="w-4 h-4 text-emerald-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Bank Accounts
+            </h3>
+          </div>
+        </div>
+        <div className="p-4">
+          <p className="text-xs text-gray-500 mb-3">
+            Manage your payout bank accounts for receiving rent payments.
+          </p>
+          <button
+            onClick={() => router.push("/landlord/payoutDetails")}
+            className="w-full px-4 py-2.5 text-xs font-semibold
+              text-white bg-gradient-to-r from-blue-600
+              to-emerald-600 rounded-lg flex items-center
+              justify-center gap-2 hover:shadow-md transition-all"
+          >
+            Manage Bank Accounts
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ===============================
+   Mobile Settings Tab (Other Settings)
+============================== */
+function MobileSettingsTab() {
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-xl shadow-sm border
+        border-gray-100 overflow-hidden"
+      >
+        <div className="px-4 py-3 border-b border-gray-100
+          bg-gradient-to-r from-gray-50 to-white"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Shield className="w-4 h-4 text-blue-600" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Security & Privacy
+            </h3>
+          </div>
+        </div>
+        <div className="p-4">
+          <button
+            onClick={() => window.location.href = "/commons/profile/security"}
+            className="w-full px-4 py-2.5 text-xs font-medium
+              text-gray-700 bg-gray-50 rounded-lg border
+              border-gray-200 hover:bg-gray-100 transition-colors
+              flex items-center justify-between"
+          >
+            <span>Password & Security</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1944,28 +2314,25 @@ export default function ProfilePage() {
                 animate="visible"
                 exit="exit"
               >
-                <MobilePersonalInfo
+                <MobilePersonalTab
                   profileData={profileData}
                   formData={formData}
                   editing={editing}
                   onChange={handleChange}
+                  userId={userId}
+                  userType={userType}
                 />
               </motion.div>
             )}
-            {activeMobileTab === "subscription" && (
+            {activeMobileTab === "bank" && (
               <motion.div
-                key="subscription"
+                key="bank"
                 variants={tabContentVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
               >
-                <MobileSubscriptionTab
-                  user={user}
-                  verificationStatus={verificationStatus}
-                  subscriptionPlan={subscriptionPlan}
-                  router={router}
-                />
+                <MobileBankTab router={router} />
               </motion.div>
             )}
             {activeMobileTab === "settings" && (
@@ -1976,10 +2343,7 @@ export default function ProfilePage() {
                 animate="visible"
                 exit="exit"
               >
-                <MobileSettingsTab
-                  userId={userId}
-                  userType={userType}
-                />
+                <MobileSettingsTab />
               </motion.div>
             )}
           </AnimatePresence>

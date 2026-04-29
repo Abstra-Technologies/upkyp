@@ -6,6 +6,11 @@ create table rentalley_db.Subscription
     plan_name                varchar(50)                                                                            not null,
     plan_code                varchar(50)                                                                            null,
     xendit_subscription_id   varchar(100)                                                                           null,
+    payment_session_id       varchar(100)                                                                           null,
+    recurring_plan_id        varchar(100)                                                                           null,
+    customer_id              varchar(100)                                                                           null,
+    payment_link_url         varchar(500)                                                                           null,
+    expires_at               datetime                                                                               null,
     start_date               date                                                                                   not null,
     end_date                 date                                                                                   null,
     next_billing_date        datetime                                                                               null,
@@ -21,6 +26,7 @@ create table rentalley_db.Subscription
     amount_paid              decimal(10, 2)                                               default 0.00              not null,
     is_active                tinyint(1)                                                   default 0                 null,
     raw_xendit_payload       json                                                                                   null,
+    payment_token_id         varchar(100)                                                                           null,
     constraint Subscription_ibfk_1
         foreign key (landlord_id) references rentalley_db.Landlord (landlord_id)
             on update cascade on delete cascade
@@ -69,7 +75,3 @@ create index idx_payment_landlord
 create index idx_payment_subscription
     on rentalley_db.SubscriptionPayment (subscription_id);
 
-
-
-alter table rentalley_db.Subscription
-    add column payment_token_id varchar(100) null;
