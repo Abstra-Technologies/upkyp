@@ -153,6 +153,12 @@ create index idx_subscription_trial
 create index idx_subscription_xendit_id
     on rentalley_db.Subscription (xendit_subscription_id);
 
+alter table rentalley_db.Subscription
+    add column recurring_plan_id varchar(100) null after payment_session_id,
+    add column customer_id varchar(100) null after recurring_plan_id,
+    add column payment_link_url varchar(500) null after customer_id,
+    add column expires_at datetime null after payment_link_url;
+
 create table rentalley_db.XenditWebhookLog
 (
     id         int auto_increment
