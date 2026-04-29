@@ -171,6 +171,39 @@ async function handleCycleCreated(conn: mysql.Connection, data: any) {
     return { processed: true, message: "Cycle created recorded", cycle_number };
 }
 
+async function handleCycleRetrying(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, cycle_number, next_retry_timestamp, failure_reason } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle retrying:", { recurring_plan_id, cycle_number, next_retry_timestamp, failure_reason });
+
+    await conn.execute(
+        `UPDATE Subscription
+         SET payment_status = 'failed',
+             subscription_status = 'past_due',
+             next_billing_date = ?
+         WHERE recurring_plan_id = ?`,
+        [next_retry_timestamp ? new Date(next_retry_timestamp) : null, recurring_plan_id || null]
+    );
+
+    return { processed: true, message: "Cycle retry scheduled", cycle_number };
+}
+
+async function handleCycleSucceeded(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, cycle_number, amount, paid_at, payment_id } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle succeeded:", { recurring_plan_id, cycle_number, amount, paid_at });
+
+    await conn.execute(
+        `UPDATE Subscription
+         SET last_payment_date = ?,
+             payment_status = 'paid',
+             subscription_status = 'active',
+             is_active = 1
+         WHERE recurring_plan_id = ?`,
+        [paid_at ? new Date(paid_at) : null, recurring_plan_id || null]
+    );
+
+    return { processed: true, message: "Cycle succeeded recorded", cycle_number };
+}
+
 /* -------------------------------------------------------------------------- */
 /* WEBHOOK HANDLER                                                             */
 /* -------------------------------------------------------------------------- */
@@ -181,7 +214,7 @@ export async function POST(req: Request) {
     try {
         const token = req.headers.get("x-callback-token");
 
-        if (!token || token !== XENDIT_TEXT_WEBHOOK_TOKEN) {
+        if (!token || token !== XENDIT_WEBHOOK_TOKEN) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
@@ -216,6 +249,18 @@ export async function POST(req: Request) {
 
             case "recurring.cycle.created":
                 response = await handleCycleCreated(conn, payload.data || payload);
+                break;
+
+            case "recurring.cycle.retrying":
+                response = await handleCycleRetrying(conn, payload.data || payload);
+                break;
+
+            case "recurring.cycle.failed":
+                response = await handleCycleFailed(conn, payload.data || payload);
+                break;
+
+            case "recurring.cycle.succeeded":
+                response = await handleCycleSucceeded(conn, payload.data || payload);
                 break;
 
             default:
