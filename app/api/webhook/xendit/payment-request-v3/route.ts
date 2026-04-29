@@ -287,8 +287,7 @@ async function handlePlanInactivated(conn: mysql.Connection, data: any) {
 
     await conn.execute(
         `UPDATE Subscription
-         SET is_active = 0,
-             subscription_status = 'cancelled',
+         SET subscription_status = 'cancelled',
              cancelled_at = NOW(),
              raw_xendit_payload = ?
          WHERE recurring_plan_id = ?`,

@@ -5,16 +5,12 @@ import { getSessionUser } from "@/lib/auth/auth";
 /* -------------------------------------------------------------------------- */
 /* XENDIT CANCEL SUBSCRIPTION API                                             */
 /* -------------------------------------------------------------------------- */
-/* Methods to cancel subscription:                                            */
+/* Method to cancel subscription:                                             */
 /*                                                                            */
-/* 1. Cancel Payment Token: POST /payment_tokens/{id}/cancel                 */
-/*    - Deactivates the card token                                            */
-/*    - Stops all future recurring charges                                    */
+/* POST /recurring/plans/{id}/deactivate                                       */
+/*    - Deactivates the recurring plan via Xendit API                         */
+/*    - Only updates local DB after Xendit confirms deactivation               */
 /*                                                                            */
-/* 2. Cancel Specific Payment: POST /v3/payments/{payment_id}/cancel         */
-/*    - Cancels a specific payment if in authorized status                    */
-/*                                                                            */
-/* After Xendit cancellation, update local DB                                  */
 /* -------------------------------------------------------------------------- */
 
 const {
@@ -25,9 +21,8 @@ const {
     XENDIT_TEXT_SECRET_KEY,
 } = process.env;
 
-const XENDIT_PAYMENT_TOKENS = "https://api.xendit.co/payment_tokens";
-const XENDIT_V3_PAYMENTS = "https://api.xendit.co/v3/payments";
-const API_VERSION = "2024-11-11";
+const XENDIT_RECURRING_PLANS = "https://api.xendit.co/recurring/plans";
+const API_VERSION = "2026-01-01";
 
 /* -------------------------------------------------------------------------- */
 /* TYPES                                                                     */
@@ -88,58 +83,16 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Cancel a payment token (card token)
- * This stops all future recurring charges using this token
- * POST /payment_tokens/{id}/cancel
- */
-async function cancelPaymentToken(paymentTokenId: string): Promise<{ success: boolean; data: any }> {
-    console.log("[CANCEL] Cancelling payment token:", paymentTokenId);
-
-    const url = `${XENDIT_PAYMENT_TOKENS}/${paymentTokenId}/cancel`;
-
-    const res = await fetch(url, {
-        method: "POST",
-        headers: getXenditHeaders(paymentTokenId),
-    });
-
-    const data = await res.json();
-    console.log("[CANCEL] Payment token cancel response:", { status: res.status, ok: res.ok, data });
-
-    return { success: res.ok, data };
-}
-
-/**
- * Cancel a specific payment if it's in authorized status
- * POST /v3/payments/{payment_id}/cancel
- */
-async function cancelPayment(paymentId: string): Promise<{ success: boolean; data: any }> {
-    console.log("[CANCEL] Cancelling payment:", paymentId);
-
-    const url = `${XENDIT_V3_PAYMENTS}/${paymentId}/cancel`;
-
-    const res = await fetch(url, {
-        method: "POST",
-        headers: getXenditHeaders(paymentId),
-    });
-
-    const data = await res.json();
-    console.log("[CANCEL] Payment cancel response:", { status: res.status, ok: res.ok, data });
-
-    return { success: res.ok, data };
-}
-
-/**
  * Deactivate a recurring plan
- * DELETE /v2/recurring/plans/{id}
- * or use the cancel endpoint
+ * POST /recurring/plans/{id}/deactivate
  */
 async function deactivateRecurringPlan(recurringPlanId: string): Promise<{ success: boolean; data: any }> {
     console.log("[CANCEL] Deactivating recurring plan:", recurringPlanId);
 
-    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}`;
+    const url = `${XENDIT_RECURRING_PLANS}/${recurringPlanId}/deactivate`;
 
     const res = await fetch(url, {
-        method: "DELETE",
+        method: "POST",
         headers: getXenditHeaders(recurringPlanId),
     });
 
@@ -158,11 +111,12 @@ async function deactivateRecurringPlan(recurringPlanId: string): Promise<{ succe
  */
 async function getActiveSubscription(conn: mysql.Connection, landlordId: string): Promise<SubscriptionInfo | null> {
     const [rows] = await conn.execute<mysql.RowDataPacket[]>(
-        `SELECT subscription_id, landlord_id, payment_status, payment_token_id,
-                recurring_plan_id, xendit_customer_id, raw_xendit_payload, end_date
-         FROM Subscription
-         WHERE landlord_id = ? AND is_active = 1
-         ORDER BY end_date DESC LIMIT 1`,
+        `SELECT s.subscription_id, s.landlord_id, s.payment_status, s.payment_token_id,
+                s.recurring_plan_id, s.raw_xendit_payload, s.end_date, l.xendit_customer_id
+         FROM Subscription s
+         JOIN Landlord l ON s.landlord_id = l.landlord_id
+         WHERE s.landlord_id = ? AND s.is_active = 1
+         ORDER BY s.end_date DESC LIMIT 1`,
         [landlordId]
     );
 
@@ -180,8 +134,7 @@ async function cancelSubscriptionInDb(
 ): Promise<void> {
     await conn.execute(
         `UPDATE Subscription
-         SET payment_status = 'cancelled',
-             is_active = 0,
+         SET subscription_status = 'cancelled',
              cancel_reason = ?,
              cancelled_at = NOW(),
              updated_at = NOW()
@@ -262,38 +215,8 @@ export async function POST(req: Request) {
         let xenditCancelSuccess = false;
         let xenditCancelDetails: any = {};
 
-        // Option 1: Cancel using payment_token_id
-        if (subscription.payment_token_id) {
-            console.log("[CANCEL] Attempting to cancel payment token:", subscription.payment_token_id);
-            const tokenResult = await cancelPaymentToken(subscription.payment_token_id);
-
-            if (tokenResult.success) {
-                console.log("[CANCEL] Payment token cancelled successfully");
-                xenditCancelSuccess = true;
-                xenditCancelDetails = {
-                    method: "payment_token_cancel",
-                    payment_token_id: subscription.payment_token_id,
-                    response: tokenResult.data
-                };
-            } else {
-                console.warn("[CANCEL] Payment token cancel failed:", tokenResult.data);
-
-                // If token already used/expired, still mark local as cancelled
-                if (tokenResult.data.error_code === "TOKEN_NOT_FOUND" ||
-                    tokenResult.data.error_code === "TOKEN_ALREADY_CANCELLED") {
-                    console.log("[CANCEL] Token already cancelled/expired, proceeding with local cancellation");
-                    xenditCancelSuccess = true;
-                    xenditCancelDetails = {
-                        method: "token_already_inactive",
-                        payment_token_id: subscription.payment_token_id,
-                        note: tokenResult.data.error_code
-                    };
-                }
-            }
-        }
-
-        // Option 2: Cancel using recurring_plan_id
-        if (!xenditCancelSuccess && subscription.recurring_plan_id) {
+        // Cancel using recurring_plan_id via Xendit API
+        if (subscription.recurring_plan_id) {
             console.log("[CANCEL] Attempting to deactivate recurring plan:", subscription.recurring_plan_id);
             const planResult = await deactivateRecurringPlan(subscription.recurring_plan_id);
 
@@ -308,41 +231,42 @@ export async function POST(req: Request) {
             } else {
                 console.warn("[CANCEL] Recurring plan deactivation failed:", planResult.data);
 
-                // If plan already cancelled/doesn't exist, still mark local as cancelled
+                // If plan already cancelled/doesn't exist, Xendit is already in target state
                 if (planResult.data.error_code === "RECURRING_PLAN_NOT_FOUND" ||
                     planResult.data.error_code === "RECURRING_PLAN_ALREADY_CANCELLED") {
-                    console.log("[CANCEL] Plan already cancelled, proceeding with local cancellation");
+                    console.log("[CANCEL] Plan already cancelled in Xendit");
                     xenditCancelSuccess = true;
                     xenditCancelDetails = {
                         method: "plan_already_inactive",
                         recurring_plan_id: subscription.recurring_plan_id,
                         note: planResult.data.error_code
                     };
+                } else {
+                    // Xendit call failed for other reasons - do NOT update local DB
+                    console.error("[CANCEL] Xendit deactivation failed, cannot cancel subscription");
+                    await connection.rollback();
+                    return httpError(400, "Failed to cancel subscription in Xendit", {
+                        xendit_error: planResult.data
+                    });
                 }
             }
-        }
-
-        // If Xendit cancellation failed but subscription exists, we still cancel locally
-        // This handles cases where Xendit subscription already expired/cancelled
-        if (!xenditCancelSuccess) {
-            console.log("[CANCEL] Could not cancel in Xendit (may already be inactive). Proceeding with local cancellation.");
-            xenditCancelSuccess = true; // Mark as success for local DB update
-            xenditCancelDetails = {
-                method: "local_only",
-                reason: "Xendit subscription already inactive or not found"
-            };
+        } else {
+            console.log("[CANCEL] No recurring_plan_id found, cannot cancel in Xendit");
+            await connection.rollback();
+            return httpError(400, "No recurring plan ID found for this subscription");
         }
 
         /* ---------------- UPDATE DATABASE ---------------- */
-        console.log("[CANCEL] Updating subscription in database...");
-
-        await cancelSubscriptionInDb(
-            connection,
-            subscription.subscription_id,
-            cancel_reason || `Cancelled by user. Xendit cancel: ${JSON.stringify(xenditCancelDetails)}`
-        );
-
-        console.log("[CANCEL] Subscription cancelled in database");
+        // Only update DB if Xendit deactivation succeeded
+        if (xenditCancelSuccess) {
+            console.log("[CANCEL] Updating subscription in database...");
+            await cancelSubscriptionInDb(
+                connection,
+                subscription.subscription_id,
+                cancel_reason || `Cancelled by user. Xendit cancel: ${JSON.stringify(xenditCancelDetails)}`
+            );
+            console.log("[CANCEL] Subscription cancelled in database");
+        }
 
         /* ---------------- RETURN SUCCESS ---------------- */
         console.log("═══════════════════════════════════════════════════════════════");
