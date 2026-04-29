@@ -166,6 +166,7 @@ async function getActiveSubscription(conn: mysql.Connection, landlordId: string)
         [landlordId]
     );
 
+    // @ts-ignore
     return rows[0] || null;
 }
 
