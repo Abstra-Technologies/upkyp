@@ -4,24 +4,29 @@ import { db } from "@/lib/db";
 
 export async function GET(
     req: Request,
-    { params }: { params: { landlord_id: string } }
+    { params }: { params: Promise<{ landlord_id: string }> }
 ) {
     try {
+        const { landlord_id } = await params;
+
         const [rows] = await db.query(
             `SELECT 
-        subscription_id,
-        plan_name,
-        start_date,
-        end_date,
-        payment_status,
-        request_reference_number,
-        is_trial,
-        amount_paid
-      FROM Subscription
-      WHERE landlord_id = ?
-        AND is_active = 0
-      ORDER BY end_date DESC`,
-            [params.landlord_id]
+                subscription_id,
+                plan_name,
+                start_date,
+                end_date,
+                payment_status,
+                subscription_status,
+                request_reference_number,
+                is_trial,
+                amount_paid,
+                cancelled_at,
+                cancel_reason
+            FROM Subscription
+            WHERE landlord_id = ?
+              AND subscription_status = 'cancelled'
+            ORDER BY end_date DESC`,
+            [landlord_id]
         );
 
         return NextResponse.json(rows);
