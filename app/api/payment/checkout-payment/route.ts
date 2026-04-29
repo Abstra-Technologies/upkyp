@@ -389,7 +389,8 @@ async function createInvoicePayment(
 
 /**
  * Get or create Xendit customer
- * Checks DB first, then checks Xendit if not found
+ * Checks Landlord table first for existing xendit_customer_id
+ * If found and not empty, returns it. Otherwise creates new one and updates table.
  */
 async function getOrCreateCustomer(
     conn: mysql.Connection,
@@ -398,19 +399,25 @@ async function getOrCreateCustomer(
     firstName?: string,
     lastName?: string
 ): Promise<string> {
+    console.log("[CHECKOUT] Looking up xendit_customer_id for landlord_id:", { landlordId });
+
     const [rows] = await conn.execute<mysql.RowDataPacket[]>(
         "SELECT xendit_customer_id FROM Landlord WHERE landlord_id = ? LIMIT 1",
         [landlordId]
     );
 
-    let customerId = rows[0]?.xendit_customer_id;
+    console.log("[CHECKOUT] Query result:", { rows, rowCount: rows.length, firstRow: rows[0] });
 
-    if (customerId) {
-        console.log("[CHECKOUT] Customer found in DB:", { customerId });
-        return customerId;
+    const existingCustomerId = rows[0]?.xendit_customer_id;
+
+    if (existingCustomerId && String(existingCustomerId).trim() !== "") {
+        console.log("[CHECKOUT] Existing customer ID found in Landlord table:", { landlordId, customerId: existingCustomerId });
+        return String(existingCustomerId);
     }
 
-    customerId = await createXenditCustomer({
+    console.log("[CHECKOUT] No existing customer ID for landlord, creating new:", { landlordId });
+
+    const newCustomerId = await createXenditCustomer({
         referenceId: `landlord-${landlordId}`,
         email,
         firstName,
@@ -420,10 +427,11 @@ async function getOrCreateCustomer(
 
     await conn.execute(
         "UPDATE Landlord SET xendit_customer_id = ? WHERE landlord_id = ?",
-        [customerId, landlordId]
+        [newCustomerId, landlordId]
     );
 
-    return customerId;
+    console.log("[CHECKOUT] New customer ID saved to Landlord table:", { landlordId, customerId: newCustomerId });
+    return newCustomerId;
 }
 
 /**
