@@ -149,20 +149,82 @@ async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
 }
 
 async function handleCycleSucceeded(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, cycle_number, amount, paid_at, payment_id } = data;
+    const { recurring_plan_id, cycle_number, amount, paid_at, action_id, reference_id } = data;
     console.log("[SUBSCRIPTION WEBHOOK] Cycle succeeded:", { recurring_plan_id, cycle_number, amount, paid_at });
+
+    if (recurring_plan_id) {
+        await conn.execute(
+            `UPDATE Subscription
+             SET last_payment_date = ?,
+                 payment_status = 'paid',
+                 subscription_status = 'active',
+                 is_active = 1
+             WHERE recurring_plan_id = ?`,
+            [paid_at ? new Date(paid_at) : null, recurring_plan_id]
+        );
+    }
+
+    return { processed: true, message: "Cycle succeeded recorded", cycle_number };
+}
+
+async function handleCycleCreated(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, cycle_number, amount, due_date, reference_id, schedule_timestamp } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle created:", { recurring_plan_id, cycle_number, amount, due_date, reference_id });
+
+    const updateDate = due_date || schedule_timestamp;
+
+    if (recurring_plan_id) {
+        await conn.execute(
+            `UPDATE Subscription
+             SET next_billing_date = ?,
+                 payment_status = 'pending'
+             WHERE recurring_plan_id = ?`,
+            [updateDate ? new Date(updateDate) : null, recurring_plan_id]
+        );
+    }
+
+    if (reference_id) {
+        await conn.execute(
+            `UPDATE Subscription
+             SET next_billing_date = ?,
+                 payment_status = 'pending'
+             WHERE request_reference_number = ?`,
+            [updateDate ? new Date(updateDate) : null, reference_id]
+        );
+    }
+
+    return { processed: true, message: "Cycle created recorded", cycle_number };
+}
+
+async function handleCycleRetrying(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, cycle_number, next_retry_timestamp, failure_reason } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle retrying:", { recurring_plan_id, cycle_number, next_retry_timestamp, failure_reason });
 
     await conn.execute(
         `UPDATE Subscription
-         SET last_payment_date = ?,
-             payment_status = 'paid',
-             subscription_status = 'active',
-             is_active = 1
+         SET payment_status = 'failed',
+             subscription_status = 'past_due',
+             next_billing_date = ?
          WHERE recurring_plan_id = ?`,
-        [paid_at ? new Date(paid_at) : null, recurring_plan_id || null]
+        [next_retry_timestamp ? new Date(next_retry_timestamp) : null, recurring_plan_id || null]
     );
 
-    return { processed: true, message: "Cycle succeeded recorded", cycle_number };
+    return { processed: true, message: "Cycle retry scheduled", cycle_number };
+}
+
+async function handleCycleFailed(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, cycle_number, failure_reason } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Cycle failed:", { recurring_plan_id, cycle_number, failure_reason });
+
+    await conn.execute(
+        `UPDATE Subscription
+         SET payment_status = 'failed',
+             subscription_status = 'past_due'
+         WHERE recurring_plan_id = ?`,
+        [recurring_plan_id || null]
+    );
+
+    return { processed: true, message: "Cycle failure recorded", cycle_number };
 }
 
 /* -------------------------------------------------------------------------- */
