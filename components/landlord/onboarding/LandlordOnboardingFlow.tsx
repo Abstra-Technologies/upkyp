@@ -226,7 +226,7 @@ export default function LandlordOnboardingFlow({
                 confirmButtonText: "View Plans",
             }).then((result) => {
                 if (result.isConfirmed) {
-                    router.push("/landlord/subsciption_plan/pricing");
+                    router.push("/public/pricing");
                 }
             });
             return;

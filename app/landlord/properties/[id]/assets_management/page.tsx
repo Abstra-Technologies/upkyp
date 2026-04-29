@@ -164,7 +164,7 @@ const AssetsManagementPage = () => {
 
           <button
             onClick={() =>
-              router.push("/landlord/subsciption_plan/pricing")
+              router.push("/public/pricing")
             }
             className="w-full px-5 py-2.5 rounded-xl font-semibold text-white
           bg-gradient-to-r from-blue-600 to-emerald-600

@@ -375,7 +375,7 @@ function UpgradeRequired({ router }: any) {
             <button
                 onClick={() =>
                     router.push(
-                        "/landlord/subsciption_plan/pricing"
+                        "/public/pricing"
                     )
                 }
                 className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white"

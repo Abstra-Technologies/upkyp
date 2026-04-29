@@ -16,6 +16,7 @@ import QuickActions from "./QuickActions";
 import HeaderContent from "./headerContent";
 import NewWorkOrderModal from "../maintenance_management/NewWorkOrderModal";
 import LeaseOccupancyCard from "./LeaseOccupancyCard";
+import SubscriptionUsageCard from "./SubscriptionUsageCard";
 
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
@@ -191,6 +192,11 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
                 <div id="dashboard-occupancy" className="h-full">
                   <LeaseOccupancyCard landlord_id={landlordId} />
                 </div>
+              </Suspense>
+
+              {/* Subscription Usage */}
+              <Suspense fallback={<CardSkeleton />}>
+                <SubscriptionUsageCard landlordId={landlordId} />
               </Suspense>
             </div>
           </div>

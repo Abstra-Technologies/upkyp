@@ -103,7 +103,7 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
                     No subscription subscribed yet.
                 </p>
                 <Link
-                    href="/landlord/subsciption_plan/pricing"
+                    href="/public/pricing"
                     className="inline-block bg-blue-600 text-white text-xs font-semibold py-2 px-4 rounded-md hover:bg-blue-700 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all"
                 >
                     Subscribe Now
@@ -234,7 +234,7 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
                 {subscription.is_active && subscription.is_trial === 0 && (
                     <div className="space-y-2">
                         <Link
-                            href="/landlord/subsciption_plan/pricing"
+                            href="/public/pricing"
                             className="block bg-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-md text-center hover:bg-blue-700 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all"
                         >
                             {isCancelled ? "Reactivate / Upgrade Plan" : "Upgrade Plan"}
