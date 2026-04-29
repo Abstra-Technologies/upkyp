@@ -46,14 +46,14 @@ async function handlePlanActivation(conn: mysql.Connection, data: any) {
     console.log("[SUBSCRIPTION WEBHOOK] Activating plan:", { recurring_plan_id, reference_id, status });
 
     await conn.execute(
-        `UPDATE Subscription 
-         SET payment_status = 'paid', 
-             subscription_status = 'active', 
+        `UPDATE Subscription
+         SET payment_status = 'paid',
+             subscription_status = 'active',
              is_active = 1,
-             recurring_plan_id = COALESCE(recurring_plan_id, ?),
-             xendit_subscription_id = COALESCE(xendit_subscription_id, ?)
+             recurring_plan_id = COALESCE(?, recurring_plan_id),
+             xendit_subscription_id = COALESCE(?, xendit_subscription_id)
          WHERE request_reference_number = ?`,
-        [recurring_plan_id, recurring_plan_id, reference_id]
+        [recurring_plan_id || null, recurring_plan_id || null, reference_id]
     );
 
     return { processed: true, message: "Plan activated", recurring_plan_id };
@@ -64,20 +64,20 @@ async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
     console.log("[SUBSCRIPTION WEBHOOK] Payment token activated:", { payment_token_id, recurring_plan_id });
 
     await conn.execute(
-        `UPDATE Landlord 
-         SET payment_token_id = COALESCE(payment_token_id, ?),
-             payment_method_type = COALESCE(payment_method_type, 'CARDS')
+        `UPDATE Landlord
+         SET payment_token_id = COALESCE(?, payment_token_id),
+             payment_method_type = COALESCE('CARDS', payment_method_type)
          WHERE xendit_customer_id = ?`,
-        [payment_token_id, customer_id]
+        [payment_token_id || null, customer_id]
     );
 
     if (recurring_plan_id) {
         await conn.execute(
-            `UPDATE Subscription 
+            `UPDATE Subscription
              SET payment_token_id = ?,
-                 recurring_plan_id = COALESCE(recurring_plan_id, ?)
+                 recurring_plan_id = COALESCE(?, recurring_plan_id)
              WHERE recurring_plan_id = ?`,
-            [payment_token_id, recurring_plan_id, recurring_plan_id]
+            [payment_token_id || null, recurring_plan_id || null, recurring_plan_id]
         );
     }
 
@@ -89,27 +89,22 @@ async function handleCyclePaid(conn: mysql.Connection, data: any) {
     console.log("[SUBSCRIPTION WEBHOOK] Cycle paid:", { recurring_plan_id, cycle_number, amount });
 
     await conn.execute(
-        `UPDATE Subscription 
+        `UPDATE Subscription
          SET last_payment_date = ?,
              payment_status = 'paid',
              subscription_status = 'active',
              is_active = 1
          WHERE recurring_plan_id = ?`,
-        [new Date(paid_at), recurring_plan_id]
+        [paid_at ? new Date(paid_at) : null, recurring_plan_id]
     );
 
-    const [rows] = await conn.execute<mysql.RowDataPacket[]>(
-        `SELECT subscription_id FROM Subscription WHERE recurring_plan_id = ? LIMIT 1`,
-        [recurring_plan_id]
-    );
-
-    if (rows.length > 0) {
+    if (recurring_plan_id && payment_id) {
         await conn.execute(
-            `INSERT INTO SubscriptionPayment 
+            `INSERT INTO SubscriptionPayment
              (subscription_id, landlord_id, xendit_payment_id, xendit_invoice_id, amount, status, paid_at, created_at)
              SELECT subscription_id, landlord_id, ?, NULL, ?, 'paid', ?, NOW()
              FROM Subscription WHERE recurring_plan_id = ?`,
-            [payment_id, amount, new Date(paid_at), recurring_plan_id]
+            [payment_id, amount, paid_at ? new Date(paid_at) : null, recurring_plan_id]
         );
     }
 
