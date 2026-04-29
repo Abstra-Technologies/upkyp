@@ -57,7 +57,6 @@ async function handlePlanActivation(conn: mysql.Connection, data: any) {
     if (recurring_plan_id) {
         updateFields.push("recurring_plan_id = ?");
         params.push(recurring_plan_id);
-        conditions.push("recurring_plan_id = ?");
     }
 
     if (subRefId) {
@@ -69,12 +68,59 @@ async function handlePlanActivation(conn: mysql.Connection, data: any) {
         return { processed: false, message: "No identifier provided" };
     }
 
+    if (recurring_plan_id) {
+        conditions.push("recurring_plan_id = ?");
+        params.push(recurring_plan_id);
+    }
+
     await conn.execute(
         `UPDATE Subscription SET ${updateFields.join(", ")} WHERE ${conditions.join(" OR ")}`,
         params
     );
 
     return { processed: true, message: "Plan activated", recurring_plan_id };
+}
+
+async function handleSessionCompleted(conn: mysql.Connection, data: any) {
+    const { payment_session_id, customer_id, reference_id, status } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Session completed:", { payment_session_id, customer_id, reference_id, status });
+
+    const conditions: string[] = [];
+    const params: any[] = [];
+
+    if (payment_session_id) {
+        conditions.push("payment_session_id = ?");
+        params.push(payment_session_id);
+    }
+
+    if (reference_id) {
+        conditions.push("request_reference_number = ?");
+        params.push(reference_id);
+    }
+
+    if (conditions.length > 0) {
+        await conn.execute(
+            `UPDATE Subscription SET ${conditions.map(c => `payment_session_id = COALESCE(?, ${c.split(' = ')[1]})`).join(", ")} WHERE ${conditions.join(" OR ")}`,
+            [payment_session_id || null, ...params]
+        );
+    }
+
+    return { processed: true, message: "Session completed recorded", payment_session_id };
+}
+
+async function handlePlanInactivated(conn: mysql.Connection, data: any) {
+    const { recurring_plan_id, reason } = data;
+    console.log("[SUBSCRIPTION WEBHOOK] Plan inactivated:", { recurring_plan_id, reason });
+
+    await conn.execute(
+        `UPDATE Subscription
+         SET is_active = 0,
+             subscription_status = 'cancelled'
+         WHERE recurring_plan_id = ?`,
+        [recurring_plan_id || null]
+    );
+
+    return { processed: true, message: "Plan inactivated", recurring_plan_id };
 }
 
 async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
@@ -100,91 +146,6 @@ async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
     }
 
     return { processed: true, message: "Payment token recorded", payment_token_id };
-}
-
-async function handleCyclePaid(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, cycle_number, amount, paid_at, payment_id } = data;
-    console.log("[SUBSCRIPTION WEBHOOK] Cycle paid:", { recurring_plan_id, cycle_number, amount });
-
-    await conn.execute(
-        `UPDATE Subscription
-         SET last_payment_date = ?,
-             payment_status = 'paid',
-             subscription_status = 'active',
-             is_active = 1
-         WHERE recurring_plan_id = ?`,
-        [paid_at ? new Date(paid_at) : null, recurring_plan_id]
-    );
-
-    if (recurring_plan_id && payment_id) {
-        await conn.execute(
-            `INSERT INTO SubscriptionPayment
-             (subscription_id, landlord_id, xendit_payment_id, xendit_invoice_id, amount, status, paid_at, created_at)
-             SELECT subscription_id, landlord_id, ?, NULL, ?, 'paid', ?, NOW()
-             FROM Subscription WHERE recurring_plan_id = ?`,
-            [payment_id, amount, paid_at ? new Date(paid_at) : null, recurring_plan_id]
-        );
-    }
-
-    return { processed: true, message: "Cycle payment recorded", cycle_number };
-}
-
-async function handleCycleFailed(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, cycle_number, reason } = data;
-    console.log("[SUBSCRIPTION WEBHOOK] Cycle failed:", { recurring_plan_id, cycle_number, reason });
-
-    await conn.execute(
-        `UPDATE Subscription
-         SET payment_status = 'failed',
-             subscription_status = 'past_due'
-         WHERE recurring_plan_id = ?`,
-        [recurring_plan_id || null]
-    );
-
-    return { processed: true, message: "Cycle failure recorded", cycle_number };
-}
-
-async function handleCycleCreated(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, cycle_number, amount, due_date, reference_id } = data;
-    console.log("[SUBSCRIPTION WEBHOOK] Cycle created:", { recurring_plan_id, cycle_number, amount, due_date, reference_id });
-
-    if (recurring_plan_id) {
-        await conn.execute(
-            `UPDATE Subscription
-             SET next_billing_date = ?,
-                 payment_status = 'pending'
-             WHERE recurring_plan_id = ?`,
-            [due_date ? new Date(due_date) : null, recurring_plan_id]
-        );
-    }
-
-    if (reference_id) {
-        await conn.execute(
-            `UPDATE Subscription
-             SET next_billing_date = ?,
-                 payment_status = 'pending'
-             WHERE request_reference_number = ?`,
-            [due_date ? new Date(due_date) : null, reference_id]
-        );
-    }
-
-    return { processed: true, message: "Cycle created recorded", cycle_number };
-}
-
-async function handleCycleRetrying(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, cycle_number, next_retry_timestamp, failure_reason } = data;
-    console.log("[SUBSCRIPTION WEBHOOK] Cycle retrying:", { recurring_plan_id, cycle_number, next_retry_timestamp, failure_reason });
-
-    await conn.execute(
-        `UPDATE Subscription
-         SET payment_status = 'failed',
-             subscription_status = 'past_due',
-             next_billing_date = ?
-         WHERE recurring_plan_id = ?`,
-        [next_retry_timestamp ? new Date(next_retry_timestamp) : null, recurring_plan_id || null]
-    );
-
-    return { processed: true, message: "Cycle retry scheduled", cycle_number };
 }
 
 async function handleCycleSucceeded(conn: mysql.Connection, data: any) {
@@ -229,22 +190,23 @@ export async function POST(req: Request) {
         let response: any;
 
         switch (eventType) {
-            case "recurring.plan.activation":
-            case "recurring_plan.activation":
+            case "recurring_plan.activated":
+            case "recurring.plan.activated":
                 response = await handlePlanActivation(conn, payload.data || payload);
                 break;
 
-            case "payment_token.activated":
             case "payment_token.activation":
+            case "payment_token.activated":
                 response = await handlePaymentTokenActivated(conn, payload.data || payload);
                 break;
 
-            case "recurring.cycle.paid":
-                response = await handleCyclePaid(conn, payload.data || payload);
+            case "payment_session.completed":
+                response = await handleSessionCompleted(conn, payload.data || payload);
                 break;
 
-            case "recurring.cycle.failed":
-                response = await handleCycleFailed(conn, payload.data || payload);
+            case "recurring_plan.inactivated":
+            case "recurring.plan.inactivated":
+                response = await handlePlanInactivated(conn, payload.data || payload);
                 break;
 
             case "recurring.cycle.created":
