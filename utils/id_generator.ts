@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { db } from "@/lib/db";
 
 export function generateWalletId(): string {
     return crypto.randomUUID();
@@ -12,6 +13,27 @@ function randomAlphaNumeric(length: number): string {
         result += chars[bytes[i] % chars.length];
     }
     return result;
+}
+
+export async function generateSubscriptionId(): Promise<string> {
+    let subscriptionId: string;
+    let isUnique = false;
+
+    while (!isUnique) {
+        subscriptionId = "SUB" + randomAlphaNumeric(17);
+
+        const [rows] = await db.execute(
+            "SELECT 1 FROM Subscription WHERE subscription_id = ? LIMIT 1",
+            [subscriptionId]
+        );
+
+        if ((rows as any[]).length === 0) {
+            isUnique = true;
+            return subscriptionId;
+        }
+    }
+
+    throw new Error("Failed to generate unique subscription ID");
 }
 
 

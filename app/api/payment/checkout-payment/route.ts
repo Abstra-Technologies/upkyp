@@ -1,9 +1,10 @@
 /* -------------------------------------------------------------------------- */
 /* XENDIT USAGE-BASED SUBSCRIPTION CHECKOUT API                               */
 /* -------------------------------------------------------------------------- */
-/* Usage-based pricing with floor price + Pay and Save:                       */
-/* - Immediate payment on checkout (first charge = floor price)               */
-/* - Payment method is saved for future recurring charges                     */
+/* Usage-based pricing with floor price + Recurring Automatic:                */
+/* - No upfront payment (initial charge = 0)                                  */
+/* - No end_date (ongoing recurring automatic payments)                       */
+/* - First billing starts next month                                          */
 /* - Each billing cycle: amount is calculated based on usage                  */
 /* - Floor price = plan base price (minimum charge)                           */
 /* - Update Cycle API sets the actual charge before cycle starts              */
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import { createXenditCustomer } from "@/lib/payments/xenditCustomer";
+import { generateSubscriptionId } from "@/utils/id_generator";
 
 /* -------------------------------------------------------------------------- */
 /* ENV & CONSTANTS                                                           */
@@ -63,7 +65,6 @@ interface PlanInfo {
     interval: "DAY" | "WEEK" | "MONTH" | "YEAR";
     intervalCount: number;
     totalRecurrence: number;
-    isLifetime: boolean;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -82,16 +83,18 @@ function sanitizeString(s: unknown): string | null {
 }
 
 function getValidAnchorDate(): string {
-    const now = new Date();
-    const currentDay = now.getUTCDate();
-    let anchorDay = currentDay >= 29 ? 28 : currentDay;
+    // TODO: Change back to next month for production
+    const tomorrow = new Date();
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    tomorrow.setUTCHours(12, 0, 0, 0);
+    return tomorrow.toISOString();
+}
 
-    const nextMonth = now.getUTCMonth() + 1;
-    const nextYear = nextMonth > 11 ? now.getUTCFullYear() + 1 : now.getUTCFullYear();
-    const adjustedMonth = nextMonth > 11 ? 0 : nextMonth;
-
-    const anchorDate = new Date(Date.UTC(nextYear, adjustedMonth, anchorDay, 12, 0, 0, 0));
-    return anchorDate.toISOString();
+function getAnchorDay(): number {
+    // TODO: Change back to next month's day for production
+    const tomorrow = new Date();
+    tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+    return tomorrow.getUTCDate();
 }
 
 async function getDbConnection() {
@@ -118,8 +121,9 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
 /* -------------------------------------------------------------------------- */
 
 /**
- * Create subscription session with immediate_payment: true (Pay and Save)
- * Customer is charged immediately (floor price) AND payment method is saved.
+ * Create subscription session with immediate_payment: false (Recurring Automatic)
+ * No upfront payment - first billing starts next month.
+ * Payment method is saved for future recurring charges.
  * Future cycles will be usage-based via Update Cycle API.
  */
 async function createSubscriptionSession(
@@ -149,7 +153,7 @@ async function createSubscriptionSession(
                 total_retry: 7,
                 failed_attempt_notifications: [1, 3, 5],
             },
-            immediate_payment: true,
+            immediate_payment: false,
             failed_cycle_action: "RESUME" as const,
         },
         currency: CURRENCY,
@@ -162,11 +166,11 @@ async function createSubscriptionSession(
         cancel_return_url: redirectUrls.cancel || redirectUrls.failure,
     };
 
-    console.log("[CHECKOUT] Creating usage-based subscription (Pay and Save):", {
+    console.log("[CHECKOUT] Creating usage-based subscription (Recurring Automatic):", {
         referenceId,
         customerId,
         floorPrice,
-        immediate_payment: true,
+        immediate_payment: false,
         anchor_date: anchorDate,
     });
 
@@ -271,7 +275,6 @@ async function getPlanByCode(conn: mysql.Connection, planCode: string): Promise<
     if (rows.length === 0) return null;
 
     const row = rows[0];
-    const isLifetime = row.billing_cycle === "lifetime";
 
     return {
         plan_id: row.plan_id,
@@ -281,8 +284,7 @@ async function getPlanByCode(conn: mysql.Connection, planCode: string): Promise<
         billing_cycle: row.billing_cycle,
         interval: "MONTH",
         intervalCount: 1,
-        totalRecurrence: isLifetime ? 1 : 100,
-        isLifetime,
+        totalRecurrence: 100,
     };
 }
 
@@ -292,48 +294,43 @@ async function saveSubscription(
     plan: PlanInfo,
     floorPrice: number,
     xenditData: Record<string, unknown>,
-    referenceId: string
+    referenceId: string,
+    subscriptionId: string
 ): Promise<number> {
     const startDate = new Date().toISOString().split("T")[0];
-    const endDate = plan.isLifetime
-        ? new Date(Date.now() + 10 * 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
 
-    const xenditSubId = (xenditData as any).id || null;
-    const paymentSessionId = (xenditData as any).payment_session_id || null;
     const recurringPlanId = (xenditData as any).recurring_plan_id || null;
-    const customerId = (xenditData as any).customer_id || null;
-    const paymentLinkUrl = (xenditData as any).payment_link_url || null;
-    const expiresAt = (xenditData as any).expires_at || null;
+    const paymentTokenId = (xenditData as any).payment_token_id || null;
+    
+    // Extract anchor date from Xendit payload
+    const xenditAnchorDate = (xenditData as any).schedule?.anchor_date || (xenditData as any).anchor_date;
+    const anchorDate = xenditAnchorDate ? new Date(xenditAnchorDate) : new Date();
+    const anchorDayDate = anchorDate.toISOString();
+
+    const payloadStr = typeof xenditData === 'object' && xenditData !== null ? JSON.stringify(xenditData) : '{}';
 
     const [result] = await conn.execute<mysql.ResultSetHeader>(
         `INSERT INTO Subscription
-        (landlord_id, plan_id, request_reference_number,
-         xendit_subscription_id, payment_session_id, recurring_plan_id,
-         customer_id, payment_link_url, expires_at,
-         start_date, end_date, next_billing_date,
-         payment_status, subscription_status, is_active, is_trial,
-         amount_paid, raw_xendit_payload)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (subscription_id, landlord_id, plan_id, request_reference_number,
+         recurring_plan_id, start_date, activated_at, end_date,
+         billing_timezone, payment_status, subscription_status,
+         is_trial, cancel_at_period_end, raw_xendit_payload,
+         payment_token_id, anchor_day)
+        VALUES (?, ?, ?, ?, ?, ?, NOW(), ?, 'Asia/Manila', ?, ?, ?, 0, CAST(? AS JSON), ?, ?)`,
         [
+            subscriptionId,
             landlordId,
             plan.plan_id,
             referenceId,
-            xenditSubId,
-            paymentSessionId,
             recurringPlanId,
-            customerId,
-            paymentLinkUrl,
-            expiresAt,
             startDate,
-            endDate,
-            getValidAnchorDate(),
+            null,
             "pending",
-            "active",
-            1,
+            "pending_activation",
             0,
-            0,
-            JSON.stringify(xenditData),
+            payloadStr,
+            paymentTokenId,
+            anchorDayDate,
         ]
     );
 
@@ -380,14 +377,11 @@ export async function POST(req: NextRequest) {
         const plan = await getPlanByCode(connection, plan_code);
         if (!plan) return httpError(404, `Plan not found: ${plan_code}`);
 
-        if (plan.isLifetime) {
-            return httpError(400, "Lifetime plans cannot use usage-based billing");
-        }
-
         const floorPrice = plan.price;
 
         const customerId = await getOrCreateCustomer(connection, landlord_id, email, firstName, lastName);
         const referenceId = `sub-${landlord_id}-${Date.now()}`;
+        const subscriptionId = await generateSubscriptionId();
 
         const sessionData = await createSubscriptionSession(
             customerId,
@@ -400,9 +394,9 @@ export async function POST(req: NextRequest) {
             plan.totalRecurrence
         );
 
-        await saveSubscription(connection, landlord_id, plan, floorPrice, sessionData, referenceId);
+        await saveSubscription(connection, landlord_id, plan, floorPrice, sessionData, referenceId, subscriptionId);
 
-        console.log("[CHECKOUT] Session created - immediate charge + payment method saved:", {
+        console.log("[CHECKOUT] Session created - recurring automatic (no upfront charge):", {
             payment_session_id: sessionData.payment_session_id,
             recurring_plan_id: sessionData.recurring_plan_id,
             floorPrice,
@@ -411,6 +405,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             type: "subscription",
+            subscriptionId,
             checkoutUrl: sessionData.payment_link_url,
             paymentSessionId: sessionData.payment_session_id,
             recurringPlanId: sessionData.recurring_plan_id,
@@ -418,7 +413,7 @@ export async function POST(req: NextRequest) {
             referenceId,
             status: sessionData.status,
             floorPrice,
-            message: "Pay and Save: You will be charged immediately (floor price). Payment method is saved for future usage-based billing.",
+            message: "Recurring Automatic: No upfront payment. Billing starts next month. Payment method is saved for future usage-based billing.",
         });
 
     } catch (err: any) {

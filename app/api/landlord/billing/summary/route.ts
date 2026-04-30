@@ -26,13 +26,13 @@ export async function GET(req: NextRequest) {
             `
                 SELECT
                     s.subscription_id,
-                    s.plan_code,
                     p.plan_id,
+                    p.plan_code,
                     p.name AS plan_name,
                     p.price AS base_price,
                     s.subscription_status
                 FROM Subscription s
-                JOIN Plan p ON s.plan_code = p.plan_code
+                JOIN Plan p ON s.plan_id = p.plan_id
                 WHERE s.landlord_id = ?
                   AND s.subscription_status = 'active'
                 LIMIT 1

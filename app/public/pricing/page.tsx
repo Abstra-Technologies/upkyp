@@ -153,7 +153,7 @@ function PricingCard({ plan, currentSubscription, onSelectPlan }: PricingCardPro
                                     : "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"}
                             `}
                         >
-                            Get started
+                            Subscribe
                         </button>
                     )}
                 </div>
@@ -228,14 +228,14 @@ export default function PricingPage() {
                         Pricing plans for properties of all sizes
                     </h1>
                     <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto">
-                        From single-unit landlords to growing property portfolios — find the perfect plan to manage your rentals efficiently.
+                        Usage-based pricing with a guaranteed floor. Pay only for what you use — never less than your base plan price.
                     </p>
                     <button
                         onClick={() => setIsCalculatorOpen(true)}
                         className="mt-6 inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold py-3 px-6 rounded-xl border border-white/20 transition-all duration-300 hover:scale-105"
                     >
                         <Calculator className="w-5 h-5" />
-                        Calculate Plan
+                        Estimate Your Cost
                     </button>
                 </div>
             </section>
@@ -304,7 +304,7 @@ export default function PricingPage() {
             {/* Footer Note */}
             <section className="pb-16 text-center text-sm text-gray-500 max-w-2xl mx-auto px-4">
                 <p>
-                    All prices in PHP. Transaction fees include payment gateway + UPKYP platform fees.
+                    All prices in PHP. Usage-based billing — you pay the higher of the base price or your actual unit usage.
                 </p>
                 <p className="mt-2">
                     Need custom setup or PMO billing?
@@ -335,31 +335,44 @@ export default function PricingPage() {
 
                         <div className="grid md:grid-cols-2 gap-8">
                             {/* Left side - Explanation */}
-                            <div className="space-y-4">
-                                <p className="text-blue-200 text-sm sm:text-base">
-                                    Each plan has a <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">base monthly price</span> (your guaranteed floor) and an optional <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">per-unit price</span>.
-                                </p>
+                        <div className="space-y-4">
+                            <p className="text-blue-200 text-sm sm:text-base">
+                                Each plan has a <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">base monthly price</span> (your guaranteed floor) and a <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">per-unit price</span> based on property type.
+                            </p>
 
-                                <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/10">
-                                    <p className="text-xs text-blue-300 mb-2 font-medium uppercase tracking-wide">Your Monthly Cost</p>
-                                    <div className="font-mono text-sm sm:text-base">
-                                        <div className="flex items-center justify-center gap-2 flex-wrap">
-                                            <span className="bg-blue-500/30 px-3 py-1.5 rounded-lg">Base Price</span>
-                                            <span className="text-blue-400">+</span>
-                                            <span className="bg-blue-500/30 px-3 py-1.5 rounded-lg">(Units × Per-Unit)</span>
-                                        </div>
+                            <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/10">
+                                <p className="text-xs text-blue-300 mb-2 font-medium uppercase tracking-wide">Your Monthly Cost</p>
+                                <div className="font-mono text-sm sm:text-base">
+                                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                                        <span className="bg-blue-500/30 px-3 py-1.5 rounded-lg">max(Base Price, Units × Per-Unit)</span>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-                                    <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <p className="text-xs sm:text-sm text-amber-200">
-                                        <span className="font-semibold text-amber-400">Pro tip:</span> Your total is <span className="font-bold text-white">never less than the base price</span>, but can exceed it if you have many units.
-                                    </p>
+                            <div className="space-y-2">
+                                <div className="flex items-start gap-2 text-xs text-blue-200">
+                                    <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-semibold shrink-0">1.</span>
+                                    <span>Subscribe — link your payment method and get charged the base price immediately.</span>
+                                </div>
+                                <div className="flex items-start gap-2 text-xs text-blue-200">
+                                    <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-semibold shrink-0">2.</span>
+                                    <span>Each month, we count your units by property type and calculate the usage cost.</span>
+                                </div>
+                                <div className="flex items-start gap-2 text-xs text-blue-200">
+                                    <span className="bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-semibold shrink-0">3.</span>
+                                    <span>You pay the higher of the base price or the usage-based amount.</span>
                                 </div>
                             </div>
+
+                            <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p className="text-xs sm:text-sm text-amber-200">
+                                    <span className="font-semibold text-amber-400">Pay &amp; Save:</span> Your payment method is saved securely. First charge is the <span className="font-bold text-white">base price</span>. Future charges are calculated based on your actual unit usage.
+                                </p>
+                            </div>
+                        </div>
 
                             {/* Right side - Visual Example */}
                             <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
@@ -368,33 +381,33 @@ export default function PricingPage() {
                                 <div className="space-y-4">
                                     <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-green-400 text-xs font-medium">✓ Under Base Price</span>
+                                            <span className="text-green-400 text-xs font-medium">✓ Floor Price Applies</span>
                                             <span className="text-green-400 font-bold">₱500</span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-xs text-blue-200">
                                             <div>PRO Base: <span className="text-white font-semibold">₱500</span></div>
                                             <div>Unit Price: <span className="text-white font-semibold">₱5</span></div>
                                             <div>Your Units: <span className="text-white font-semibold">10</span></div>
-                                            <div>Calculation: <span className="text-white font-semibold">10 × ₱5 = ₱50</span></div>
+                                            <div>Usage Cost: <span className="text-white font-semibold">10 × ₱5 = ₱50</span></div>
                                         </div>
                                         <div className="border-t border-green-500/20 mt-2 pt-2 text-xs text-green-300">
-                                            ₱500 base + ₱50 = <span className="font-bold text-white">₱500</span> (base applies)
+                                            max(₱500, ₱50) = <span className="font-bold text-white">₱500</span> (floor price)
                                         </div>
                                     </div>
 
                                     <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-orange-400 text-xs font-medium">↑ Exceeds Base Price</span>
+                                            <span className="text-orange-400 text-xs font-medium">↑ Usage Exceeds Floor</span>
                                             <span className="text-orange-400 font-bold">₱1,000</span>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 text-xs text-blue-200">
                                             <div>PRO Base: <span className="text-white font-semibold">₱500</span></div>
                                             <div>Unit Price: <span className="text-white font-semibold">₱5</span></div>
                                             <div>Your Units: <span className="text-white font-semibold">200</span></div>
-                                            <div>Calculation: <span className="text-white font-semibold">200 × ₱5 = ₱1,000</span></div>
+                                            <div>Usage Cost: <span className="text-white font-semibold">200 × ₱5 = ₱1,000</span></div>
                                         </div>
                                         <div className="border-t border-orange-500/20 mt-2 pt-2 text-xs text-orange-300">
-                                            ₱500 base + ₱1,000 = <span className="font-bold text-white">₱1,000</span> (pay full amount)
+                                            max(₱500, ₱1,000) = <span className="font-bold text-white">₱1,000</span> (usage-based)
                                         </div>
                                     </div>
                                 </div>
