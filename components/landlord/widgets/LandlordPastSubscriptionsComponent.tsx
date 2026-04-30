@@ -28,9 +28,16 @@ export default function LandlordPastSubscriptionsComponent({
       try {
         const res = await fetch(`/api/landlord/${landlord_id}/subscription`);
         const data = await res.json();
-        setSubscriptions(data);
+        if (Array.isArray(data)) {
+          setSubscriptions(data);
+        } else if (data?.data && Array.isArray(data.data)) {
+          setSubscriptions(data.data);
+        } else {
+          setSubscriptions([]);
+        }
       } catch (error) {
         console.error("Failed to fetch past subscriptions", error);
+        setSubscriptions([]);
       } finally {
         setLoading(false);
       }

@@ -68,9 +68,9 @@ export async function GET(
                     s.payment_status,
                     s.subscription_status,
                     s.is_trial,
-                    s.plan_code,
 
                     p.plan_id,
+                    p.plan_code,
                     p.name AS plan_name,
                     p.price,
                     p.billing_cycle,
@@ -90,7 +90,7 @@ export async function GET(
                 FROM Subscription s
 
                          JOIN Plan p
-                              ON s.plan_code = p.plan_code
+                              ON s.plan_id = p.plan_id
 
                          LEFT JOIN PlanLimits pl
                                    ON p.plan_id = pl.plan_id
