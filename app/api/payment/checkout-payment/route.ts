@@ -32,10 +32,10 @@ const {
 } = process.env;
 
 const XENDIT_SESSIONS = "https://api.xendit.co/sessions";
-const XENDIT_UPDATE_CYCLE = "https://api.xendit.co/v2/recurring/plans";
+const XENDIT_UPDATE_CYCLE = " https://api.xendit.co/recurring/plans";
 const CURRENCY = "PHP";
 const COUNTRY = "PH";
-const API_VERSION = "2024-11-11";
+const API_VERSION = "2026-01-01";
 
 /* -------------------------------------------------------------------------- */
 /* TYPES                                                                   */
