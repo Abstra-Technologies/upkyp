@@ -188,23 +188,15 @@ export async function generateSubscriptionBillingSnapshots() {
         tomorrow.setUTCHours(0, 0, 0, 0);
         const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
-        const dayAfterTomorrow = new Date(tomorrow);
-        dayAfterTomorrow.setUTCDate(dayAfterTomorrow.getUTCDate() + 1);
-
-        const billingMonth = new Date();
-        billingMonth.setDate(1);
-        billingMonth.setHours(0, 0, 0, 0);
-        const billingMonthStr = billingMonth.toISOString().split("T")[0];
-        const billingMonthLabel = billingMonth.toLocaleDateString("en-US", { year: "numeric", month: "long" });
-
         const [activeSubscriptions]: any = await db.execute(`
             SELECT
                 s.subscription_id,
                 s.landlord_id,
+                s.start_date,
+                s.anchor_day,
                 p.plan_id,
                 p.name AS plan_name,
-                p.price AS base_price,
-                s.anchor_day
+                p.price AS base_price
             FROM Subscription s
             JOIN Plan p ON s.plan_id = p.plan_id
             WHERE s.subscription_status = 'active'
@@ -212,9 +204,15 @@ export async function generateSubscriptionBillingSnapshots() {
         `, [tomorrowStr]);
 
         if (!activeSubscriptions.length) {
-            console.log("No subscriptions with anchor date tomorrow to bill.");
+            console.log("No subscriptions with billing anchor date tomorrow.");
             return 0;
         }
+
+        const billingMonth = new Date();
+        billingMonth.setDate(1);
+        billingMonth.setHours(0, 0, 0, 0);
+        const billingMonthStr = billingMonth.toISOString().split("T")[0];
+        const billingMonthLabel = billingMonth.toLocaleDateString("en-US", { year: "numeric", month: "long" });
 
         let processedCount = 0;
 
@@ -228,6 +226,20 @@ export async function generateSubscriptionBillingSnapshots() {
             if (existingSnapshot.length > 0) {
                 console.log(`Snapshot already exists for subscription ${sub.subscription_id}, month ${billingMonthStr}`);
                 continue;
+            }
+
+            // Calculate billing period
+            const anchorDate = new Date(sub.anchor_day);
+            const periodEnd = new Date(anchorDate);
+            periodEnd.setDate(periodEnd.getDate() - 1);
+            periodEnd.setHours(23, 59, 59, 0);
+
+            // Use start_date for first cycle, otherwise exactly 1 month before anchor
+            let periodStart = new Date(sub.start_date);
+            const oneMonthBeforeAnchor = new Date(anchorDate);
+            oneMonthBeforeAnchor.setMonth(oneMonthBeforeAnchor.getMonth() - 1);
+            if (periodStart < oneMonthBeforeAnchor) {
+                periodStart = oneMonthBeforeAnchor;
             }
 
             const [unitPriceRows]: any = await db.execute(
@@ -268,18 +280,12 @@ export async function generateSubscriptionBillingSnapshots() {
             const finalCharge = Math.max(basePrice, totalComputed);
             const chargeBasis = finalCharge === basePrice ? "floor_price" : "unit_based";
 
-            const periodStart = new Date(billingMonth);
-            const periodEnd = new Date(billingMonth);
-            periodEnd.setMonth(periodEnd.getMonth() + 1);
-            periodEnd.setDate(0);
-            periodEnd.setHours(23, 59, 59, 0);
-
             const [snapResult]: any = await db.execute(
                 `INSERT INTO SubscriptionMonthlyBillingSnapshot 
                  (subscription_id, billing_month, billing_period_start, billing_period_end, cutoff_at,
                   applied_floor_price, total_computed, final_charge, charge_basis, sync_status)
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-                [sub.subscription_id, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), dayAfterTomorrow.toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
+                [sub.subscription_id, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), new Date().toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
             );
 
             const snapshotId = snapResult.insertId;
@@ -293,8 +299,8 @@ export async function generateSubscriptionBillingSnapshots() {
                 );
             }
 
-            // Update anchor_day to next month
-            const nextAnchorDay = new Date(sub.anchor_day);
+            // Advance anchor_day to next month for the next billing cycle
+            const nextAnchorDay = new Date(anchorDate);
             nextAnchorDay.setUTCMonth(nextAnchorDay.getUTCMonth() + 1);
 
             await db.execute(
