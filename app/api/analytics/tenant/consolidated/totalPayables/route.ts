@@ -115,26 +115,32 @@ export async function GET(req: NextRequest) {
                 });
 
                 /* ---------- ADVANCE PAYMENT ---------- */
-                const [advancePayments]: any[] = await db.query(
-                    `
-                    SELECT advance_id, amount, months_covered, status
-                    FROM AdvancePayment
-                    WHERE lease_id = ?
-                      AND status IN ('unpaid', 'partially_paid')
-                    `,
-                    [lease.agreement_id]
-                );
+                let advance_details: any[] = [];
+                try {
+                    const [advancePayments]: any[] = await db.query(
+                        `
+                        SELECT advance_id, amount, months_covered, status
+                        FROM AdvancePayment
+                        WHERE lease_id = ?
+                          AND status IN ('unpaid', 'partially_paid')
+                        `,
+                        [lease.agreement_id]
+                    );
 
-                const advance_details = advancePayments.map((a: any) => {
-                    total_due += Number(a.amount || 0);
-                    return {
-                        advance_id: a.advance_id,
-                        amount: Number(a.amount || 0),
-                        months_covered: a.months_covered,
-                        type: "advance_payment",
-                        status: a.status,
-                    };
-                });
+                    advance_details = advancePayments.map((a: any) => {
+                        total_due += Number(a.amount || 0);
+                        return {
+                            advance_id: a.advance_id,
+                            amount: Number(a.amount || 0),
+                            months_covered: a.months_covered,
+                            type: "advance_payment",
+                            status: a.status,
+                        };
+                    });
+                } catch {
+                    // AdvancePayment table may not exist in older schemas
+                    advance_details = [];
+                }
 
                 return {
                     agreement_id: lease.agreement_id,

@@ -1,8 +1,7 @@
 /*USE CASE
-*
+* Inner Portal
 * components/tenant/analytics-insights/paymentDue.tsx
 * */
-
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
