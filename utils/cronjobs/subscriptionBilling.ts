@@ -242,12 +242,16 @@ async function sendBillingEmail(email: string, landlordName: string, billingMont
 }
 
 export async function generateSubscriptionBillingSnapshots() {
+    console.log("[BILLING CRON] ========== START ==========");
     try {
+        // STAGE 1: Calculate target anchor date (tomorrow)
         const tomorrow = new Date();
         tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
         tomorrow.setUTCHours(0, 0, 0, 0);
         const tomorrowStr = tomorrow.toISOString().split("T")[0];
+        console.log(`[BILLING CRON] Stage 1: Target anchor date = ${tomorrowStr}`);
 
+        // STAGE 2: Fetch active subscriptions due tomorrow
         const [activeSubscriptions]: any = await db.execute(`
             SELECT
                 s.subscription_id,
@@ -264,95 +268,121 @@ export async function generateSubscriptionBillingSnapshots() {
               AND DATE(s.anchor_day) = ?
         `, [tomorrowStr]);
 
+        console.log(`[BILLING CRON] Stage 2: Found ${activeSubscriptions.length} active subscription(s) due tomorrow`);
+
         if (!activeSubscriptions.length) {
-            console.log("No subscriptions with billing anchor date tomorrow.");
+            console.log("[BILLING CRON] No subscriptions with billing anchor date tomorrow. Exiting.");
             return 0;
         }
 
+        // STAGE 3: Prepare billing month context
         const billingMonth = new Date();
         billingMonth.setDate(1);
         billingMonth.setHours(0, 0, 0, 0);
         const billingMonthStr = billingMonth.toISOString().split("T")[0];
         const billingMonthLabel = billingMonth.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+        console.log(`[BILLING CRON] Stage 3: Billing month = ${billingMonthLabel} (${billingMonthStr})`);
 
         let processedCount = 0;
 
         for (const sub of activeSubscriptions) {
-            const [existingSnapshot]: any = await db.execute(
-                `SELECT snapshot_id FROM SubscriptionMonthlyBillingSnapshot 
-                 WHERE subscription_id = ? AND billing_month = ?`,
-                [sub.subscription_id, billingMonthStr]
-            );
+            console.log(`[BILLING CRON] ========== Processing subscription ${sub.subscription_id} (landlord: ${sub.landlord_id}) ==========`);
+            console.log(`[BILLING CRON]   Plan: ${sub.plan_name}, Base Price: ${sub.base_price}, recurring_plan_id: "${sub.recurring_plan_id}"`);
 
-            if (existingSnapshot.length > 0) {
-                console.log(`Snapshot already exists for subscription ${sub.subscription_id}, month ${billingMonthStr}`);
-                continue;
-            }
+            let connection: any = null;
+            let txSuccess = false;
 
-            // Calculate billing period
-            const anchorDate = new Date(sub.anchor_day);
-            const periodEnd = new Date(anchorDate);
-            periodEnd.setDate(periodEnd.getDate() - 1);
-            periodEnd.setHours(23, 59, 59, 0);
+            try {
+                // STAGE 4: Check for existing snapshot
+                const [existingSnapshot]: any = await db.execute(
+                    `SELECT snapshot_id FROM SubscriptionMonthlyBillingSnapshot 
+                     WHERE subscription_id = ? AND billing_month = ?`,
+                    [sub.subscription_id, billingMonthStr]
+                );
 
-            // Use start_date for first cycle, otherwise exactly 1 month before anchor
-            let periodStart = new Date(sub.start_date);
-            const oneMonthBeforeAnchor = new Date(anchorDate);
-            oneMonthBeforeAnchor.setMonth(oneMonthBeforeAnchor.getMonth() - 1);
-            if (periodStart < oneMonthBeforeAnchor) {
-                periodStart = oneMonthBeforeAnchor;
-            }
+                if (existingSnapshot.length > 0) {
+                    console.log(`[BILLING CRON] Stage 4: Snapshot already exists (id: ${existingSnapshot[0].snapshot_id}) for subscription ${sub.subscription_id}, month ${billingMonthStr}. Skipping.`);
+                    continue;
+                }
+                console.log(`[BILLING CRON] Stage 4: No existing snapshot. Proceeding.`);
 
-            const [unitPriceRows]: any = await db.execute(
-                `SELECT property_type, unit_price FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`,
-                [sub.plan_id]
-            );
+                // STAGE 5: Calculate billing period
+                const anchorDate = new Date(sub.anchor_day);
+                const periodEnd = new Date(anchorDate);
+                periodEnd.setDate(periodEnd.getDate() - 1);
+                periodEnd.setHours(23, 59, 59, 0);
 
-            const unitPricesByType: Record<string, number> = {};
-            unitPriceRows.forEach((row: any) => {
-                unitPricesByType[row.property_type] = Number(row.unit_price);
-            });
+                let periodStart = new Date(sub.start_date);
+                const oneMonthBeforeAnchor = new Date(anchorDate);
+                oneMonthBeforeAnchor.setMonth(oneMonthBeforeAnchor.getMonth() - 1);
+                if (periodStart < oneMonthBeforeAnchor) {
+                    periodStart = oneMonthBeforeAnchor;
+                }
+                console.log(`[BILLING CRON] Stage 5: Billing period = ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
 
-            const [properties]: any = await db.execute(
-                `SELECT p.property_type, COUNT(u.unit_id) AS unit_count
-                 FROM Property p
-                 LEFT JOIN Unit u ON p.property_id = u.property_id
-                 WHERE p.landlord_id = ?
-                 GROUP BY p.property_type`,
-                [sub.landlord_id]
-            );
+                // STAGE 6: Fetch unit prices for plan
+                const [unitPriceRows]: any = await db.execute(
+                    `SELECT property_type, unit_price FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`,
+                    [sub.plan_id]
+                );
+                console.log(`[BILLING CRON] Stage 6: Fetched ${unitPriceRows.length} unit price row(s) for plan ${sub.plan_id}`);
 
-            let totalUnits = 0;
-            let totalUnitCost = 0;
-            const unitsByType: { type: string; count: number; price: number; subtotal: number }[] = [];
+                const unitPricesByType: Record<string, number> = {};
+                unitPriceRows.forEach((row: any) => {
+                    unitPricesByType[row.property_type] = Number(row.unit_price);
+                });
 
-            properties.forEach((row: any) => {
-                const type = row.property_type || "residential";
-                const count = Number(row.unit_count) || 0;
-                const price = Number(unitPricesByType[type]) || 0;
-                const subtotal = count * price;
-                totalUnits += count;
-                totalUnitCost += subtotal;
-                unitsByType.push({ type, count, price, subtotal });
-            });
+                // STAGE 7: Count landlord's properties by type
+                const [properties]: any = await db.execute(
+                    `SELECT p.property_type, COUNT(u.unit_id) AS unit_count
+                     FROM Property p
+                     LEFT JOIN Unit u ON p.property_id = u.property_id
+                     WHERE p.landlord_id = ?
+                     GROUP BY p.property_type`,
+                    [sub.landlord_id]
+                );
+                console.log(`[BILLING CRON] Stage 7: Landlord ${sub.landlord_id} has ${properties.length} property type(s)`);
 
-            const basePrice = Number(sub.base_price);
-            const totalComputed = totalUnitCost;
-            const finalCharge = Math.max(basePrice, totalComputed);
-            const chargeBasis = finalCharge === basePrice ? "floor_price" : "unit_based";
+                let totalUnits = 0;
+                let totalUnitCost = 0;
+                const unitsByType: { type: string; count: number; price: number; subtotal: number }[] = [];
 
-            // Step 1: Fetch list of SCHEDULED cycles
-            let xenditCycleId: string | null = null;
-            if (sub.recurring_plan_id) {
-                try {
+                properties.forEach((row: any) => {
+                    const type = row.property_type || "residential";
+                    const count = Number(row.unit_count) || 0;
+                    const price = Number(unitPricesByType[type]) || 0;
+                    const subtotal = count * price;
+                    totalUnits += count;
+                    totalUnitCost += subtotal;
+                    unitsByType.push({ type, count, price, subtotal });
+                    console.log(`[BILLING CRON]   Unit type: ${type}, count: ${count}, price: ${price}, subtotal: ${subtotal}`);
+                });
+
+                // STAGE 8: Calculate final charge
+                const basePrice = Number(sub.base_price);
+                const totalComputed = totalUnitCost;
+                const finalCharge = Math.max(basePrice, totalComputed);
+                const chargeBasis = finalCharge === basePrice ? "floor_price" : "unit_based";
+                console.log(`[BILLING CRON] Stage 8: basePrice=${basePrice}, totalComputed=${totalComputed}, finalCharge=${finalCharge}, chargeBasis=${chargeBasis}`);
+
+                // STAGE 9: Xendit cycle operations (fail-fast: throws on error)
+                let xenditCycleId: string | null = null;
+                if (sub.recurring_plan_id) {
+                    console.log(`[BILLING CRON] Stage 9: Processing Xendit recurring_plan_id="${sub.recurring_plan_id}"`);
+
+                    // 9a: Fetch subscription plan
+                    console.log(`[BILLING CRON]   Stage 9a: Fetching subscription plan from https://api.xendit.co/v2/recurring/plans/${sub.recurring_plan_id}`);
                     const planData = await fetchSubscriptionPlan(sub.recurring_plan_id);
-                    console.log(`[CRON] Fetched plan ${sub.recurring_plan_id}, status: ${planData.status}`);
+                    console.log(`[BILLING CRON]   Stage 9a: Plan status = ${planData.status}`);
 
-                    // Step 2: Filter by status=SCHEDULED to get upcoming cycles
+                    // 9b: Fetch SCHEDULED cycles
+                    console.log(`[BILLING CRON]   Stage 9b: Fetching SCHEDULED cycles...`);
                     const cyclesData = await fetchSubscriptionCycles(sub.recurring_plan_id, "SCHEDULED");
                     const cycles = cyclesData.data || cyclesData || [];
+                    console.log(`[BILLING CRON]   Stage 9b: Found ${cycles.length} scheduled cycle(s)`);
 
-                    // Step 3: Identify target cycle where scheduled_timestamp matches tomorrow
+                    // 9c: Find target cycle matching tomorrow's date
+                    console.log(`[BILLING CRON]   Stage 9c: Searching for cycle scheduled on ${tomorrowStr}...`);
                     const targetCycle = cycles.find((c: any) => {
                         const scheduledDate = new Date(c.scheduled_timestamp);
                         const scheduledDateStr = scheduledDate.toISOString().split("T")[0];
@@ -361,101 +391,162 @@ export async function generateSubscriptionBillingSnapshots() {
 
                     if (targetCycle) {
                         xenditCycleId = targetCycle.id;
-                        console.log(`[CRON] Found target cycle ${xenditCycleId} for subscription ${sub.subscription_id}`);
+                        console.log(`[BILLING CRON]   Stage 9c: Found target cycle id=${xenditCycleId}, scheduled_timestamp=${targetCycle.scheduled_timestamp}`);
+                    } else {
+                        console.log(`[BILLING CRON]   Stage 9c: No matching cycle found for ${tomorrowStr}`);
                     }
 
-                    // Step 4: Calculate & Update cycle amount
+                    // 9d: Update cycle amount
                     if (xenditCycleId) {
-                        await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
-                        console.log(`[CRON] Updated cycle ${xenditCycleId} amount to ₱${finalCharge}`);
+                        console.log(`[BILLING CRON]   Stage 9d: Updating cycle ${xenditCycleId} amount to ${finalCharge}...`);
+                        const updateResult = await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
+                        console.log(`[BILLING CRON]   Stage 9d: Update result:`, JSON.stringify(updateResult));
 
-                        // Step 5: Simulate cycle payment (test mode only)
+                        // 9e: Simulate cycle payment (test mode only)
+                        console.log(`[BILLING CRON]   Stage 9e: Simulating cycle payment for ${xenditCycleId} with amount ${finalCharge}...`);
                         const simResult = await simulateCyclePayment(sub.recurring_plan_id, xenditCycleId, finalCharge);
-                        console.log(`[CRON] Simulated cycle payment for ${xenditCycleId}:`, JSON.stringify(simResult));
+                        console.log(`[BILLING CRON]   Stage 9e: Simulate result:`, JSON.stringify(simResult));
+                    } else {
+                        console.log(`[BILLING CRON]   Stage 9d/9e: Skipped (no xenditCycleId)`);
+                    }
+                } else {
+                    console.log(`[BILLING CRON] Stage 9: No recurring_plan_id. Skipping Xendit operations.`);
+                }
+
+                // BEGIN TRANSACTION for DB writes
+                console.log(`[BILLING CRON] Stage 10: Starting DB transaction...`);
+                connection = await db.getConnection();
+                await connection.beginTransaction();
+
+                // STAGE 10: Insert billing snapshot (with xendit_cycle_id)
+                console.log(`[BILLING CRON] Stage 10: Inserting snapshot with xendit_cycle_id=${xenditCycleId}...`);
+                const [snapResult]: any = await connection.execute(
+                    `INSERT INTO SubscriptionMonthlyBillingSnapshot 
+                     (subscription_id, xendit_cycle_id, billing_month, billing_period_start, billing_period_end, cutoff_at,
+                      applied_floor_price, total_computed, final_charge, charge_basis, sync_status)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced')`,
+                    [sub.subscription_id, xenditCycleId, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), new Date().toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
+                );
+
+                const snapshotId = snapResult.insertId;
+                console.log(`[BILLING CRON] Stage 10: Snapshot inserted with id=${snapshotId}, xendit_cycle_id=${xenditCycleId}`);
+
+                // STAGE 11: Insert snapshot items
+                console.log(`[BILLING CRON] Stage 11: Inserting ${unitsByType.length} snapshot item(s)...`);
+                for (const item of unitsByType) {
+                    await connection.execute(
+                        `INSERT INTO SubscriptionMonthlyBillingSnapshotItem 
+                         (snapshot_id, property_type, units_used, unit_price, computed_amount)
+                         VALUES (?, ?, ?, ?, ?)`,
+                        [snapshotId, item.type, item.count, item.price, item.subtotal]
+                    );
+                }
+                console.log(`[BILLING CRON] Stage 11: All snapshot items inserted.`);
+
+                // STAGE 12: Advance anchor_day
+                const nextAnchorDay = new Date(anchorDate);
+                nextAnchorDay.setUTCMonth(nextAnchorDay.getUTCMonth() + 1);
+                console.log(`[BILLING CRON] Stage 12: Advancing anchor_day from ${anchorDate.toISOString()} to ${nextAnchorDay.toISOString()}`);
+
+                await connection.execute(
+                    `UPDATE Subscription SET anchor_day = ? WHERE subscription_id = ?`,
+                    [nextAnchorDay.toISOString(), sub.subscription_id]
+                );
+                console.log(`[BILLING CRON] Stage 12: anchor_day updated.`);
+
+                // COMMIT transaction
+                await connection.commit();
+                txSuccess = true;
+                console.log(`[BILLING CRON] Stage 12: Transaction committed successfully.`);
+
+                // STAGE 13: Generate PDF and send email (non-blocking, outside transaction)
+                console.log(`[BILLING CRON] Stage 13: Fetching landlord details for email...`);
+                try {
+                    const [landlordRows]: any = await db.execute(
+                        `SELECT l.landlord_id, u.firstName, u.lastName, u.email
+                         FROM Landlord l
+                         JOIN User u ON l.user_id = u.user_id
+                         WHERE l.landlord_id = ? LIMIT 1`,
+                        [sub.landlord_id]
+                    );
+
+                    if (landlordRows.length > 0) {
+                        const landlord = landlordRows[0];
+                        const decryptedEmail = safeDecrypt(landlord.email);
+                        const firstName = safeDecrypt(landlord.firstName) || "Landlord";
+                        const lastName = safeDecrypt(landlord.lastName) || "";
+                        const landlordName = `${firstName} ${lastName}`.trim();
+                        console.log(`[BILLING CRON] Stage 13: Landlord = ${landlordName}, Email decrypted = ${!!decryptedEmail}`);
+
+                        if (decryptedEmail) {
+                            const pdfData: BillingData = {
+                                landlordName,
+                                planName: sub.plan_name,
+                                billingMonth: billingMonthLabel,
+                                basePrice,
+                                unitsByType,
+                                totalUnits,
+                                totalUnitCost,
+                                finalCharge,
+                                chargeBasis,
+                                snapshotId,
+                            };
+
+                            console.log(`[BILLING CRON] Stage 13: Generating PDF...`);
+                            const html = generateBillingPdfHtml(pdfData);
+                            const pdfBuffer = await generatePdfBuffer(html);
+                            console.log(`[BILLING CRON] Stage 13: PDF generated (${pdfBuffer.length} bytes)`);
+
+                            const filename = `Billing_Statement_${billingMonthLabel.replace(/ /g, "_")}_${sub.landlord_id}.pdf`;
+                            console.log(`[BILLING CRON] Stage 13: Sending email to ${decryptedEmail}...`);
+                            await sendBillingEmail(decryptedEmail, landlordName, billingMonthLabel, finalCharge, pdfBuffer, filename);
+                            console.log(`[BILLING CRON] Stage 13: Email sent.`);
+                        } else {
+                            console.log(`[BILLING CRON] Stage 13: Skipped email (decrypted email is null/empty)`);
+                        }
+                    } else {
+                        console.log(`[BILLING CRON] Stage 13: No landlord found for landlord_id=${sub.landlord_id}`);
                     }
                 } catch (err: any) {
-                    console.error(`[CRON] Failed to update Xendit cycle for ${sub.subscription_id}:`, err.message);
+                    console.error(`[BILLING CRON] Stage 13: Failed to generate/send PDF for subscription ${sub.subscription_id}:`, err.message);
+                    console.error(`[BILLING CRON] Stage 13: Stack:`, err.stack);
                 }
-            }
 
-            const [snapResult]: any = await db.execute(
-                `INSERT INTO SubscriptionMonthlyBillingSnapshot 
-                 (subscription_id, xendit_cycle_id, billing_month, billing_period_start, billing_period_end, cutoff_at,
-                  applied_floor_price, total_computed, final_charge, charge_basis, sync_status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced')`,
-                [sub.subscription_id, xenditCycleId, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), new Date().toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
-            );
+                processedCount++;
+                console.log(`[BILLING CRON] ========== Completed subscription ${sub.subscription_id}: ${totalUnits} units, ₱${finalCharge} charge, xendit_cycle_id=${xenditCycleId} ==========`);
 
-            const snapshotId = snapResult.insertId;
+            } catch (err: any) {
+                // ROLLBACK on any failure
+                console.error(`[BILLING CRON] FAILED for subscription ${sub.subscription_id}:`, err.message);
+                console.error(`[BILLING CRON]   recurring_plan_id used: "${sub.recurring_plan_id}"`);
+                console.error(`[BILLING CRON]   Stack:`, err.stack);
 
-            for (const item of unitsByType) {
-                await db.execute(
-                    `INSERT INTO SubscriptionMonthlyBillingSnapshotItem 
-                     (snapshot_id, property_type, units_used, unit_price, computed_amount)
-                     VALUES (?, ?, ?, ?, ?)`,
-                    [snapshotId, item.type, item.count, item.price, item.subtotal]
-                );
-            }
-
-            // Advance anchor_day to next month for the next billing cycle
-            const nextAnchorDay = new Date(anchorDate);
-            nextAnchorDay.setUTCMonth(nextAnchorDay.getUTCMonth() + 1);
-
-            await db.execute(
-                `UPDATE Subscription SET anchor_day = ? WHERE subscription_id = ?`,
-                [nextAnchorDay.toISOString(), sub.subscription_id]
-            );
-
-            // Generate PDF and send email
-            try {
-                const [landlordRows]: any = await db.execute(
-                    `SELECT l.landlord_id, u.firstName, u.lastName, u.email
-                     FROM Landlord l
-                     JOIN User u ON l.user_id = u.user_id
-                     WHERE l.landlord_id = ? LIMIT 1`,
-                    [sub.landlord_id]
-                );
-
-                if (landlordRows.length > 0) {
-                    const landlord = landlordRows[0];
-                    const decryptedEmail = safeDecrypt(landlord.email);
-                    const firstName = safeDecrypt(landlord.firstName) || "Landlord";
-                    const lastName = safeDecrypt(landlord.lastName) || "";
-                    const landlordName = `${firstName} ${lastName}`.trim();
-
-                    if (decryptedEmail) {
-                        const pdfData: BillingData = {
-                            landlordName,
-                            planName: sub.plan_name,
-                            billingMonth: billingMonthLabel,
-                            basePrice,
-                            unitsByType,
-                            totalUnits,
-                            totalUnitCost,
-                            finalCharge,
-                            chargeBasis,
-                            snapshotId,
-                        };
-
-                        const html = generateBillingPdfHtml(pdfData);
-                        const pdfBuffer = await generatePdfBuffer(html);
-                        const filename = `Billing_Statement_${billingMonthLabel.replace(/ /g, "_")}_${sub.landlord_id}.pdf`;
-
-                        await sendBillingEmail(decryptedEmail, landlordName, billingMonthLabel, finalCharge, pdfBuffer, filename);
+                if (connection) {
+                    try {
+                        await connection.rollback();
+                        console.log(`[BILLING CRON]   Transaction rolled back. No snapshot created.`);
+                    } catch (rollbackErr: any) {
+                        console.error(`[BILLING CRON]   Rollback failed:`, rollbackErr.message);
                     }
                 }
-            } catch (err: any) {
-                console.error(`Failed to generate/send PDF for subscription ${sub.subscription_id}:`, err.message);
+            } finally {
+                if (connection) {
+                    try {
+                        connection.release();
+                    } catch (relErr: any) {
+                        console.error(`[BILLING CRON]   Connection release failed:`, relErr.message);
+                    }
+                }
             }
-
-            processedCount++;
-            console.log(`Snapshot created for subscription ${sub.subscription_id}: ${totalUnits} units, ₱${finalCharge} charge`);
         }
 
-        console.log(`Generated ${processedCount} billing snapshots.`);
+        console.log(`[BILLING CRON] ========== END: Generated ${processedCount} billing snapshot(s) ==========`);
         return processedCount;
-    } catch (error) {
-        console.error("Error generating subscription billing snapshots:", error);
+    } catch (error: any) {
+        console.error("[BILLING CRON] ========== FATAL ERROR ==========");
+        console.error("[BILLING CRON] Error:", error.message);
+        console.error("[BILLING CRON] Stack:", error.stack);
+        console.error("[BILLING CRON] ========== END (FAILURE) ==========");
         throw error;
     }
 }
