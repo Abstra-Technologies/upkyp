@@ -4,6 +4,52 @@ import { Resend } from "resend";
 import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
+const XENDIT_SECRET = process.env.XENDIT_TEXT_SECRET_KEY!;
+const XENDIT_API_VERSION = "2024-11-11";
+
+function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
+    const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        Authorization: "Basic " + Buffer.from(`${XENDIT_SECRET}:`).toString("base64"),
+        "api-version": XENDIT_API_VERSION,
+    };
+    if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
+    return headers;
+}
+
+async function fetchSubscriptionPlan(recurringPlanId: string) {
+    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}`;
+    const res = await fetch(url, { headers: getXenditHeaders() });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`Failed to fetch subscription plan: ${err.message || res.statusText}`);
+    }
+    return res.json();
+}
+
+async function fetchSubscriptionCycles(recurringPlanId: string, status: string = "SCHEDULED") {
+    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles?status=${status}`;
+    const res = await fetch(url, { headers: getXenditHeaders() });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`Failed to fetch subscription cycles: ${err.message || res.statusText}`);
+    }
+    return res.json();
+}
+
+async function updateCycleAmount(recurringPlanId: string, cycleId: string, amount: number) {
+    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}`;
+    const res = await fetch(url, {
+        method: "PATCH",
+        headers: getXenditHeaders(`update-cycle-${cycleId}-${Date.now()}`),
+        body: JSON.stringify({ amount, currency: "PHP" }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`Failed to update cycle amount: ${err.message || res.statusText}`);
+    }
+    return res.json();
+}
 
 function generateBillingPdfHtml(data: BillingData): string {
     const {
@@ -194,6 +240,7 @@ export async function generateSubscriptionBillingSnapshots() {
                 s.landlord_id,
                 s.start_date,
                 s.anchor_day,
+                s.recurring_plan_id,
                 p.plan_id,
                 p.name AS plan_name,
                 p.price AS base_price
@@ -280,12 +327,45 @@ export async function generateSubscriptionBillingSnapshots() {
             const finalCharge = Math.max(basePrice, totalComputed);
             const chargeBasis = finalCharge === basePrice ? "floor_price" : "unit_based";
 
+            // Step 1: Fetch list of SCHEDULED cycles
+            let xenditCycleId: string | null = null;
+            if (sub.recurring_plan_id) {
+                try {
+                    const planData = await fetchSubscriptionPlan(sub.recurring_plan_id);
+                    console.log(`[CRON] Fetched plan ${sub.recurring_plan_id}, status: ${planData.status}`);
+
+                    // Step 2: Filter by status=SCHEDULED to get upcoming cycles
+                    const cyclesData = await fetchSubscriptionCycles(sub.recurring_plan_id, "SCHEDULED");
+                    const cycles = cyclesData.data || cyclesData || [];
+
+                    // Step 3: Identify target cycle where scheduled_timestamp matches tomorrow
+                    const targetCycle = cycles.find((c: any) => {
+                        const scheduledDate = new Date(c.scheduled_timestamp);
+                        const scheduledDateStr = scheduledDate.toISOString().split("T")[0];
+                        return scheduledDateStr === tomorrowStr;
+                    });
+
+                    if (targetCycle) {
+                        xenditCycleId = targetCycle.id;
+                        console.log(`[CRON] Found target cycle ${xenditCycleId} for subscription ${sub.subscription_id}`);
+                    }
+
+                    // Step 4: Calculate & Update cycle amount
+                    if (xenditCycleId) {
+                        await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
+                        console.log(`[CRON] Updated cycle ${xenditCycleId} amount to ₱${finalCharge}`);
+                    }
+                } catch (err: any) {
+                    console.error(`[CRON] Failed to update Xendit cycle for ${sub.subscription_id}:`, err.message);
+                }
+            }
+
             const [snapResult]: any = await db.execute(
                 `INSERT INTO SubscriptionMonthlyBillingSnapshot 
-                 (subscription_id, billing_month, billing_period_start, billing_period_end, cutoff_at,
+                 (subscription_id, xendit_cycle_id, billing_month, billing_period_start, billing_period_end, cutoff_at,
                   applied_floor_price, total_computed, final_charge, charge_basis, sync_status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-                [sub.subscription_id, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), new Date().toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced')`,
+                [sub.subscription_id, xenditCycleId, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), new Date().toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
             );
 
             const snapshotId = snapResult.insertId;
