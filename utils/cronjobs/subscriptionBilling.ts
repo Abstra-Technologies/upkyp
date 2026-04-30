@@ -37,6 +37,20 @@ async function fetchSubscriptionCycles(recurringPlanId: string, status: string =
     return res.json();
 }
 
+async function simulateCyclePayment(recurringPlanId: string, cycleId: string, amount: number) {
+    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}/simulate`;
+    const res = await fetch(url, {
+        method: "POST",
+        headers: getXenditHeaders(`simulate-cycle-${cycleId}-${Date.now()}`),
+        body: JSON.stringify({ amount }),
+    });
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(`Failed to simulate cycle payment: ${err.message || res.statusText}`);
+    }
+    return res.json();
+}
+
 async function updateCycleAmount(recurringPlanId: string, cycleId: string, amount: number) {
     const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}`;
     const res = await fetch(url, {
@@ -354,6 +368,10 @@ export async function generateSubscriptionBillingSnapshots() {
                     if (xenditCycleId) {
                         await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
                         console.log(`[CRON] Updated cycle ${xenditCycleId} amount to ₱${finalCharge}`);
+
+                        // Step 5: Simulate cycle payment (test mode only)
+                        const simResult = await simulateCyclePayment(sub.recurring_plan_id, xenditCycleId, finalCharge);
+                        console.log(`[CRON] Simulated cycle payment for ${xenditCycleId}:`, JSON.stringify(simResult));
                     }
                 } catch (err: any) {
                     console.error(`[CRON] Failed to update Xendit cycle for ${sub.subscription_id}:`, err.message);
