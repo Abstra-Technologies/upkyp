@@ -163,7 +163,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
             </div>
 
             {/* RIGHT COLUMN */}
-            <div className="lg:col-span-1 space-y-4">
+            <div className="lg:col-span-1 space-y-3">
               {/* Quick Actions */}
               <div id="dashboard-quick-actions">
                 <QuickActions
@@ -189,9 +189,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
 
               {/* Action Required */}
               <Suspense fallback={<CardSkeleton />}>
-                <div id="dashboard-occupancy" className="h-full">
-                  <LeaseOccupancyCard landlord_id={landlordId} />
-                </div>
+                <LeaseOccupancyCard landlord_id={landlordId} />
               </Suspense>
 
               {/* Subscription Usage */}
