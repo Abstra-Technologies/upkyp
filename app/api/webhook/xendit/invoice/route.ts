@@ -19,7 +19,7 @@ const {
     DB_USER,
     DB_PASSWORD,
     DB_NAME,
-    XENDIT_WEBHOOK_TOKEN,
+    XENDIT_TEXT_WEBHOOK_TOKEN,
 } = process.env;
 
 /* -------------------------------------------------------------------------- */
@@ -129,36 +129,6 @@ async function handleBillingPayment(conn: mysql.Connection, billing_id: string, 
     return { processed: true, message: "Billing payment recorded", landlord_user_id: billing.landlord_user_id };
 }
 
-/* -------------------------------------------------------------------------- */
-/* SUBSCRIPTION PAYMENT HANDLER                                                */
-/* -------------------------------------------------------------------------- */
-
-async function handleSubscriptionPayment(conn: mysql.Connection, landlord_id: string, payment: any) {
-    const { payment_id, paid_amount, amount, external_id } = payment;
-    const paidAmount = Number(paid_amount || amount);
-
-    const [rows]: any = await conn.execute(
-        `SELECT subscription_id FROM Subscription 
-         WHERE landlord_id = ? AND payment_status = 'pending' 
-         ORDER BY subscription_id DESC LIMIT 1`,
-        [landlord_id]
-    );
-
-    if (!rows.length) {
-        throw new Error(`No pending subscription for landlord ${landlord_id}`);
-    }
-
-    const subscription_id = rows[0].subscription_id;
-
-    await conn.execute(
-        `UPDATE Subscription 
-         SET payment_status = 'paid', is_active = 1, amount_paid = ? 
-         WHERE subscription_id = ?`,
-        [paidAmount, subscription_id]
-    );
-
-    return { processed: true, message: "Subscription payment recorded", subscription_id };
-}
 
 /* -------------------------------------------------------------------------- */
 /* WEBHOOK HANDLER                                                            */
@@ -170,7 +140,7 @@ export async function POST(req: Request) {
     try {
         const token = req.headers.get("x-callback-token");
 
-        if (!token || token !== XENDIT_WEBHOOK_TOKEN) {
+        if (!token || token !== XENDIT_TEXT_WEBHOOK_TOKEN) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
@@ -215,9 +185,6 @@ export async function POST(req: Request) {
                 ...payload,
                 paidAmount,
             });
-        } else if (isSubscription) {
-            const landlord_id = external_id.replace("subscription-", "");
-            response = await handleSubscriptionPayment(conn, landlord_id, payload);
         }
 
         await conn.commit();

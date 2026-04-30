@@ -18,6 +18,7 @@ export default function LandlordDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isCreatingWallet, setIsCreatingWallet] = useState(false);
+    const [isGeneratingXendit, setIsGeneratingXendit] = useState(false);
     const [copied, setCopied] = useState(false);
     const [activeTab, setActiveTab] = useState<"subscription" | "properties" | "activity">("subscription");
 
@@ -85,6 +86,38 @@ export default function LandlordDetails() {
         navigator.clipboard.writeText(walletId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleGenerateXenditAccount = async () => {
+        const { isConfirmed } = await Swal.fire({
+            title: "Generate Xendit Account",
+            text: "This will create a Xendit sub-account for the landlord. Continue?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Yes, generate",
+            cancelButtonText: "Cancel",
+        });
+
+        if (!isConfirmed) return;
+
+        try {
+            setIsGeneratingXendit(true);
+            const res = await axios.put(
+                `/api/systemadmin/users/getAllLandlords/getLandlordDetailed/${user_id}`,
+                { action: "generate_xendit_account" }
+            );
+
+            setLandlordInfo((prev: any) => ({
+                ...prev,
+                xendit_account_id: res.data.xendit_account_id,
+            }));
+
+            await Swal.fire("Success!", `Xendit account created: ${res.data.xendit_account_id}`, "success");
+        } catch (err: any) {
+            await Swal.fire("Error!", err.response?.data?.error || "Failed to generate Xendit account.", "error");
+        } finally {
+            setIsGeneratingXendit(false);
+        }
     };
 
     const handleGoBack = () => {
@@ -211,6 +244,50 @@ export default function LandlordDetails() {
                                         <FaPlus className="w-3 h-3" />
                                     )}
                                     Create
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Xendit Account Section */}
+                    <div className="mt-3">
+                        <h3 className="text-sm font-semibold text-gray-800 mb-2 border-b border-gray-300 pb-1 flex items-center">
+                            <FaIdCard className="mr-2 w-4 h-4" /> Xendit Account
+                        </h3>
+                        
+                        {landlordInfo?.xendit_account_id ? (
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                    <p className="text-xs text-gray-500">Account ID</p>
+                                    <p className="font-mono text-xs text-gray-700 break-all">
+                                        {landlordInfo.xendit_account_id}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => copyWalletId(landlordInfo.xendit_account_id)}
+                                    className="shrink-0 p-1 text-gray-400 hover:text-gray-600 transition"
+                                    title="Copy"
+                                >
+                                    <FaCopy className="w-3 h-3" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <FaTimesCircle className="text-amber-600 w-4 h-4" />
+                                    <span className="text-sm text-gray-700">No Xendit Account</span>
+                                </div>
+                                <button
+                                    onClick={handleGenerateXenditAccount}
+                                    disabled={isGeneratingXendit}
+                                    className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white text-xs hover:bg-blue-700 disabled:opacity-50 transition"
+                                >
+                                    {isGeneratingXendit ? (
+                                        <span className="animate-spin">⏳</span>
+                                    ) : (
+                                        <FaPlus className="w-3 h-3" />
+                                    )}
+                                    Generate
                                 </button>
                             </div>
                         )}

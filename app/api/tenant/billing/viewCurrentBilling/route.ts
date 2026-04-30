@@ -121,10 +121,10 @@ export async function GET(req: NextRequest) {
         /* -----------------------------------------------------
            Concessionaire Rates
         ----------------------------------------------------- */
-        const [conRows]: any = await db.query(
+        const [waterConRows]: any = await db.query(
             `
             SELECT *
-            FROM ConcessionaireBilling
+            FROM WaterConcessionaireBilling
             WHERE property_id = ?
             ORDER BY period_end DESC
             LIMIT 1
@@ -132,16 +132,33 @@ export async function GET(req: NextRequest) {
             [property_id]
         );
 
-        const concessionaire = conRows[0] || null;
+        const [electricConRows]: any = await db.query(
+            `
+            SELECT *
+            FROM ElectricityConcessionaireBilling
+            WHERE property_id = ?
+            ORDER BY period_end DESC
+            LIMIT 1
+            `,
+            [property_id]
+        );
 
-        const waterRate = concessionaire?.water_consumption
-            ? concessionaire.water_total / concessionaire.water_consumption
-            : 0;
+        const waterConcessionaire = waterConRows[0] || null;
+        const electricConcessionaire = electricConRows[0] || null;
 
-        const electricityRate = concessionaire?.electricity_consumption
-            ? concessionaire.electricity_total /
-            concessionaire.electricity_consumption
-            : 0;
+        const waterRate = waterConcessionaire?.rate_per_cubic || 0;
+        const electricityRate = electricConcessionaire?.rate_per_kwh || 0;
+
+        const concessionaire_period = {
+            water: {
+                period_start: waterConcessionaire?.period_start || null,
+                period_end: waterConcessionaire?.period_end || null,
+            },
+            electricity: {
+                period_start: electricConcessionaire?.period_start || null,
+                period_end: electricConcessionaire?.period_end || null,
+            },
+        };
 
         /* -----------------------------------------------------
            Current Month Context
@@ -167,7 +184,7 @@ export async function GET(req: NextRequest) {
         /* -----------------------------------------------------
            Meter Readings
         ----------------------------------------------------- */
-        const [waterRows]: any = await db.query(
+        const [waterMeterRows]: any = await db.query(
             `
             SELECT *
             FROM WaterMeterReading
@@ -179,7 +196,7 @@ export async function GET(req: NextRequest) {
             [unit_id, periodStart, periodEnd]
         );
 
-        const [electricRows]: any = await db.query(
+        const [electricMeterRows]: any = await db.query(
             `
             SELECT *
             FROM ElectricMeterReading
@@ -191,8 +208,8 @@ export async function GET(req: NextRequest) {
             [unit_id, periodStart, periodEnd]
         );
 
-        const waterReading = waterRows[0] || null;
-        const electricReading = electricRows[0] || null;
+        const waterReading = waterMeterRows[0] || null;
+        const electricReading = electricMeterRows[0] || null;
 
         /* -----------------------------------------------------
            Meter Readings Array (UI)
@@ -311,10 +328,7 @@ export async function GET(req: NextRequest) {
                 },
 
                 propertyConfig,
-                concessionaire_period: {
-                    period_start: concessionaire?.period_start || null,
-                    period_end: concessionaire?.period_end || null,
-                },
+                concessionaire_period,
             },
             { status: 200 }
         );

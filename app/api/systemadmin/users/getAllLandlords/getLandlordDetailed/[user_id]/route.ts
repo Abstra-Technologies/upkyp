@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 import { generateWalletId } from "@/utils/id_generator";
+import { generateXenditAccountId } from "@/utils/generateXenditAccountId";
 
 export async function GET(
     req: NextRequest,
@@ -180,6 +181,29 @@ export async function PUT(
             return NextResponse.json({
                 message: "Wallet created successfully",
                 wallet: newWallet[0],
+            });
+        }
+
+        if (action === "generate_xendit_account") {
+            const [landlordRows]: any = await db.execute(
+                `SELECT landlord_id FROM Landlord WHERE user_id = ?`,
+                [user_id]
+            );
+
+            if (!landlordRows.length) {
+                return NextResponse.json(
+                    { error: "Landlord not found" },
+                    { status: 404 }
+                );
+            }
+
+            const landlord_id = landlordRows[0].landlord_id;
+
+            const xenditAccountId = await generateXenditAccountId(landlord_id);
+
+            return NextResponse.json({
+                message: "Xendit account generated successfully",
+                xendit_account_id: xenditAccountId,
             });
         }
 

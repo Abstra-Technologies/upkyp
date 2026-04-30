@@ -18,8 +18,10 @@ const {
     DB_USER,
     DB_PASSWORD,
     DB_NAME,
-    XENDIT_SECRET_KEY,
+    XENDIT_TEXT_SECRET_KEY,
 } = process.env;
+
+console.log('XENDIT KEY', XENDIT_TEXT_SECRET_KEY);
 
 const XENDIT_API_URL = "https://api.xendit.co/v2/invoices";
 const CURRENCY = "PHP";
@@ -88,7 +90,7 @@ export async function POST(req: NextRequest) {
             return httpError(400, "Missing redirect URLs.");
         }
 
-        if (!XENDIT_SECRET_KEY) {
+        if (!XENDIT_TEXT_SECRET_KEY) {
             return httpError(500, "Xendit secret key not configured.");
         }
 
@@ -106,20 +108,12 @@ export async function POST(req: NextRequest) {
             u.unit_name,
             p.property_name,
             l.landlord_id,
-            l.xendit_account_id,
-            s.plan_code,
-            s.is_active,
-            pl.split_rule_id
+            l.xendit_account_id
         FROM Billing b
         JOIN LeaseAgreement la ON b.lease_id = la.agreement_id
         JOIN Unit u ON la.unit_id = u.unit_id
         JOIN Property p ON u.property_id = p.property_id
         JOIN Landlord l ON p.landlord_id = l.landlord_id
-        LEFT JOIN Subscription s 
-            ON s.landlord_id = l.landlord_id 
-            AND s.is_active = 1
-        LEFT JOIN Plan pl 
-            ON pl.plan_code = s.plan_code
         WHERE b.billing_id = ?
         LIMIT 1
       `,
@@ -137,6 +131,8 @@ export async function POST(req: NextRequest) {
         if (!billing.xendit_account_id) {
             return httpError(400, "Landlord subaccount not configured.");
         }
+
+        debug("XENDIT ACCOYNT ID LANDLORD: ", billing.xendit_account_id);
 
         /* ---------------- CUSTOMER ---------------- */
 
@@ -184,26 +180,18 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
             failure_redirect_url: failureRedirectUrl,
         };
 
+        console.log('LANDLORD XEDNIT ACCOUNT: ', billing.xendit_account_id);
+
         /* ---------------- HEADERS ---------------- */
 
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
             Authorization:
                 "Basic " +
-                Buffer.from(`${XENDIT_SECRET_KEY}:`).toString("base64"),
+                Buffer.from(`${XENDIT_TEXT_SECRET_KEY}:`).toString("base64"),
             "Idempotency-Key": idempotencyKey,
-
-            // 🔥 ALWAYS SEND TO SUBACCOUNT
             "for-user-id": billing.xendit_account_id,
         };
-
-        // 🔥 APPLY SPLIT RULE ONLY IF EXISTS
-        if (billing.split_rule_id) {
-            debug("SPLIT RULE DETECTED", billing.split_rule_id);
-            headers["with-split-rule"] = billing.split_rule_id;
-        } else {
-            debug("NO SPLIT RULE — 100% TO LANDLORD");
-        }
 
         /* ---------------- CALL XENDIT ---------------- */
 
