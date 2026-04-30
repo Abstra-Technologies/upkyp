@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
     title: "Upkyp - Rental Property Management Platform",
-    description: "Manage Less. Live More. Your Rental Management Partner",
+    description: "Manage Less. Connect More. Your Rental Management Partner",
     manifest: "/manifest.json",
     icons: {
         icon: [

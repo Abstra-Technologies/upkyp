@@ -198,10 +198,11 @@ export default function LandlordLayout({
       ]
     },
     {
-      section: "Developer",
+      section: "Accounts",
       items: [
         { id: "nav-upkyp", label: "Upkyp Stack", href: "/landlord/upkyp_stack", icon: IoLayers },
         { id: "nav-subscription", label: "Subscription", href: "/commons/landlord/subscription", icon: IoCard },
+        { id: "nav-billing", label: "Billing", href: "/landlord/billing", icon: IoCard },
       ]
     },
     {

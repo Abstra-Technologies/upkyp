@@ -114,6 +114,16 @@ export async function GET(
 
         const data = rows[0];
 
+        const [unitPriceRows]: any = await db.query(
+            `SELECT property_type, unit_price FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`,
+            [data.plan_id]
+        );
+
+        const unitPricesByType: Record<string, number> = {};
+        unitPriceRows.forEach((row: any) => {
+            unitPricesByType[row.property_type] = Number(row.unit_price);
+        });
+
         /* --------------------------------------------------
              FORMAT RESPONSE STRUCTURE
           -------------------------------------------------- */
@@ -147,6 +157,8 @@ export async function GET(
                 assetManagement: Boolean(data.asset_management),
                 financialInsights: Boolean(data.financial_insights),
             },
+
+            unitPricesByType,
         };
 
         /* --------------------------------------------------

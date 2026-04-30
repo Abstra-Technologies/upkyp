@@ -3,7 +3,6 @@
 import React, { useEffect } from "react";
 import useAuthStore from "@/zustand/authStore";
 import LandlordMainDashboard from "@/components/landlord/main_dashboard/main_dashboard";
-// import LandlordBetaBanner from "@/components/beta-release/LandlordBetaBanner";
 import { AlertTriangle } from "lucide-react";
 import { GRADIENT_PRIMARY, GRADIENT_TEXT } from "@/constant/design-constants";
 
