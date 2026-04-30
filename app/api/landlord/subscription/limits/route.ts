@@ -4,7 +4,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
-import { subscriptionConfig } from "@/constant/subscription/limits";
 
 export async function POST(req: NextRequest) {
     try {
@@ -81,16 +80,29 @@ export async function POST(req: NextRequest) {
 
         const planName = subscriptionRows[0].plan_name?.trim() || "Free Plan";
 
-        // @ts-ignore
-        const planLimits = subscriptionConfig[planName];
-        if (!planLimits) {
+        const [planRows]: any = await db.query(
+            `
+            SELECT p.plan_id, pl.max_assets_per_property, pl.max_storage, pl.financial_history_years,
+                   pf.announcements, pf.asset_management, pf.reports, pf.pdc_management,
+                   pf.ai_unit_generator, pf.bulk_import, pf.financial_insights
+            FROM Plan p
+            LEFT JOIN PlanLimits pl ON p.plan_id = pl.plan_id
+            LEFT JOIN PlanFeatures pf ON p.plan_id = pf.plan_id
+            WHERE p.name = ?
+            LIMIT 1
+            `,
+            [planName]
+        );
+
+        if (planRows.length === 0) {
             return NextResponse.json(
-                { error: `Invalid plan '${planName}'` },
-                { status: 400 }
+                { error: `Plan '${planName}' not found` },
+                { status: 404 }
             );
         }
 
-        const maxProperties = planLimits.maxProperties;
+        const planData = planRows[0];
+        const maxProperties = planData.max_assets_per_property ?? null;
 
         /* --------------------------------------------------
            3. COUNT TOTAL PROPERTIES

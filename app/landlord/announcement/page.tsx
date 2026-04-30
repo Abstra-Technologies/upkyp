@@ -8,7 +8,6 @@ import useAuthStore from "@/zustand/authStore";
 import Swal from "sweetalert2";
 import useSubscription from "@/hooks/landlord/useSubscription";
 import DOMPurify from "dompurify";
-import { subscriptionConfig } from "@/constant/subscription/limits";
 import {
     Megaphone,
     Plus,
@@ -86,7 +85,7 @@ export default function AnnouncementsList() {
 
     const planName = subscription?.plan_name;
     const canUseAnnouncements =
-        planName && subscriptionConfig[planName]?.features?.announcements === true;
+        subscription?.features?.announcements === true;
 
     useEffect(() => {
         async function fetchAnnouncements() {

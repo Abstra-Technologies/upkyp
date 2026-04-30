@@ -22,7 +22,6 @@ import { AssetCardSkeleton } from "@/components/Commons/SkeletonLoaders";
 
 import useSubscription from "@/hooks/landlord/useSubscription";
 import useAuthStore from "@/zustand/authStore";
-import { subscriptionConfig } from "@/constant/subscription/limits";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -55,13 +54,11 @@ const AssetsManagementPage = () => {
     fetcher,
   );
 
-  const planName = subscription?.plan_name as keyof typeof subscriptionConfig;
+  const planName = subscription?.plan_name;
 
-  const assetConfig = planName ? subscriptionConfig[planName] : null;
+  const canUseAssets = subscription?.features?.assetManagement === true;
 
-  const canUseAssets = assetConfig?.features?.assetManagement === true;
-
-  const maxAssetsPerProperty = assetConfig?.limits?.maxAssetsPerProperty;
+  const maxAssetsPerProperty = subscription?.limits?.maxAssetsPerProperty;
 
   const totalAssets = assets?.length || 0;
 

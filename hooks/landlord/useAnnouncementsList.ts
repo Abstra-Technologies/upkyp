@@ -17,7 +17,6 @@ import Swal from "sweetalert2";
 
 import useAuthStore from "@/zustand/authStore";
 import useSubscription from "@/hooks/landlord/useSubscription";
-import { subscriptionConfig } from "@/constant/subscription/limits";
 
 interface Announcement {
     id: string | number;
@@ -47,8 +46,8 @@ export function useAnnouncementsList() {
 
     const planName = subscription?.plan_name;
     const canUseAnnouncements = useMemo(() => {
-        return planName && subscriptionConfig[planName]?.features?.announcements === true;
-    }, [planName]);
+        return subscription?.features?.announcements === true;
+    }, [subscription]);
 
     useEffect(() => {
         async function fetchAnnouncements() {

@@ -2,7 +2,6 @@ import { NextRequest } from "next/server";
 import mysql from "mysql2/promise";
 import { parse } from "cookie";
 import { jwtVerify } from "jose";
-import { POINTS } from "@/constant/pointSystem/points";
 import webpush from "web-push";
 
 const NotificationTemplates = {
@@ -141,11 +140,13 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const PROPERTY_VERIFIED_POINTS = 100;
+
         // Verified case
         if (status === "Verified") {
             finalNotificationTitle = NotificationTemplates.VERIFIED.TITLE;
             finalNotificationBody = NotificationTemplates.VERIFIED.BODY(
-                POINTS.PROPERTY_VERIFIED
+                PROPERTY_VERIFIED_POINTS
             );
 
             await connection.execute(
@@ -156,7 +157,7 @@ export async function POST(req: NextRequest) {
 
             await connection.execute(
                 `UPDATE User SET points = points + ? WHERE user_id = ?`,
-                [POINTS.PROPERTY_VERIFIED, user_id]
+                [PROPERTY_VERIFIED_POINTS, user_id]
             );
         }
 

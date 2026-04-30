@@ -20,7 +20,6 @@ import {
 import PDCUploadModal from "@/components/landlord/pdc/PDCUploadModal";
 import useAuthStore from "@/zustand/authStore";
 import useSubscription from "@/hooks/landlord/useSubscription";
-import { listingLimits } from "@/constant/subscription/limits";
 
 export default function PDCManagementPage() {
     const { user } = useAuthStore();
