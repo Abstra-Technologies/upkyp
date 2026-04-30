@@ -240,30 +240,40 @@ async function handlePaymentCaptureFailed(conn: mysql.Connection, data: any) {
 /**
  * recurring.plan.activated
  * Subscription activated after payment method linked.
- * Sets: xendit_subscription_id, recurring_plan_id, subscription_status, is_active
+ * Payload fields: id (recurring_plan_id), reference_id, customer_id, payment_tokens[], amount
+ * Sets: xendit_subscription_id, recurring_plan_id, payment_token_id, subscription_status, is_active
  */
 async function handlePlanActivation(conn: mysql.Connection, data: any) {
     const {
-        recurring_plan_id,
+        id,
         customer_id,
         payment_session_id,
         reference_id,
         status,
         subscription,
         amount,
-        id: xendit_sub_id,
+        payment_tokens,
     } = data;
+
+    const recurringPlanId = id || null;
     const subRefId = subscription?.reference_id || reference_id;
-    const xenditSubscriptionId = subscription?.id || xendit_sub_id || recurring_plan_id;
+    const paymentTokenId = payment_tokens?.[0]?.payment_token_id || null;
 
-    console.log("[WEBHOOK] Plan activated:", { recurring_plan_id, xendit_subscription_id: xenditSubscriptionId, reference_id: subRefId });
+    console.log("[WEBHOOK] Plan activated:", {
+        recurring_plan_id: recurringPlanId,
+        reference_id: subRefId,
+        customer_id,
+        payment_token_id: paymentTokenId,
+        status,
+        amount,
+    });
 
-    if (!recurring_plan_id && !subRefId) return { processed: false, message: "No identifier provided" };
+    if (!recurringPlanId && !subRefId) return { processed: false, message: "No identifier provided" };
 
     const conditions: string[] = [];
     const params: any[] = [];
 
-    if (recurring_plan_id) { conditions.push("recurring_plan_id = ?"); params.push(recurring_plan_id); }
+    if (recurringPlanId) { conditions.push("recurring_plan_id = ?"); params.push(recurringPlanId); }
     if (subRefId) { conditions.push("request_reference_number = ?"); params.push(subRefId); }
 
     const [subs] = await conn.execute(
@@ -271,34 +281,58 @@ async function handlePlanActivation(conn: mysql.Connection, data: any) {
         params
     ) as any;
 
-    if (subs.length > 0) {
-        const sub = subs[0];
+    if (subs.length === 0) {
+        console.log("[WEBHOOK] Subscription not found for activation:", { recurringPlanId, subRefId });
+        return { processed: false, message: "Subscription not found" };
+    }
 
-        await conn.execute(
-            `UPDATE Subscription
-             SET xendit_subscription_id = COALESCE(?, xendit_subscription_id),
-                 recurring_plan_id = COALESCE(?, recurring_plan_id),
-                 payment_session_id = COALESCE(?, payment_session_id),
-                 customer_id = COALESCE(?, customer_id),
-                 payment_status = 'paid',
-                 subscription_status = 'active',
-                 is_active = 1,
-                 last_payment_date = COALESCE(last_payment_date, NOW()),
-                 amount_paid = COALESCE(amount_paid, 0) + ?,
-                 raw_xendit_payload = JSON_SET(COALESCE(raw_xendit_payload, '{}'), '$.activation', ?)
-             WHERE subscription_id = ?`,
-            [xenditSubscriptionId, recurring_plan_id, payment_session_id, customer_id, amount || 0, JSON.stringify(data), sub.subscription_id]
-        );
+    const sub = subs[0];
 
+    // Update Landlord with payment token
+    if (paymentTokenId && customer_id) {
         await conn.execute(
-            `INSERT INTO SubscriptionPayment
-             (subscription_id, landlord_id, xendit_payment_id, amount, currency, status, paid_at, raw_payload)
-             VALUES (?, ?, ?, ?, 'PHP', 'paid', NOW(), ?)`,
-            [sub.subscription_id, sub.landlord_id, recurring_plan_id, amount || 0, JSON.stringify(data)]
+            `UPDATE Landlord
+             SET payment_token_id = COALESCE(?, payment_token_id),
+                 payment_method_type = COALESCE('CARDS', payment_method_type)
+             WHERE xendit_customer_id = ?`,
+            [paymentTokenId, customer_id]
         );
     }
 
-    return { processed: true, message: "Plan activated", recurring_plan_id, xendit_subscription_id: xenditSubscriptionId };
+    // Update Subscription with all fields
+    await conn.execute(
+        `UPDATE Subscription
+         SET xendit_subscription_id = COALESCE(?, xendit_subscription_id),
+             recurring_plan_id = COALESCE(?, recurring_plan_id),
+             payment_session_id = COALESCE(?, payment_session_id),
+             customer_id = COALESCE(?, customer_id),
+             payment_token_id = COALESCE(?, payment_token_id),
+             payment_status = 'paid',
+             subscription_status = 'active',
+             is_active = 1,
+             last_payment_date = COALESCE(last_payment_date, NOW()),
+             amount_paid = COALESCE(amount_paid, 0) + ?,
+             raw_xendit_payload = JSON_SET(COALESCE(raw_xendit_payload, '{}'), '$.activation', ?)
+         WHERE subscription_id = ?`,
+        [recurringPlanId, recurringPlanId, payment_session_id || null, customer_id, paymentTokenId, amount || 0, JSON.stringify(data), sub.subscription_id]
+    );
+
+    // Record payment
+    await conn.execute(
+        `INSERT INTO SubscriptionPayment
+         (subscription_id, landlord_id, xendit_payment_id, xendit_invoice_id, amount, currency, status, paid_at, raw_payload)
+         VALUES (?, ?, ?, ?, ?, 'PHP', 'paid', NOW(), ?)`,
+        [sub.subscription_id, sub.landlord_id, recurringPlanId, recurringPlanId, amount || 0, JSON.stringify(data)]
+    );
+
+    console.log("[WEBHOOK] Plan activation processed:", {
+        subscription_id: sub.subscription_id,
+        recurring_plan_id: recurringPlanId,
+        payment_token_id: paymentTokenId,
+        amount,
+    });
+
+    return { processed: true, message: "Plan activated", recurring_plan_id: recurringPlanId, payment_token_id: paymentTokenId };
 }
 
 /**
@@ -358,41 +392,47 @@ async function handleSessionCompleted(conn: mysql.Connection, data: any) {
  * Payment method saved. Sets: payment_token_id on both Landlord and Subscription
  */
 async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
-    const { payment_token_id, customer_id, recurring_plan_id, subscription } = data;
+    const { payment_token_id, customer_id, recurring_plan_id, subscription, id } = data;
 
-    console.log("[WEBHOOK] Payment token activated:", { payment_token_id, customer_id, recurring_plan_id });
+    const tokenId = payment_token_id || id || null;
+    const planId = recurring_plan_id || null;
+    const custId = customer_id || null;
+
+    console.log("[WEBHOOK] Payment token activated:", { payment_token_id: tokenId, customer_id: custId, recurring_plan_id: planId });
+
+    if (!tokenId) return { processed: false, message: "No payment_token_id provided" };
 
     // Update Landlord
-    if (payment_token_id && customer_id) {
+    if (custId) {
         await conn.execute(
             `UPDATE Landlord
-             SET payment_token_id = COALESCE(?, payment_token_id),
-                 payment_method_type = COALESCE('CARDS', payment_method_type)
+             SET payment_token_id = ?,
+                 payment_method_type = COALESCE(payment_method_type, 'CARDS')
              WHERE xendit_customer_id = ?`,
-            [payment_token_id, customer_id]
+            [tokenId, custId]
         );
     }
 
     // Update Subscription by recurring_plan_id
-    if (recurring_plan_id) {
+    if (planId) {
         await conn.execute(
             `UPDATE Subscription
-             SET payment_token_id = COALESCE(?, payment_token_id),
+             SET payment_token_id = ?,
                  recurring_plan_id = COALESCE(?, recurring_plan_id),
                  raw_xendit_payload = JSON_SET(COALESCE(raw_xendit_payload, '{}'), '$.token_activated', ?)
              WHERE recurring_plan_id = ?`,
-            [payment_token_id, recurring_plan_id, JSON.stringify(data), recurring_plan_id]
+            [tokenId, planId, JSON.stringify(data), planId]
         );
     }
 
     // Fallback: find by customer_id if no recurring_plan_id
-    if (!recurring_plan_id && customer_id && payment_token_id) {
+    if (!planId && custId) {
         const [subs] = await conn.execute(
             `SELECT s.subscription_id FROM Subscription s
              JOIN Landlord l ON s.landlord_id = l.landlord_id
-             WHERE l.xendit_customer_id = ? AND s.payment_token_id IS NULL
+             WHERE l.xendit_customer_id = ? AND (s.payment_token_id IS NULL OR s.payment_token_id = '')
              ORDER BY s.created_at DESC LIMIT 1`,
-            [customer_id]
+            [custId]
         ) as any;
 
         if (subs.length > 0) {
@@ -401,12 +441,12 @@ async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
                  SET payment_token_id = ?,
                      raw_xendit_payload = JSON_SET(COALESCE(raw_xendit_payload, '{}'), '$.token_activated', ?)
                  WHERE subscription_id = ?`,
-                [payment_token_id, JSON.stringify(data), subs[0].subscription_id]
+                [tokenId, JSON.stringify(data), subs[0].subscription_id]
             );
         }
     }
 
-    return { processed: true, message: "Payment token recorded", payment_token_id };
+    return { processed: true, message: "Payment token recorded", payment_token_id: tokenId };
 }
 
 /**
@@ -414,16 +454,13 @@ async function handlePaymentTokenActivated(conn: mysql.Connection, data: any) {
  * Subscription cancelled. Sets: subscription_status, cancelled_at, cancel_reason, is_active
  */
 async function handlePlanInactivated(conn: mysql.Connection, data: any) {
-    const { recurring_plan_id, reason } = data;
+    const { recurring_plan_id, reason, id } = data;
 
-    console.log("[WEBHOOK] Plan inactivated:", { recurring_plan_id, reason });
+    const planId = recurring_plan_id || id || null;
 
-    const conditions: string[] = [];
-    const params: any[] = [];
+    console.log("[WEBHOOK] Plan inactivated:", { recurring_plan_id: planId, reason });
 
-    if (recurring_plan_id) { conditions.push("recurring_plan_id = ?"); params.push(recurring_plan_id); }
-
-    if (conditions.length > 0) {
+    if (planId) {
         await conn.execute(
             `UPDATE Subscription
              SET subscription_status = 'cancelled',
@@ -431,12 +468,12 @@ async function handlePlanInactivated(conn: mysql.Connection, data: any) {
                  cancel_reason = ?,
                  is_active = 0,
                  raw_xendit_payload = JSON_SET(COALESCE(raw_xendit_payload, '{}'), '$.inactivation', ?)
-             WHERE ${conditions.join(" OR ")}`,
-            [reason || null, JSON.stringify(data), ...params]
+             WHERE recurring_plan_id = ?`,
+            [reason || null, JSON.stringify(data), planId]
         );
     }
 
-    return { processed: true, message: "Plan inactivated", recurring_plan_id };
+    return { processed: true, message: "Plan inactivated", recurring_plan_id: planId };
 }
 
 /**
