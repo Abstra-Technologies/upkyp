@@ -77,6 +77,10 @@ export default function CreatePropertyPage() {
             Swal.fire("Required", "Please select a property type.", "warning");
             return false;
         }
+        if (!property.propertySubtype) {
+            Swal.fire("Required", "Please select a property subtype.", "warning");
+            return false;
+        }
         if (!property.city?.trim()) {
             Swal.fire("Required", "Please set the property location using the map.", "warning");
             return false;

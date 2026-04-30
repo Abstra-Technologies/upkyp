@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import usePropertyStore from "@/zustand/property/usePropertyStore";
-import { PROPERTY_TYPES } from "@/constant/propertyTypes";
+import { PROPERTY_TYPES, PROPERTY_SUBTYPES } from "@/constant/propertyTypes";
 import { PROPERTY_PREFERENCES } from "@/constant/propertyPreferences";
 import { UTILITY_BILLING_TYPES } from "@/constant/utilityBillingType";
 import AmenitiesSelector from "./amenities-selector";
@@ -294,24 +294,17 @@ Floor Area: ${p.floorArea} sqm
             {/* ===================================================== */}
             {/* 1️⃣ PROPERTY TYPE – SQUARE CARDS */}
             {/* ===================================================== */}
-            <div id="property-type-section" className="space-y-3">
+            <div id="property-type-section" className="space-y-4">
                 <SectionHeader
                     number={1}
                     icon={Building2}
                     title="Property Type"
-                    subtitle="Select the type that best describes your property"
+                    subtitle="Select the main category, then the specific type"
                     required
                 />
 
-                <div className="
-    grid
-    grid-cols-3
-    sm:grid-cols-4
-    md:grid-cols-5
-    gap-2
-    sm:gap-3
-    max-w-2xl
-  ">
+                {/* Main Category Selection */}
+                <div className="grid grid-cols-3 gap-3 max-w-xl">
                     {PROPERTY_TYPES.map((type) => {
                         const active = property.propertyType === type.value;
 
@@ -319,37 +312,57 @@ Floor Area: ${p.floorArea} sqm
                             <button
                                 key={type.value}
                                 type="button"
-                                onClick={() => setProperty({ propertyType: type.value })}
+                                onClick={() => setProperty({ propertyType: type.value, propertySubtype: "" })}
                                 className={`
             relative
-            h-20 sm:h-24 md:h-24
-            flex flex-col items-center justify-center
-            rounded-lg border
+            h-24
+            flex flex-col items-center justify-center gap-2
+            rounded-xl border-2
             text-center
-            transition-all duration-150
+            transition-all duration-200
             active:scale-95
             ${
                                     active
-                                        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                                        : "bg-white border-gray-200 text-gray-700 hover:border-blue-400"
+                                        ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-500/30"
+                                        : "bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:shadow-md"
                                 }
           `}
                             >
                                 {active && (
-                                    <CheckCircle className="absolute top-1 right-1 w-3.5 h-3.5" />
+                                    <CheckCircle className="absolute top-2 right-2 w-5 h-5" />
                                 )}
 
-                                <div className="text-lg sm:text-xl">
-                                    {type.icon}
-                                </div>
+                                <div className="text-2xl">{type.icon}</div>
 
-                                <p className="text-[11px] sm:text-xs font-medium mt-1 px-1 leading-tight">
+                                <p className="text-sm font-semibold">
                                     {type.label}
                                 </p>
                             </button>
                         );
                     })}
                 </div>
+
+                {/* Subtype Selection - appears after category selection */}
+                {property.propertyType && (
+                    <div className="space-y-1.5 max-w-xl">
+                        <label className="flex items-center gap-1 text-sm font-semibold text-gray-700">
+                            Property Subtype <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            name="propertySubtype"
+                            onChange={handleChange}
+                            value={property.propertySubtype || ""}
+                            className="w-full px-4 py-3 text-sm border border-gray-300 rounded-xl bg-gray-100 lg:bg-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                        >
+                            <option value="">Select a specific type...</option>
+                            {PROPERTY_SUBTYPES[property.propertyType]?.map((subtype) => (
+                                <option key={subtype.value} value={subtype.value}>
+                                    {subtype.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>            {/* 2️⃣ PROPERTY NAME */}
             {/* ===================================================== */}
             <div id="property-name-section">

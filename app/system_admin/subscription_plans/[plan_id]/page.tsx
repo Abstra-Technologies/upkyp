@@ -6,15 +6,6 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { BackButton } from "@/components/navigation/backButton";
 
-interface UnitBand {
-    id?: number;
-    unit_range: string;
-    min_units: number;
-    max_units: number;
-    monthly_price: string;
-    annual_price: string;
-}
-
 interface Feature {
     reports: number;
     pdc_management: number;
@@ -30,6 +21,18 @@ interface PlanLimits {
     max_assets_per_property: number | null;
     financial_history_years: number | null;
 }
+
+interface UnitPriceByType {
+    residential: string;
+    commercial: string;
+    mixed: string;
+}
+
+const PROPERTY_TYPES = [
+    { value: "residential", label: "Residential" },
+    { value: "commercial", label: "Commercial" },
+    { value: "mixed", label: "Mixed Use" },
+];
 
 export default function EditPlanPage() {
     const params = useParams();
@@ -64,13 +67,10 @@ export default function EditPlanPage() {
         financial_insights: 0,
     });
 
-    const [unitBands, setUnitBands] = useState<UnitBand[]>([]);
-    const [newBand, setNewBand] = useState<UnitBand>({
-        unit_range: "",
-        min_units: 0,
-        max_units: 0,
-        monthly_price: "",
-        annual_price: "",
+    const [unitPricesByType, setUnitPricesByType] = useState<UnitPriceByType>({
+        residential: "",
+        commercial: "",
+        mixed: "",
     });
 
     const fetchPlan = async () => {
@@ -107,12 +107,11 @@ export default function EditPlanPage() {
                 financial_insights: data.features?.financial_insights || 0,
             });
 
-            const bands = (data.prices || []).map((band: Partial<UnitBand>) => ({
-                ...band,
-                monthly_price: band.monthly_price || "",
-                annual_price: band.annual_price || "",
-            }));
-            setUnitBands(bands);
+            const pricesByType: UnitPriceByType = { residential: "", commercial: "", mixed: "" };
+            (data.unitPricesByType || []).forEach((item: any) => {
+                pricesByType[item.property_type] = String(item.unit_price || "");
+            });
+            setUnitPricesByType(pricesByType);
         } catch (err) {
             console.error("Error fetching plan:", err);
             Swal.fire("Error", "Failed to load plan", "error");
@@ -134,7 +133,7 @@ export default function EditPlanPage() {
                     plan,
                     limits,
                     features,
-                    prices: unitBands,
+                    unitPricesByType,
                 }
             );
 
@@ -183,31 +182,6 @@ export default function EditPlanPage() {
                 setSaving(false);
             }
         }
-    };
-
-    const addUnitBand = () => {
-        if (!newBand.unit_range || !newBand.monthly_price) {
-            Swal.fire("Error", "Please fill in unit range and price", "warning");
-            return;
-        }
-        setUnitBands([...unitBands, { ...newBand }]);
-        setNewBand({
-            unit_range: "",
-            min_units: 0,
-            max_units: 0,
-            monthly_price: "",
-            annual_price: "",
-        });
-    };
-
-    const removeUnitBand = (index: number) => {
-        setUnitBands(unitBands.filter((_, i) => i !== index));
-    };
-
-    const updateUnitBand = (index: number, field: keyof UnitBand, value: string | number) => {
-        const updated = [...unitBands];
-        updated[index] = { ...updated[index], [field]: value };
-        setUnitBands(updated);
     };
 
     if (loading) {
@@ -260,7 +234,7 @@ export default function EditPlanPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Base Price</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Base Price (Monthly)</label>
                             <input
                                 type="number"
                                 value={plan.price}
@@ -269,6 +243,7 @@ export default function EditPlanPage() {
                                 placeholder="Base Price"
                             />
                         </div>
+
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Billing Cycle</label>
@@ -318,128 +293,34 @@ export default function EditPlanPage() {
                     </div>
                 </div>
 
-                {/* ================= UNIT-BASED PRICING ================= */}
+                {/* ================= UNIT PRICING BY PROPERTY TYPE ================= */}
                 <div className="mb-10">
-                    <h2 className="text-lg font-semibold mb-4">
-                        Unit-Based Pricing
-                    </h2>
+                    <h2 className="text-lg font-semibold mb-4">Unit Pricing by Property Type</h2>
                     <p className="text-sm text-gray-500 mb-4">
-                        Set different prices based on the number of units.
+                        Set per-unit prices for each property type. These apply in addition to the base price.
                     </p>
 
-                    <div className="space-y-4 mb-4">
-                        <div className="grid grid-cols-[1fr_70px_70px_100px_100px_40px] gap-2 bg-gray-100 p-3 rounded-xl text-sm font-medium text-gray-600">
-                            <div>Range</div>
-                            <div>Min</div>
-                            <div>Max</div>
-                            <div>Monthly</div>
-                            <div>Annual</div>
-                            <div></div>
-                        </div>
-                        {unitBands.map((band, index) => (
-                            <div key={index} className="grid grid-cols-[1fr_70px_70px_100px_100px_40px] gap-2 items-center bg-gray-50 p-3 rounded-xl">
-                                <input
-                                    type="text"
-                                    value={band.unit_range}
-                                    onChange={(e) => updateUnitBand(index, "unit_range", e.target.value)}
-                                    className="border p-2 rounded"
-                                    placeholder="e.g., 1-20"
-                                />
-                                <input
-                                    type="number"
-                                    value={band.min_units}
-                                    onChange={(e) => updateUnitBand(index, "min_units", Number(e.target.value))}
-                                    className="border p-2 rounded"
-                                    placeholder="Min"
-                                />
-                                <input
-                                    type="number"
-                                    value={band.max_units}
-                                    onChange={(e) => updateUnitBand(index, "max_units", Number(e.target.value))}
-                                    className="border p-2 rounded"
-                                    placeholder="Max"
-                                />
-                                <input
-                                    type="number"
-                                    value={band.monthly_price}
-                                    onChange={(e) => updateUnitBand(index, "monthly_price", e.target.value)}
-                                    className="border p-2 rounded"
-                                    placeholder="Monthly"
-                                />
-                                <input
-                                    type="number"
-                                    value={band.annual_price}
-                                    onChange={(e) => updateUnitBand(index, "annual_price", e.target.value)}
-                                    className="border p-2 rounded"
-                                    placeholder="Annual"
-                                />
-                                <button
-                                    onClick={() => removeUnitBand(index)}
-                                    className="text-red-500 hover:text-red-700 p-2"
-                                >
-                                    ✕
-                                </button>
+                    <div className="grid md:grid-cols-3 gap-4">
+                        {PROPERTY_TYPES.map((type) => (
+                            <div key={type.value} className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                    {type.label} - Per Unit Monthly
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₱</span>
+                                    <input
+                                        type="number"
+                                        value={unitPricesByType[type.value as keyof UnitPriceByType]}
+                                        onChange={(e) => setUnitPricesByType({
+                                            ...unitPricesByType,
+                                            [type.value]: e.target.value
+                                        })}
+                                        className="w-full pl-8 pr-4 py-2.5 border border-blue-200 rounded-xl bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                        placeholder="0.00"
+                                    />
+                                </div>
                             </div>
                         ))}
-                    </div>
-
-                    <div className="grid grid-cols-[1fr_70px_70px_100px_100px_auto] gap-2 items-end bg-blue-50 p-3 rounded-xl">
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Range</label>
-                            <input
-                                type="text"
-                                value={newBand.unit_range}
-                                onChange={(e) => setNewBand({ ...newBand, unit_range: e.target.value })}
-                                className="border p-2 rounded w-full"
-                                placeholder="e.g., 21-50"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Min</label>
-                            <input
-                                type="number"
-                                value={newBand.min_units}
-                                onChange={(e) => setNewBand({ ...newBand, min_units: Number(e.target.value) })}
-                                className="border p-2 rounded w-full"
-                                placeholder="Min"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Max</label>
-                            <input
-                                type="number"
-                                value={newBand.max_units}
-                                onChange={(e) => setNewBand({ ...newBand, max_units: Number(e.target.value) })}
-                                className="border p-2 rounded w-full"
-                                placeholder="Max"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Monthly</label>
-                            <input
-                                type="number"
-                                value={newBand.monthly_price}
-                                onChange={(e) => setNewBand({ ...newBand, monthly_price: e.target.value })}
-                                className="border p-2 rounded w-full"
-                                placeholder="Monthly"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm text-gray-600 mb-1">Annual</label>
-                            <input
-                                type="number"
-                                value={newBand.annual_price}
-                                onChange={(e) => setNewBand({ ...newBand, annual_price: e.target.value })}
-                                className="border p-2 rounded w-full"
-                                placeholder="Annual"
-                            />
-                        </div>
-                        <button
-                            onClick={addUnitBand}
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 h-10"
-                        >
-                            Add
-                        </button>
                     </div>
                 </div>
 

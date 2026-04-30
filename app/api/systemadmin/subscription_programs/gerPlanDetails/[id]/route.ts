@@ -23,6 +23,7 @@ export async function GET(
                 plan_code,
                 name,
                 price,
+               
                 billing_cycle,
                 platform_fee,
                 fee_type,
@@ -58,23 +59,16 @@ export async function GET(
         const features = featureRows.length ? featureRows[0] : {};
 
         const [priceRows]: any = await db.query(
-            `SELECT id, unit_range, min_units, max_units, monthly_price, annual_price
-             FROM PlanPrices WHERE plan_id = ? ORDER BY min_units ASC`,
+            `SELECT property_type, unit_price FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`,
             [id]
         );
-
-        const prices = priceRows.map((row: any) => ({
-            ...row,
-            monthly_price: String(row.monthly_price || ""),
-            annual_price: String(row.annual_price || ""),
-        }));
 
         return NextResponse.json({
             success: true,
             plan,
             limits,
             features,
-            prices,
+            unitPricesByType: priceRows,
         });
 
     } catch (error) {
@@ -117,7 +111,7 @@ export async function PUT(
         }
 
         const body = await request.json();
-        const { plan, limits, features, prices } = body;
+        const { plan, limits, features, unitPricesByType } = body;
 
         if (!plan) {
             return NextResponse.json(
@@ -249,26 +243,35 @@ export async function PUT(
         }
 
         // ==========================
-        // UPDATE PLAN PRICES (Unit Bands)
+        // UPDATE UNIT PRICES BY PROPERTY TYPE
         // ==========================
-        if (prices && Array.isArray(prices) && prices.length > 0) {
-            // Delete existing prices
-            await connection.query(`DELETE FROM PlanPrices WHERE plan_id = ?`, [id]);
+        if (unitPricesByType) {
+            for (const [propertyType, unitPrice] of Object.entries(unitPricesByType)) {
+                const price = toSafeNumber(unitPrice);
 
-            // Insert new prices
-            for (const price of prices) {
-                await connection.query(
-                    `INSERT INTO PlanPrices (plan_id, unit_range, min_units, max_units, monthly_price, annual_price)
-                     VALUES (?, ?, ?, ?, ?, ?)`,
-                    [
-                        id,
-                        price.unit_range,
-                        toSafeNumber(price.min_units, 0),
-                        toSafeNumber(price.max_units, 0),
-                        toSafeNumber(price.monthly_price, 0),
-                        toSafeNumber(price.annual_price, 0),
-                    ]
+                const [existing]: any = await connection.query(
+                    `SELECT id FROM PlanUnitPriceByPropertyType WHERE plan_id = ? AND property_type = ?`,
+                    [id, propertyType]
                 );
+
+                if (existing.length) {
+                    if (price > 0) {
+                        await connection.query(
+                            `UPDATE PlanUnitPriceByPropertyType SET unit_price = ? WHERE plan_id = ? AND property_type = ?`,
+                            [price, id, propertyType]
+                        );
+                    } else {
+                        await connection.query(
+                            `DELETE FROM PlanUnitPriceByPropertyType WHERE plan_id = ? AND property_type = ?`,
+                            [id, propertyType]
+                        );
+                    }
+                } else if (price > 0) {
+                    await connection.query(
+                        `INSERT INTO PlanUnitPriceByPropertyType (plan_id, property_type, unit_price) VALUES (?, ?, ?)`,
+                        [id, propertyType, price]
+                    );
+                }
             }
         }
 
@@ -318,7 +321,7 @@ export async function DELETE(
 
         await connection.beginTransaction();
 
-        await connection.query(`DELETE FROM PlanPrices WHERE plan_id = ?`, [id]);
+        await connection.query(`DELETE FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`, [id]);
 
         await connection.query(`DELETE FROM PlanFeatures WHERE plan_id = ?`, [id]);
 

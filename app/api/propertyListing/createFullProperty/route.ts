@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
         landlord_id,
         property_name,
         property_type,
+        property_subtype,
         amenities,
         street,
         brgy_district,
@@ -121,13 +122,14 @@ export async function POST(req: NextRequest) {
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())
       `,
             [
                 propertyId,
                 landlord_id,
                 property.propertyName,
                 property.propertyType,
+                property.propertySubtype || "",
                 property.amenities?.join(",") || null,
                 property.street || null,
                 property.brgyDistrict || null,

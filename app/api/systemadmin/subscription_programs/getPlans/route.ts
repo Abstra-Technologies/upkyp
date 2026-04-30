@@ -4,9 +4,8 @@ import { verifyAdmin } from "@/lib/auth/adminAuth";
 
 export async function GET(request: NextRequest) {
     try {
-        // 📦 Fetch Plans with Limits and Features
         const [plans]: any = await db.query(`
-        SELECT 
+        SELECT
             p.plan_id,
             p.plan_code,
             p.name,
@@ -26,31 +25,26 @@ export async function GET(request: NextRequest) {
         ORDER BY p.created_at DESC
     `);
 
-        // Fetch unit prices for each plan
-        const plansWithPrices = await Promise.all(
+        const plansWithUnitPrices = await Promise.all(
             plans.map(async (plan: any) => {
-                const [priceRows]: any = await db.query(
-                    `SELECT unit_range, min_units, max_units, monthly_price, annual_price
-                     FROM PlanPrices WHERE plan_id = ? ORDER BY min_units ASC`,
+                const [unitPrices]: any = await db.query(
+                    `SELECT property_type, unit_price FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`,
                     [plan.plan_id]
                 );
-                
-                const result = {
+
+                const unitPricesByType: Record<string, number> = {};
+                unitPrices.forEach((row: any) => {
+                    unitPricesByType[row.property_type] = Number(row.unit_price);
+                });
+
+                return {
                     ...plan,
-                    prices: priceRows.map((row: any) => ({
-                        ...row,
-                        monthly_price: row.monthly_price ? Number(row.monthly_price) : null,
-                        annual_price: row.annual_price ? Number(row.annual_price) : null,
-                    })),
+                    unitPricesByType,
                 };
-                console.log(`Plan ${plan.plan_id} (${plan.name}) has ${result.prices.length} price rows`);
-                return result;
             })
         );
 
-        console.log("Returning plans:", plansWithPrices.map((p: any) => ({ id: p.plan_id, name: p.name, priceCount: p.prices.length })));
-
-        return NextResponse.json(plansWithPrices);
+        return NextResponse.json(plansWithUnitPrices);
 
     } catch (error) {
         console.error("ADMIN GET PLANS ERROR:", error);

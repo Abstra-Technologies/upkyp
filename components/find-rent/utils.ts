@@ -24,16 +24,33 @@ export const GESTURE = {
   maxStretch: 120,
 } as const;
 
-// Property type configurations
+// Property type configurations - 3 main categories
 export const PROPERTY_TYPES = [
-  { value: "apartment", label: "Apartment", icon: Building2 },
-  { value: "duplex", label: "Duplex", icon: Home },
-  { value: "house", label: "House", icon: Home },
-  { value: "townhouse", label: "Townhouse", icon: Building },
-  { value: "office_space", label: "Office Space", icon: Building },
-  { value: "warehouse", label: "Warehouse", icon: Warehouse },
-  { value: "dormitory", label: "Dormitory", icon: BedDouble },
+  { value: "residential", label: "Residential", icon: Home },
+  { value: "commercial", label: "Commercial", icon: Building },
+  { value: "mixed", label: "Mixed Use", icon: Building2 },
 ] as const;
+
+// Property subtypes per category
+export const PROPERTY_SUBTYPES: Record<string, { value: string; label: string }[]> = {
+  residential: [
+    { value: "Apartment", label: "Apartment" },
+    { value: "House", label: "House" },
+    { value: "Townhouse", label: "Townhouse" },
+    { value: "Condominium", label: "Condominium" },
+    { value: "Duplex", label: "Duplex" },
+    { value: "Dormitory", label: "Dormitory" },
+  ],
+  commercial: [
+    { value: "Office Space", label: "Office Space" },
+    { value: "Warehouse", label: "Warehouse" },
+    { value: "Retail Unit", label: "Retail Unit" },
+    { value: "Industrial Space", label: "Industrial Space" },
+  ],
+  mixed: [
+    { value: "Mixed Use", label: "Mixed Use" },
+  ],
+};
 
 // Unit style configurations
 export const UNIT_STYLES = [

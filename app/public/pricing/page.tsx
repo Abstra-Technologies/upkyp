@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Check } from "lucide-react";
+import { Check, Calculator } from "lucide-react";
 import useAuthStore from "@/zustand/authStore";
 import useSubscriptionData from "@/hooks/landlord/useSubscriptionData";
 import CurrentSubscriptionBanner from "@/components/subscription_pricing/CurrentSubscriptionBanner";
+import PlanCalculatorModal from "@/components/subscription_pricing/PlanCalculatorModal";
 import { useSubscriptionStore } from "@/zustand/subscriptionStore";
 
 interface PlanFromDB {
@@ -22,48 +23,31 @@ interface PlanFromDB {
     max_storage: string | null;
     max_assets_per_property: number | null;
     financial_history_years: number | null;
-    prices?: {
-        unit_range: string;
-        min_units: number;
-        max_units: number;
-        monthly_price: number | null;
-        annual_price: number | null;
-    }[];
+    unitPricesByType?: Record<string, number>;
     features?: Record<string, number>;
     selectedCycle?: "monthly" | "yearly";
 }
 
+const PROPERTY_TYPE_LABELS: Record<string, string> = {
+    residential: "Residential",
+    commercial: "Commercial",
+    mixed: "Mixed Use",
+};
+
 interface PricingCardProps {
     plan: PlanFromDB;
-    selectedBand: Record<number, string>;
-    selectedCycle: Record<number, "monthly" | "yearly">;
     currentSubscription: any;
-    onSelectBand: (bands: Record<number, string>) => void;
-    onSelectCycle: (cycles: Record<number, "monthly" | "yearly">) => void;
     onSelectPlan: (plan: PlanFromDB) => void;
 }
 
-function PricingCard({ plan, selectedBand, selectedCycle, currentSubscription, onSelectBand, onSelectCycle, onSelectPlan }: PricingCardProps) {
-    const hasUnitPrices = plan.prices && plan.prices.length > 0;
-    const currentBandIndex = selectedBand[plan.plan_id] ?? "0";
+function PricingCard({ plan, currentSubscription, onSelectPlan }: PricingCardProps) {
     const billingCycle = plan.billing_cycle as "monthly" | "yearly" | "lifetime";
-    const cycle = selectedCycle[plan.plan_id] ?? (billingCycle === "yearly" ? "yearly" : "monthly");
     const isLifetimeBilling = billingCycle === "lifetime";
-    const currentBand = hasUnitPrices && plan.prices ? plan.prices[parseInt(currentBandIndex)] : null;
-    const hasAnnualPrices = hasUnitPrices && plan.prices && plan.prices.some((p: any) => p.annual_price != null);
     const isPopular = plan.plan_code === "GROWTH";
     const isCurrentPlan = currentSubscription?.plan_name === plan.name;
 
-    let displayPrice = Number(plan.price);
-    if (currentBand) {
-        if (isLifetimeBilling || !hasAnnualPrices) {
-            displayPrice = Number(currentBand.monthly_price) || Number(plan.price);
-        } else {
-            displayPrice = cycle === "monthly"
-                ? (Number(currentBand.monthly_price) || Number(plan.price))
-                : (Number(currentBand.annual_price) || Number(plan.price));
-        }
-    }
+    const unitPricesByType = plan.unitPricesByType || {};
+    const hasAnyUnitPrices = Object.keys(unitPricesByType).length > 0;
 
     return (
         <div
@@ -91,58 +75,30 @@ function PricingCard({ plan, selectedBand, selectedCycle, currentSubscription, o
 
                 <div className="mt-3 sm:mt-4 text-center">
                     <p className="text-3xl sm:text-4xl font-extrabold text-gray-900">
-                        ₱{displayPrice?.toLocaleString() || 0}
+                        ₱{Number(plan.price).toLocaleString() || 0}
                         <span className="text-xs sm:text-sm font-medium text-gray-500">
-                            {(displayPrice || 0) > 0 && (
-                                isLifetimeBilling
-                                    ? ""
-                                    : hasUnitPrices && hasAnnualPrices
-                                        ? (cycle === "monthly" ? "/mo" : "/yr")
-                                        : "/mo"
-                            )}
+                            {!isLifetimeBilling && "/mo"}
                         </span>
                     </p>
+                    <p className="text-xs text-blue-600 font-medium mt-1">Base price (floor)</p>
                 </div>
 
-                {hasUnitPrices && hasAnnualPrices && !isLifetimeBilling && (
-                    <div className="mt-3 sm:mt-4 flex rounded-lg bg-gray-100 p-1">
-                        <button
-                            type="button"
-                            onClick={() => onSelectCycle({ ...selectedCycle, [plan.plan_id]: "monthly" })}
-                            className={`flex-1 rounded-md py-1.5 sm:py-2 text-xs font-medium transition ${
-                                cycle === "monthly" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-900"
-                            }`}
-                        >
-                            Monthly
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => onSelectCycle({ ...selectedCycle, [plan.plan_id]: "yearly" })}
-                            className={`flex-1 rounded-md py-1.5 sm:py-2 text-xs font-medium transition ${
-                                cycle === "yearly" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-900"
-                            }`}
-                        >
-                            Annually
-                        </button>
-                    </div>
-                )}
-
-                {hasUnitPrices && (
-                    <div className="mt-3 sm:mt-4">
-                        <label className="block text-xs font-medium text-gray-600 mb-1 text-center">
-                            Number of units
-                        </label>
-                        <select
-                            value={currentBandIndex}
-                            onChange={(e) => onSelectBand({ ...selectedBand, [plan.plan_id]: e.target.value })}
-                            className="w-full rounded-lg px-3 py-2 text-xs sm:text-sm bg-gray-50 border border-gray-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            {plan.prices?.map((band, idx) => (
-                                <option key={idx} value={String(idx)}>
-                                    {band.unit_range}
-                                </option>
+                {hasAnyUnitPrices && (
+                    <div className="mt-4 bg-blue-50 rounded-xl p-3 border border-blue-100">
+                        <p className="text-xs font-semibold text-gray-700 mb-2">Per unit/month:</p>
+                        <div className="space-y-1.5">
+                            {Object.entries(unitPricesByType).map(([type, price]) => (
+                                <div key={type} className="flex justify-between items-center text-xs">
+                                    <span className="text-gray-600 flex items-center gap-1.5">
+                                        <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                                        {PROPERTY_TYPE_LABELS[type] || type}
+                                    </span>
+                                    <span className="font-semibold text-gray-900">
+                                        ₱{price.toLocaleString()}
+                                    </span>
+                                </div>
                             ))}
-                        </select>
+                        </div>
                     </div>
                 )}
 
@@ -166,8 +122,16 @@ function PricingCard({ plan, selectedBand, selectedCycle, currentSubscription, o
                 {plan.price > 0 && (
                     <div className="mt-4 sm:mt-5 rounded-lg bg-gray-50 p-2.5 sm:p-3 text-xs sm:text-sm text-gray-600">
                         <div className="flex justify-between">
-                            <span>Platform Fee:</span>
+                            <span>Xendit Payment Gateway Fee:</span>
+                            <span className="font-semibold text-gray-900">2.50%</span>
+                        </div>
+                        <div className="flex justify-between mt-1">
+                            <span>UPKYP Platform Fee:</span>
                             <span className="font-semibold text-gray-900">{plan.platform_fee}%</span>
+                        </div>
+                        <div className="border-t border-gray-200 mt-2 pt-2 flex justify-between font-medium">
+                            <span>Total Transaction Fee:</span>
+                            <span className="font-semibold text-gray-900">{(2.5 + Number(plan.platform_fee || 0)).toFixed(2)}%</span>
                         </div>
                     </div>
                 )}
@@ -206,9 +170,8 @@ export default function PricingPage() {
 
     const [plans, setPlans] = useState<PlanFromDB[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedBand, setSelectedBand] = useState<Record<number, string>>({});
-    const [selectedCycle, setSelectedCycle] = useState<Record<number, "monthly" | "yearly">>({});
     const [activeMobileTab, setActiveMobileTab] = useState(0);
+    const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
     useEffect(() => {
         const fetchPlans = async () => {
@@ -226,39 +189,14 @@ export default function PricingPage() {
     }, []);
 
     const handleSelectPlan = (plan: PlanFromDB) => {
-        const bandIndex = selectedBand[plan.plan_id] ?? "0";
-        const unitPrices = plan.prices || [];
-        const billingCycle = plan.billing_cycle as "monthly" | "yearly" | "lifetime";
-        const cycle = selectedCycle[plan.plan_id] ?? (billingCycle === "yearly" ? "yearly" : "monthly");
-        const isLifetimeBilling = billingCycle === "lifetime";
-        
-        const currentBand = unitPrices.length > 0 ? unitPrices[parseInt(bandIndex)] : null;
-        
-        let amount = Number(plan.price);
-        let monthlyPrice = Number(plan.price);
-        let bandRange: string | undefined = undefined;
-        
-        if (currentBand) {
-            bandRange = currentBand.unit_range;
-            monthlyPrice = Number(currentBand.monthly_price) || Number(plan.price);
-            if (isLifetimeBilling) {
-                amount = Number(currentBand.monthly_price) || Number(plan.price);
-            } else {
-                amount = cycle === "monthly" 
-                    ? (Number(currentBand.monthly_price) || Number(plan.price)) 
-                    : (Number(currentBand.annual_price) || Number(plan.price));
-            }
-        }
-        
         setSelectedPlan({
             id: plan.plan_id,
             planCode: plan.plan_code,
             name: plan.name,
-            price: amount,
-            unitBandIndex: parseInt(bandIndex),
-            bandRange,
-            monthlyPrice,
-            proratedAmount: amount,
+            price: Number(plan.price),
+            unitPricesByType: plan.unitPricesByType || {},
+            monthlyPrice: Number(plan.price),
+            proratedAmount: Number(plan.price),
         });
 
         if (!user) {
@@ -273,7 +211,7 @@ export default function PricingPage() {
             router.push(`/auth/login?callbackUrl=${encodeURIComponent("/public/pricing")}`);
             return;
         }
-        
+
         router.push("/landlord/subsciption_plan/payment/review");
     };
 
@@ -292,6 +230,13 @@ export default function PricingPage() {
                     <p className="text-base sm:text-lg text-gray-300 max-w-2xl mx-auto">
                         From single-unit landlords to growing property portfolios — find the perfect plan to manage your rentals efficiently.
                     </p>
+                    <button
+                        onClick={() => setIsCalculatorOpen(true)}
+                        className="mt-6 inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold py-3 px-6 rounded-xl border border-white/20 transition-all duration-300 hover:scale-105"
+                    >
+                        <Calculator className="w-5 h-5" />
+                        Calculate Plan
+                    </button>
                 </div>
             </section>
 
@@ -333,11 +278,7 @@ export default function PricingPage() {
                         <PricingCard
                             key={plan.plan_id}
                             plan={plan}
-                            selectedBand={selectedBand}
-                            selectedCycle={selectedCycle}
                             currentSubscription={currentSubscription}
-                            onSelectBand={setSelectedBand}
-                            onSelectCycle={setSelectedCycle}
                             onSelectPlan={handleSelectPlan}
                         />
                     ))}
@@ -353,11 +294,7 @@ export default function PricingPage() {
                         <PricingCard
                             key={plans[activeMobileTab].plan_id}
                             plan={plans[activeMobileTab]}
-                            selectedBand={selectedBand}
-                            selectedCycle={selectedCycle}
                             currentSubscription={currentSubscription}
-                            onSelectBand={setSelectedBand}
-                            onSelectCycle={setSelectedCycle}
                             onSelectPlan={handleSelectPlan}
                         />
                     )}
@@ -376,6 +313,98 @@ export default function PricingPage() {
                     </Link>
                 </p>
             </section>
+
+            {/* Pricing Explainer */}
+            <section className="pb-20 max-w-4xl mx-auto px-4">
+                <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 rounded-3xl p-8 sm:p-12 text-white overflow-hidden relative">
+                    {/* Background decorative elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl"></div>
+
+                    <div className="relative">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl sm:text-2xl font-bold">
+                                How Our Pricing Works
+                            </h3>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Left side - Explanation */}
+                            <div className="space-y-4">
+                                <p className="text-blue-200 text-sm sm:text-base">
+                                    Each plan has a <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">base monthly price</span> (your guaranteed floor) and an optional <span className="text-white font-semibold bg-white/10 px-2 py-0.5 rounded">per-unit price</span>.
+                                </p>
+
+                                <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/10">
+                                    <p className="text-xs text-blue-300 mb-2 font-medium uppercase tracking-wide">Your Monthly Cost</p>
+                                    <div className="font-mono text-sm sm:text-base">
+                                        <div className="flex items-center justify-center gap-2 flex-wrap">
+                                            <span className="bg-blue-500/30 px-3 py-1.5 rounded-lg">Base Price</span>
+                                            <span className="text-blue-400">+</span>
+                                            <span className="bg-blue-500/30 px-3 py-1.5 rounded-lg">(Units × Per-Unit)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                    <svg className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p className="text-xs sm:text-sm text-amber-200">
+                                        <span className="font-semibold text-amber-400">Pro tip:</span> Your total is <span className="font-bold text-white">never less than the base price</span>, but can exceed it if you have many units.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Right side - Visual Example */}
+                            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
+                                <p className="text-xs text-blue-300 mb-4 font-medium uppercase tracking-wide">Example Calculation</p>
+
+                                <div className="space-y-4">
+                                    <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-green-400 text-xs font-medium">✓ Under Base Price</span>
+                                            <span className="text-green-400 font-bold">₱500</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-blue-200">
+                                            <div>PRO Base: <span className="text-white font-semibold">₱500</span></div>
+                                            <div>Unit Price: <span className="text-white font-semibold">₱5</span></div>
+                                            <div>Your Units: <span className="text-white font-semibold">10</span></div>
+                                            <div>Calculation: <span className="text-white font-semibold">10 × ₱5 = ₱50</span></div>
+                                        </div>
+                                        <div className="border-t border-green-500/20 mt-2 pt-2 text-xs text-green-300">
+                                            ₱500 base + ₱50 = <span className="font-bold text-white">₱500</span> (base applies)
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-orange-400 text-xs font-medium">↑ Exceeds Base Price</span>
+                                            <span className="text-orange-400 font-bold">₱1,000</span>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 text-xs text-blue-200">
+                                            <div>PRO Base: <span className="text-white font-semibold">₱500</span></div>
+                                            <div>Unit Price: <span className="text-white font-semibold">₱5</span></div>
+                                            <div>Your Units: <span className="text-white font-semibold">200</span></div>
+                                            <div>Calculation: <span className="text-white font-semibold">200 × ₱5 = ₱1,000</span></div>
+                                        </div>
+                                        <div className="border-t border-orange-500/20 mt-2 pt-2 text-xs text-orange-300">
+                                            ₱500 base + ₱1,000 = <span className="font-bold text-white">₱1,000</span> (pay full amount)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <PlanCalculatorModal isOpen={isCalculatorOpen} onClose={() => setIsCalculatorOpen(false)} />
         </main>
     );
 }

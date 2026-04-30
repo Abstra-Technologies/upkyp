@@ -57,8 +57,8 @@ export async function GET(
         }
 
 /* --------------------------------------------------
-            FETCH ACTIVE SUBSCRIPTION + PLAN + LIMITS + FEATURES
-         -------------------------------------------------- */
+             FETCH ACTIVE SUBSCRIPTION + PLAN + LIMITS + FEATURES
+          -------------------------------------------------- */
         const [rows]: any = await db.query(
             `
                 SELECT
@@ -66,8 +66,8 @@ export async function GET(
                     s.start_date,
                     s.end_date,
                     s.payment_status,
+                    s.subscription_status,
                     s.is_trial,
-                    s.is_active,
                     s.plan_code,
 
                     p.plan_id,
@@ -99,7 +99,7 @@ export async function GET(
                                    ON p.plan_id = pf.plan_id
 
                 WHERE s.landlord_id = ?
-                  AND s.is_active = 1
+                  AND s.subscription_status = 'active'
                 LIMIT 1
             `,
             [landlord_id]
@@ -115,23 +115,8 @@ export async function GET(
         const data = rows[0];
 
         /* --------------------------------------------------
-           EXPIRATION CHECK
-        -------------------------------------------------- */
-        const now = new Date();
-        const endDate = data.end_date ? new Date(data.end_date) : null;
-
-        if (endDate && endDate < now && data.is_active === 1) {
-            await db.query(
-                `UPDATE Subscription SET is_active = 0 WHERE landlord_id = ?`,
-                [landlord_id]
-            );
-
-            data.is_active = 0;
-        }
-
-/* --------------------------------------------------
-            FORMAT RESPONSE STRUCTURE
-         -------------------------------------------------- */
+             FORMAT RESPONSE STRUCTURE
+          -------------------------------------------------- */
         const subscription = {
             subscription_id: data.subscription_id,
             plan_id: data.plan_id,
@@ -143,8 +128,9 @@ export async function GET(
             start_date: data.start_date,
             end_date: data.end_date,
             payment_status: data.payment_status,
+            subscription_status: data.subscription_status,
             is_trial: data.is_trial,
-            is_active: data.is_active,
+            is_active: data.subscription_status === 'active' ? 1 : 0,
 
             limits: {
                 maxStorage: data.max_storage,
