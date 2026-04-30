@@ -183,28 +183,38 @@ async function sendBillingEmail(email: string, landlordName: string, billingMont
 
 export async function generateSubscriptionBillingSnapshots() {
     try {
-        const [activeSubscriptions]: any = await db.execute(`
-            SELECT
-                s.subscription_id,
-                s.landlord_id,
-                p.plan_id,
-                p.name AS plan_name,
-                p.price AS base_price
-            FROM Subscription s
-            JOIN Plan p ON s.plan_id = p.plan_id
-            WHERE s.subscription_status = 'active'
-        `);
+        const tomorrow = new Date();
+        tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+        tomorrow.setUTCHours(0, 0, 0, 0);
+        const tomorrowStr = tomorrow.toISOString().split("T")[0];
 
-        if (!activeSubscriptions.length) {
-            console.log("No active subscriptions to bill.");
-            return 0;
-        }
+        const dayAfterTomorrow = new Date(tomorrow);
+        dayAfterTomorrow.setUTCDate(dayAfterTomorrow.getUTCDate() + 1);
 
         const billingMonth = new Date();
         billingMonth.setDate(1);
         billingMonth.setHours(0, 0, 0, 0);
         const billingMonthStr = billingMonth.toISOString().split("T")[0];
         const billingMonthLabel = billingMonth.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+
+        const [activeSubscriptions]: any = await db.execute(`
+            SELECT
+                s.subscription_id,
+                s.landlord_id,
+                p.plan_id,
+                p.name AS plan_name,
+                p.price AS base_price,
+                s.anchor_day
+            FROM Subscription s
+            JOIN Plan p ON s.plan_id = p.plan_id
+            WHERE s.subscription_status = 'active'
+              AND DATE(s.anchor_day) = ?
+        `, [tomorrowStr]);
+
+        if (!activeSubscriptions.length) {
+            console.log("No subscriptions with anchor date tomorrow to bill.");
+            return 0;
+        }
 
         let processedCount = 0;
 
@@ -241,7 +251,6 @@ export async function generateSubscriptionBillingSnapshots() {
 
             let totalUnits = 0;
             let totalUnitCost = 0;
-            let weightedAvgUnitPrice = 0;
             const unitsByType: { type: string; count: number; price: number; subtotal: number }[] = [];
 
             properties.forEach((row: any) => {
@@ -254,20 +263,23 @@ export async function generateSubscriptionBillingSnapshots() {
                 unitsByType.push({ type, count, price, subtotal });
             });
 
-            if (totalUnits > 0) {
-                weightedAvgUnitPrice = totalUnitCost / totalUnits;
-            }
-
             const basePrice = Number(sub.base_price);
             const totalComputed = totalUnitCost;
             const finalCharge = Math.max(basePrice, totalComputed);
             const chargeBasis = finalCharge === basePrice ? "floor_price" : "unit_based";
 
+            const periodStart = new Date(billingMonth);
+            const periodEnd = new Date(billingMonth);
+            periodEnd.setMonth(periodEnd.getMonth() + 1);
+            periodEnd.setDate(0);
+            periodEnd.setHours(23, 59, 59, 0);
+
             const [snapResult]: any = await db.execute(
                 `INSERT INTO SubscriptionMonthlyBillingSnapshot 
-                 (subscription_id, billing_month, units_used, applied_floor_price, applied_unit_price, total_computed, final_charge, charge_basis)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-                [sub.subscription_id, billingMonthStr, totalUnits, basePrice, weightedAvgUnitPrice, totalComputed, finalCharge, chargeBasis]
+                 (subscription_id, billing_month, billing_period_start, billing_period_end, cutoff_at,
+                  applied_floor_price, total_computed, final_charge, charge_basis, sync_status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+                [sub.subscription_id, billingMonthStr, periodStart.toISOString(), periodEnd.toISOString(), dayAfterTomorrow.toISOString(), basePrice, totalComputed, finalCharge, chargeBasis]
             );
 
             const snapshotId = snapResult.insertId;
@@ -280,6 +292,15 @@ export async function generateSubscriptionBillingSnapshots() {
                     [snapshotId, item.type, item.count, item.price, item.subtotal]
                 );
             }
+
+            // Update anchor_day to next month
+            const nextAnchorDay = new Date(sub.anchor_day);
+            nextAnchorDay.setUTCMonth(nextAnchorDay.getUTCMonth() + 1);
+
+            await db.execute(
+                `UPDATE Subscription SET anchor_day = ? WHERE subscription_id = ?`,
+                [nextAnchorDay.toISOString(), sub.subscription_id]
+            );
 
             // Generate PDF and send email
             try {

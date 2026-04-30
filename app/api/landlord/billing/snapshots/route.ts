@@ -32,20 +32,31 @@ export async function GET(req: NextRequest) {
                 SELECT
                     sbs.snapshot_id,
                     sbs.billing_month,
-                    sbs.units_used,
+                    sbs.billing_period_start,
+                    sbs.billing_period_end,
                     sbs.applied_floor_price,
-                    sbs.applied_unit_price,
                     sbs.total_computed,
                     sbs.final_charge,
+                    sbs.charge_basis,
+                    sbs.sync_status,
                     sbs.created_at,
                     sub.subscription_id,
-                    sub.plan_code,
                     p.name AS plan_name,
-                    p.price AS plan_base_price
+                    p.price AS plan_base_price,
+                    JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'property_type', sbi.property_type,
+                            'units_used', sbi.units_used,
+                            'unit_price', sbi.unit_price,
+                            'computed_amount', sbi.computed_amount
+                        )
+                    ) AS unit_items
                 FROM SubscriptionMonthlyBillingSnapshot sbs
                 JOIN Subscription sub ON sbs.subscription_id = sub.subscription_id
-                JOIN Plan p ON sub.plan_code = p.plan_code
+                JOIN Plan p ON sub.plan_id = p.plan_id
+                LEFT JOIN SubscriptionMonthlyBillingSnapshotItem sbi ON sbs.snapshot_id = sbi.snapshot_id
                 WHERE sub.landlord_id = ?
+                GROUP BY sbs.snapshot_id
                 ORDER BY sbs.billing_month DESC
                 LIMIT ? OFFSET ?
             `,

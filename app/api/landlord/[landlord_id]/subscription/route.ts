@@ -11,21 +11,21 @@ export async function GET(
 
         const [rows] = await db.query(
             `SELECT 
-                subscription_id,
-                plan_name,
-                start_date,
-                end_date,
-                payment_status,
-                subscription_status,
-                request_reference_number,
-                is_trial,
-                amount_paid,
-                cancelled_at,
-                cancel_reason
-            FROM Subscription
-            WHERE landlord_id = ?
-              AND subscription_status = 'cancelled'
-            ORDER BY end_date DESC`,
+                s.subscription_id,
+                p.name AS plan_name,
+                s.start_date,
+                s.end_date,
+                s.payment_status,
+                s.subscription_status,
+                s.request_reference_number,
+                s.is_trial,
+                s.cancelled_at,
+                s.cancel_reason
+            FROM Subscription s
+            JOIN Plan p ON s.plan_id = p.plan_id
+            WHERE s.landlord_id = ?
+              AND s.subscription_status = 'cancelled'
+            ORDER BY s.start_date DESC`,
             [landlord_id]
         );
 
