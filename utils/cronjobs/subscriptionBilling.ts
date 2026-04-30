@@ -398,23 +398,6 @@ export async function generateSubscriptionBillingSnapshots() {
                     console.log(`[BILLING CRON] Stage 9: No recurring_plan_id. Skipping Xendit operations.`);
                 }
 
-                    // 9d: Update cycle amount
-                    if (xenditCycleId) {
-                        console.log(`[BILLING CRON]   Stage 9d: Updating cycle ${xenditCycleId} amount to ${finalCharge}...`);
-                        const updateResult = await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
-                        console.log(`[BILLING CRON]   Stage 9d: Update result:`, JSON.stringify(updateResult));
-
-                        // 9e: Simulate cycle payment (test mode only)
-                        console.log(`[BILLING CRON]   Stage 9e: Simulating cycle payment for ${xenditCycleId} with amount ${finalCharge}...`);
-                        const simResult = await simulateCyclePayment(sub.recurring_plan_id, xenditCycleId, finalCharge);
-                        console.log(`[BILLING CRON]   Stage 9e: Simulate result:`, JSON.stringify(simResult));
-                    } else {
-                        console.log(`[BILLING CRON]   Stage 9d/9e: Skipped (no xenditCycleId)`);
-                    }
-                } else {
-                    console.log(`[BILLING CRON] Stage 9: No recurring_plan_id. Skipping Xendit operations.`);
-                }
-
                 // BEGIN TRANSACTION for DB writes
                 console.log(`[BILLING CRON] Stage 10: Starting DB transaction...`);
                 connection = await db.getConnection();
