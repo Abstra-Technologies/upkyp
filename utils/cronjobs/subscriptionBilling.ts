@@ -5,7 +5,7 @@ import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const XENDIT_SECRET = process.env.XENDIT_TEXT_SECRET_KEY!;
-const XENDIT_API_VERSION = "2024-11-11";
+const XENDIT_API_VERSION = "2026-01-01";
 
 function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
     const headers: Record<string, string> = {
