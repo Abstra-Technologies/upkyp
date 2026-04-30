@@ -18,6 +18,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const safeDecrypt = (value?: string | null): string | null => {
     if (!value) return null;
     try {
+        // @ts-ignore
         return decryptData(JSON.parse(value), ENCRYPTION_SECRET);
     } catch {
         return null;

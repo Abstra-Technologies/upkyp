@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { z } from "zod";
 import useAuthStore from "@/zustand/authStore";
 import { logEvent } from "@/utils/gtag";
+import Cookies from "js-cookie";
 
 const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -25,12 +26,12 @@ export function useLoginForm({
 
     const errorParam = searchParams.get("error");
 
-    const [formData, setFormData] = useState({ email: "", password: "" });
+    const [formData, setFormData] = useState({ email: Cookies.get("rememberedEmail") || "", password: "" });
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-    const [rememberMe, setRememberMe] = useState(false);
+    const [rememberMe, setRememberMe] = useState(!!Cookies.get("rememberedEmail"));
 
     /* =====================================================
        SESSION HYDRATION (SAFE + ONCE)
@@ -170,6 +171,12 @@ export function useLoginForm({
             /* ============================
                SUCCESS (NON-REDIRECT API)
             ============================ */
+            if (rememberMe) {
+                Cookies.set("rememberedEmail", formData.email, { expires: 30, secure: true, sameSite: "strict" });
+            } else {
+                Cookies.remove("rememberedEmail");
+            }
+
             await fetchSession();
 
             const safeRedirect = getSafeRedirect(callbackUrl, data.userType);
