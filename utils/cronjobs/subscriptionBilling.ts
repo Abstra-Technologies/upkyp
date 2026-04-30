@@ -19,38 +19,44 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
 
 async function fetchSubscriptionCycles(recurringPlanId: string, status: string = "SCHEDULED") {
     const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles?status=${status}`;
+    console.log(`[XENDIT] GET ${url}`);
     const res = await fetch(url, { headers: getXenditHeaders() });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`Failed to fetch subscription cycles: ${err.message || res.statusText}`);
+        const errBody = await res.text();
+        console.error(`[XENDIT] ${res.status} ${res.statusText}: ${errBody}`);
+        throw new Error(`Failed to fetch subscription cycles (${res.status}): ${errBody}`);
     }
     return res.json();
 }
 
 async function simulateCyclePayment(recurringPlanId: string, cycleId: string, amount: number) {
     const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}/simulate`;
+    console.log(`[XENDIT] POST ${url}`);
     const res = await fetch(url, {
         method: "POST",
         headers: getXenditHeaders(`simulate-cycle-${cycleId}-${Date.now()}`),
         body: JSON.stringify({ amount }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`Failed to simulate cycle payment: ${err.message || res.statusText}`);
+        const errBody = await res.text();
+        console.error(`[XENDIT] ${res.status} ${res.statusText}: ${errBody}`);
+        throw new Error(`Failed to simulate cycle payment (${res.status}): ${errBody}`);
     }
     return res.json();
 }
 
 async function updateCycleAmount(recurringPlanId: string, cycleId: string, amount: number) {
     const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}`;
+    console.log(`[XENDIT] PATCH ${url}`);
     const res = await fetch(url, {
         method: "PATCH",
         headers: getXenditHeaders(`update-cycle-${cycleId}-${Date.now()}`),
         body: JSON.stringify({ amount, currency: "PHP" }),
     });
     if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`Failed to update cycle amount: ${err.message || res.statusText}`);
+        const errBody = await res.text();
+        console.error(`[XENDIT] ${res.status} ${res.statusText}: ${errBody}`);
+        throw new Error(`Failed to update cycle amount (${res.status}): ${errBody}`);
     }
     return res.json();
 }
