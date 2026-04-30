@@ -17,16 +17,6 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
     return headers;
 }
 
-async function fetchSubscriptionPlan(recurringPlanId: string) {
-    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}`;
-    const res = await fetch(url, { headers: getXenditHeaders() });
-    if (!res.ok) {
-        const err = await res.json();
-        throw new Error(`Failed to fetch subscription plan: ${err.message || res.statusText}`);
-    }
-    return res.json();
-}
-
 async function fetchSubscriptionCycles(recurringPlanId: string, status: string = "SCHEDULED") {
     const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles?status=${status}`;
     const res = await fetch(url, { headers: getXenditHeaders() });
@@ -370,19 +360,14 @@ export async function generateSubscriptionBillingSnapshots() {
                 if (sub.recurring_plan_id) {
                     console.log(`[BILLING CRON] Stage 9: Processing Xendit recurring_plan_id="${sub.recurring_plan_id}"`);
 
-                    // 9a: Fetch subscription plan
-                    console.log(`[BILLING CRON]   Stage 9a: Fetching subscription plan from https://api.xendit.co/v2/recurring/plans/${sub.recurring_plan_id}`);
-                    const planData = await fetchSubscriptionPlan(sub.recurring_plan_id);
-                    console.log(`[BILLING CRON]   Stage 9a: Plan status = ${planData.status}`);
-
-                    // 9b: Fetch SCHEDULED cycles
-                    console.log(`[BILLING CRON]   Stage 9b: Fetching SCHEDULED cycles...`);
+                    // 9a: Fetch SCHEDULED cycles
+                    console.log(`[BILLING CRON]   Stage 9a: Fetching SCHEDULED cycles...`);
                     const cyclesData = await fetchSubscriptionCycles(sub.recurring_plan_id, "SCHEDULED");
                     const cycles = cyclesData.data || cyclesData || [];
-                    console.log(`[BILLING CRON]   Stage 9b: Found ${cycles.length} scheduled cycle(s)`);
+                    console.log(`[BILLING CRON]   Stage 9a: Found ${cycles.length} scheduled cycle(s)`);
 
-                    // 9c: Find target cycle matching tomorrow's date
-                    console.log(`[BILLING CRON]   Stage 9c: Searching for cycle scheduled on ${tomorrowStr}...`);
+                    // 9b: Find target cycle matching tomorrow's date
+                    console.log(`[BILLING CRON]   Stage 9b: Searching for cycle scheduled on ${tomorrowStr}...`);
                     const targetCycle = cycles.find((c: any) => {
                         const scheduledDate = new Date(c.scheduled_timestamp);
                         const scheduledDateStr = scheduledDate.toISOString().split("T")[0];
@@ -391,10 +376,27 @@ export async function generateSubscriptionBillingSnapshots() {
 
                     if (targetCycle) {
                         xenditCycleId = targetCycle.id;
-                        console.log(`[BILLING CRON]   Stage 9c: Found target cycle id=${xenditCycleId}, scheduled_timestamp=${targetCycle.scheduled_timestamp}`);
+                        console.log(`[BILLING CRON]   Stage 9b: Found target cycle id=${xenditCycleId}, scheduled_timestamp=${targetCycle.scheduled_timestamp}`);
                     } else {
-                        console.log(`[BILLING CRON]   Stage 9c: No matching cycle found for ${tomorrowStr}`);
+                        console.log(`[BILLING CRON]   Stage 9b: No matching cycle found for ${tomorrowStr}`);
                     }
+
+                    // 9c: Update cycle amount
+                    if (xenditCycleId) {
+                        console.log(`[BILLING CRON]   Stage 9c: Updating cycle ${xenditCycleId} amount to ${finalCharge}...`);
+                        const updateResult = await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
+                        console.log(`[BILLING CRON]   Stage 9c: Update result:`, JSON.stringify(updateResult));
+
+                        // 9d: Simulate cycle payment (test mode only)
+                        console.log(`[BILLING CRON]   Stage 9d: Simulating cycle payment for ${xenditCycleId} with amount ${finalCharge}...`);
+                        const simResult = await simulateCyclePayment(sub.recurring_plan_id, xenditCycleId, finalCharge);
+                        console.log(`[BILLING CRON]   Stage 9d: Simulate result:`, JSON.stringify(simResult));
+                    } else {
+                        console.log(`[BILLING CRON]   Stage 9c/9d: Skipped (no xenditCycleId)`);
+                    }
+                } else {
+                    console.log(`[BILLING CRON] Stage 9: No recurring_plan_id. Skipping Xendit operations.`);
+                }
 
                     // 9d: Update cycle amount
                     if (xenditCycleId) {
