@@ -29,6 +29,8 @@ export async function GET(req: NextRequest) {
         b.billing_id,
         b.total_amount_due,
         b.due_date,
+        b.status AS billing_status,
+        b.billing_period,
         COALESCE(pc.gracePeriodDays, 0) AS grace_period_days
       FROM Billing b
       JOIN LeaseAgreement la
@@ -38,7 +40,7 @@ export async function GET(req: NextRequest) {
       JOIN PropertyConfiguration pc
         ON pc.property_id = u.property_id
       WHERE b.lease_id = ?
-        AND b.total_amount_due > 0
+        AND b.status IN ('unpaid', 'overdue')
       ORDER BY b.due_date ASC
       `,
             [agreement_id]
@@ -49,29 +51,11 @@ export async function GET(req: NextRequest) {
         }
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0); // timezone-safe
+        today.setHours(0, 0, 0, 0);
 
         const results: any[] = [];
 
-        /* ===============================
-           2️⃣ Evaluate billing status
-        =============================== */
         for (const billing of billingRows) {
-            /* ✅ SCHEMA-CORRECT payment check */
-            const [paymentRows]: any = await db.execute(
-                `
-        SELECT payment_id
-        FROM Payment
-        WHERE agreement_id = ?
-          AND payment_type = 'monthly_billing'
-          AND payment_status = 'confirmed'
-        LIMIT 1
-        `,
-                [agreement_id]
-            );
-
-            const isPaid = paymentRows.length > 0;
-
             const dueDate = new Date(billing.due_date);
             dueDate.setHours(0, 0, 0, 0);
 
@@ -80,12 +64,10 @@ export async function GET(req: NextRequest) {
             const overdueDate = new Date(dueDate);
             overdueDate.setDate(overdueDate.getDate() + graceDays);
 
-            let status: "paid" | "unpaid" | "overdue";
+            let status: "unpaid" | "overdue";
             let daysLate = 0;
 
-            if (isPaid) {
-                status = "paid";
-            } else if (today > overdueDate) {
+            if (today > overdueDate) {
                 const diffMs = today.getTime() - overdueDate.getTime();
                 daysLate = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                 status = "overdue";
@@ -97,6 +79,7 @@ export async function GET(req: NextRequest) {
                 billing_id: billing.billing_id,
                 total_due: Number(billing.total_amount_due),
                 due_date: billing.due_date,
+                billing_period: billing.billing_period,
                 grace_period_days: graceDays,
                 overdue_date: overdueDate.toISOString().split("T")[0],
                 status,
