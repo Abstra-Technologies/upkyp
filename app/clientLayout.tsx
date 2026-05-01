@@ -39,34 +39,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         return () => clearInterval(interval);
     }, [user?.user_id, admin?.admin_id]);
 
-    // ANDROID PUSH (CAPACITOR)
-    useEffect(() => {
-        const loadAndroidPush = async () => {
-            const isNativeAndroid = typeof window !== "undefined" &&
-                (window as any).Capacitor?.getPlatform?.() === "android";
-
-            if (!isNativeAndroid || !user_id) return;
-
-            const { initAndroidPush } = await import("@/utils/android/push-android");
-
-            const fcmToken = await initAndroidPush();
-
-            if (fcmToken) {
-                await fetch("/api/push/save-token", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        userId: user_id,
-                        token: fcmToken,
-                        platform: "android",
-                    }),
-                });
-            }
-        };
-
-        loadAndroidPush();
-    }, [user_id]);
-
     /* =========================================
        REAL-TIME STATUS CHECK
     ========================================= */

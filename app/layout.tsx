@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import InstallPrompt from "@/components/Commons/installPrompt";
 import Head from "next/head";
 import CookiesPermission from "@/components/Commons/setttings/cookiesPermission";
-import PushInit from "@/components/notification/pushNotifMobile";
 import GoogleTranslateProvider from "@/components/GoogleTranslateProvider";
 import "leaflet/dist/leaflet.css";
 import "leaflet-geosearch/dist/geosearch.css";
