@@ -9,6 +9,7 @@ import {
     getClientIp,
     invalidateAllUserSessions,
 } from "@/lib/auth/auth";
+import { logActivity, extractClientInfo } from "@/utils/audit-logs-fb";
 
 /* =====================================================
    CONSTANTS
@@ -16,11 +17,11 @@ import {
 const RECAPTCHA_SECRET = process.env.RECAPTCHA_SECRET_KEY!;
 const IS_PROD = process.env.NODE_ENV === "production";
 
-const DEFAULT_JWT_EXPIRY = 3600 * 2;      // 2 hours
-const REMEMBER_JWT_EXPIRY = 3600 * 24 * 7; // 7 days
+const DEFAULT_JWT_EXPIRY = 3600 * 2;
+const REMEMBER_JWT_EXPIRY = 3600 * 24 * 7;
 
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 15 * 60; // 15 minutes
+const LOCKOUT_DURATION = 15 * 60;
 
 /* =====================================================
    RATE LIMITING - Login Attempts
@@ -241,6 +242,18 @@ export async function POST(req: NextRequest) {
 
         if (!users.length) {
             await recordFailedAttempt(clientIp, email);
+            const clientInfo = extractClientInfo(req);
+            logActivity({
+                action: "Failed login - user not found",
+                description: `Login attempt with email: ${email}`,
+                ipAddress: clientInfo.ipAddress,
+                userAgent: clientInfo.userAgent,
+                deviceType: clientInfo.deviceType,
+                endpoint: "/api/auth/login",
+                httpMethod: "POST",
+                statusCode: 401,
+                isSuspicious: true,
+            }).catch(() => {});
             return new NextResponse(
                 JSON.stringify({ error: "Invalid credentials" }),
                 { status: 401, headers: { "Content-Type": "application/json", ...securityHeaders } }
@@ -282,6 +295,18 @@ export async function POST(req: NextRequest) {
 
         if (!isMatch) {
             await recordFailedAttempt(clientIp, email);
+            const clientInfo = extractClientInfo(req);
+            logActivity({
+                userId: user.user_id,
+                action: "Failed login - wrong password",
+                ipAddress: clientInfo.ipAddress,
+                userAgent: clientInfo.userAgent,
+                deviceType: clientInfo.deviceType,
+                endpoint: "/api/auth/login",
+                httpMethod: "POST",
+                statusCode: 401,
+                isSuspicious: rateCheck.remainingAttempts <= 2,
+            }).catch(() => {});
             return new NextResponse(
                 JSON.stringify({ error: "Invalid credentials" }),
                 { status: 401, headers: { "Content-Type": "application/json", ...securityHeaders } }
@@ -378,11 +403,17 @@ export async function POST(req: NextRequest) {
         await createSession(user.user_id, jti, expiry);
 
         /* ================= LOGIN LOGGING ================= */
-        db.query(
-            `INSERT INTO ActivityLog (user_id, action, ip_address, user_agent, timestamp) 
-             VALUES (?, 'User logged in', ?, ?, NOW())`,
-            [user.user_id, clientIp, req.headers.get("user-agent") ?? "unknown"]
-        ).catch(() => {});
+        const clientInfo = extractClientInfo(req);
+        logActivity({
+            userId: user.user_id,
+            action: "User logged in",
+            ipAddress: clientInfo.ipAddress,
+            userAgent: clientInfo.userAgent,
+            deviceType: clientInfo.deviceType,
+            endpoint: "/api/auth/login",
+            httpMethod: "POST",
+            statusCode: 303,
+        }).catch(() => {});
 
         db.query(
             `UPDATE User SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = ?`,

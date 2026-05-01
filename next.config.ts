@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import nextPwa from "next-pwa";
 
 const baseConfig: NextConfig = {
+  serverExternalPackages: ["firebase-admin", "@google-cloud/firestore"],
+
   env: {
     ENCRYPTION_SECRET: process.env.ENCRYPTION_SECRET,
   },
