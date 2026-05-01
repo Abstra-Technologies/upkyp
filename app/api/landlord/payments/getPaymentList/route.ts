@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 import { unstable_cache } from "next/cache";
 import crypto from "crypto";
+import { getSessionUser } from "@/lib/auth/auth";
 
 const SECRET = process.env.ENCRYPTION_SECRET!;
 
@@ -51,6 +52,7 @@ const getPaymentsCached = unstable_cache(
       SELECT
         /* ================= PAYMENT ================= */
         p.payment_id,
+        p.transaction_id,
         p.bill_id,
         p.agreement_id,
         p.payment_type,
@@ -186,12 +188,14 @@ const getPaymentsCached = unstable_cache(
                   pr.property_name LIKE ?
                   OR u.unit_name LIKE ?
                   OR p.receipt_reference LIKE ?
+                  OR p.transaction_id LIKE ?
                   OR usr.nameHashed = ?
                   OR JSON_CONTAINS(usr.nameTokens, ?)
                 )
             `;
 
             params.push(
+                `%${search}%`,
                 `%${search}%`,
                 `%${search}%`,
                 `%${search}%`,
@@ -264,22 +268,20 @@ const getPaymentsCached = unstable_cache(
 ------------------------------------------------------- */
 export async function GET(req: NextRequest) {
     try {
+        const session = await getSessionUser();
+        if (!session || session.userType !== "landlord") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const { searchParams } = new URL(req.url);
 
-        const landlordId = searchParams.get("landlord_id");
+        const landlordId = session.landlord_id;
         const propertyId = searchParams.get("property_id");
         const search = searchParams.get("search");
         const paymentType = searchParams.get("paymentType");
         const paymentStatus = searchParams.get("paymentStatus");
         const payoutStatus = searchParams.get("payoutStatus");
         const dateRange = searchParams.get("dateRange");
-
-        if (!landlordId) {
-            return NextResponse.json(
-                { error: "Missing landlord_id" },
-                { status: 400 }
-            );
-        }
 
         const result = await getPaymentsCached(
             landlordId,

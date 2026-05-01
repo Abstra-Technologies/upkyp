@@ -1,69 +1,39 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import mysql from "mysql2/promise";
+import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 import crypto from "crypto";
 
-const { XENDIT_TRANSBAL_KEY } = process.env;
+const XENDIT_SECRET = process.env.XENDIT_TEST_TRANSBAL || process.env.XENDIT_API_KEY;
 
 /**
- * 🔐 DB Connection
+ * 🔐 Fetch transaction by ID from Xendit
  */
-async function getDbConnection() {
-    console.log("[STAGE 1] Connecting to DB...");
-    const conn = await mysql.createConnection({
-        host: process.env.DB_HOST,
-        user: process.env.DB_USER,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-    });
-    console.log("[STAGE 1] DB connected");
-    return conn;
-}
+async function fetchTransactionById(transactionId: string, forUserId?: string) {
+    const headers: Record<string, string> = {
+        Authorization: "Basic " + Buffer.from(`${XENDIT_SECRET}:`).toString("base64"),
+    };
 
-/**
- * 🔐 Fetch transaction
- */
-async function fetchTransaction({
-                                    reference,
-                                    forUserId,
-                                }: {
-    reference: string;
-    forUserId: string;
-}) {
-    console.log("[XENDIT] Fetching reference:", reference);
-    console.log("[XENDIT] for-user-id:", forUserId);
+    if (forUserId) {
+        headers["for-user-id"] = forUserId;
+    }
 
     const res = await fetch(
-        `https://api.xendit.co/transactions?product_id=${reference}`,
+        `https://api.xendit.co/transactions/${transactionId}`,
         {
             method: "GET",
-            headers: {
-                Authorization:
-                    "Basic " +
-                    Buffer.from(`${XENDIT_TRANSBAL_KEY}:`).toString("base64"),
-                "for-user-id": forUserId,
-            },
+            headers,
         }
     );
 
-    const text = await res.text();
-
-    console.log("[XENDIT] Status:", res.status);
-    console.log("[XENDIT] Raw:", text.substring(0, 300));
-
     if (!res.ok) {
-        throw new Error(`Xendit error: ${res.status}`);
+        const text = await res.text();
+        console.log("[XENDIT] Error:", res.status, text.substring(0, 300));
+        return null;
     }
 
-    const parsed = JSON.parse(text);
-    const tx = parsed.data?.[0];
-
-    if (!tx) {
-        console.log("[XENDIT] No transaction found");
-        return { status: "PENDING", amount: 0, fee: {} };
-    }
-
+    const tx = await res.json();
     console.log("[XENDIT] Found TX:", tx.id, "Status:", tx.status);
 
     return {
@@ -87,45 +57,42 @@ function generateLedgerKey(paymentId: number, landlordId: string) {
  * ✅ MAIN API
  */
 export async function GET(req: NextRequest) {
-    let conn: mysql.Connection | null = null;
-
     try {
-        const { searchParams } = new URL(req.url);
-        const landlord_id = searchParams.get("landlord_id");
-
-        console.log("[STAGE 0] landlord_id:", landlord_id);
-
-        if (!landlord_id) {
-            return NextResponse.json({ message: "Missing landlord_id" }, { status: 400 });
+        const session = await getSessionUser();
+        if (!session || session.userType !== "landlord") {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        conn = await getDbConnection();
+        const landlord_id = session.landlord_id;
+        if (!landlord_id) {
+            return NextResponse.json({ error: "Missing landlord context" }, { status: 400 });
+        }
 
         /**
-         * 🔐 Get landlord
+         * 🔐 Get landlord xendit_account_id
          */
-        console.log("[STAGE 2] Fetching landlord...");
-        const [landlordRows]: any = await conn.execute(
-            `SELECT * FROM Landlord WHERE landlord_id = ?`,
+        const [landlordRows]: any = await db.query(
+            `SELECT landlord_id, xendit_account_id FROM Landlord WHERE landlord_id = ?`,
             [landlord_id]
         );
 
-        if (!landlordRows.length) throw new Error("Landlord not found");
+        if (!landlordRows.length) {
+            return NextResponse.json({ error: "Landlord not found" }, { status: 404 });
+        }
 
         const landlord = landlordRows[0];
 
-        console.log("[STAGE 2] Landlord:", landlord.landlord_id);
-        console.log("[STAGE 2] Xendit account:", landlord.xendit_account_id);
-
         /**
-         * 🔐 Get payments
+         * 🔐 Get payments pending settlement
          */
-        console.log("[STAGE 3] Fetching payments...");
-        const [payments]: any = await conn.execute(
+        const [payments]: any = await db.query(
             `
             SELECT 
                 p.payment_id,
-                p.gateway_transaction_ref
+                p.transaction_id,
+                p.gateway_transaction_ref,
+                p.gateway_settlement_status,
+                p.amount_paid
             FROM Payment p
             JOIN LeaseAgreement la ON p.agreement_id = la.agreement_id
             JOIN Unit u ON la.unit_id = u.unit_id
@@ -134,37 +101,78 @@ export async function GET(req: NextRequest) {
               AND p.payment_status = 'confirmed'
               AND (p.gateway_settlement_status IS NULL 
                    OR p.gateway_settlement_status != 'settled')
-              AND p.gateway_transaction_ref IS NOT NULL
+              AND (p.transaction_id IS NOT NULL OR p.gateway_transaction_ref IS NOT NULL)
             `,
             [landlord_id]
         );
 
-        console.log("[STAGE 3] Payments found:", payments.length);
+        console.log("[SETTLEMENT] Payments found:", payments.length);
 
         const results = [];
         let total = 0;
 
         for (const p of payments) {
             console.log("--------------------------------------------------");
-            console.log("[STAGE 4] Processing payment:", p.payment_id);
-            console.log("[STAGE 4] Reference:", p.gateway_transaction_ref);
+            console.log("[SETTLEMENT] Processing payment:", p.payment_id);
 
             try {
                 /**
-                 * 🔐 Fetch Xendit
+                 * 🔐 Check gateway_settlement_status first (skip API call if already known)
                  */
-                const tx = await fetchTransaction({
-                    reference: p.gateway_transaction_ref,
-                    forUserId: landlord.xendit_account_id,
-                });
+                if (p.gateway_settlement_status === "settled") {
+                    results.push({
+                        payment_id: p.payment_id,
+                        status: "already_settled",
+                    });
+                    continue;
+                }
 
-                console.log("[STAGE 5] Settlement status:", tx.status);
+                const idsToTry = [
+                    { source: "transaction_id", value: p.transaction_id },
+                    { source: "gateway_transaction_ref", value: p.gateway_transaction_ref },
+                ].filter(id => id.value && id.value.startsWith("txn_"));
+
+                if (idsToTry.length === 0) {
+                    console.log("[SETTLEMENT] No valid Xendit transaction ID found");
+                    results.push({
+                        payment_id: p.payment_id,
+                        status: "missing_id",
+                    });
+                    continue;
+                }
+
+                let tx = null;
+                let usedId = null;
+
+                for (const idObj of idsToTry) {
+                    console.log(`[SETTLEMENT] Trying ${idObj.source}: ${idObj.value}`);
+                    try {
+                        tx = await fetchTransactionById(idObj.value, landlord.xendit_account_id);
+                        if (tx) {
+                            usedId = idObj.value;
+                            break;
+                        }
+                    } catch (err) {
+                        console.log(`[SETTLEMENT] Failed with ${idObj.source}:`, err.message);
+                    }
+                }
+
+                if (!tx) {
+                    console.log("[SETTLEMENT] Transaction not found in Xendit with any available ID");
+                    results.push({
+                        payment_id: p.payment_id,
+                        status: "not_found",
+                    });
+                    continue;
+                }
+
+                console.log("[SETTLEMENT] Xendit status:", tx.status, "(using ID:", usedId, ")");
 
                 if (tx.status !== "SETTLED") {
-                    console.log("[STAGE 5] Not settled, skipping");
                     results.push({
                         payment_id: p.payment_id,
                         status: "pending",
+                        xendit_status: tx.status,
                     });
                     continue;
                 }
@@ -180,12 +188,9 @@ export async function GET(req: NextRequest) {
 
                 const net = Math.max(tx.amount - fees, 0);
 
-                console.log("[STAGE 6] Amount:", tx.amount);
-                console.log("[STAGE 6] Fees:", fees);
-                console.log("[STAGE 6] Net:", net);
+                console.log("[SETTLEMENT] Amount:", tx.amount, "Fees:", fees, "Net:", net);
 
                 if (net <= 0) {
-                    console.log("[STAGE 6] Invalid net amount");
                     results.push({
                         payment_id: p.payment_id,
                         status: "invalid_amount",
@@ -196,8 +201,7 @@ export async function GET(req: NextRequest) {
                 /**
                  * 🔐 Wallet
                  */
-                console.log("[STAGE 7] Fetching wallet...");
-                let [walletRows]: any = await conn.execute(
+                let [walletRows]: any = await db.query(
                     `SELECT * FROM LandlordWallet WHERE landlord_id = ?`,
                     [landlord_id]
                 );
@@ -205,8 +209,7 @@ export async function GET(req: NextRequest) {
                 let wallet = walletRows[0];
 
                 if (!wallet) {
-                    console.log("[STAGE 7] Creating wallet...");
-                    const [insert]: any = await conn.execute(
+                    const [insert]: any = await db.query(
                         `INSERT INTO LandlordWallet (landlord_id, available_balance) VALUES (?, 0)`,
                         [landlord_id]
                     );
@@ -216,17 +219,12 @@ export async function GET(req: NextRequest) {
                 const before = Number(wallet.available_balance);
                 const after = before + net;
 
-                console.log("[STAGE 7] Balance before:", before);
-                console.log("[STAGE 7] Balance after:", after);
-
                 /**
                  * 🔐 Ledger
                  */
                 const key = generateLedgerKey(p.payment_id, landlord_id);
 
-                console.log("[STAGE 8] Ledger key:", key);
-
-                await conn.execute(
+                await db.query(
                     `
                     INSERT INTO LandlordWalletLedger
                     (wallet_id, type, amount, balance_before, balance_after, reference_type, reference_id, idempotency_key)
@@ -235,7 +233,7 @@ export async function GET(req: NextRequest) {
                     [wallet.wallet_id, net, before, after, p.payment_id, key]
                 );
 
-                await conn.execute(
+                await db.query(
                     `UPDATE LandlordWallet SET available_balance = ? WHERE wallet_id = ?`,
                     [after, wallet.wallet_id]
                 );
@@ -243,8 +241,7 @@ export async function GET(req: NextRequest) {
                 /**
                  * 🔐 Update Payment
                  */
-                console.log("[STAGE 9] Updating payment...");
-                await conn.execute(
+                await db.query(
                     `
                     UPDATE Payment
                     SET 
@@ -257,8 +254,6 @@ export async function GET(req: NextRequest) {
                 );
 
                 total += net;
-
-                console.log("[STAGE 9] SUCCESS");
 
                 results.push({
                     payment_id: p.payment_id,
@@ -278,8 +273,7 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        console.log("[STAGE 10] DONE");
-        console.log("[STAGE 10] Total credited:", total);
+        console.log("[SETTLEMENT] DONE. Total credited:", total);
 
         return NextResponse.json({
             success: true,
@@ -289,8 +283,6 @@ export async function GET(req: NextRequest) {
 
     } catch (err: any) {
         console.error("[FATAL ERROR]:", err.message);
-        return NextResponse.json({ message: err.message }, { status: 500 });
-    } finally {
-        if (conn) await conn.end();
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

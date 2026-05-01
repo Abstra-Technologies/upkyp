@@ -28,16 +28,14 @@ import {
     PAYOUT_STATUS_OPTIONS,
 } from "@/constant/payments/paymentFilters";
 
-/* =========================
-   SKELETON
-========================= */
+
 const PaymentsSkeleton = () => (
     <div className="min-h-screen bg-gray-50">
-        <div className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-5 px-4 sm:px-6">
-            <div className="h-8 bg-gray-200 rounded w-60 animate-pulse mb-4" />
-            <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-5 px-3 sm:px-6">
+            <div className="h-7 sm:h-8 bg-gray-200 rounded w-48 sm:w-60 animate-pulse mb-4" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
+                    <div key={i} className="h-20 sm:h-24 bg-gray-100 rounded-xl animate-pulse" />
                 ))}
             </div>
         </div>
@@ -53,9 +51,6 @@ export default function PaymentsPage() {
     const { user, loading, fetchSession } = useAuthStore();
     const landlord_id = user?.landlord_id;
 
-    /* =========================
-       STATE
-    ========================== */
     const [search, setSearch] = useState("");
     const [paymentType, setPaymentType] = useState("all");
     const [paymentStatus, setPaymentStatus] = useState("all");
@@ -83,16 +78,10 @@ export default function PaymentsPage() {
         setRefreshKey((prev) => prev + 1);
     };
 
-    /* =========================
-       AUTH
-    ========================== */
     useEffect(() => {
         if (!user) fetchSession();
     }, [user, fetchSession]);
 
-    /* =========================
-       FETCH YEARS
-    ========================== */
     useEffect(() => {
         if (!landlord_id) return;
 
@@ -114,9 +103,6 @@ export default function PaymentsPage() {
             .catch(() => setProperties([]));
     }, [landlord_id]);
 
-    /* =========================
-       DOWNLOAD REPORT
-    ========================== */
     const handleDownload = async ({
                                       property_id,
                                       year,
@@ -134,7 +120,7 @@ export default function PaymentsPage() {
                 {
                     params: {
                         landlord_id,
-                        property_id: property_id !== "all" ? property_id : undefined,
+                        property_id: property_id,
                         year,
                         month,
                     },
@@ -173,28 +159,28 @@ export default function PaymentsPage() {
             <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white border-b border-gray-200 pt-4 sm:pt-6 pb-4 sm:pb-6 px-4 sm:px-6"
+                className="bg-white border-b border-gray-200 pt-3 sm:pt-5 pb-3 sm:pb-5 px-3 sm:px-6"
             >
                 {/* Title */}
-                <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                <div className="flex items-start gap-2.5 sm:gap-4 mb-3 sm:mb-5">
 
                     {/* Icon */}
-                    <div className="w-10 h-10 sm:w-12 sm:h-12
+                    <div className="w-9 h-9 sm:w-12 sm:h-12
                     bg-gradient-to-br from-blue-500 to-emerald-500
                     rounded-lg sm:rounded-xl
                     flex items-center justify-center
                     shadow-md sm:shadow-lg
                     flex-shrink-0">
-                        <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                        <CreditCard className="w-4.5 h-4.5 sm:w-6 sm:h-6 text-white" />
                     </div>
 
                     {/* Text Content */}
                     <div className="min-w-0">
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+                        <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
                             Payment Transactions
                         </h1>
 
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                        <p className="text-[11px] sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
                             Track rent collections, fees, and payout status
                         </p>
                     </div>
@@ -202,22 +188,22 @@ export default function PaymentsPage() {
                 </div>
 
                 {/* SUMMARY */}
-                <div className="mb-6 space-y-4">
+                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
                     <PaymentSummaryGrid landlord_id={landlord_id} />
 
-                    <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
                         <button
                             onClick={() => setOpenReportModal(true)}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50"
+                            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-white border border-gray-200 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50"
                         >
-                            <Download className="w-4 h-4 text-emerald-600" />
-                            Download Report
+                            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
+                            <span className="truncate">Report</span>
                         </button>
 
                         <Link href="/landlord/payouts">
-                            <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-blue-600 text-white text-sm font-semibold shadow-md hover:scale-95 transition">
-                                <Wallet className="w-4 h-4" />
-                                View Payouts
+                            <button className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-500 to-blue-600 text-white text-xs sm:text-sm font-semibold shadow-md hover:scale-95 transition w-full">
+                                <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                <span className="truncate">Payouts</span>
                             </button>
                         </Link>
                     </div>
@@ -228,11 +214,11 @@ export default function PaymentsPage() {
                 {/* Mobile Filter Toggle */}
                 <button
                     onClick={() => setShowFilters(!showFilters)}
-                    className="sm:hidden flex items-center justify-center gap-2 w-full py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 mb-3"
+                    className="sm:hidden flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 mb-2"
                 >
-                    <SlidersHorizontal className="w-4 h-4" />
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
                     {showFilters ? "Hide Filters" : "Show Filters"}
-                    {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                 </button>
 
                 {/* Filter Section - Desktop always visible, Mobile collapsible */}
@@ -246,7 +232,7 @@ export default function PaymentsPage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search tenant, property, reference"
-                            className="w-full pl-9 sm:pl-11 pr-4 py-2.5 sm:py-3
+                            className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-2.5
                        border border-gray-200 rounded-lg sm:rounded-xl
                        bg-gray-50 focus:bg-white
                        focus:ring-2 focus:ring-blue-500/20
@@ -263,7 +249,7 @@ export default function PaymentsPage() {
                                 value={paymentType}
                                 onChange={(e) => setPaymentType(e.target.value)}
                                 className="w-full appearance-none
-                           pl-9 pr-8 py-2.5 sm:py-3
+                           pl-9 pr-8 py-2 sm:py-2.5
                            border border-gray-200 rounded-lg sm:rounded-xl
                            bg-gray-50 text-xs sm:text-sm"
                             >
@@ -281,7 +267,7 @@ export default function PaymentsPage() {
                                 value={paymentStatus}
                                 onChange={(e) => setPaymentStatus(e.target.value)}
                                 className="w-full appearance-none
-                           px-4 py-2.5 sm:py-3
+                           px-3 py-2 sm:py-2.5
                            border border-gray-200 rounded-lg sm:rounded-xl
                            bg-gray-50 text-xs sm:text-sm"
                             >
@@ -299,7 +285,7 @@ export default function PaymentsPage() {
                                 value={payoutStatus}
                                 onChange={(e) => setPayoutStatus(e.target.value)}
                                 className="w-full appearance-none
-                           px-4 py-2.5 sm:py-3
+                           px-3 py-2 sm:py-2.5
                            border border-gray-200 rounded-lg sm:rounded-xl
                            bg-gray-50 text-xs sm:text-sm"
                             >
@@ -318,7 +304,7 @@ export default function PaymentsPage() {
                                 value={dateRange}
                                 onChange={(e) => setDateRange(e.target.value)}
                                 className="w-full appearance-none
-                           pl-9 pr-8 py-2.5 sm:py-3
+                           pl-9 pr-8 py-2 sm:py-2.5
                            border border-gray-200 rounded-lg sm:rounded-xl
                            bg-gray-50 text-xs sm:text-sm"
                             >
@@ -355,7 +341,7 @@ export default function PaymentsPage() {
                                         setDateRange(`range:${e.target.value}:${customTo}`);
                                     }
                                 }}
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
+                                className="w-full px-2.5 py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs"
                             />
                             <span className="hidden sm:inline text-gray-400 text-xs">to</span>
                             <input
@@ -367,7 +353,7 @@ export default function PaymentsPage() {
                                         setDateRange(`range:${customFrom}:${e.target.value}`);
                                     }
                                 }}
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-xs"
+                                className="w-full px-2.5 py-2 border border-gray-200 rounded-lg bg-gray-50 text-xs"
                             />
                         </div>
 
@@ -379,7 +365,7 @@ export default function PaymentsPage() {
                                     if (val) setDateRange(`month:${new Date().getFullYear()}:${val}`);
                                 }}
                                 className="w-full appearance-none
-                           px-4 py-2.5 sm:py-3
+                           px-3 py-2 sm:py-2.5
                            border border-gray-200 rounded-lg sm:rounded-xl
                            bg-gray-50 text-xs sm:text-sm"
                             >
@@ -402,9 +388,9 @@ export default function PaymentsPage() {
                         {/* Clear Filters */}
                         <button
                             onClick={clearFilters}
-                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
+                            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
                         >
-                            <RotateCcw className="w-4 h-4" />
+                            <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             Clear
                         </button>
                     </div>
@@ -413,11 +399,11 @@ export default function PaymentsPage() {
             </motion.div>
 
             {/* ================= TABLE ================= */}
-            <div className="px-6 pt-6 pb-24">
+            <div className="px-3 sm:px-6 pt-3 sm:pt-6 pb-20 sm:pb-24">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
+                    className="bg-white border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm"
                 >
                     <PaymentList
                         landlord_id={landlord_id}

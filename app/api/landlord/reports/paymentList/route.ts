@@ -2,16 +2,22 @@ import { NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/utils/formatter/formatters";
+import { getSessionUser } from "@/lib/auth/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
+    const session = await getSessionUser();
+    if (!session || session.userType !== "landlord") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const landlord_id = session.landlord_id;
     const { searchParams } = new URL(req.url);
 
-    const landlord_id = searchParams.get("landlord_id");
     const property_id = searchParams.get("property_id");
     const year = searchParams.get("year");
-    const month = searchParams.get("month"); // 01–12
+    const month = searchParams.get("month");
 
     console.log('property id: ', property_id);
     console.log('year: ', year);
@@ -30,6 +36,7 @@ export async function GET(req: Request) {
     let query = `
     SELECT 
       p.payment_id, 
+      p.transaction_id,
       pr.property_name, 
       p.payment_type, 
       p.amount_paid, 

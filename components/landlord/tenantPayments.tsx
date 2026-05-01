@@ -85,10 +85,10 @@ export default function PaymentList({
         setIsCheckingSettlement(true);
         setSettlementMessage(null);
         try {
-            const res = await axios.get(`/api/landlord/payments/checkSettlement?landlord_id=${landlord_id}`);
-            const transferred = res.data.results?.filter((r: any) => r.status === "transferred").length || 0;
+            const res = await axios.get("/api/landlord/payments/checkSettlement");
+            const transferred = res.data.results?.filter((r: any) => r.status === "settled").length || 0;
             const pending = res.data.results?.filter((r: any) => r.status === "pending").length || 0;
-            setSettlementMessage(`Checked: ${transferred} transferred, ${pending} pending settlement`);
+            setSettlementMessage(`Checked: ${transferred} settled, ${pending} pending`);
         } catch (err: any) {
             setSettlementMessage("Error checking settlement");
         } finally {
@@ -127,14 +127,14 @@ export default function PaymentList({
         return (
             <div className="divide-y divide-gray-100">
                 {[...Array(6)].map((_, i) => (
-                    <div key={i} className="p-5 animate-pulse">
-                        <div className="flex gap-4 items-center">
-                            <div className="w-10 h-10 bg-gray-200 rounded-xl" />
+                    <div key={i} className="p-3 sm:p-5 animate-pulse">
+                        <div className="flex gap-3 sm:gap-4 items-center">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-xl" />
                             <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                                <div className="h-3.5 sm:h-4 bg-gray-200 rounded w-3/4" />
                                 <div className="h-3 bg-gray-100 rounded w-1/2" />
                             </div>
-                            <div className="h-6 w-20 bg-gray-200 rounded-lg" />
+                            <div className="h-5 sm:h-6 w-16 sm:w-20 bg-gray-200 rounded-lg" />
                         </div>
                     </div>
                 ))}
@@ -147,12 +147,12 @@ export default function PaymentList({
     ========================== */
     if (error) {
         return (
-            <div className="p-12 text-center">
-                <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <AlertCircle className="w-8 h-8 text-red-500" />
+            <div className="p-8 sm:p-12 text-center">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <AlertCircle className="w-6 h-6 sm:w-8 sm:h-8 text-red-500" />
                 </div>
-                <p className="font-semibold text-gray-900 mb-1">Something went wrong</p>
-                <p className="text-sm text-red-500">{(error as Error).message}</p>
+                <p className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">Something went wrong</p>
+                <p className="text-xs sm:text-sm text-red-500">{(error as Error).message}</p>
             </div>
         );
     }
@@ -162,14 +162,14 @@ export default function PaymentList({
     ========================== */
     if (!payments.length) {
         return (
-            <div className="p-12 text-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-                    <Inbox className="w-10 h-10 text-blue-600" />
+            <div className="p-8 sm:p-12 text-center">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-5">
+                    <Inbox className="w-8 h-8 sm:w-10 sm:h-10 text-blue-600" />
                 </div>
-                <h3 className="font-bold text-gray-900 text-xl mb-2">
+                <h3 className="font-bold text-gray-900 text-lg sm:text-xl mb-2">
                     No payment records found
                 </h3>
-                <p className="text-gray-600 max-w-sm mx-auto">
+                <p className="text-sm text-gray-600 max-w-sm mx-auto px-4">
                     Try adjusting your filters or check back later
                 </p>
             </div>
@@ -179,26 +179,26 @@ export default function PaymentList({
     return (
         <>
             {/* Settlement Check Button */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-2 px-3 sm:px-6 pt-3 sm:pt-4 mb-2 sm:mb-4">
                 <button
                     onClick={checkSettlement}
                     disabled={isCheckingSettlement}
-                    className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 disabled:opacity-50 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-blue-600 disabled:opacity-50 transition-colors"
                 >
-                    <RefreshCw className={`w-4 h-4 ${isCheckingSettlement ? "animate-spin" : ""}`} />
-                    {isCheckingSettlement ? "Checking..." : "Check Settlement"}
+                    <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isCheckingSettlement ? "animate-spin" : ""}`} />
+                    <span className="truncate">{isCheckingSettlement ? "Checking..." : "Check Settlement"}</span>
                 </button>
                 <button
                     onClick={() => setShowInfoModal(true)}
-                    className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                    className="inline-flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 bg-blue-50 border border-blue-200 rounded-lg text-xs sm:text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                 >
-                    <Info className="w-4 h-4" />
+                    <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     <span className="hidden sm:inline">Payment Info</span>
                 </button>
                 {settlementMessage && (
-                    <span className="flex items-center gap-2 text-sm text-emerald-600">
-                        <CheckCircle className="w-4 h-4" />
-                        {settlementMessage}
+                    <span className="flex items-center gap-1.5 text-xs sm:text-sm text-emerald-600 w-full sm:w-auto">
+                        <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                        <span className="truncate">{settlementMessage}</span>
                     </span>
                 )}
             </div>
@@ -236,9 +236,9 @@ export default function PaymentList({
                                 <p className="text-gray-700 font-medium">
                                     {new Date(payment.payment_date).toLocaleDateString()}
                                 </p>
-                                {/*<p className="text-[11px] text-gray-400">*/}
-                                {/*   {payment.created_at}*/}
-                                {/*</p>*/}
+                                <p className="text-[11px] text-gray-400 font-mono truncate max-w-[120px]" title={payment.transaction_id}>
+                                    {payment.transaction_id || "—"}
+                                </p>
                             </div>
 
 
@@ -266,7 +266,7 @@ export default function PaymentList({
 
                             {/* Net Amount (Landlord Receives) */}
                             <div className="text-right font-bold text-emerald-600">
-                                {formatCurrency(payment.net_amount || payment.amount_paid)}
+                                {formatCurrency(payment.net_amount)}
                                 <p className="text-[11px] text-gray-400 font-normal">
                                     After Fees
                                 </p>
@@ -304,23 +304,26 @@ export default function PaymentList({
                     <motion.div
                         key={payment.payment_id}
                         variants={fadeInUp}
-                        className="py-3 px-4"
+                        className="py-3 px-3 sm:px-4 active:bg-gray-50 transition-colors"
                     >
                         {/* Top Row */}
-                        <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-start justify-between gap-2.5">
 
                             {/* Left */}
-                            <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
+                            <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                                <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
                                     <Receipt className="w-4 h-4 text-blue-600" />
                                 </div>
 
-                                <div className="min-w-0">
+                                <div className="min-w-0 flex-1">
                                     <p className="text-sm font-semibold text-gray-900 truncate">
                                         {payment.tenant_name || "—"}
                                     </p>
                                     <p className="text-[11px] text-gray-500 truncate">
                                         {payment.property_name} • {payment.unit_name}
+                                    </p>
+                                    <p className="text-[10px] text-gray-400 font-mono truncate mt-0.5">
+                                        {payment.transaction_id || "—"}
                                     </p>
                                 </div>
                             </div>
@@ -337,12 +340,12 @@ export default function PaymentList({
                         </div>
 
                         {/* Bottom Row */}
-                        <div className="mt-2 flex items-center justify-between">
+                        <div className="mt-2.5 flex items-center justify-between">
                             <StatusBadge status={payment.payment_status} />
 
                             <button
                                 onClick={() => openDetails(payment)}
-                                className="text-xs text-blue-600 font-semibold flex items-center gap-1"
+                                className="text-xs text-blue-600 font-semibold flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-blue-50 active:bg-blue-100 transition-colors"
                             >
                                 Details
                                 <ArrowRight className="w-3 h-3" />
@@ -363,18 +366,18 @@ export default function PaymentList({
 
             {/* Settlement Info Modal */}
             {showInfoModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
                     <div 
                         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                         onClick={() => setShowInfoModal(false)}
                     />
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-hidden"
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        className="relative w-full sm:max-w-lg bg-white sm:rounded-2xl rounded-t-2xl shadow-xl max-h-[85vh] sm:max-h-[90vh] overflow-hidden"
                     >
                         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
-                            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
+                            <h2 className="text-base sm:text-xl font-bold text-gray-900">
                                 Payment Breakdown
                             </h2>
                             <button
@@ -385,78 +388,78 @@ export default function PaymentList({
                             </button>
                         </div>
 
-                        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(85vh-60px)] sm:max-h-[calc(90vh-80px)]">
                             {/* Settlement Info */}
-                            <div className="mb-6">
-                                <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                                    <Clock className="w-4 h-4 text-blue-600" />
+                            <div className="mb-4 sm:mb-6">
+                                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-1.5 sm:mb-2 flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
                                     What is Settlement?
                                 </h3>
-                                <p className="text-sm text-gray-600 leading-relaxed">
+                                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                                     Settlement is when Xendit confirms the payment has been successfully processed and funds are available for transfer. Once settled, the net amount (after fees) will be transferred to your account.
                                 </p>
                             </div>
 
                             {/* Payment Parts Table */}
                             <div>
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <Receipt className="w-4 h-4 text-emerald-600" />
+                                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
+                                    <Receipt className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
                                     Payment Parts
                                 </h3>
-                                <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+                                <div className="bg-gray-50 rounded-xl p-3 sm:p-4 space-y-2 sm:space-y-3">
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                            <span className="text-sm text-gray-700">Gross Amount</span>
+                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-blue-500" />
+                                            <span className="text-xs sm:text-sm text-gray-700">Gross Amount</span>
                                         </div>
-                                        <span className="text-sm font-medium text-gray-900">Amount tenant paid</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-900">Amount tenant paid</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-red-500" />
-                                            <span className="text-sm text-gray-700">Gateway Fee</span>
+                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-500" />
+                                            <span className="text-xs sm:text-sm text-gray-700">Gateway Fee</span>
                                         </div>
-                                        <span className="text-sm font-medium text-gray-900">Xendit processing fee</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-900">Xendit processing fee</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-orange-500" />
-                                            <span className="text-sm text-gray-700">VAT</span>
+                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-orange-500" />
+                                            <span className="text-xs sm:text-sm text-gray-700">VAT</span>
                                         </div>
-                                        <span className="text-sm font-medium text-gray-900">Value-added tax on fee</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-900">Value-added tax on fee</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-purple-500" />
-                                            <span className="text-sm text-gray-700">Withholding Tax</span>
+                                            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-purple-500" />
+                                            <span className="text-xs sm:text-sm text-gray-700">Withholding Tax</span>
                                         </div>
-                                        <span className="text-sm font-medium text-gray-900">Tax deducted by Xendit</span>
+                                        <span className="text-xs sm:text-sm font-medium text-gray-900">Tax deducted by Xendit</span>
                                     </div>
-                                    <div className="border-t border-gray-200 pt-3 mt-3">
+                                    <div className="border-t border-gray-200 pt-2 sm:pt-3 mt-2 sm:mt-3">
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                                <span className="text-sm font-semibold text-gray-900">Net Amount</span>
+                                                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500" />
+                                                <span className="text-xs sm:text-sm font-semibold text-gray-900">Net Amount</span>
                                             </div>
-                                            <span className="text-sm font-bold text-emerald-600">Amount you receive</span>
+                                            <span className="text-xs sm:text-sm font-bold text-emerald-600">Amount you receive</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Settlement Status */}
-                            <div className="mt-6">
-                                <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                                    <CheckCircle className="w-4 h-4 text-amber-600" />
+                            <div className="mt-4 sm:mt-6">
+                                <h3 className="text-xs sm:text-sm font-semibold text-gray-900 mb-2 sm:mb-3 flex items-center gap-2">
+                                    <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
                                     Settlement Status
                                 </h3>
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                        <span className="block text-xs text-amber-600 font-medium">Pending</span>
+                                <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 sm:p-3">
+                                        <span className="block text-[10px] sm:text-xs text-amber-600 font-medium">Pending</span>
                                         <span className="text-amber-800">Awaiting settlement</span>
                                     </div>
-                                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-                                        <span className="block text-xs text-emerald-600 font-medium">Settled</span>
+                                    <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 sm:p-3">
+                                        <span className="block text-[10px] sm:text-xs text-emerald-600 font-medium">Settled</span>
                                         <span className="text-emerald-800">Ready for transfer</span>
                                     </div>
                                 </div>
