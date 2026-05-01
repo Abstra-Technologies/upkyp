@@ -3,6 +3,7 @@
   <component name="DataSourcePerFileMappings">
     <file url="file://$PROJECT_DIR$/app/api/analytics/landlord/getMaintenanceStatuses/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/analytics/landlord/getRevenuePerformance/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/api/cron/subaccount_transaction/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/[landlord_id]/subscription/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/payments/years/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/subscription/active/[landlord_id]/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
@@ -20,6 +21,7 @@
     <file url="file://$PROJECT_DIR$/app/schemas/full_subscriptionbilling.sql" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/schemas/property.sql" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/lib/auth/auth.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/utils/cronjobs/subaccountTransactions.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/utils/cronjobs/subscriptionBilling.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/utils/generateXenditAccountId.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
   </component>
