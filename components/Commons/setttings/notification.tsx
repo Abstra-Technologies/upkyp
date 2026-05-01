@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Capacitor } from "@capacitor/core";
 
 /* ===============================
    HELPERS
@@ -24,16 +23,6 @@ export default function NotificationManager({ user_id }: NotificationManagerProp
     const [active, setActive] = useState(false);
     const [loading, setLoading] = useState(true);
     const [platform, setPlatform] = useState<"web" | "android" | "ios">("web");
-
-    /* ===============================
-       PLATFORM DETECTION
-    ================================ */
-    useEffect(() => {
-        const p = Capacitor.getPlatform();
-        if (p === "android") setPlatform("android");
-        else if (p === "ios") setPlatform("ios");
-        else setPlatform("web");
-    }, []);
 
     /* ===============================
        LOAD CURRENT STATUS
