@@ -57,18 +57,6 @@ const baseConfig: NextConfig = {
             value: "max-age=63072000; includeSubDomains; preload",
           },
           {
-            key: "Cross-Origin-Opener-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "Cross-Origin-Resource-Policy",
-            value: "same-origin",
-          },
-          {
-            key: "Cross-Origin-Embedder-Policy",
-            value: "require-corp",
-          },
-          {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
@@ -83,7 +71,7 @@ const baseConfig: NextConfig = {
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
-              "upgrade-insecure-requests",
+              ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
             ].join("; "),
           },
         ],

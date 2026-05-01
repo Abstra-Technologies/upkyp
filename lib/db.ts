@@ -22,8 +22,6 @@ const basePoolConfig: mysql.PoolOptions = {
 
     // Timeouts
     connectTimeout: 10_000,
-    acquireTimeout: 10_000,
-    timeout: 60_000,
 
     // Keep alive improves stability
     enableKeepAlive: true,
