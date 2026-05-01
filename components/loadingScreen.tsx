@@ -4,21 +4,10 @@ import { motion } from "framer-motion";
 
 const LoadingScreen = ({ message = "Loading…" }) => {
     return (
-        <motion.div
-            className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-white"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-        >
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden bg-white">
 
             {/* CENTER CONTENT */}
-            <motion.div
-                className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
-            >
+            <div className="relative z-10 flex flex-col items-center text-center px-4 sm:px-6">
 
                 {/* LOGO */}
                 <motion.div
@@ -33,7 +22,7 @@ const LoadingScreen = ({ message = "Loading…" }) => {
                         ease: "easeInOut",
                     }}
                 >
-                    <motion.img
+                    <img
                         src="/upkeep_blue.png"
                         alt="Upkyp"
                         className="
@@ -42,9 +31,6 @@ const LoadingScreen = ({ message = "Loading…" }) => {
               object-contain
               drop-shadow-[0_4px_12px_rgba(0,0,0,0.12)]
             "
-                        initial={{ rotate: -10, opacity: 0 }}
-                        animate={{ rotate: 0, opacity: 1 }}
-                        transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
                     />
 
                     {/* HALO (SOFT, NOT FLASHY) */}
@@ -54,7 +40,6 @@ const LoadingScreen = ({ message = "Loading…" }) => {
                         animate={{
                             opacity: [0.15, 0.28, 0.15],
                             scale: [1, 1.18, 1],
-                            rotate: [0, 90, 0],
                         }}
                         transition={{
                             duration: 3.5,
@@ -65,23 +50,14 @@ const LoadingScreen = ({ message = "Loading…" }) => {
                 </motion.div>
 
                 {/* BRAND */}
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                >
+                <div>
                     <h1 className="text-xl sm:text-2xl md:text-3xl typographica font-semibold text-gray-900 tracking-tight mb-2 sm:mb-4">
                         Upkyp
-                        <motion.span
-                            className="block mt-0.5 text-xs sm:text-sm md:text-base font-medium text-gray-500"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                        >
+                        <span className="block mt-0.5 text-xs sm:text-sm md:text-base font-medium text-gray-500">
                             Connect More. Manage Less.
-                        </motion.span>
+                        </span>
                     </h1>
-                </motion.div>
+                </div>
 
                 {/* LOADING DOTS */}
                 <div className="flex gap-1.5 mt-3 sm:mt-4">
@@ -111,15 +87,10 @@ const LoadingScreen = ({ message = "Loading…" }) => {
                 >
                     {message}
                 </motion.p>
-            </motion.div>
+            </div>
 
             {/* FOOTER BRANDING */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-                className="absolute bottom-4 sm:bottom-6 z-10 flex flex-col items-center gap-1 px-4"
-            >
+            <div className="absolute bottom-4 sm:bottom-6 z-10 flex flex-col items-center gap-1 px-4">
                 <img
                     src="https://res.cloudinary.com/dptmeluy0/image/upload/v1764504569/abstra_dark_rvu7id.png"
                     alt="Abstra Technologies"
@@ -128,8 +99,8 @@ const LoadingScreen = ({ message = "Loading…" }) => {
                 <p className="text-[9px] sm:text-[11px] text-gray-400 font-medium">
                     Property Management Platform
                 </p>
-            </motion.div>
-        </motion.div>
+            </div>
+        </div>
     );
 };
 
