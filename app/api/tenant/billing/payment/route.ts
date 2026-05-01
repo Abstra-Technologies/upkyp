@@ -1,17 +1,9 @@
-/* -------------------------------------------------------------------------- */
-/* PAYMENT GATEWAY INITIALIZATION ON XENDIT (SUBACCOUNT REQUIRED BUILD)     */
-/* -------------------------------------------------------------------------- */
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import crypto from "crypto";
-
-/* -------------------------------------------------------------------------- */
-/* Environment                                                                */
-/* -------------------------------------------------------------------------- */
 
 const {
     DB_HOST,
@@ -21,19 +13,11 @@ const {
     XENDIT_TEXT_SECRET_KEY,
 } = process.env;
 
-console.log('XENDIT KEY', XENDIT_TEXT_SECRET_KEY);
-
 const XENDIT_API_URL = "https://api.xendit.co/v2/invoices";
 const CURRENCY = "PHP";
 
-/* -------------------------------------------------------------------------- */
-/* Debug Logger                                                               */
-/* -------------------------------------------------------------------------- */
-
 function debug(label: string, data?: any) {
-    console.log(`\n=========== XENDIT DEBUG :: ${label} ===========`);
     if (data) console.log(JSON.stringify(data, null, 2));
-    console.log("================================================\n");
 }
 
 function httpError(status: number, message: string, extra?: any) {
@@ -61,26 +45,17 @@ function formatBillingPeriod(date: string | Date) {
     });
 }
 
-/* -------------------------------------------------------------------------- */
-/* POST: CREATE INVOICE                                                       */
-/* -------------------------------------------------------------------------- */
-
 export async function POST(req: NextRequest) {
     let conn: mysql.Connection | null = null;
 
     try {
-        debug("REQUEST RECEIVED");
-
         const body = await req.json();
-        debug("REQUEST BODY", body);
 
         const {
             amount,
             billing_id,
             redirectUrl,
         } = body;
-
-        /* ---------------- VALIDATION ---------------- */
 
         if (!amount || !billing_id) {
             return httpError(400, "Missing required fields.");
@@ -93,8 +68,6 @@ export async function POST(req: NextRequest) {
         if (!XENDIT_TEXT_SECRET_KEY) {
             return httpError(500, "Xendit secret key not configured.");
         }
-
-        /* ---------------- DATABASE ---------------- */
 
         conn = await getDbConnection();
 
@@ -120,8 +93,6 @@ export async function POST(req: NextRequest) {
             [billing_id]
         );
 
-        debug("BILLING QUERY RESULT", rows);
-
         if (!rows.length) {
             return httpError(404, "Billing not found.");
         }
@@ -131,10 +102,6 @@ export async function POST(req: NextRequest) {
         if (!billing.xendit_account_id) {
             return httpError(400, "Landlord subaccount not configured.");
         }
-
-        debug("XENDIT ACCOYNT ID LANDLORD: ", billing.xendit_account_id);
-
-        /* ---------------- CUSTOMER ---------------- */
 
         const [leaseRows]: any = await conn.execute(
             `SELECT xendit_customer_id FROM LeaseAgreement WHERE agreement_id = ? LIMIT 1`,
@@ -147,25 +114,16 @@ export async function POST(req: NextRequest) {
             return httpError(400, "Tenant Xendit customer not found.");
         }
 
-        /* ---------------- IDEMPOTENCY ---------------- */
-
         const idempotencyKey = crypto
             .createHash("sha256")
             .update(`billing-${billing.billing_id}`)
             .digest("hex");
-
-        debug("IDEMPOTENCY KEY", idempotencyKey);
-
-        /* ---------------- REDIRECTS ---------------- */
 
         const successRedirectUrl =
             `${redirectUrl.success}?billing_id=${billing.billing_id}`;
 
         const failureRedirectUrl =
             `${redirectUrl.failure}?billing_id=${billing.billing_id}`;
-
-
-        /* ---------------- PAYLOAD ---------------- */
 
         const invoicePayload = {
             external_id: `billing-${billing.billing_id}`,
@@ -180,10 +138,6 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
             failure_redirect_url: failureRedirectUrl,
         };
 
-        console.log('LANDLORD XEDNIT ACCOUNT: ', billing.xendit_account_id);
-
-        /* ---------------- HEADERS ---------------- */
-
         const headers: Record<string, string> = {
             "Content-Type": "application/json",
             Authorization:
@@ -192,8 +146,6 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
             "Idempotency-Key": idempotencyKey,
             "for-user-id": billing.xendit_account_id,
         };
-
-        /* ---------------- CALL XENDIT ---------------- */
 
         const response = await fetch(XENDIT_API_URL, {
             method: "POST",
@@ -210,9 +162,6 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
             responseData = rawText;
         }
 
-        debug("XENDIT RESPONSE STATUS", response.status);
-        debug("XENDIT RESPONSE BODY", responseData);
-
         if (!response.ok) {
             return httpError(
                 response.status,
@@ -220,8 +169,6 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
                 responseData
             );
         }
-
-        debug("INVOICE CREATED SUCCESSFULLY");
 
         return NextResponse.json({
             success: true,
@@ -232,11 +179,8 @@ Billing Period: ${formatBillingPeriod(billing.billing_period)}`,
         });
 
     } catch (err: any) {
-        debug("FATAL ERROR", err?.stack || err?.message);
-
         return httpError(500, "Payment initialization failed.", err?.message);
     } finally {
         if (conn) await conn.end().catch(() => {});
-        debug("REQUEST COMPLETED");
     }
 }
