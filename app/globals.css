@@ -22,40 +22,14 @@
   }
 }
 
-@font-face {
-    font-family: "League Spartan";
-  src: url("../public/fonts/typographica.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-
-
-.typographica {
-  font-family: "Typographica", sans-serif;
-}
-
-@font-face {
-    font-family: "Typographica";
-    src: url("../public/fonts/league-spartan.bold.otf") format("opentype");
-    font-weight: 300;
-    font-style: normal;
-}
-
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ===================================
-   CUSTOM COMPONENT CLASSES
-   =================================== */
 
 @layer components {
-  /* ===================================
-     PAGE LAYOUT COMPONENTS
-     =================================== */
-
   /* Main content wrapper with sidebar offset */
   .page-content-wrapper {
     @apply flex-1 md:ml-64;
