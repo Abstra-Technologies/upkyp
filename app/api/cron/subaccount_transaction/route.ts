@@ -3,8 +3,8 @@ import { syncSubaccountTransactions } from "@/utils/cronjobs/subaccountTransacti
 
 export const POST = verifySignatureAppRouter(async (request: Request) => {
     try {
-        const inserted = await syncSubaccountTransactions();
-        return new Response(JSON.stringify({ ok: true, message: `Inserted ${inserted} transactions` }), { status: 200 });
+        const result = await syncSubaccountTransactions();
+        return new Response(JSON.stringify({ ok: true, message: `Inserted ${result.inserted}, Updated ${result.updated} transactions` }), { status: 200 });
     } catch (error: unknown) {
         console.error("SUBACCOUNT TRANSACTION CRON ERROR:", error);
         return new Response(
