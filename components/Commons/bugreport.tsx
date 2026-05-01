@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { bugTypes } from "../../constant/bugTypes"; // Import the bugTypes constant
+import { bugTypes } from "@/constant/bugTypes";
 
 export default function BugReportForm({ user_id }: { user_id: string }) {
   const [bugType, setBugType] = useState("");
