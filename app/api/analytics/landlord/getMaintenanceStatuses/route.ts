@@ -46,7 +46,6 @@ export async function GET(req: Request) {
                     counts[status] = Number(row.count);
                 }
             });
-            console.log('mantence counts: ', counts);
 
             return counts;
 
