@@ -17,8 +17,8 @@ function getXenditHeaders(idempotencyKey?: string): Record<string, string> {
     return headers;
 }
 
-async function fetchSubscriptionCycles(recurringPlanId: string, status: string = "SCHEDULED") {
-    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles?status=${status}`;
+async function fetchSubscriptionCycles(recurringPlanId: string): Promise<any[]> {
+    const url = `https://api.xendit.co/recurring/plans/${recurringPlanId}/cycles`;
     console.log(`[XENDIT] GET ${url}`);
     const res = await fetch(url, { headers: getXenditHeaders() });
     if (!res.ok) {
@@ -26,11 +26,12 @@ async function fetchSubscriptionCycles(recurringPlanId: string, status: string =
         console.error(`[XENDIT] ${res.status} ${res.statusText}: ${errBody}`);
         throw new Error(`Failed to fetch subscription cycles (${res.status}): ${errBody}`);
     }
-    return res.json();
+    const result = await res.json();
+    return result.data || [];
 }
 
 async function simulateCyclePayment(recurringPlanId: string, cycleId: string, amount: number) {
-    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}/simulate`;
+    const url = `https://api.xendit.co/recurring/plans/${recurringPlanId}/cycles/${cycleId}/simulate`;
     console.log(`[XENDIT] POST ${url}`);
     const res = await fetch(url, {
         method: "POST",
@@ -46,12 +47,12 @@ async function simulateCyclePayment(recurringPlanId: string, cycleId: string, am
 }
 
 async function updateCycleAmount(recurringPlanId: string, cycleId: string, amount: number) {
-    const url = `https://api.xendit.co/v2/recurring/plans/${recurringPlanId}/cycles/${cycleId}`;
+    const url = `https://api.xendit.co/recurring/plans/${recurringPlanId}/cycles/${cycleId}`;
     console.log(`[XENDIT] PATCH ${url}`);
     const res = await fetch(url, {
         method: "PATCH",
         headers: getXenditHeaders(`update-cycle-${cycleId}-${Date.now()}`),
-        body: JSON.stringify({ amount, currency: "PHP" }),
+        body: JSON.stringify({ amount }),
     });
     if (!res.ok) {
         const errBody = await res.text();
@@ -240,14 +241,12 @@ async function sendBillingEmail(email: string, landlordName: string, billingMont
 export async function generateSubscriptionBillingSnapshots() {
     console.log("[BILLING CRON] ========== START ==========");
     try {
-        // STAGE 1: Calculate target anchor date (tomorrow)
         const tomorrow = new Date();
         tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
         tomorrow.setUTCHours(0, 0, 0, 0);
         const tomorrowStr = tomorrow.toISOString().split("T")[0];
         console.log(`[BILLING CRON] Stage 1: Target anchor date = ${tomorrowStr}`);
 
-        // STAGE 2: Fetch active subscriptions due tomorrow
         const [activeSubscriptions]: any = await db.execute(`
             SELECT
                 s.subscription_id,
@@ -271,7 +270,6 @@ export async function generateSubscriptionBillingSnapshots() {
             return 0;
         }
 
-        // STAGE 3: Prepare billing month context
         const billingMonth = new Date();
         billingMonth.setDate(1);
         billingMonth.setHours(0, 0, 0, 0);
@@ -286,10 +284,8 @@ export async function generateSubscriptionBillingSnapshots() {
             console.log(`[BILLING CRON]   Plan: ${sub.plan_name}, Base Price: ${sub.base_price}, recurring_plan_id: "${sub.recurring_plan_id}"`);
 
             let connection: any = null;
-            let txSuccess = false;
 
             try {
-                // STAGE 4: Check for existing snapshot
                 const [existingSnapshot]: any = await db.execute(
                     `SELECT snapshot_id FROM SubscriptionMonthlyBillingSnapshot 
                      WHERE subscription_id = ? AND billing_month = ?`,
@@ -302,7 +298,6 @@ export async function generateSubscriptionBillingSnapshots() {
                 }
                 console.log(`[BILLING CRON] Stage 4: No existing snapshot. Proceeding.`);
 
-                // STAGE 5: Calculate billing period
                 const anchorDate = new Date(sub.anchor_day);
                 const periodEnd = new Date(anchorDate);
                 periodEnd.setDate(periodEnd.getDate() - 1);
@@ -316,7 +311,6 @@ export async function generateSubscriptionBillingSnapshots() {
                 }
                 console.log(`[BILLING CRON] Stage 5: Billing period = ${periodStart.toISOString()} to ${periodEnd.toISOString()}`);
 
-                // STAGE 6: Fetch unit prices for plan
                 const [unitPriceRows]: any = await db.execute(
                     `SELECT property_type, unit_price FROM PlanUnitPriceByPropertyType WHERE plan_id = ?`,
                     [sub.plan_id]
@@ -328,7 +322,6 @@ export async function generateSubscriptionBillingSnapshots() {
                     unitPricesByType[row.property_type] = Number(row.unit_price);
                 });
 
-                // STAGE 7: Count landlord's properties by type
                 const [properties]: any = await db.execute(
                     `SELECT p.property_type, COUNT(u.unit_id) AS unit_count
                      FROM Property p
@@ -354,25 +347,21 @@ export async function generateSubscriptionBillingSnapshots() {
                     console.log(`[BILLING CRON]   Unit type: ${type}, count: ${count}, price: ${price}, subtotal: ${subtotal}`);
                 });
 
-                // STAGE 8: Calculate final charge
                 const basePrice = Number(sub.base_price);
                 const totalComputed = totalUnitCost;
                 const finalCharge = Math.max(basePrice, totalComputed);
                 const chargeBasis = finalCharge === basePrice ? "floor_price" : "unit_based";
                 console.log(`[BILLING CRON] Stage 8: basePrice=${basePrice}, totalComputed=${totalComputed}, finalCharge=${finalCharge}, chargeBasis=${chargeBasis}`);
 
-                // STAGE 9: Xendit cycle operations (fail-fast: throws on error)
                 let xenditCycleId: string | null = null;
                 if (sub.recurring_plan_id) {
                     console.log(`[BILLING CRON] Stage 9: Processing Xendit recurring_plan_id="${sub.recurring_plan_id}"`);
 
-                    // 9a: Fetch SCHEDULED cycles
-                    console.log(`[BILLING CRON]   Stage 9a: Fetching SCHEDULED cycles...`);
-                    const cyclesData = await fetchSubscriptionCycles(sub.recurring_plan_id, "SCHEDULED");
-                    const cycles = cyclesData.data || cyclesData || [];
-                    console.log(`[BILLING CRON]   Stage 9a: Found ${cycles.length} scheduled cycle(s)`);
+                    console.log(`[BILLING CRON]   Stage 9a: Fetching cycles...`);
+                    const allCycles = await fetchSubscriptionCycles(sub.recurring_plan_id);
+                    const cycles = allCycles.filter((c: any) => c.status === "SCHEDULED");
+                    console.log(`[BILLING CRON]   Stage 9a: Found ${cycles.length} scheduled cycle(s) out of ${allCycles.length} total`);
 
-                    // 9b: Find target cycle matching tomorrow's date
                     console.log(`[BILLING CRON]   Stage 9b: Searching for cycle scheduled on ${tomorrowStr}...`);
                     const targetCycle = cycles.find((c: any) => {
                         const scheduledDate = new Date(c.scheduled_timestamp);
@@ -387,13 +376,11 @@ export async function generateSubscriptionBillingSnapshots() {
                         console.log(`[BILLING CRON]   Stage 9b: No matching cycle found for ${tomorrowStr}`);
                     }
 
-                    // 9c: Update cycle amount
                     if (xenditCycleId) {
                         console.log(`[BILLING CRON]   Stage 9c: Updating cycle ${xenditCycleId} amount to ${finalCharge}...`);
                         const updateResult = await updateCycleAmount(sub.recurring_plan_id, xenditCycleId, finalCharge);
                         console.log(`[BILLING CRON]   Stage 9c: Update result:`, JSON.stringify(updateResult));
 
-                        // 9d: Simulate cycle payment (test mode only)
                         console.log(`[BILLING CRON]   Stage 9d: Simulating cycle payment for ${xenditCycleId} with amount ${finalCharge}...`);
                         const simResult = await simulateCyclePayment(sub.recurring_plan_id, xenditCycleId, finalCharge);
                         console.log(`[BILLING CRON]   Stage 9d: Simulate result:`, JSON.stringify(simResult));
@@ -404,12 +391,10 @@ export async function generateSubscriptionBillingSnapshots() {
                     console.log(`[BILLING CRON] Stage 9: No recurring_plan_id. Skipping Xendit operations.`);
                 }
 
-                // BEGIN TRANSACTION for DB writes
                 console.log(`[BILLING CRON] Stage 10: Starting DB transaction...`);
                 connection = await db.getConnection();
                 await connection.beginTransaction();
 
-                // STAGE 10: Insert billing snapshot (with xendit_cycle_id)
                 console.log(`[BILLING CRON] Stage 10: Inserting snapshot with xendit_cycle_id=${xenditCycleId}...`);
                 const [snapResult]: any = await connection.execute(
                     `INSERT INTO SubscriptionMonthlyBillingSnapshot 
@@ -422,7 +407,6 @@ export async function generateSubscriptionBillingSnapshots() {
                 const snapshotId = snapResult.insertId;
                 console.log(`[BILLING CRON] Stage 10: Snapshot inserted with id=${snapshotId}, xendit_cycle_id=${xenditCycleId}`);
 
-                // STAGE 11: Insert snapshot items
                 console.log(`[BILLING CRON] Stage 11: Inserting ${unitsByType.length} snapshot item(s)...`);
                 for (const item of unitsByType) {
                     await connection.execute(
@@ -434,7 +418,6 @@ export async function generateSubscriptionBillingSnapshots() {
                 }
                 console.log(`[BILLING CRON] Stage 11: All snapshot items inserted.`);
 
-                // STAGE 12: Advance anchor_day
                 const nextAnchorDay = new Date(anchorDate);
                 nextAnchorDay.setUTCMonth(nextAnchorDay.getUTCMonth() + 1);
                 console.log(`[BILLING CRON] Stage 12: Advancing anchor_day from ${anchorDate.toISOString()} to ${nextAnchorDay.toISOString()}`);
@@ -445,12 +428,9 @@ export async function generateSubscriptionBillingSnapshots() {
                 );
                 console.log(`[BILLING CRON] Stage 12: anchor_day updated.`);
 
-                // COMMIT transaction
                 await connection.commit();
-                txSuccess = true;
                 console.log(`[BILLING CRON] Stage 12: Transaction committed successfully.`);
 
-                // STAGE 13: Generate PDF and send email (non-blocking, outside transaction)
                 console.log(`[BILLING CRON] Stage 13: Fetching landlord details for email...`);
                 try {
                     const [landlordRows]: any = await db.execute(
@@ -507,7 +487,6 @@ export async function generateSubscriptionBillingSnapshots() {
                 console.log(`[BILLING CRON] ========== Completed subscription ${sub.subscription_id}: ${totalUnits} units, ₱${finalCharge} charge, xendit_cycle_id=${xenditCycleId} ==========`);
 
             } catch (err: any) {
-                // ROLLBACK on any failure
                 console.error(`[BILLING CRON] FAILED for subscription ${sub.subscription_id}:`, err.message);
                 console.error(`[BILLING CRON]   recurring_plan_id used: "${sub.recurring_plan_id}"`);
                 console.error(`[BILLING CRON]   Stack:`, err.stack);
