@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import useAuthStore from "@/zustand/authStore";
-import PropertyAnalytics from "@/components/analytics/PropertyAnalytics";
 import LoadingScreen from "@/components/loadingScreen";
 
 export default function AdminDashboard() {
@@ -153,11 +152,7 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {/* Analytics Section */}
-                    <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-100">
-                        <h2 className="text-2xl font-semibold text-gray-800 mb-6">Property Analytics</h2>
-                        <PropertyAnalytics />
-                    </div>
+
 
                     {/* Reports Section */}
                     <div className="bg-white shadow-lg rounded-xl p-6 border border-gray-100">
