@@ -1,4 +1,3 @@
-"use client";
 
 import useRoleStore from "@/zustand/store";
 import { logEvent } from "@/utils/gtag";
