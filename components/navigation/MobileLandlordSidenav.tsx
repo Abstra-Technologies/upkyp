@@ -83,10 +83,10 @@ export default function MobileLandlordSidenav({
                 {/* Slim Header */}
                 <div className="px-4 py-3 flex justify-between items-center bg-gradient-to-r from-blue-600 to-emerald-600 text-white">
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
-                            <IoBusiness className="w-4 h-4" />
+                        <div className="w-8 h-8 bg-white/20 rounded-md flex items-center justify-center">
+                            <IoBusiness className="w-5 h-5" />
                         </div>
-                        <h2 className="font-bold text-sm tracking-tight">Upkyp Landlord</h2>
+                        <h2 className="font-bold text-base tracking-tight">Upkyp Landlord</h2>
                     </div>
                     <div className="flex items-center gap-1">
                         <ThemeToggle variant="default" />
@@ -99,69 +99,69 @@ export default function MobileLandlordSidenav({
                 {/* Scrollable content */}
                 <div className="max-h-[75vh] overflow-y-auto">
                     {/* LANDLORD PROFILE */}
-                    <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                        <div className="flex items-center gap-2.5">
+                    <div className="px-4 py-4 border-b border-gray-100 bg-gray-50">
+                        <div className="flex items-center gap-3">
                             <Image
                                 src={
                                     user?.profilePicture ||
                                     "https://res.cloudinary.com/dptmeluy0/image/upload/v1766715365/profile-icon-design-free-vector_la6rgj.jpg"
                                 }
                                 alt="Profile"
-                                width={36}
-                                height={36}
+                                width={44}
+                                height={44}
                                 className="rounded-full object-cover border-2 border-white shadow-sm"
                             />
 
                             <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-xs truncate">
+                                <p className="font-semibold text-sm truncate">
                                     {user?.firstName && user?.lastName
                                         ? `${user.firstName} ${user.lastName}`
                                         : user?.companyName || user?.email}
                                 </p>
-                                <p className="text-[10px] text-gray-500">Landlord</p>
+                                <p className="text-xs text-gray-500">Landlord</p>
                             </div>
 
                             <Link href="/commons/profile" onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
-                                <IoSettings className="w-4 h-4 text-gray-500" />
+                                <IoSettings className="w-5 h-5 text-gray-500" />
                             </Link>
                         </div>
                     </div>
 
                     {/* PROPERTY SELECTOR */}
-                    <div className="px-4 py-2.5 border-b border-gray-100 relative">
+                    <div className="px-4 py-3 border-b border-gray-100 relative">
                         {onboardingIncomplete && (
                             <button
                                 onClick={() => {
                                     router.push("/landlord/onboarding");
                                     onClose();
                                 }}
-                                className="w-full flex items-center gap-2 px-2.5 py-2 mb-2 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-all text-left"
+                                className="w-full flex items-center gap-2 px-3 py-2.5 mb-2 rounded-lg bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-all text-left"
                             >
-                                <IoAlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                                <span className="text-xs font-medium text-amber-600 flex-1">Complete Setup</span>
-                                <IoChevronForward className="w-3 h-3 text-amber-500" />
+                                <IoAlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                                <span className="text-sm font-medium text-amber-600 flex-1">Complete Setup</span>
+                                <IoChevronForward className="w-4 h-4 text-amber-500" />
                             </button>
                         )}
                         <button
                             onClick={() => setShowPropertyDropdown && setShowPropertyDropdown(!showPropertyDropdown)}
-                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all text-left"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-all text-left"
                         >
-                            <IoBusiness className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                            <IoBusiness className="w-4 h-4 text-gray-400 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-gray-800 truncate">
+                                <p className="text-sm font-medium text-gray-800 truncate">
                                     {selectedProperty ? selectedProperty.property_name : "Select Property"}
                                 </p>
                             </div>
-                            <IoChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+                            <IoChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
                         </button>
 
                         {/* Dropdown */}
                         {showPropertyDropdown && (
                             <div className="absolute left-4 right-4 mt-1 bg-white rounded-xl shadow-xl border border-gray-200 z-50 max-h-48 overflow-y-auto">
                                 {loadingProperties ? (
-                                    <div className="p-3 text-center text-xs text-gray-500">Loading...</div>
+                                    <div className="p-4 text-center text-sm text-gray-500">Loading...</div>
                                 ) : properties.length === 0 ? (
-                                    <div className="p-3 text-center text-xs text-gray-500">No properties yet</div>
+                                    <div className="p-4 text-center text-sm text-gray-500">No properties yet</div>
                                 ) : (
                                     properties.map((prop) => (
                                         <button
@@ -170,21 +170,21 @@ export default function MobileLandlordSidenav({
                                                 onPropertySelect?.(prop);
                                                 onClose();
                                             }}
-                                            className={`w-full flex items-center gap-2 px-3 py-2.5 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0 ${
+                                            className={`w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b last:border-b-0 ${
                                                 selectedProperty?.property_id === prop.property_id ? "bg-blue-50" : ""
                                             }`}
                                         >
-                                            <div className="w-6 h-6 rounded bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
-                                                <IoBusiness className="w-3 h-3 text-blue-600" />
+                                            <div className="w-7 h-7 rounded bg-gradient-to-br from-blue-100 to-emerald-100 flex items-center justify-center flex-shrink-0">
+                                                <IoBusiness className="w-4 h-4 text-blue-600" />
                                             </div>
-                                            <p className="text-xs font-medium text-gray-800 truncate">{prop.property_name}</p>
+                                            <p className="text-sm font-medium text-gray-800 truncate">{prop.property_name}</p>
                                         </button>
                                     ))
                                 )}
                                 <Link
                                     href="/landlord/properties"
                                     onClick={onClose}
-                                    className="w-full flex items-center justify-center gap-1 px-3 py-2.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
+                                    className="w-full flex items-center justify-center gap-1.5 px-4 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border-t"
                                 >
                                     + Add New Property
                                 </Link>
@@ -193,22 +193,22 @@ export default function MobileLandlordSidenav({
                     </div>
 
                     {/* NAV */}
-                    <nav className="p-3">
+                    <nav className="p-4">
                         {navGroups.map((group) => {
                             const isCollapsed = collapsedSections[group.title];
                             return (
-                                <div key={group.title} className="mb-3">
+                                <div key={group.title} className="mb-4">
                                     <button
                                         onClick={() => toggleSection(group.title)}
                                         className="w-full flex items-center justify-between px-2 py-1.5 group"
                                     >
-                                        <span className="text-[9px] font-semibold uppercase tracking-wider text-gray-400">
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                                             {group.title}
                                         </span>
-                                        <IoChevronForward className={`w-3 h-3 text-gray-300 transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
+                                        <IoChevronForward className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${isCollapsed ? "" : "rotate-90"}`} />
                                     </button>
                                     {!isCollapsed && (
-                                        <div className="space-y-0.5 mt-1">
+                                        <div className="space-y-1 mt-1">
                                             {group.items.map(({ label, href, icon: Icon }) => {
                                                 const active = isActive(href);
 
@@ -216,11 +216,11 @@ export default function MobileLandlordSidenav({
                                                     return (
                                                         <div
                                                             key={href}
-                                                            className="flex items-center gap-2 px-2.5 py-2 rounded-lg opacity-50 cursor-not-allowed text-gray-400"
+                                                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg opacity-50 cursor-not-allowed text-gray-400"
                                                             title="Verify your email first"
                                                         >
-                                                            <Icon className="w-4 h-4" />
-                                                            <span className="text-xs">{label}</span>
+                                                            <Icon className="w-5 h-5" />
+                                                            <span className="text-sm">{label}</span>
                                                         </div>
                                                     );
                                                 }
@@ -229,14 +229,14 @@ export default function MobileLandlordSidenav({
                                                         key={href}
                                                         href={href}
                                                         onClick={onClose}
-                                                        className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors ${
+                                                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
                                                             active
                                                                 ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-md"
                                                                 : "hover:bg-gray-100 text-gray-700"
                                                         }`}
                                                     >
-                                                        <Icon className={`w-4 h-4 ${active ? "" : "text-gray-400"}`} />
-                                                        <span className="text-xs font-medium">{label}</span>
+                                                        <Icon className={`w-5 h-5 ${active ? "" : "text-gray-400"}`} />
+                                                        <span className="text-sm font-medium">{label}</span>
                                                     </Link>
                                                 );
                                             })}
@@ -254,9 +254,9 @@ export default function MobileLandlordSidenav({
                                 onClose();
                                 onLogoutClick();
                             }}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-medium text-xs"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-medium text-sm"
                         >
-                            <IoLogOut className="w-4 h-4" />
+                            <IoLogOut className="w-5 h-5" />
                             Sign Out
                         </button>
                     </div>

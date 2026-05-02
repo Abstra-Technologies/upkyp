@@ -229,7 +229,7 @@ export default function LandlordLayout({
 
   return (
     <ThemeProvider>
-    <div className="flex min-h-screen bg-gray-50 scrollbar-none">
+    <div className="flex min-h-screen bg-gray-50 scrollbar-none max-w-full overflow-hidden">
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 border-r border-gray-800 z-40">
         <div className="flex flex-col h-full">
@@ -426,9 +426,37 @@ export default function LandlordLayout({
           <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
             <IoGrid className="w-4 h-4 text-white" />
           </div>
-          <h1 className="text-sm font-bold text-white">Upkyp</h1>
+          <h1 className="text-base font-bold text-white">Upkyp</h1>
         </Link>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          {/* Current Page Indicator */}
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-lg mr-1">
+            {pathname.includes("/dashboard") && <IoHome className="w-4 h-4 text-white" />}
+            {pathname.includes("/properties") && <IoBusiness className="w-4 h-4 text-white" />}
+            {pathname.includes("/tenants") && <IoPeople className="w-4 h-4 text-white" />}
+            {pathname.includes("/payments") && <IoWallet className="w-4 h-4 text-white" />}
+            {pathname.includes("/announcement") && <IoMegaphone className="w-4 h-4 text-white" />}
+            {pathname.includes("/maintenance") && <IoHammer className="w-4 h-4 text-white" />}
+            {pathname.includes("/calendar") && <IoCalendar className="w-4 h-4 text-white" />}
+            {pathname.includes("/analytics") && <IoAnalytics className="w-4 h-4 text-white" />}
+            {pathname.includes("/documents") && <IoFolderOpen className="w-4 h-4 text-white" />}
+            {pathname.includes("/billing") && <IoCard className="w-4 h-4 text-white" />}
+            {pathname.includes("/subscription") && <IoCard className="w-4 h-4 text-white" />}
+            <span className="text-xs font-medium text-white hidden sm:inline">
+              {pathname.includes("/dashboard") && "Dashboard"}
+              {pathname.includes("/properties") && "Properties"}
+              {pathname.includes("/tenants") && "Tenants"}
+              {pathname.includes("/payments") && "Payments"}
+              {pathname.includes("/announcement") && "Announcements"}
+              {pathname.includes("/maintenance") && "Maintenance"}
+              {pathname.includes("/calendar") && "Calendar"}
+              {pathname.includes("/analytics") && "Analytics"}
+              {pathname.includes("/documents") && "Documents"}
+              {pathname.includes("/billing") && "Billing"}
+              {pathname.includes("/subscription") && "Subscription"}
+              {!pathname.includes("/dashboard") && !pathname.includes("/properties") && !pathname.includes("/tenants") && !pathname.includes("/payments") && !pathname.includes("/announcement") && !pathname.includes("/maintenance") && !pathname.includes("/calendar") && !pathname.includes("/analytics") && !pathname.includes("/documents") && !pathname.includes("/billing") && !pathname.includes("/subscription") && "Menu"}
+            </span>
+          </div>
           <ThemeToggle variant="default" />
           <NotificationSection user={user} admin={null} />
           <button
@@ -489,7 +517,7 @@ export default function LandlordLayout({
         </div>
       )}
       {/* MAIN */}
-      <main className="flex-1 lg:pl-64 pt-14 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">{children}</main>
+      <main className="flex-1 lg:pl-64 pt-14 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300 max-w-full overflow-hidden">{children}</main>
     </div>
     </ThemeProvider>
   );
