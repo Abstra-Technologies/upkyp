@@ -6,6 +6,7 @@ import Navbar from "../components/navigation/navbar";
 import useAuthStore from "../zustand/authStore";
 import Swal from "sweetalert2";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { ThemeProvider } from "@/components/providers/ThemeProvider"
 
 function urlBase64ToUint8Array(base64String: string) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -178,7 +179,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }, [user_id]);
 
     return (
-        <>
+        <ThemeProvider>
             <Script
                 strategy="afterInteractive"
                 src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
@@ -256,8 +257,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
             <Navbar />
             {children}
-
-
-        </>
+        </ThemeProvider>
     );
 }

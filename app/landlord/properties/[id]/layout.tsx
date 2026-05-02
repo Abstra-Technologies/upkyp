@@ -325,7 +325,7 @@ export default function PropertyLayout({
           </div>
 
           {/* NAVIGATION */}
-          <nav className="flex-1 px-3 py-3 overflow-y-auto">
+          <nav className="flex-1 px-3 py-3 overflow-y-auto no-scrollbar overflow-auto">
             {menuGroups.map((group) => {
               const isCollapsed = collapsedSections[group.section];
               return (

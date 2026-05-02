@@ -8,6 +8,7 @@ import axios from "axios";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationSection from "@/components/notification/notifCenter";
 import { motion, AnimatePresence } from "motion/react";
+import ThemeToggle from "@/components/providers/ThemeToggle";
 import {
   Menu,
   X,
@@ -285,9 +286,12 @@ const Navbar = () => {
 </span>
             </Link>
 
-            {/* Right Side: Navigation + Actions */}
-            <div className="flex items-center space-x-3">
-              {/* Navigation Links */}
+              {/* Right Side: Navigation + Actions */}
+              <div className="flex items-center space-x-3">
+                {/* Theme Toggle */}
+                <ThemeToggle />
+
+                {/* Navigation Links */}
               <div className="hidden lg:flex items-center space-x-1">
                 {mainNavLinks.map((link) => (
                   <Link
@@ -596,6 +600,9 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
 
               {/* Right Actions */}
               <div className="flex items-center gap-2">
+                {/* Theme Toggle */}
+                <ThemeToggle variant={scrolled || mobileMenuOpen ? "light" : "default"} />
+
                 {loading ? (
                   <div className="w-8 h-8 flex items-center justify-center">
                     <div

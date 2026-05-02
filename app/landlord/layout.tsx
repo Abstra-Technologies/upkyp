@@ -10,6 +10,8 @@ import axios from "axios";
 import useAuthStore from "@/zustand/authStore";
 import LoadingScreen from "@/components/loadingScreen";
 import MobileLandlordSidenav from "@/components/navigation/MobileLandlordSidenav";
+import ThemeToggle from "@/components/providers/ThemeToggle";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 import {
   IoHome,
@@ -226,6 +228,7 @@ export default function LandlordLayout({
   if (isInsideProperty) return <main className="min-h-screen">{children}</main>;
 
   return (
+    <ThemeProvider>
     <div className="flex min-h-screen bg-gray-50 scrollbar-none">
       {/* DESKTOP SIDEBAR */}
       <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 border-r border-gray-800 z-40">
@@ -241,6 +244,9 @@ export default function LandlordLayout({
                 <p className="text-[10px] text-gray-400">Landlord Portal</p>
               </div>
             </Link>
+            <div className="mt-3 flex justify-end">
+              <ThemeToggle variant="dark" />
+            </div>
           </div>
 
           {/* USER PROFILE */}
@@ -314,7 +320,7 @@ export default function LandlordLayout({
 
             {/* Dropdown */}
             {showPropertyDropdown && (
-              <div className="absolute left-3 right-3 mt-1 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-56 overflow-y-auto">
+              <div className="absolute no-scrollbar overflow-auto left-3 right-3 mt-1 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-56 overflow-y-auto">
                 {loadingProperties ? (
                   <div className="p-3 text-center text-xs text-gray-400">Loading...</div>
                 ) : properties.length === 0 ? (
@@ -347,7 +353,7 @@ export default function LandlordLayout({
           </div>
 
           {/* NAVIGATION */}
-          <nav className="flex-1 px-3 py-3 overflow-y-auto">
+          <nav className="flex-1 px-3 py-3 no-scrollbar overflow-auto ">
             {navItems.map((group) => {
               const isCollapsed = collapsedSections[group.section];
               return (
@@ -407,9 +413,6 @@ export default function LandlordLayout({
               <IoLogOut className="w-4 h-4" />
               <span>Sign Out</span>
             </button>
-            <p className="text-center text-[10px] text-gray-600 mt-2">
-              © {new Date().getFullYear()} UpKyp
-            </p>
           </div>
         </div>
       </aside>
@@ -426,6 +429,7 @@ export default function LandlordLayout({
           <h1 className="text-sm font-bold text-white">Upkyp</h1>
         </Link>
         <div className="flex gap-1">
+          <ThemeToggle variant="default" />
           <NotificationSection user={user} admin={null} />
           <button
             id="mobile-menu-btn"
@@ -487,5 +491,6 @@ export default function LandlordLayout({
       {/* MAIN */}
       <main className="flex-1 lg:pl-64 pt-14 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">{children}</main>
     </div>
+    </ThemeProvider>
   );
 }
