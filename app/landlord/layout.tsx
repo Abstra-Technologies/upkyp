@@ -242,8 +242,7 @@ export default function LandlordLayout({
               </div>
 
               <div>
-                <h1 className="text-base font-bold text-white">Upkyp</h1>
-                <p className="text-[10px] text-gray-400">Landlord Portal</p>
+                <h1 className="text-base font-bold text-white">Upkyp Sync</h1>
               </div>
             </Link>
           </div>
@@ -422,18 +421,18 @@ export default function LandlordLayout({
         className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
         <div className="flex items-center gap-2">
-          <Link href="/landlord/dashboard" className="flex items-center gap-2">
-            <div className="w-7 h-7 relative">
-              <Image
-                  src="/upkyp_white.png"
-                  alt="Upkyp Logo"
-                  fill
-                  className="object-contain"
-                  priority
-              />
-            </div>
-            <h1 className="text-base font-bold text-white">Upkyp</h1>
-          </Link>
+            <Link href="/landlord/dashboard" className="flex items-center gap-2">
+              <div className="w-7 h-7 relative">
+                <Image
+                    src="/upkyp_white.png"
+                    alt="Upkyp Logo"
+                    fill
+                    className="object-contain"
+                    priority
+                />
+              </div>
+              <h1 className="text-base font-bold text-white">Upkyp Sync</h1>
+            </Link>
         </div>
 
         <div className="flex items-center gap-1">
