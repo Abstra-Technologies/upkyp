@@ -190,14 +190,14 @@ export default function QuickActions({
                             <button
                                 key={label}
                                 onClick={onClick}
-                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-95 transition-transform"
                             >
                                 <div
                                     className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
                                 >
                                     <Icon className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
+                                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
                                     {label}
                                 </span>
                             </button>
@@ -205,14 +205,14 @@ export default function QuickActions({
                             <Link
                                 key={label}
                                 href={href!}
-                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-95 transition-transform"
                             >
                                 <div
                                     className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
                                 >
                                     <Icon className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
+                                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
                                     {label}
                                 </span>
                             </Link>
@@ -235,7 +235,7 @@ export default function QuickActions({
                                 title={disabled ? "Verify your email first" : label}
                             >
                                 <div className="relative w-12 h-12 lg:w-14 lg:h-14 rounded-2xl">
-                                    <div className={`absolute inset-0 bg-white border border-gray-200 rounded-2xl shadow-sm ring-1 ring-gray-100 group-hover:opacity-0 transition-opacity ${disabled ? "" : ""}`} />
+                                    <div className={`absolute inset-0 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm ring-1 ring-gray-100 dark:ring-gray-700 group-hover:opacity-0 transition-opacity ${disabled ? "" : ""}`} />
                                     <div
                                         className={`absolute inset-0 bg-gradient-to-br ${gradient} rounded-2xl shadow-lg opacity-0 group-hover:opacity-100 transition-opacity`}
                                     />
@@ -245,7 +245,7 @@ export default function QuickActions({
                                         />
                                     </div>
                                 </div>
-                                <span className={`text-[11px] font-semibold ${disabled ? "text-gray-400" : "text-gray-700"}`}>
+                                <span className={`text-[11px] font-semibold ${disabled ? "text-gray-400 dark:text-gray-600" : "text-gray-700 dark:text-gray-300"}`}>
                                     {label}
                                 </span>
                             </button>

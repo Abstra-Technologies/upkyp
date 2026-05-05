@@ -8,7 +8,6 @@ import useAuthStore from "@/zustand/authStore";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationSection from "@/components/notification/notifCenter";
 import { motion, AnimatePresence } from "motion/react";
-import ThemeToggle from "@/components/providers/ThemeToggle";
 import {
   Menu,
   X,
@@ -249,33 +248,30 @@ const Navbar = () => {
       <nav
         className={`hidden md:block fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-white/80 backdrop-blur-xl shadow-lg shadow-gray-200/50 border-b border-gray-200/50"
-            : "bg-gradient-to-r from-blue-600 to-emerald-600"
+            ? "bg-white/80 dark:bg-gray-900/90 backdrop-blur-xl shadow-lg shadow-gray-200/50 border-b border-gray-200/50 dark:border-gray-700/50 dark:shadow-gray-900/50"
+            : "bg-gradient-to-r from-blue-600 to-emerald-600 dark:from-gray-900 dark:to-gray-800"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <Link
-              href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
-              className="flex items-center space-x-2 transition-opacity hover:opacity-80"
-            >
-             <span
-                 className={`text-xl font-bold ${
-                     scrolled || mobileMenuOpen
-                         ? "bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent"
-                         : "text-white"
-                 }`}
-             >
+              {/* Logo */}
+              <Link
+                href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
+                className="flex items-center space-x-2 transition-opacity hover:opacity-80"
+              >
+               <span
+                   className={`text-xl font-bold ${
+                       scrolled || mobileMenuOpen
+                           ? "bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-emerald-400"
+                           : "text-white"
+                   }`}
+               >
   Upkyp
 </span>
-            </Link>
+              </Link>
 
               {/* Right Side: Navigation + Actions */}
               <div className="flex items-center space-x-3">
-                {/* Theme Toggle */}
-                <ThemeToggle />
-
                 {/* Navigation Links */}
               <div className="hidden lg:flex items-center space-x-1">
                 {mainNavLinks.map((link) => (
@@ -285,8 +281,8 @@ const Navbar = () => {
                     className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                       scrolled
                         ? isActiveLink(link.href)
-                          ? "text-blue-600 bg-blue-50"
-                          : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                          ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                         : isActiveLink(link.href)
                         ? "text-white bg-white/20"
                         : "text-white/90 hover:text-white hover:bg-white/10"
@@ -314,7 +310,7 @@ const Navbar = () => {
                     href="/auth/login"
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                       scrolled
-                        ? "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                        ? "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                         : "text-white hover:bg-white/10"
                     }`}
                   >
@@ -324,8 +320,8 @@ const Navbar = () => {
                     href="/auth/selectRole"
                     className={`group px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center gap-2 ${
                       scrolled
-                        ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-blue-500/25"
-                        : "bg-white text-gray-900 hover:bg-blue-50"
+                        ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-lg hover:shadow-blue-500/25 dark:from-blue-500 dark:to-emerald-500"
+                        : "bg-white text-gray-900 hover:bg-blue-50 dark:bg-gray-800 dark:text-white"
                     }`}
                   >
                     Get Started
@@ -398,10 +394,10 @@ const Navbar = () => {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 8, scale: 0.96 }}
                           transition={{ duration: 0.15, ease: "easeOut" }}
-                          className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 overflow-hidden z-[60]"
-                        >
-                          {/* User Info Header */}
-                          <div className="px-4 py-4 bg-gradient-to-br from-blue-50 via-white to-emerald-50 border-b border-gray-100">
+                           className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 dark:border-gray-700 overflow-hidden z-[60]"
+                         >
+                           {/* User Info Header */}
+                           <div className="px-4 py-4 bg-gradient-to-br from-blue-50 via-white to-emerald-50 border-b border-gray-100 dark:border-gray-800">
                             <div className="flex items-center gap-3">
                               <div className="relative">
                                 <Image
@@ -417,7 +413,7 @@ const Navbar = () => {
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                   {user?.firstName
                                     ? `${user.firstName} ${user.lastName || ""}`
                                     : admin?.first_name
@@ -426,7 +422,7 @@ const Navbar = () => {
                                       }`
                                     : "User"}
                                 </p>
-                                <p className="text-xs text-gray-500 truncate">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                   {user?.email || admin?.email || ""}
                                 </p>
                                 <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full capitalize">
@@ -534,8 +530,8 @@ const Navbar = () => {
           <div
             className={`transition-all duration-300 ${
               scrolled || mobileMenuOpen
-                ? "bg-white/90 backdrop-blur-xl shadow-lg border-b border-gray-200/50"
-                : "bg-gradient-to-r from-blue-600 to-emerald-600"
+                ? "bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl shadow-lg border-b border-gray-200/50 dark:border-gray-700/50"
+                : "bg-gradient-to-r from-blue-600 to-emerald-600 dark:from-gray-900 dark:to-gray-800"
             }`}
           >
             <div className="flex justify-between items-center h-14 px-4">
@@ -565,9 +561,6 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
 
               {/* Right Actions */}
               <div className="flex items-center gap-2">
-                {/* Theme Toggle */}
-                <ThemeToggle variant={scrolled || mobileMenuOpen ? "light" : "default"} />
-
                 {loading ? (
                   <div className="w-8 h-8 flex items-center justify-center">
                     <div
@@ -631,11 +624,11 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute top-14 left-0 right-0 bg-white border-b border-gray-200 shadow-xl max-h-[calc(100vh-3.5rem)] overflow-y-auto px-4"
+                  className="absolute top-14 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-xl max-h-[calc(100vh-3.5rem)] overflow-y-auto px-4"
                 >
                   {/* User Info (if logged in) */}
                   {(user || admin) && (
-                    <div className="px-4 py-4 bg-gradient-to-br from-blue-50 via-white to-emerald-50 border-b border-gray-100">
+                    <div className="px-4 py-4 bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-100 dark:border-gray-800">
                       <div className="flex items-center gap-3">
                         <Image
                           src={
@@ -649,14 +642,14 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
                           className="w-12 h-12 object-cover rounded-xl border-2 border-white shadow-sm"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 truncate">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                             {user?.firstName
                               ? `${user.firstName} ${user.lastName || ""}`
                               : admin?.first_name
                               ? `${admin.first_name} ${admin.last_name || ""}`
                               : "User"}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {user?.email || admin?.email}
                           </p>
                         </div>

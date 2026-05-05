@@ -21,11 +21,11 @@ import SubscriptionUsageCard from "./SubscriptionUsageCard";
 const fetcher = (url: string) => axios.get(url).then((r) => r.data);
 
 const CardSkeleton = () => (
-  <div className="h-[350px] rounded-2xl bg-gray-100 animate-pulse" />
+  <div className="h-[350px] rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
 );
 
 const SmallCardSkeleton = () => (
-  <div className="h-24 rounded-xl bg-gray-100 animate-pulse" />
+  <div className="h-24 rounded-xl bg-gray-100 dark:bg-gray-800 animate-pulse" />
 );
 
 const PaymentSummaryCard = dynamic(
@@ -119,7 +119,7 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
   const emailVerified = user?.emailVerified ?? false;
 
   return (
-    <div className="pb-24 md:pb-6">
+    <div className="pb-24 md:pb-6 bg-white dark:bg-[#0a0a0a] min-h-screen">
       <div className="px-4 md:px-6 pt-4 md:pt-6 space-y-4">
         {showAlert && <PointsEarnedAlert points={user?.points} />}
 

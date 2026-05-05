@@ -30,19 +30,19 @@ export default function HeaderContent({
     });
 
     return (
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 md:py-2.5">
+        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-3 md:py-2.5">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 
                 {/* TOP ROW: Greeting + Time */}
                 <div className="flex items-center justify-between gap-4">
                     {/* LEFT: Greeting + Page Header */}
                     <div className="flex-1 min-w-0">
-                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 leading-tight">
+                        <h1 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 dark:text-white leading-tight">
                             <span className={GRADIENT_TEXT}>{greeting}</span>
-                            <span className="text-gray-400">, </span>
-                            <span className="text-gray-900">{displayName}</span>
+                            <span className="text-gray-400 dark:text-gray-500">, </span>
+                            <span className="text-gray-900 dark:text-white">{displayName}</span>
                         </h1>
-                        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">
+                        <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             Portfolio Overview
                         </p>
                     </div>
@@ -52,7 +52,7 @@ export default function HeaderContent({
                         <div className={`text-xs sm:text-sm font-bold ${GRADIENT_TEXT}`}>
                             <Clock />
                         </div>
-                        <div className="text-[9px] sm:text-[10px] text-gray-500">
+                        <div className="text-[9px] sm:text-[10px] text-gray-500 dark:text-gray-400">
                             {weekday}
                         </div>
                     </div>

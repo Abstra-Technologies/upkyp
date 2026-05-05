@@ -10,8 +10,6 @@ import axios from "axios";
 import useAuthStore from "@/zustand/authStore";
 import LoadingScreen from "@/components/loadingScreen";
 import MobileLandlordSidenav from "@/components/navigation/MobileLandlordSidenav";
-import ThemeToggle from "@/components/providers/ThemeToggle";
-import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 import {
   IoHome,
@@ -160,8 +158,6 @@ export default function LandlordLayout({
     [pathname],
   );
 
-  const isOnboarding = pathname === "/landlord/onboarding";
-
   const toggleSection = (title: string) => {
     setCollapsedSections(prev => ({
       ...prev,
@@ -185,7 +181,6 @@ export default function LandlordLayout({
         { id: "nav-announcements", label: "Announcements", href: "/landlord/announcement", icon: IoMegaphone },
         { id: "nav-workorders", label: "Maintenance", href: "/landlord/maintenance", icon: IoHammer },
         { id: "nav-calendar", label: "Calendar", href: "/landlord/calendar", icon: IoCalendar },
-
       ]
     },
     {
@@ -229,17 +224,13 @@ export default function LandlordLayout({
   if (isInsideProperty) return <main className="min-h-screen">{children}</main>;
 
   return (
-    <ThemeProvider>
-    <div className="flex min-h-screen bg-gray-50 scrollbar-none max-w-full overflow-hidden">
+    <div className="flex min-h-screen bg-white dark:bg-[#0a0a0a] scrollbar-none max-w-full overflow-hidden">
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 border-r border-gray-800 z-40">
+      <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 dark:bg-gray-950 border-r border-gray-800 dark:border-gray-800 z-40">
         <div className="flex flex-col h-full">
           {/* HEADER / BRAND */}
           <div className="px-4 py-5 border-b border-gray-800 flex items-center justify-between">
-
-            {/* Left: Logo + Text */}
             <Link id="nav-brand" href="/landlord/dashboard" className="flex items-center gap-3">
-
               <div className="w-9 h-9 relative">
                 <Image
                     src="/upkyp_white.png"
@@ -255,11 +246,8 @@ export default function LandlordLayout({
                 <p className="text-[10px] text-gray-400">Landlord Portal</p>
               </div>
             </Link>
-
-            {/* Right: Theme Toggle */}
-            <ThemeToggle variant="dark" />
-
           </div>
+
           {/* USER PROFILE */}
           <div className="px-4 py-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
@@ -341,7 +329,7 @@ export default function LandlordLayout({
                     <button
                       key={prop.property_id}
                       onClick={() => handlePropertySelect(prop)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-gray-700 transition-colors border-b border-gray-700 last:border-b-0 ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-gray-700 transition-colors border-b last:border-b-0 ${
                         selectedProperty?.property_id === prop.property_id ? "bg-blue-600/20" : ""
                       }`}
                     >
@@ -364,7 +352,7 @@ export default function LandlordLayout({
           </div>
 
           {/* NAVIGATION */}
-          <nav className="flex-1 px-3 py-3 no-scrollbar overflow-auto ">
+          <nav className="flex-1 px-3 py-3 no-scrollbar overflow-auto">
             {navItems.map((group) => {
               const isCollapsed = collapsedSections[group.section];
               return (
@@ -435,8 +423,6 @@ export default function LandlordLayout({
       >
         <div className="flex items-center gap-2">
           <Link href="/landlord/dashboard" className="flex items-center gap-2">
-
-            {/* Logo Image */}
             <div className="w-7 h-7 relative">
               <Image
                   src="/upkyp_white.png"
@@ -446,11 +432,8 @@ export default function LandlordLayout({
                   priority
               />
             </div>
-
             <h1 className="text-base font-bold text-white">Upkyp</h1>
           </Link>
-
-          <ThemeToggle variant="default" />
         </div>
 
         <div className="flex items-center gap-1">
@@ -513,26 +496,26 @@ export default function LandlordLayout({
       {/* LOGOUT CONFIRM */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-2xl">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl max-w-md w-full shadow-2xl">
             <div className="text-center mb-4">
-              <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <IoAlertCircle className="w-7 h-7 text-red-600" />
+              <div className="w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <IoAlertCircle className="w-7 h-7 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="font-bold text-lg">Confirm Logout</h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white">Confirm Logout</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
                 Are you sure you want to logout?
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowLogoutConfirm(false)}
-                className="flex-1 border rounded-xl py-3"
+                className="flex-1 border border-gray-200 dark:border-gray-700 rounded-xl py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
               <button
                 onClick={handleLogout}
-                className="flex-1 bg-red-600 text-white rounded-xl py-3"
+                className="flex-1 bg-red-600 text-white rounded-xl py-3 hover:bg-red-700"
               >
                 Logout
               </button>
@@ -540,9 +523,9 @@ export default function LandlordLayout({
           </div>
         </div>
       )}
+
       {/* MAIN */}
       <main className="flex-1 lg:pl-64 pt-14 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300 max-w-full overflow-hidden">{children}</main>
     </div>
-    </ThemeProvider>
   );
 }

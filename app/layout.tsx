@@ -52,32 +52,38 @@ export const metadata = {
 export default function RootLayout({
                                        children,
                                    }: {
-    children: React.ReactNode;
+     children: React.ReactNode;
 }) {
     return (
-        <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+        <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
         <Head>
             <link rel="manifest" href="/manifest.json"/>
             <link rel="dns-prefetch" href="https://res.cloudinary.com" />
             <link rel="preconnect" href="https://res.cloudinary.com" />
-            <meta name="theme-color" content="#ffffff"/>
+            <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
+            <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)"/>
             <script
           dangerouslySetInnerHTML={{
             __html: `
-              if (window.matchMedia('(display-mode: standalone)').matches || 
-                  navigator.standalone) {
-                document.querySelector('meta[name="viewport"]').setAttribute(
-                  'content',
-                  'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes'
-                );
-              }
+              (function() {
+                try {
+                  var theme = localStorage.getItem('theme');
+                  if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    document.body.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
             `,
           }}
         />
            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link rel="apple-touch-icon" href="/Hestia-logo-b.svg"/>
         </Head>
-        <body>
+        <body className="bg-white dark:bg-black text-gray-900 dark:text-gray-100 antialiased transition-colors duration-300">
         <ClientLayout>
             <SpeedInsights/>
             <Analytics/>
