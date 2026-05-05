@@ -1,10 +1,10 @@
 "use client";
+// Only for Tenant
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import useAuthStore from "@/zustand/authStore";
-import axios from "axios";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationSection from "@/components/notification/notifCenter";
 import { motion, AnimatePresence } from "motion/react";
@@ -31,7 +31,6 @@ import {
   MapPin,
   ChevronRight,
 } from "lucide-react";
-import { IdCardLanyard } from 'lucide-react';
 
 const Navbar = () => {
   const { user, admin, loading, signOut, signOutAdmin, fetchSession } =
@@ -44,13 +43,9 @@ const Navbar = () => {
   const pathname = usePathname();
   const dropdownRef = useRef(null);
 
-  // Check if we're in portal mode (portal has its own navigation)
   const isInPortalMode = pathname?.includes("/rentalPortal/");
-
-  // Check if we're on profile/settings pages (hide navbar on mobile for tenants)
   const isProfilePage = pathname?.includes("/commons/");
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -99,7 +94,6 @@ const Navbar = () => {
     setDropdownOpen(false);
   }, [pathname]);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = "hidden";
@@ -274,15 +268,6 @@ const Navbar = () => {
                  }`}
              >
   Upkyp
-  <span
-      className={`ml-1 text-xs align-super font-semibold ${
-          scrolled || mobileMenuOpen
-              ? "text-emerald-600"
-              : "text-emerald-200"
-      }`}
-  >
-    Beta
-  </span>
 </span>
             </Link>
 
@@ -452,25 +437,6 @@ const Navbar = () => {
                             </div>
                           </div>
 
-                          {/* Points Section */}
-                          {/*{user?.points !== undefined && (*/}
-                          {/*  <div className="px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-100">*/}
-                          {/*    <div className="flex items-center justify-between">*/}
-                          {/*      <div className="flex items-center gap-2">*/}
-                          {/*        <div className="p-1.5 bg-amber-100 rounded-lg">*/}
-                          {/*          <Star className="w-4 h-4 text-amber-600" />*/}
-                          {/*        </div>*/}
-                          {/*        <span className="text-sm font-medium text-gray-700">*/}
-                          {/*          Reward Points*/}
-                          {/*        </span>*/}
-                          {/*      </div>*/}
-                          {/*      <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">*/}
-                          {/*        {user.points}*/}
-                          {/*      </span>*/}
-                          {/*    </div>*/}
-                          {/*  </div>*/}
-                          {/*)}*/}
-
                           {/* Quick Navigation */}
                           {dropdownLinks.length > 0 && (
                             <div className="py-2 border-b border-gray-100">
@@ -593,7 +559,6 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
               : "text-emerald-200"
       }`}
   >
-    Beta
   </span>
 </span>
               </Link>

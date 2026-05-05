@@ -82,15 +82,31 @@ export default function MobileLandlordSidenav({
             >
                 {/* Slim Header */}
                 <div className="px-4 py-3 flex justify-between items-center bg-gradient-to-r from-blue-600 to-emerald-600 text-white">
+
+                    {/* Left: Logo + Title */}
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-white/20 rounded-md flex items-center justify-center">
-                            <IoBusiness className="w-5 h-5" />
+
+                        {/* Logo Image */}
+                        <div className="w-8 h-8 relative">
+                            <Image
+                                src="/upkyp_white.png"
+                                alt="Upkyp Logo"
+                                fill
+                                className="object-contain"
+                                priority
+                            />
                         </div>
+
                         <h2 className="font-bold text-base tracking-tight">Upkyp Landlord</h2>
                     </div>
+
+                    {/* Right: Toggle + Close */}
                     <div className="flex items-center gap-1">
                         <ThemeToggle variant="default" />
-                        <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                        <button
+                            onClick={onClose}
+                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                        >
                             <IoClose className="w-5 h-5" />
                         </button>
                     </div>

@@ -23,7 +23,7 @@ const LoadingScreen = ({ message = "Loading…" }) => {
                     }}
                 >
                     <img
-                        src="/upkeep_blue.png"
+                        src="/upkyp_violet.png"
                         alt="Upkyp"
                         className="
               w-[clamp(3.5rem,12vw,6rem)]

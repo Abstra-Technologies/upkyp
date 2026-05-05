@@ -105,7 +105,7 @@ export default function LandlordLayout({
 
   useEffect(() => {
     if (user?.landlord_id) {
-      setLandlordIdState(user.landlord_id);
+      setLandlordIdState(user?.landlord_id);
     }
   }, [user]);
 
@@ -435,13 +435,24 @@ export default function LandlordLayout({
       >
         <div className="flex items-center gap-2">
           <Link href="/landlord/dashboard" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-              <IoGrid className="w-4 h-4 text-white" />
+
+            {/* Logo Image */}
+            <div className="w-7 h-7 relative">
+              <Image
+                  src="/upkyp_white.png"
+                  alt="Upkyp Logo"
+                  fill
+                  className="object-contain"
+                  priority
+              />
             </div>
+
             <h1 className="text-base font-bold text-white">Upkyp</h1>
           </Link>
+
           <ThemeToggle variant="default" />
         </div>
+
         <div className="flex items-center gap-1">
           {/* Current Page Indicator */}
           <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-lg mr-1">
