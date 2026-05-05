@@ -4,11 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams, useParams } from "next/navigation";
 import useAuthStore from "@/zustand/authStore";
 import MaintenanceRequestList from "@/components/tenant/currentRent/currentMaintainance/maintenance";
-import {
-  WrenchScrewdriverIcon,
-  PlusIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
+
 
 function TenantMaintenanceContent() {
   const { user } = useAuthStore();

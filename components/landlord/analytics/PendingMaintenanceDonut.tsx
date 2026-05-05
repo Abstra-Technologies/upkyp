@@ -13,6 +13,8 @@ const STATUS_CONFIG = [
     { key: "approved", label: "Approved", color: "#3B82F6", bg: "#EFF6FF", text: "#1D4ED8" },
     { key: "scheduled", label: "Scheduled", color: "#06B6D4", bg: "#ECFEFF", text: "#0E7490" },
     { key: "in-progress", label: "In Progress", color: "#8B5CF6", bg: "#F5F3FF", text: "#6D28D9" },
+    { key: "completed", label: "Completed", color: "#10B981", bg: "#ECFDF5", text: "#047857" },
+    { key: "rejected", label: "Rejected", color: "#EF4444", bg: "#FEF2F2", text: "#B91C1C" },
 ];
 
 export default function PendingMaintenanceDonut({
@@ -43,40 +45,41 @@ export default function PendingMaintenanceDonut({
         [counts],
     );
 
+    const openTotal = useMemo(
+        () => counts.pending + counts.approved + counts.scheduled + counts["in-progress"],
+        [counts],
+    );
+
     const handleViewAll = () => {
         router.push("/landlord/maintenance");
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 h-full flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                 <div>
-                    <h2 className="text-base font-semibold text-gray-900">Maintenance Status</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">Current open work orders</p>
+                    <h2 className="text-sm lg:text-base font-semibold text-gray-900">Maintenance</h2>
+                    <p className="text-[10px] lg:text-xs text-gray-500">{openTotal} open requests</p>
                 </div>
                 <button
                     onClick={handleViewAll}
-                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors"
                 >
-                    View All Requests
-                    <ArrowRight className="w-4 h-4" />
+                    View All
+                    <ArrowRight className="w-3.5 h-3.5" />
                 </button>
             </div>
 
             {isLoading ? (
-                <div className="flex-1 flex items-center justify-center text-xs text-gray-500">
-                    Loading maintenance data…
-                </div>
+                <div className="py-8 text-center text-xs text-gray-500">Loading...</div>
             ) : error ? (
-                <div className="flex-1 flex flex-col items-center justify-center text-red-500 gap-2 text-xs">
+                <div className="py-8 text-center text-xs text-red-500 flex items-center justify-center gap-2">
                     <AlertTriangle className="w-4 h-4" />
-                    Failed to load maintenance data
+                    Failed to load
                 </div>
             ) : (
                 <>
-                    {/* Progress Bar */}
-                    <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden mb-5 flex">
+                    <div className="w-full h-2 bg-gray-200 overflow-hidden flex">
                         {total > 0 ? (
                             STATUS_CONFIG.map((s) =>
                                 counts[s.key] > 0 ? (
@@ -95,20 +98,19 @@ export default function PendingMaintenanceDonut({
                         )}
                     </div>
 
-                    {/* Stat Cards */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="px-3 py-3 grid grid-cols-3 lg:grid-cols-6 gap-2">
                         {STATUS_CONFIG.map((s) => (
                             <div
                                 key={s.key}
-                                className="rounded-xl p-4 text-center border"
+                                className="rounded-lg px-2 py-2 text-center border"
                                 style={{ backgroundColor: s.bg, borderColor: s.color + "33" }}
                             >
-                                <p className="text-xl font-bold" style={{ color: s.text }}>
+                                <p className="text-base font-bold" style={{ color: s.text }}>
                                     {counts[s.key]}
                                 </p>
                                 <p
-                                    className="text-[10px] font-semibold uppercase mt-1 tracking-wide"
-                                    style={{ color: s.text + "B3" }}
+                                    className="text-[9px] lg:text-[10px] font-medium uppercase mt-0.5"
+                                    style={{ color: s.text }}
                                 >
                                     {s.label}
                                 </p>

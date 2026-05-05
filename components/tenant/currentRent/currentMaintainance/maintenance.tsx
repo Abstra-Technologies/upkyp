@@ -35,7 +35,6 @@ interface Request {
 
 interface Props {
   agreement_id: string;
-  user_id?: number;
 }
 
 // Animation variants
@@ -96,10 +95,8 @@ const MaintenanceRequestList = ({ agreement_id, user_id }: Props) => {
     try {
       setLoading(true);
       const queryParams = new URLSearchParams({
-        user_id: user_id?.toString() || "",
+        agreement_id: agreement_id.toString(),
       });
-      if (agreement_id)
-        queryParams.append("agreement_id", agreement_id.toString());
       const response = await axios.get(
         `/api/maintenance/getTenantMaintance?${queryParams.toString()}`,
       );
@@ -114,8 +111,8 @@ const MaintenanceRequestList = ({ agreement_id, user_id }: Props) => {
   };
 
   useEffect(() => {
-    if (user_id) fetchMaintenanceRequests();
-  }, [user_id, agreement_id]);
+    if (agreement_id) fetchMaintenanceRequests();
+  }, [agreement_id]);
 
   const getStatusStyle = (status: string) => {
     const normalizedStatus = status.toLowerCase();
@@ -381,147 +378,151 @@ const MaintenanceRequestList = ({ agreement_id, user_id }: Props) => {
             )}
           </motion.div>
         ) : (
-          <motion.div
-            key={`${filter}-${filteredRequests.length}`}
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-            className="space-y-3"
-          >
+          <>
+            <motion.div
+              key={`${filter}-${filteredRequests.length}`}
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+              className="flex flex-col gap-2 sm:hidden"
+            >
             {filteredRequests.map((request) => (
               <motion.div
                 key={request.request_id}
                 variants={fadeInUp}
-                className="bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md md:hover:shadow-lg transition-all duration-200 overflow-hidden"
+                className="bg-white rounded-xl border border-gray-300 hover:border-blue-400 hover:shadow-sm transition-all duration-200 overflow-hidden"
               >
-                <div className="flex flex-col lg:flex-row">
+                <div className="flex gap-0 p-2">
                   <div
-                    className="relative w-full lg:w-64 h-36 md:h-44 lg:h-auto flex-shrink-0 cursor-pointer group"
-                    onClick={() =>
-                      request.photos?.[0] && setZoomedImage(request.photos[0])
-                    }
+                    className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer relative bg-gray-100"
+                    onClick={() => request.photos?.[0] && setZoomedImage(request.photos[0])}
                   >
                     {request.photos?.[0] ? (
-                      <>
-                        <img
-                          src={request.photos[0]}
-                          alt="Maintenance issue"
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                          <div className="w-8 h-8 md:w-10 md:h-10 bg-white/90 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <PhotoIcon className="w-4 h-4 md:w-5 md:h-5 text-gray-700" />
-                          </div>
-                        </div>
-                      </>
+                      <img src={request.photos[0]} alt="Issue" className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-400">
-                        <PhotoIcon className="w-8 h-8 md:w-12 md:h-12 mb-1.5" />
-                        <span className="text-xs md:text-sm font-medium">No Image</span>
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <PhotoIcon className="w-6 h-6" />
                       </div>
                     )}
                   </div>
 
-                  <div className="flex-1 p-3 md:p-5">
-                    <div className="flex items-start justify-between gap-2 mb-2 md:mb-3">
-                      <h3 className="text-sm md:text-lg font-bold text-gray-900 line-clamp-1">
+                  <div className="flex-1 min-w-0 pl-2">
+                    <div className="flex items-start justify-between gap-1 mb-1">
+                      <h3 className="text-[11px] font-bold text-gray-900 line-clamp-1 flex-1">
                         {request.subject}
                       </h3>
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-1 md:px-3 md:py-1.5 rounded-md md:rounded-lg text-[10px] md:text-xs font-semibold border whitespace-nowrap ${getStatusStyle(
-                          request.status,
-                        )}`}
-                      >
+                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-semibold border whitespace-nowrap flex-shrink-0 ${getStatusStyle(request.status)}`}>
                         {getStatusIcon(request.status)}
-                        <span className="hidden sm:inline">{request.status}</span>
-                        <span className="sm:hidden capitalize">{request.status.split("-")[0]}</span>
+                        <span className="capitalize">{request.status.split("-")[0]}</span>
                       </span>
                     </div>
 
-                    <p className="text-xs md:text-sm text-gray-600 leading-relaxed mb-3 md:mb-4 line-clamp-2">
-                      {request.description}
-                    </p>
-
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 pt-2 md:pt-4 border-t border-gray-100">
-                      <div>
-                        <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5 md:mb-1">
-                          Property
-                        </p>
-                        <p className="text-xs md:text-sm font-semibold text-gray-900 truncate">
-                          {request.property_name}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5 md:mb-1">
-                          Unit
-                        </p>
-                        <p className="text-xs md:text-sm font-semibold text-gray-900">
-                          {request.unit_name}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5 md:mb-1">
-                          Category
-                        </p>
-                        <p className="text-xs md:text-sm font-semibold text-gray-900 capitalize">
-                          {request.category}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5 md:mb-1">
-                          {request.schedule_date ? "Scheduled" : "Created"}
-                        </p>
-                        <p className="text-xs md:text-sm font-semibold text-gray-900">
-                          {request.schedule_date
-                            ? new Date(
-                                request.schedule_date,
-                              ).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            : request.created_at
-                              ? new Date(request.created_at).toLocaleDateString(
-                                  "en-US",
-                                  {
-                                    month: "short",
-                                    day: "numeric",
-                                    year: "numeric",
-                                  },
-                                )
-                              : "N/A"}
-                        </p>
-                      </div>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] text-gray-500 mb-1">
+                      <div><span className="font-medium">Prop:</span> <span className="text-gray-700">{request.property_name}</span></div>
+                      <div><span className="font-medium">Unit:</span> <span className="text-gray-700">{request.unit_name}</span></div>
+                      <div><span className="font-medium">Cat:</span> <span className="text-gray-700 capitalize">{request.category}</span></div>
+                      <div><span className="font-medium">Date:</span> <span className="text-gray-700">
+                        {request.schedule_date
+                          ? new Date(request.schedule_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          : request.created_at
+                            ? new Date(request.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                            : "N/A"}
+                      </span></div>
                     </div>
 
+                    <p className="text-[10px] text-gray-500 line-clamp-1"><span className="font-semibold">Desc:</span> {request.description}</p>
+
                     {request.status.toLowerCase() === "pending" && (
-                      <div className="flex justify-end mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-100">
-                        <button
-                          onClick={() => handleCancelRequest(request.request_id)}
-                          disabled={cancelingRequests.has(request.request_id)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 bg-red-50 text-red-600 rounded-md md:rounded-lg text-xs md:text-sm font-semibold hover:bg-red-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {cancelingRequests.has(request.request_id) ? (
-                            <>
-                              <ArrowPathIcon className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
-                              <span className="hidden sm:inline">Cancelling...</span>
-                              <span className="sm:hidden">Wait...</span>
-                            </>
-                          ) : (
-                            <>
-                              <XMarkIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                              <span className="hidden sm:inline">Cancel Request</span>
-                              <span className="sm:hidden">Cancel</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleCancelRequest(request.request_id)}
+                        disabled={cancelingRequests.has(request.request_id)}
+                        className="mt-1 flex items-center justify-center gap-1 px-2 py-1 bg-red-50 text-red-600 rounded-lg text-[10px] font-semibold hover:bg-red-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {cancelingRequests.has(request.request_id) ? (
+                          <><ArrowPathIcon className="w-3 h-3 animate-spin" /><span>Wait...</span></>
+                        ) : (
+                          <><XMarkIcon className="w-3 h-3" /><span>Cancel</span></>
+                        )}
+                      </button>
                     )}
                   </div>
                 </div>
               </motion.div>
             ))}
           </motion.div>
+          <motion.div
+            key={`${filter}-${filteredRequests.length}-grid`}
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2"
+          >
+            {filteredRequests.map((request) => (
+              <motion.div
+                key={request.request_id}
+                variants={fadeInUp}
+                className="bg-white rounded-xl border border-gray-300 hover:border-blue-400 hover:shadow-sm transition-all duration-200 overflow-hidden"
+              >
+                <div
+                  className="h-28 flex-shrink-0 rounded-lg overflow-hidden cursor-pointer relative bg-gray-100 w-full"
+                  onClick={() => request.photos?.[0] && setZoomedImage(request.photos[0])}
+                >
+                  {request.photos?.[0] ? (
+                    <img src={request.photos[0]} alt="Issue" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400">
+                      <PhotoIcon className="w-8 h-8" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-2">
+                  <div className="flex items-start justify-between gap-1 mb-1">
+                    <h3 className="text-sm font-bold text-gray-900 line-clamp-1 flex-1">
+                      {request.subject}
+                    </h3>
+                    <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold border whitespace-nowrap flex-shrink-0 ${getStatusStyle(request.status)}`}>
+                      {getStatusIcon(request.status)}
+                      <span className="capitalize">{request.status.split("-")[0]}</span>
+                    </span>
+                  </div>
+
+                  <div className="bg-gray-50 rounded p-1.5 mb-1">
+                    <p className="text-[10px] text-gray-500 mb-0.5"><span className="font-semibold">Desc:</span></p>
+                    <p className="text-xs text-gray-700 line-clamp-2 leading-tight">{request.description}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-xs text-gray-500">
+                    <div><span className="font-medium">Prop:</span> <span className="text-gray-700">{request.property_name}</span></div>
+                    <div><span className="font-medium">Unit:</span> <span className="text-gray-700">{request.unit_name}</span></div>
+                    <div><span className="font-medium">Cat:</span> <span className="text-gray-700 capitalize">{request.category}</span></div>
+                    <div><span className="font-medium">Date:</span> <span className="text-gray-700">
+                      {request.schedule_date
+                        ? new Date(request.schedule_date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                        : request.created_at
+                          ? new Date(request.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          : "N/A"}
+                    </span></div>
+                  </div>
+
+                  {request.status.toLowerCase() === "pending" && (
+                    <button
+                      onClick={() => handleCancelRequest(request.request_id)}
+                      disabled={cancelingRequests.has(request.request_id)}
+                      className="mt-2 w-full flex items-center justify-center gap-1 px-2 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {cancelingRequests.has(request.request_id) ? (
+                        <><ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /><span>Wait...</span></>
+                      ) : (
+                        <><XMarkIcon className="w-3.5 h-3.5" /><span>Cancel</span></>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+          </>
         )}
       </div>
 

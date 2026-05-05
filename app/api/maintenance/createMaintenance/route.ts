@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { generateMaintenanceId } from "@/utils/id_generator";
 import { encryptData } from "@/crypto/encrypt";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import webpush from "web-push";
+import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
+import { getSessionUser } from "@/lib/auth/auth";
 
 const s3Client = new S3Client({
     region: process.env.NEXT_AWS_REGION,
@@ -14,12 +15,6 @@ const s3Client = new S3Client({
 });
 
 const encryptionSecret = process.env.ENCRYPTION_SECRET!;
-
-webpush.setVapidDetails(
-    "mailto:support@upkyp.com",
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-);
 
 function sanitizeFilename(filename: string) {
     return filename.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\s+/g, "_");
@@ -38,20 +33,29 @@ export async function POST(req: NextRequest) {
         }
 
         const formData = await req.formData();
-        console.log('fpr, daya', formData);
+
+        const session = await getSessionUser();
+        if (!session) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const agreement_id = formData.get("agreement_id")?.toString();
-        const description = formData.get("description")?.toString();
         const category = formData.get("category")?.toString();
+        const subject = formData.get("subject")?.toString();
+        const description = formData.get("description")?.toString();
         const asset_id = formData.get("asset_id")?.toString() || null;
+        const priority_level = formData.get("priority_level")?.toString() || "LOW";
         const is_emergency = formData.get("is_emergency") === "1" ? 1 : 0;
 
-        console.log('asset id', asset_id);
-
-        if (!agreement_id || !category || !description) {
+        if (!agreement_id || !subject || !category) {
             return NextResponse.json(
-                { error: "Missing required fields" },
+                { error: "Missing required fields: agreement_id, subject, category" },
                 { status: 400 }
             );
+        }
+
+        if (session.userType !== "tenant" || !session.tenant_id) {
+            return NextResponse.json({ error: "Only tenants can create maintenance requests" }, { status: 403 });
         }
 
         const files: File[] = [];
@@ -61,15 +65,14 @@ export async function POST(req: NextRequest) {
 
         await connection.beginTransaction();
 
-        // --- Get active lease ---
         const [agreementRows]: any = await connection.execute(
             `
-      SELECT la.tenant_id, la.unit_id, u.property_id
-      FROM LeaseAgreement la
-      JOIN Unit u ON la.unit_id = u.unit_id
-      WHERE la.agreement_id = ? AND la.status = 'active'
-    `,
-            [agreement_id]
+            SELECT la.agreement_id, la.unit_id, u.property_id
+            FROM LeaseAgreement la
+            JOIN Unit u ON la.unit_id = u.unit_id
+            WHERE la.agreement_id = ? AND la.tenant_id = ? AND la.status = 'active'
+            `,
+            [agreement_id, session.tenant_id]
         );
 
         if (!agreementRows.length) {
@@ -80,17 +83,16 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { tenant_id, unit_id, property_id } = agreementRows[0];
+        const { unit_id, property_id } = agreementRows[0];
 
-        // --- Get landlord user_id ---
         const [landlordRows]: any = await connection.execute(
             `
-      SELECT l.landlord_id, l.user_id AS landlord_user_id
-      FROM Landlord l
-      WHERE l.landlord_id = (
-        SELECT landlord_id FROM Property WHERE property_id = ?
-      )
-    `,
+            SELECT l.landlord_id, l.user_id AS landlord_user_id
+            FROM Landlord l
+            WHERE l.landlord_id = (
+                SELECT landlord_id FROM Property WHERE property_id = ?
+            )
+            `,
             [property_id]
         );
 
@@ -104,11 +106,12 @@ export async function POST(req: NextRequest) {
 
         const { landlord_user_id } = landlordRows[0];
 
-        // --- Generate request_id and set priority ---
         const request_id = generateMaintenanceId();
 
-        // If the request is tied to an asset that’s under maintenance → force HIGH priority
-        let priority_level = is_emergency ? "HIGH" : "LOW";
+        let finalPriority = priority_level;
+        if (is_emergency && finalPriority === "LOW") {
+            finalPriority = "HIGH";
+        }
         if (asset_id) {
             const [assetStatus]: any = await connection.execute(
                 `SELECT status FROM Asset WHERE asset_id = ?`,
@@ -118,11 +121,10 @@ export async function POST(req: NextRequest) {
                 assetStatus?.length > 0 &&
                 assetStatus[0].status === "under_maintenance"
             ) {
-                priority_level = "HIGH";
+                finalPriority = "HIGH";
             }
         }
 
-        // --- Prevent duplicate request_id ---
         const [exists]: any = await connection.execute(
             `SELECT request_id FROM MaintenanceRequest WHERE request_id = ?`,
             [request_id]
@@ -135,26 +137,25 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // --- Insert Maintenance Request ---
         await connection.execute(
             `
-      INSERT INTO MaintenanceRequest 
-      (request_id, tenant_id, unit_id, asset_id, subject, description, category, status, priority_level)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending', ?)
-    `,
+            INSERT INTO MaintenanceRequest 
+            (request_id, lease_id, unit_id, asset_id, subject, description, category, status, priority_level, property_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+            `,
             [
                 request_id,
-                tenant_id,
+                agreement_id,
                 unit_id,
                 asset_id,
-                category,
+                subject,
                 description,
                 category,
-                priority_level,
+                finalPriority,
+                property_id,
             ]
         );
 
-        // --- Upload photos ---
         if (files.length > 0) {
             const uploads: any[] = [];
             for (const file of files) {
@@ -184,87 +185,46 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // --- Activity Log ---
-        const [tenantUser]: any = await connection.execute(
-            `SELECT user_id FROM Tenant WHERE tenant_id = ?`,
-            [tenant_id]
-        );
-        const tenant_user_id = tenantUser?.[0]?.user_id || null;
+        const tenant_user_id = session.user_id;
 
         if (tenant_user_id) {
             await connection.execute(
                 `INSERT INTO ActivityLog (user_id, action, timestamp) VALUES (?, ?, NOW())`,
                 [
                     tenant_user_id,
-                    `Created Maintenance Request (${category}) - ${description}`,
+                    `Created Maintenance Request (${category}) - ${subject}`,
                 ]
             );
         }
 
-        // --- Notifications ---
         const [propertyUnit]: any = await connection.execute(
             `
-      SELECT p.property_name, u.unit_name
-      FROM Unit u
-      JOIN Property p ON u.property_id = p.property_id
-      WHERE u.unit_id = ?
-    `,
+            SELECT p.property_name, u.unit_name
+            FROM Unit u
+            JOIN Property p ON u.property_id = p.property_id
+            WHERE u.unit_id = ?
+            `,
             [unit_id]
         );
 
         const property_name = propertyUnit?.[0]?.property_name || "Unknown Property";
         const unit_name = propertyUnit?.[0]?.unit_name || "Unknown Unit";
 
-        const title = is_emergency
-            ? `🚨 Urgent Maintenance Request (${category})`
-            : `🧰 Maintenance Request (${category})`;
-        const body = is_emergency
+        const notifTitle = is_emergency
+            ? `Emergency Maintenance Request (${category})`
+            : `Maintenance Request (${category})`;
+        const notifBody = is_emergency
             ? `An urgent maintenance issue was reported for ${unit_name} at ${property_name}.`
             : `A new maintenance request was created for ${unit_name} at ${property_name}.`;
-        const url = `/landlord/maintenance-request?id=${request_id}`;
+        const notifUrl = `/landlord/maintenance-request?id=${request_id}`;
 
-        await connection.execute(
-            `INSERT INTO Notification (user_id, title, body, url, is_read, created_at)
-       VALUES (?, ?, ?, ?, 0, NOW())`,
-            [landlord_user_id, title, body, url]
-        );
-
-        // --- Web Push Notification ---
-        const [subs]: any = await connection.execute(
-            `SELECT endpoint, p256dh, auth FROM user_push_subscriptions WHERE user_id = ?`,
-            [landlord_user_id]
-        );
-
-        if (subs.length > 0) {
-            const payload = JSON.stringify({
-                title,
-                body,
-                icon: "/icons/maintenance.png",
-                data: { url },
-            });
-
-            for (const sub of subs) {
-                try {
-                    await webpush.sendNotification(
-                        {
-                            endpoint: sub.endpoint,
-                            keys: { p256dh: sub.p256dh, auth: sub.auth },
-                        },
-                        payload
-                    );
-                } catch (err: any) {
-                    console.warn("⚠️ Web Push failed:", err.message);
-
-                    if (err.statusCode === 404 || err.statusCode === 410) {
-                        await connection.execute(
-                            `DELETE FROM user_push_subscriptions WHERE endpoint = ?`,
-                            [sub.endpoint]
-                        );
-                        console.log(`🧹 Removed invalid push subscription: ${sub.endpoint}`);
-                    }
-                }
-            }
-        }
+        await sendUserNotification({
+            userId: landlord_user_id,
+            title: notifTitle,
+            body: notifBody,
+            url: notifUrl,
+            conn: connection,
+        });
 
         await connection.commit();
 
@@ -273,12 +233,12 @@ export async function POST(req: NextRequest) {
                 success: true,
                 message: "Maintenance request created successfully",
                 request_id,
-                priority_level,
+                priority_level: finalPriority,
             },
             { status: 201 }
         );
     } catch (err: any) {
-        console.error("❌ Maintenance creation error:", err);
+        console.error("Maintenance creation error:", err);
         await connection.rollback();
         return NextResponse.json(
             { error: "Internal Server Error" },
