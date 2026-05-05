@@ -19,7 +19,6 @@ import {
   IoWallet,
   IoAnalytics,
   IoLogOut,
-  IoChatbubbleEllipses,
   IoCalendar,
   IoHammer,
   IoMegaphone,
@@ -27,7 +26,6 @@ import {
   IoPeople,
   IoSettings,
   IoAlertCircle,
-  IoHelp,
   IoCard,
   IoChevronDown,
   IoChevronForward,
@@ -37,16 +35,10 @@ import {
   IoBook,
   IoHelpCircle,
 } from "react-icons/io5";
-import { FaRegFolder } from "react-icons/fa";
 import useSubscription from "@/hooks/landlord/useSubscription";
 
 const NotificationSection = dynamic(
   () => import("@/components/notification/notifCenter"),
-  { ssr: false },
-);
-
-const SendTenantInviteModal = dynamic(
-  () => import("@/components/landlord/properties/sendInvite"),
   { ssr: false },
 );
 
@@ -65,8 +57,9 @@ export default function LandlordLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { user, fetchSession, signOut } = useAuthStore();
+  const [landlordIdState, setLandlordIdState] = useState<number | undefined>(undefined);
   const landlordId = user?.landlord_id ?? undefined;
-  const { subscription, loadingSubscription } = useSubscription(landlordId);
+  const { subscription, loadingSubscription } = useSubscription(landlordIdState ?? landlordId);
   const emailVerified = user?.emailVerified ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -94,6 +87,29 @@ export default function LandlordLayout({
   }, [authReady, user, router]);
 
   useEffect(() => {
+    if (authReady && user?.landlord_id) {
+      const fetchProperties = async () => {
+        setLoadingProperties(true);
+        try {
+          const res = await axios.get(`/api/landlord/properties/getAllPropertieName`);
+          setProperties(res.data || []);
+        } catch (err) {
+          console.error("Error fetching properties:", err);
+        } finally {
+          setLoadingProperties(false);
+        }
+      };
+      fetchProperties();
+    }
+  }, [authReady, user]);
+
+  useEffect(() => {
+    if (user?.landlord_id) {
+      setLandlordIdState(user.landlord_id);
+    }
+  }, [user]);
+
+  useEffect(() => {
     setIsSidebarOpen(false);
   }, [pathname]);
 
@@ -103,21 +119,6 @@ export default function LandlordLayout({
       document.body.style.overflow = "";
     };
   }, [isSidebarOpen]);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      setLoadingProperties(true);
-      try {
-        const res = await axios.get(`/api/landlord/properties/getAllPropertieName`);
-        setProperties(res.data || []);
-      } catch (err) {
-        console.error("Error fetching properties:", err);
-      } finally {
-        setLoadingProperties(false);
-      }
-    };
-    fetchProperties();
-  }, []);
 
   useEffect(() => {
     if (!landlordId) return;
@@ -234,21 +235,31 @@ export default function LandlordLayout({
       <aside className="hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:w-64 bg-gray-900 border-r border-gray-800 z-40">
         <div className="flex flex-col h-full">
           {/* HEADER / BRAND */}
-          <div className="px-4 py-5 border-b border-gray-800">
+          <div className="px-4 py-5 border-b border-gray-800 flex items-center justify-between">
+
+            {/* Left: Logo + Text */}
             <Link id="nav-brand" href="/landlord/dashboard" className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg">
-                <IoGrid className="w-5 h-5 text-white" />
+
+              <div className="w-9 h-9 relative">
+                <Image
+                    src="/upkyp_white.png"
+                    alt="Upkyp Logo"
+                    fill
+                    className="object-contain rounded-lg"
+                    priority
+                />
               </div>
+
               <div>
                 <h1 className="text-base font-bold text-white">Upkyp</h1>
                 <p className="text-[10px] text-gray-400">Landlord Portal</p>
               </div>
             </Link>
-            <div className="mt-3 flex justify-end">
-              <ThemeToggle variant="dark" />
-            </div>
-          </div>
 
+            {/* Right: Theme Toggle */}
+            <ThemeToggle variant="dark" />
+
+          </div>
           {/* USER PROFILE */}
           <div className="px-4 py-4 border-b border-gray-800">
             <div className="flex items-center gap-3">
@@ -422,12 +433,15 @@ export default function LandlordLayout({
         id="mobile-header"
         className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-gradient-to-r from-blue-600 to-emerald-600 flex items-center justify-between px-4 z-50"
       >
-        <Link href="/landlord/dashboard" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-            <IoGrid className="w-4 h-4 text-white" />
-          </div>
-          <h1 className="text-base font-bold text-white">Upkyp</h1>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/landlord/dashboard" className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+              <IoGrid className="w-4 h-4 text-white" />
+            </div>
+            <h1 className="text-base font-bold text-white">Upkyp</h1>
+          </Link>
+          <ThemeToggle variant="default" />
+        </div>
         <div className="flex items-center gap-1">
           {/* Current Page Indicator */}
           <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 rounded-lg mr-1">
@@ -457,7 +471,6 @@ export default function LandlordLayout({
               {!pathname.includes("/dashboard") && !pathname.includes("/properties") && !pathname.includes("/tenants") && !pathname.includes("/payments") && !pathname.includes("/announcement") && !pathname.includes("/maintenance") && !pathname.includes("/calendar") && !pathname.includes("/analytics") && !pathname.includes("/documents") && !pathname.includes("/billing") && !pathname.includes("/subscription") && "Menu"}
             </span>
           </div>
-          <ThemeToggle variant="default" />
           <NotificationSection user={user} admin={null} />
           <button
             id="mobile-menu-btn"

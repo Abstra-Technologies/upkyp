@@ -54,8 +54,8 @@ export default function useSubscription(
     } = useSWR<Subscription>(swrKey, fetcher, {
         revalidateOnFocus: false,
         revalidateOnReconnect: false,
-        revalidateIfStale: false,
-        dedupingInterval: 30_000,
+        revalidateIfStale: true,
+        dedupingInterval: 5_000,
         keepPreviousData: true,
     });
 
