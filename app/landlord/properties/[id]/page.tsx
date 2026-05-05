@@ -167,100 +167,65 @@ export default function ViewPropertyDetailedPage() {
           {/* Row 2: Quick Action Buttons */}
             <div
                 id="units-action-buttons"
-                className="grid grid-cols-4 md:grid-cols-4 gap-2 mb-4"
-            >            {/* Add Unit */}
+                className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4"
+            >
+            {/* Add Unit */}
             <button
               onClick={handleAddUnitClick}
               disabled={unitActionsDisabled}
-              className={`group relative overflow-hidden rounded-lg md:rounded-xl p-2.5 md:p-4 transition-all duration-300 hover:shadow-md md:hover:shadow-lg hover:-translate-y-0.5 md:hover:-translate-y-1 ${
+              className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:shadow-md ${
                 unitActionsDisabled
                   ? "bg-gray-100 border border-gray-200"
                   : "bg-gradient-to-br from-blue-500 to-blue-600 border border-blue-400"
               }`}
             >
-              <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-md md:rounded-lg flex items-center justify-center">
-                <Plus className="w-3 h-3 md:w-4 md:h-4 text-white" />
+              <div className="flex items-center gap-2 mb-1">
+                <Plus className="w-4 h-4 text-white" />
+                <span className={`text-xs font-bold ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>Add Unit</span>
               </div>
-              <div className={`flex flex-col items-start gap-0.5 ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>
-                <span className="text-[10px] md:text-xs font-medium opacity-90">Add New</span>
-                <span className="text-xs md:text-sm font-bold">Unit</span>
-              </div>
+              <span className={`text-[10px] ${unitActionsDisabled ? "text-gray-400" : "text-white/70"}`}>New unit</span>
               {unitActionsDisabled && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 md:h-1 bg-gray-300">
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-300">
                   <div className="h-full bg-red-500" style={{ width: "100%" }} />
                 </div>
               )}
             </button>
 
-            {/* Bulk Import */}
-            {/*<button*/}
-            {/*  onClick={() => setBulkImportModal(true)}*/}
-            {/*  className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-emerald-500 to-emerald-600 border border-emerald-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"*/}
-            {/*>*/}
-            {/*  <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">*/}
-            {/*    <FileSpreadsheet className="w-4 h-4 text-white" />*/}
-            {/*  </div>*/}
-            {/*  <div className="flex flex-col items-start gap-1 text-white">*/}
-            {/*    <span className="text-xs font-medium opacity-90">Import</span>*/}
-            {/*    <span className="text-sm font-bold">Bulk Units</span>*/}
-            {/*  </div>*/}
-            {/*</button>*/}
-
             {/* Invite Tenant */}
             <button
               onClick={() => setInviteModalOpen(true)}
-              className="group relative overflow-hidden rounded-lg md:rounded-xl p-2.5 md:p-4 bg-gradient-to-br from-violet-500 to-violet-600 border border-violet-400 transition-all duration-300 hover:shadow-md md:hover:shadow-lg hover:-translate-y-0.5 md:hover:-translate-y-1"
+              className="group relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-violet-500 to-violet-600 border border-violet-400 transition-all duration-300 hover:shadow-md"
             >
-              <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-md md:rounded-lg flex items-center justify-center">
-                <Users className="w-3 h-3 md:w-4 md:h-4 text-white" />
+              <div className="flex items-center gap-2 mb-1">
+                <Users className="w-4 h-4 text-white" />
+                <span className="text-xs font-bold text-white">Invite Tenant</span>
               </div>
-              <div className="flex flex-col items-start gap-0.5 text-white">
-                <span className="text-[10px] md:text-xs font-medium opacity-90">Invite</span>
-                <span className="text-xs md:text-sm font-bold">Tenant</span>
-              </div>
+              <span className="text-[10px] text-white/70">Send invite</span>
             </button>
 
             {/* Active Lease */}
             <Link
               href={`/landlord/properties/${property_id}/activeLease`}
-              className="group relative overflow-hidden rounded-lg md:rounded-xl p-2.5 md:p-4 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-md md:hover:shadow-lg hover:-translate-y-0.5 md:hover:-translate-y-1"
+              className="group relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-md flex flex-col justify-center"
             >
-              <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-md md:rounded-lg flex items-center justify-center">
-                <ScrollText className="w-3 h-3 md:w-4 md:h-4 text-white" />
+              <div className="flex items-center gap-2 mb-1">
+                <ScrollText className="w-4 h-4 text-white" />
+                <span className="text-xs font-bold text-white">Active Lease</span>
               </div>
-              <div className="flex flex-col items-start gap-0.5 text-white">
-                <span className="text-[10px] md:text-xs font-medium opacity-90">View</span>
-                <span className="text-xs md:text-sm font-bold">Active Lease</span>
-              </div>
+              <span className="text-[10px] text-white/70">View list</span>
             </Link>
 
             {/* Billing */}
             <Link
               href={`/landlord/properties/${property_id}/utilities`}
-              className="group relative overflow-hidden rounded-lg md:rounded-xl p-2.5 md:p-4 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-md md:hover:shadow-lg hover:-translate-y-0.5 md:hover:-translate-y-1"
+              className="group relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-md flex flex-col justify-center"
             >
-              <div className="absolute top-1.5 right-1.5 md:top-2 md:right-2 w-6 h-6 md:w-8 md:h-8 bg-white/20 rounded-md md:rounded-lg flex items-center justify-center">
-                <CreditCard className="w-3 h-3 md:w-4 md:h-4 text-white" />
+              <div className="flex items-center gap-2 mb-1">
+                <CreditCard className="w-4 h-4 text-white" />
+                <span className="text-xs font-bold text-white">Utility Cost</span>
               </div>
-              <div className="flex flex-col items-start gap-0.5 text-white">
-                <span className="text-[10px] md:text-xs font-medium opacity-90">View</span>
-                <span className="text-xs md:text-sm font-bold">Utility Cost</span>
-              </div>
+              <span className="text-[10px] text-white/70">View cost</span>
             </Link>
-
-            {/* Generate QR */}
-            {/*<button*/}
-            {/*  onClick={handleGenerateQRCodes}*/}
-            {/*  className="group relative overflow-hidden rounded-xl p-4 bg-gradient-to-br from-cyan-500 to-blue-600 border border-cyan-400 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"*/}
-            {/*>*/}
-            {/*  <div className="absolute top-2 right-2 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">*/}
-            {/*    <QrCode className="w-4 h-4 text-white" />*/}
-            {/*  </div>*/}
-            {/*  <div className="flex flex-col items-start gap-1 text-white">*/}
-            {/*    <span className="text-xs font-medium opacity-90">Generate</span>*/}
-            {/*    <span className="text-sm font-bold">QR Codes</span>*/}
-            {/*  </div>*/}
-            {/*</button>*/}
           </div>
 
           {/* SEARCH */}

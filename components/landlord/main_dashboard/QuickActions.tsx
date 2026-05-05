@@ -179,25 +179,25 @@ export default function QuickActions({
     return (
         <>
             <div className="md:hidden">
-                <div className={`${SECTION_HEADER} mb-3 px-2`}>
+                <div className={`${SECTION_HEADER} mb-3 px-1`}>
                     <span className={GRADIENT_DOT} />
-                    <h2 className={`${SECTION_TITLE} text-sm`}>Quick Actions</h2>
+                    <h2 className={`${SECTION_TITLE} text-xs`}>Quick Actions</h2>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1.5 px-1">
+                <div className="grid grid-cols-3 gap-2 px-0.5">
                     {mobileActions.map(({ label, href, icon: Icon, gradient, onClick }) => (
                         onClick ? (
                             <button
                                 key={label}
                                 onClick={onClick}
-                                className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
                             >
                                 <div
-                                    className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
                                 >
-                                    <Icon className="w-4 h-4 text-white" />
+                                    <Icon className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-[9px] font-medium text-gray-700 text-center leading-tight truncate w-full">
+                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
                                     {label}
                                 </span>
                             </button>
@@ -205,14 +205,14 @@ export default function QuickActions({
                             <Link
                                 key={label}
                                 href={href!}
-                                className="flex flex-col items-center gap-1 p-1.5 rounded-lg bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
+                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white border border-gray-100 shadow-sm active:scale-95 transition-transform"
                             >
                                 <div
-                                    className={`w-8 h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
+                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
                                 >
-                                    <Icon className="w-4 h-4 text-white" />
+                                    <Icon className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-[9px] font-medium text-gray-700 text-center leading-tight truncate w-full">
+                                <span className="text-[10px] font-medium text-gray-700 text-center leading-tight">
                                     {label}
                                 </span>
                             </Link>

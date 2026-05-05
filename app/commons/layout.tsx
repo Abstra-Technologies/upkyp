@@ -13,10 +13,15 @@ import {
   IoCard,
   IoChevronForward,
   IoGrid,
+  IoMenu,
+  IoClose,
+  IoPerson,
+  IoShield,
 } from "react-icons/io5";
 
 import useAuthStore from "@/zustand/authStore";
 import LoadingScreen from "@/components/loadingScreen";
+import MobileCommonsSidenav from "@/components/navigation/MobileCommonsSidenav";
 
 const profileNavLinks = [
   {
@@ -330,130 +335,20 @@ export default function SideNavProfile({
             onClick={() => setIsSidebarOpen(true)}
             className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
-            <IoGrid className="w-5 h-5 text-white" />
+            <IoMenu className="w-6 h-6 text-white" />
           </button>
         </div>
       </div>
 
-      {/* MOBILE SIDEBAR OVERLAY */}
-      <div
-        className={`lg:hidden fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${
-          isSidebarOpen
-            ? "opacity-100 pointer-events-auto"
-            : "opacity-0 pointer-events-none"
-        }`}
-      >
-        <div
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-
-        <aside
-          className={`relative w-full max-w-sm bg-gray-900 rounded-2xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-out ${
-            isSidebarOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"
-          }`}
-        >
-          <div className="px-4 py-3 flex justify-between items-center bg-gray-800 border-b border-gray-700">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-white/20 rounded-md flex items-center justify-center">
-                <IoSettings className="w-4 h-4 text-white" />
-              </div>
-              <h2 className="font-bold text-sm tracking-tight text-white">Account Settings</h2>
-            </div>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 hover:bg-gray-700 rounded-lg transition-colors"
-            >
-              <IoChevronForward className="w-5 h-5 text-gray-400" />
-            </button>
-          </div>
-
-          <div className="max-h-[75vh] overflow-y-auto">
-            <div className="px-4 py-3 border-b border-gray-800 bg-gray-800/50">
-              <div className="flex items-center gap-3">
-                <Image
-                  src={
-                    user.profilePicture ||
-                    "https://res.cloudinary.com/dptmeluy0/image/upload/v1766715365/profile-icon-design-free-vector_la6rgj.jpg"
-                  }
-                  alt="Profile"
-                  width={36}
-                  height={36}
-                  className="rounded-lg object-cover border border-gray-700"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-xs truncate text-white">
-                    {user.firstName && user.lastName
-                      ? `${user.firstName} ${user.lastName}`
-                      : user.companyName || user.email}
-                  </p>
-                  <p className="text-[10px] text-gray-400">Landlord Account</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="px-4 py-2.5 border-b border-gray-800">
-              <button
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  router.push(mainPageUrl);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-all text-left"
-              >
-                <IoChevronForward className="w-3.5 h-3.5 text-blue-400 rotate-180 flex-shrink-0" />
-                <p className="text-xs font-medium text-gray-200 truncate">{mainPageLabel}</p>
-              </button>
-            </div>
-
-            <nav className="p-3">
-              {filteredLinks.map(({ label, href, icon: Icon, exactMatch }, index) => {
-                const active = isLinkActive(pathname, href, exactMatch);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setIsSidebarOpen(false)}
-                    className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors mb-0.5 ${
-                      active
-                        ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-md"
-                        : "hover:bg-gray-800 text-gray-300"
-                    }`}
-                    style={{
-                      animationDelay: isSidebarOpen ? `${index * 30}ms` : "0ms",
-                    }}
-                  >
-                    <Icon className={`w-4 h-4 ${active ? "" : "text-gray-500"}`} />
-                    <span className="text-xs font-medium">{label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="px-4 py-3 border-t border-gray-800">
-              <div className="bg-gradient-to-r from-blue-600 to-emerald-600 rounded-xl p-3 text-white">
-                <div className="text-xs font-medium mb-0.5">Need Help?</div>
-                <div className="text-[10px] opacity-90 mb-2">Contact support</div>
-                <button className="bg-white/20 hover:bg-white/30 text-white text-[10px] px-2.5 py-1 rounded-lg transition-colors">
-                  Get Support
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4 border-t border-gray-800">
-              <button
-                onClick={() => {
-                  setIsSidebarOpen(false);
-                  setShowLogoutConfirm(true);
-                }}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors font-medium text-xs"
-              >
-                <IoLogOut className="w-4 h-4" />
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </aside>
-      </div>
+      {/* MOBILE SIDEBAR */}
+      <MobileCommonsSidenav
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onLogoutClick={() => setShowLogoutConfirm(true)}
+        user={user}
+        mainPageUrl={mainPageUrl}
+        mainPageLabel={mainPageLabel}
+      />
 
       {/* LOGOUT MODAL */}
       {showLogoutConfirm && (

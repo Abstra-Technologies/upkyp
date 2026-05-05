@@ -23,7 +23,7 @@ const baseConfig: NextConfig = {
   /**
    * 🔓 Allowed Dev Origins (for ngrok, etc.)
    */
-  allowedDevOrigins: ['reposeful-prorealistic-ami.ngrok-free.dev'],
+  allowedDevOrigins: ['reposeful-prorealistic-ami.ngrok-free.dev', 'https://tbk5fv-ip-112-210-205-253.tunnelmole.net'],
 
   /**
    * 🔐 Security Headers (GLOBAL)

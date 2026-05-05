@@ -1,12 +1,10 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./clientLayout";
-import FeedbackWidget from "../components/beta/FeedbackWidget";
 import "leaflet/dist/leaflet.css";
 import InstallPrompt from "@/components/Commons/installPrompt";
 import Head from "next/head";
 import CookiesPermission from "@/components/Commons/setttings/cookiesPermission";
-import GoogleTranslateProvider from "@/components/GoogleTranslateProvider";
 import "leaflet/dist/leaflet.css";
 import "leaflet-geosearch/dist/geosearch.css";
 import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -29,7 +27,7 @@ export const metadata = {
     icons: {
         icon: [
             {
-                url: "/upkeep_blue.png",
+                url: "/upkyp_violet.png",
                 media: "(prefers-color-scheme: light)",
             },
             {
@@ -39,7 +37,7 @@ export const metadata = {
         ],
         apple: [
             {
-                url: "/upkeep_blue.png",
+                url: "/upkyp_violet.png",
                 media: "(prefers-color-scheme: light)",
             },
             {
@@ -84,11 +82,7 @@ export default function RootLayout({
             <SpeedInsights/>
             <Analytics/>
             {children}
-      
             <CookiesPermission />
-            {/*<FeedbackWidget />*/}
-            {/*<GoogleTranslateProvider />*/}
-            {/* <FeedbackWidget /> */}
         </ClientLayout>
         <InstallPrompt />
         </body>

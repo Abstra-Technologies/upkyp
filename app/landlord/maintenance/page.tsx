@@ -17,6 +17,10 @@ import {
     RefreshCw,
     ChevronRight,
     GripVertical,
+    ChevronUp,
+    ChevronDown,
+    RotateCcw,
+    SlidersHorizontal,
 } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -504,58 +508,80 @@ export default function MaintenanceRequestPage() {
                 className="bg-white w-full"
             >
                 {/* Header */}
-                <div className="bg-white border-b border-gray-200 px-4 py-2 lg:px-8 lg:py-4 sticky top-0 z-30">
-                    <div className="flex items-center justify-between mb-2 lg:mb-3">
-                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                            <div className="hidden sm:flex w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-xl items-center justify-center shadow-lg shadow-blue-500/25 flex-shrink-0">
-                                <Wrench className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">
-                                        Work Orders
-                                    </h1>
-                                    <span className="text-[11px] sm:text-xs lg:text-sm text-gray-400">
-                    {filtered.length} total
-                  </span>
-                                    {pendingCount > 0 && (
-                                        <span className="text-[11px] sm:text-xs text-amber-600 font-medium">
-                      · {pendingCount} pending
-                    </span>
-                                    )}
-                                </div>
-                            </div>
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white border-b border-gray-200 pt-3 sm:pt-5 pb-3 sm:pb-5 px-3 sm:px-6"
+                >
+                    {/* Title */}
+                    <div className="flex items-start gap-2.5 sm:gap-4 mb-3 sm:mb-5">
+                        <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md sm:shadow-lg flex-shrink-0">
+                            <Wrench className="w-4.5 h-4.5 sm:w-6 sm:h-6 text-white" />
                         </div>
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
-                            <motion.button
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => fetchRequests(true)}
-                                disabled={refreshing}
-                                className="p-2 sm:p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600"
-                            >
-                                <RefreshCw
-                                    className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
-                                />
-                            </motion.button>
-                            <motion.button
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setShowNewModal(true)}
-                                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white font-semibold text-sm shadow-lg"
-                            >
-                                <Plus className="w-4 h-4" />
-                                <span>New Work Order</span>
-                            </motion.button>
+
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+                                    Work Orders
+                                </h1>
+                                <span className="text-[11px] sm:text-xs text-gray-400">
+                                    {filtered.length} total
+                                </span>
+                                {pendingCount > 0 && (
+                                    <span className="text-[11px] sm:text-xs text-amber-600 font-medium">
+                                        · {pendingCount} pending
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-[11px] sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
+                                Manage and track maintenance requests
+                            </p>
                         </div>
                     </div>
-                    <div className="hidden md:flex gap-2">
-                        <div className="relative flex-1 min-w-0">
-                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end mb-3 sm:mb-5">
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => fetchRequests(true)}
+                            disabled={refreshing}
+                            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-white border border-gray-200 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? "animate-spin" : ""}`} />
+                            <span className="truncate">Refresh</span>
+                        </motion.button>
+
+                        <motion.button
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setShowNewModal(true)}
+                            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-xs sm:text-sm font-semibold shadow-md hover:scale-95 transition w-full sm:w-auto"
+                        >
+                            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <span className="truncate">New Work Order</span>
+                        </motion.button>
+                    </div>
+
+                    {/* Mobile Filter Toggle */}
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="sm:hidden flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 mb-2"
+                    >
+                        <Filter className="w-3.5 h-3.5" />
+                        {showFilters ? "Hide Filters" : "Show Filters"}
+                        {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+
+                    {/* Filter Section - Desktop always visible, Mobile collapsible */}
+                    <div className={`${showFilters ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3`}>
+                        {/* Search */}
+                        <div className="w-full sm:flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="Search..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-9 pr-8 py-2 border border-gray-200 rounded-xl bg-white text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                                placeholder="Search subject, property, unit..."
+                                className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 text-xs sm:text-sm"
                             />
                             {search && (
                                 <button
@@ -566,70 +592,56 @@ export default function MaintenanceRequestPage() {
                                 </button>
                             )}
                         </div>
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-xl border transition-all flex-shrink-0 ${showFilters || hasFilters ? "bg-blue-50 border-blue-200 text-blue-700" : "bg-white border-gray-200 text-gray-700"}`}
-                        >
-                            <Filter className="w-4 h-4" />
-                            <span className="text-sm font-medium hidden sm:inline">
-                Filters
-              </span>
+
+                        {/* Filter Row - Priority & Source */}
+                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
+                            <div className="w-full sm:w-auto relative">
+                                <select
+                                    value={filterPriority}
+                                    onChange={(e) => setFilterPriority(e.target.value)}
+                                    className="w-full appearance-none px-3 py-2 sm:py-2.5 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 text-xs sm:text-sm"
+                                >
+                                    <option value="">All Priorities</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Urgent">Urgent</option>
+                                </select>
+                            </div>
+
+                            <div className="w-full sm:w-auto relative">
+                                <select
+                                    value={filterSource}
+                                    onChange={(e) => setFilterSource(e.target.value as any)}
+                                    className="w-full appearance-none px-3 py-2 sm:py-2.5 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 text-xs sm:text-sm"
+                                >
+                                    <option value="all">All Sources</option>
+                                    <option value="tenant">Tenant Requests</option>
+                                    <option value="landlord">Work Orders</option>
+                                </select>
+                            </div>
+
+                            {/* Clear Filters */}
                             {hasFilters && (
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                                <button
+                                    onClick={() => {
+                                        setSearch("");
+                                        setFilterPriority("");
+                                        setFilterSource("all");
+                                    }}
+                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
+                                >
+                                    <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    Clear
+                                </button>
                             )}
-                        </button>
+                        </div>
                     </div>
-                    <AnimatePresence>
-                        {showFilters && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="overflow-hidden"
-                            >
-                                <div className="flex flex-wrap gap-2 pt-3 mt-3 border-t border-gray-100">
-                                    <select
-                                        value={filterPriority}
-                                        onChange={(e) => setFilterPriority(e.target.value)}
-                                        className="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm outline-none flex-1 sm:flex-none"
-                                    >
-                                        <option value="">All Priorities</option>
-                                        <option value="Low">Low</option>
-                                        <option value="Medium">Medium</option>
-                                        <option value="High">High</option>
-                                        <option value="Urgent">Urgent</option>
-                                    </select>
-                                    <select
-                                        value={filterSource}
-                                        onChange={(e) => setFilterSource(e.target.value as any)}
-                                        className="px-3 py-2 border border-gray-200 rounded-xl bg-white text-sm outline-none flex-1 sm:flex-none"
-                                    >
-                                        <option value="all">All Sources</option>
-                                        <option value="tenant">Tenant Requests</option>
-                                        <option value="landlord">Work Orders</option>
-                                    </select>
-                                    {hasFilters && (
-                                        <button
-                                            onClick={() => {
-                                                setSearch("");
-                                                setFilterPriority("");
-                                                setFilterSource("all");
-                                            }}
-                                            className="px-3 py-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5"
-                                        >
-                                            <X className="w-3.5 h-3.5" />
-                                            Clear
-                                        </button>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+
                     <p className="hidden md:block text-xs text-gray-400 mt-3">
-                        💡 Drag cards between columns or use action buttons to update
-                        status.
+                        💡 Drag cards between columns or use action buttons to update status.
                     </p>
-                </div>
+                </motion.div>
 
                 {/* Board - Desktop Only */}
                 <div
