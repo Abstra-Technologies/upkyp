@@ -60,30 +60,11 @@ export default function RootLayout({
             <link rel="manifest" href="/manifest.json"/>
             <link rel="dns-prefetch" href="https://res.cloudinary.com" />
             <link rel="preconnect" href="https://res.cloudinary.com" />
-            <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)"/>
-            <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)"/>
-            <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  var theme = localStorage.getItem('theme');
-                  if (!theme) {
-                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                  }
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                    document.body.classList.add('dark');
-                  }
-                } catch (e) {}
-              })();
-            `,
-          }}
-        />
-           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <meta name="theme-color" content="#ffffff"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <link rel="apple-touch-icon" href="/Hestia-logo-b.svg"/>
         </Head>
-        <body className="bg-white dark:bg-black text-gray-900 dark:text-gray-100 antialiased transition-colors duration-300">
+        <body className="bg-white text-gray-900 antialiased">
         <ClientLayout>
             <SpeedInsights/>
             <Analytics/>

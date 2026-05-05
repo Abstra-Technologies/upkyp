@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoClose, IoLogOut, IoSettings, IoBusiness, IoChevronDown, IoChevronForward, IoAlertCircle } from "react-icons/io5";
-import ThemeToggle from "@/components/providers/ThemeToggle";
 
 interface Property {
   property_id: number;
@@ -97,19 +96,16 @@ export default function MobileLandlordSidenav({
                             />
                         </div>
 
-                        <h2 className="font-bold text-base tracking-tight">Upkyp Landlord</h2>
+                        <h2 className="font-bold text-base tracking-tight text-white">Menu</h2>
                     </div>
 
-                    {/* Right: Toggle + Close */}
-                    <div className="flex items-center gap-1">
-                        <ThemeToggle variant="default" />
-                        <button
-                            onClick={onClose}
-                            className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-                        >
-                            <IoClose className="w-5 h-5" />
-                        </button>
-                    </div>
+                    {/* Right: Close Button */}
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                    >
+                        <IoClose className="w-5 h-5 text-white" />
+                    </button>
                 </div>
 
                 {/* Scrollable content */}
