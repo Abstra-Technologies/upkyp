@@ -100,7 +100,16 @@ body {
 
   /* Standard white card */
   .card {
-    @apply bg-surface rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow duration-300;
+    @apply bg-surface rounded-xl shadow-sm border border-border overflow-hidden hover:shadow-md transition-shadow duration-300 dark:bg-gray-900 dark:border-gray-700 dark:hover:shadow-gray-900/50;
+  }
+
+  .card-elevated {
+    @apply bg-surface rounded-2xl shadow-sm border border-border overflow-hidden hover:shadow-lg transition-all duration-300 dark:bg-gray-900 dark:border-gray-700 dark:hover:shadow-gray-900/50;
+  }
+
+  /* Icon button */
+  .btn-icon {
+    @apply p-2 rounded-lg hover:bg-surface-tertiary transition-colors dark:hover:bg-gray-800;
   }
 
   .card-elevated {
@@ -108,11 +117,11 @@ body {
   }
 
   .card-padding {
-    @apply p-4 sm:p-5;
+    @apply p-4 sm:p-5 bg-surface dark:bg-gray-900;
   }
 
   .card-padding-lg {
-    @apply p-5 sm:p-6 md:p-8;
+    @apply p-5 sm:p-6 md:p-8 bg-surface dark:bg-gray-900;
   }
 
   /* ===================================
@@ -129,7 +138,7 @@ body {
   }
 
   .section-header-title {
-    @apply text-lg font-bold text-foreground;
+    @apply text-lg font-bold text-foreground dark:text-white;
   }
 
   /* ===================================
@@ -142,23 +151,23 @@ body {
   }
 
   .status-badge-pending {
-    @apply bg-amber-50 border-amber-200 text-amber-700;
+    @apply bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/30 dark:border-amber-700/50 dark:text-amber-300;
   }
 
   .status-badge-success {
-    @apply bg-emerald-50 border-emerald-200 text-emerald-700;
+    @apply bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/30 dark:border-emerald-700/50 dark:text-emerald-300;
   }
 
   .status-badge-error {
-    @apply bg-red-50 border-red-200 text-red-700;
+    @apply bg-red-50 border-red-200 text-red-700 dark:bg-red-900/30 dark:border-red-700/50 dark:text-red-300;
   }
 
   .status-badge-info {
-    @apply bg-blue-50 border-blue-200 text-blue-700;
+    @apply bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-700/50 dark:text-blue-300;
   }
 
   .status-badge-neutral {
-    @apply bg-gray-50 border-gray-200 text-gray-700;
+    @apply bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300;
   }
 
   /* ===================================
@@ -172,12 +181,12 @@ body {
 
   /* Secondary button */
   .btn-secondary {
-    @apply flex items-center gap-2 px-4 py-2 bg-surface-tertiary hover:bg-surface-secondary text-foreground rounded-lg transition-all font-semibold text-sm border border-border;
+    @apply flex items-center gap-2 px-4 py-2 bg-surface-tertiary hover:bg-surface-secondary text-foreground rounded-lg transition-all font-semibold text-sm border border-border dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-100 dark:border-gray-700;
   }
 
   /* Danger button */
   .btn-danger {
-    @apply flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-semibold text-sm shadow-md hover:shadow-lg;
+    @apply flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-semibold text-sm shadow-md hover:shadow-lg dark:bg-red-600 dark:hover:bg-red-700;
   }
 
   /* Icon button */
@@ -190,7 +199,7 @@ body {
      =================================== */
 
   .stat-card {
-    @apply bg-surface rounded-xl p-4 sm:p-5 border-2 border-border hover:border-primary/30 transition-all;
+    @apply bg-surface rounded-xl p-4 sm:p-5 border-2 border-border hover:border-primary/30 transition-all dark:bg-gray-900 dark:border-gray-700 dark:hover:border-primary/40;
   }
 
   .stat-card-header {
@@ -846,6 +855,14 @@ body {
   background: #94a3b8;
 }
 
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -860,13 +877,13 @@ body {
    ============================================ */
 
 .glass {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 .dark .glass {
-  background: rgba(23, 23, 23, 0.8);
+  background: rgba(23, 23, 23, 0.85);
 }
 
 .glass-dark {

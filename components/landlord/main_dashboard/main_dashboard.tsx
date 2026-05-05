@@ -187,6 +187,9 @@ export default function LandlordMainDashboard({ landlordId }: Props) {
                 </div>
               </Suspense>
 
+              <br />
+              <br />
+
               {/* Action Required */}
               <Suspense fallback={<CardSkeleton />}>
                 <LeaseOccupancyCard landlord_id={landlordId} />

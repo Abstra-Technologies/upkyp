@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import axios from "axios";
 
-/* ================= TYPES ================= */
 interface LeaseItem {
   lease_id?: string;
   property_id: string;
@@ -21,21 +20,13 @@ interface Props {
   landlord_id: string;
 }
 
-/* ================= FETCHER ================= */
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-/* ================= COMPONENT ================= */
 export default function LeaseOccupancyCard({ landlord_id }: Props) {
   const router = useRouter();
 
-  const {
-    data: leases = [],
-    isLoading,
-    error,
-  } = useSWR<LeaseItem[]>(
-    landlord_id
-      ? `/api/landlord/leases/attention?landlord_id=${landlord_id}`
-      : null,
+  const { data: leases = [], isLoading, error } = useSWR<LeaseItem[]>(
+    landlord_id ? `/api/landlord/leases/attention?landlord_id=${landlord_id}` : null,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60_000 },
   );
@@ -44,7 +35,6 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
   const drafts = leases.filter((l) => l.type === "draft");
   const ending = leases.filter((l) => l.type === "ending");
 
-  /* ================= NAV ================= */
   const goToLease = (lease: LeaseItem) => {
     if (lease.type === "prospective") {
       router.push(`/landlord/properties/${lease.property_id}/prospectives`);
@@ -53,137 +43,98 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
     }
   };
 
-  /* ================= ITEM ================= */
-  const Item = ({ lease, idx }: { lease: LeaseItem; idx: number }) => (
+  const Item = ({ lease }: { lease: LeaseItem }) => (
     <div
       onClick={() => goToLease(lease)}
-      className="
-        group relative flex items-center gap-3 px-4 py-3 cursor-pointer
-        transition-all duration-200
-        hover:bg-gray-50 hover:shadow-sm hover:-translate-y-[1px]
-      "
+      className="group relative flex items-center gap-3 px-3 sm:px-4 py-3 sm:py-4 cursor-pointer transition-all duration-200 hover:bg-gray-50/80 dark:hover:bg-gray-800/50 rounded-xl"
     >
-      {/* Icon */}
       <div
-        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0
-          ${
-            lease.type === "draft"
-              ? "bg-indigo-50 text-indigo-600"
-              : lease.type === "prospective"
-                ? "bg-emerald-50 text-emerald-600"
-                : "bg-orange-50 text-orange-600"
-          }
-        `}
+        className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+          lease.type === "draft"
+            ? "bg-indigo-100 text-indigo-600"
+            : lease.type === "prospective"
+            ? "bg-emerald-100 text-emerald-600"
+            : "bg-orange-100 text-orange-600"
+        }`}
       >
         {lease.type === "draft" ? (
-          <FileText className="w-4 h-4" />
+          <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
         ) : lease.type === "prospective" ? (
-          <Users className="w-4 h-4" />
+          <Users className="w-4 h-4 sm:w-5 sm:h-5" />
         ) : (
-          <Clock className="w-4 h-4" />
+          <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 space-y-0.5 sm:space-y-1">
         {lease.property_name && (
-          <p className="text-xs font-semibold text-gray-500 truncate">
-            {lease.property_name}
-          </p>
+          <p className="text-[10px] sm:text-xs font-medium text-gray-400 truncate">{lease.property_name}</p>
         )}
-        <p className="text-sm font-medium text-gray-900 truncate">
-          {lease.unit}
-        </p>
-        <p className="text-xs text-gray-600 truncate">{lease.tenant}</p>
-        <p className="text-xs text-gray-400 truncate">{lease.note}</p>
+        <p className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white truncate">{lease.unit}</p>
+        <p className="text-[10px] sm:text-xs text-gray-500 truncate">{lease.tenant || "No tenant assigned"}</p>
+        {lease.note && <p className="text-[10px] sm:text-xs text-gray-400 truncate">{lease.note}</p>}
       </div>
 
-      {/* Days Left (ending only) */}
       {lease.type === "ending" && lease.daysLeft !== undefined && (
         <span
-          className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0
-            ${
-              lease.daysLeft <= 7
-                ? "bg-red-100 text-red-700"
-                : "bg-orange-100 text-orange-700"
-            }`}
+          className={`text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg shrink-0 ${
+            lease.daysLeft <= 7 ? "bg-red-100 text-red-700" : "bg-orange-100 text-orange-700"
+          }`}
         >
-          {lease.daysLeft}d
+          {lease.daysLeft}d left
         </span>
       )}
 
-      {/* View Icon */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           goToLease(lease);
         }}
-        className="
-          absolute right-3 opacity-0 translate-x-2
-          group-hover:opacity-100 group-hover:translate-x-0
-          transition-all duration-200
-          p-1.5 rounded-md
-          text-gray-500 hover:text-blue-600 hover:bg-blue-50
-        "
+        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50"
         title="View"
       >
-        <Eye className="w-4 h-4" />
+        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </button>
     </div>
   );
 
-  const Empty = (text: string) => (
-    <div className="px-4 py-3 text-xs text-gray-400 italic">{text}</div>
+  const EmptyMessage = ({ message }: { message: string }) => (
+    <div className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-gray-400 italic">{message}</div>
   );
 
-  /* ================= RENDER ================= */
   return (
-    <div className="bg-slate-100 rounded-2xl border border-slate-200 shadow-sm hover:bg-slate-200 hover:border-slate-300 hover:shadow-lg transition-all h-[350px] flex flex-col">
-      {/* Header */}
-      <div className="px-4 py-3 border-b">
-        <h3 className="text-sm font-semibold text-gray-900">
-          Actions Required
-        </h3>
+    <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+      <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-100 dark:border-gray-800">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white">Lease &amp; Occupancy</h3>
+        <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Manage leases and tenant occupancy</p>
       </div>
 
       {isLoading ? (
-        <div className="px-4 py-6 text-center text-sm text-gray-500">
-          Loading lease activity…
-        </div>
+        <div className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-gray-500">Loading...</div>
       ) : error ? (
-        <div className="px-4 py-6 text-center text-sm text-red-500">
-          Failed to load lease data
-        </div>
+        <div className="px-3 sm:px-4 py-6 sm:py-8 text-center text-xs sm:text-sm text-red-500">Failed to load</div>
       ) : (
-        <div className="flex-1 overflow-y-auto">
-          <Section title="Ending Leases" count={ending.length}>
-            <div className="divide-y">
-              {ending.length
-                ? ending.slice(0, 3).map((lease, idx) => (
-                    <Item key={`ending-${idx}`} lease={lease} idx={idx} />
-                  ))
-                : Empty("No leases ending soon")}
-            </div>
+        <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <Section title="Ending Soon" count={ending.length}>
+            {ending.length > 0 ? (
+              ending.slice(0, 3).map((l, i) => <Item key={`e-${i}`} lease={l} />)
+            ) : (
+              <EmptyMessage message="No leases ending" />
+            )}
           </Section>
-
           <Section title="Prospective" count={prospective.length}>
-            <div className="divide-y">
-              {prospective.length
-                ? prospective.slice(0, 3).map((lease, idx) => (
-                    <Item key={`prospective-${idx}`} lease={lease} idx={idx} />
-                  ))
-                : Empty("No prospective tenants")}
-            </div>
+            {prospective.length > 0 ? (
+              prospective.slice(0, 3).map((l, i) => <Item key={`p-${i}`} lease={l} />)
+            ) : (
+              <EmptyMessage message="No prospective tenants" />
+            )}
           </Section>
-
-          <Section title="Draft Leases" count={drafts.length}>
-            <div className="divide-y">
-              {drafts.length
-                ? drafts.slice(0, 3).map((lease, idx) => (
-                    <Item key={`draft-${idx}`} lease={lease} idx={idx} />
-                  ))
-                : Empty("No draft leases")}
-            </div>
+          <Section title="Drafts" count={drafts.length}>
+            {drafts.length > 0 ? (
+              drafts.slice(0, 3).map((l, i) => <Item key={`d-${i}`} lease={l} />)
+            ) : (
+              <EmptyMessage message="No drafts" />
+            )}
           </Section>
         </div>
       )}
@@ -191,7 +142,6 @@ export default function LeaseOccupancyCard({ landlord_id }: Props) {
   );
 }
 
-/* ================= SECTION ================= */
 function Section({
   title,
   count,
@@ -203,15 +153,15 @@ function Section({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-t">
-        <span className="text-xs font-semibold text-gray-700 uppercase">
+      <div className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-3 bg-gray-50/70 dark:bg-gray-800/50">
+        <span className="text-[10px] sm:text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
           {title}
         </span>
-        <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-gray-200 text-gray-700">
+        <span className="text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300">
           {count}
         </span>
       </div>
-      {children}
+      <div className="py-1 sm:py-2">{children}</div>
     </div>
   );
 }
