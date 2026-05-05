@@ -21,7 +21,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 interface Request {
-  request_id: number;
+  request_id: string;
   subject: string;
   description: string;
   property_name: string;

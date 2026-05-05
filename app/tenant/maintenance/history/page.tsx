@@ -16,7 +16,7 @@ import {
 import Link from "next/link";
 
 interface MaintenanceRequest {
-  request_id: number;
+  request_id: string;
   subject: string;
   description: string;
   property_name: string;

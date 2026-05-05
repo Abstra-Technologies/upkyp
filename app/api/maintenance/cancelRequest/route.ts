@@ -68,12 +68,9 @@ export async function POST(req: NextRequest) {
     await conn.beginTransaction();
 
     const [existingRows]: any = await conn.query(
-      `SELECT mr.*, 
-              COALESCE(p.landlord_id, p_via_unit.landlord_id) AS landlord_id
+      `SELECT mr.*, p.landlord_id
        FROM MaintenanceRequest mr
-       LEFT JOIN Unit u ON mr.unit_id = u.unit_id
        LEFT JOIN Property p ON mr.property_id = p.property_id
-       LEFT JOIN Property p_via_unit ON u.property_id = p_via_unit.property_id
        WHERE mr.request_id = ?`,
       [request_id],
     );
@@ -98,9 +95,10 @@ export async function POST(req: NextRequest) {
 
     const [tenantInfo]: any = await conn.query(
       `SELECT t.user_id AS tenant_user_id, t.tenant_id
-       FROM Tenant t
-       WHERE t.user_id = ? AND t.tenant_id = ?`,
-      [tenantUserId, existing.tenant_id],
+       FROM LeaseAgreement la
+       JOIN Tenant t ON la.tenant_id = t.tenant_id
+       WHERE la.agreement_id = ? AND t.user_id = ?`,
+      [existing.lease_id, tenantUserId],
     );
 
     if (!tenantInfo.length) {
@@ -193,7 +191,7 @@ export async function POST(req: NextRequest) {
         socket.emit("sendMessage", {
           sender_id: tenantUserId,
           sender_type: "tenant",
-          receiver_id: existing.tenant_id,
+          receiver_id: landlordUserId,
           receiver_type: "landlord",
           message: `Maintenance request "${existing.subject}" has been cancelled.`,
           chat_room,

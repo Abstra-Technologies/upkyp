@@ -5,21 +5,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
     Plus,
-    Wrench,
     X,
-    Filter,
-    Calendar,
-    Home,
     Clock,
     CheckCircle,
     Play,
     CalendarClock,
-    RefreshCw,
-    ChevronRight,
-    GripVertical,
-    ChevronUp,
-    ChevronDown,
-    RotateCcw,
     SlidersHorizontal,
 } from "lucide-react";
 import axios from "axios";
@@ -41,7 +31,7 @@ import MaintenanceMobileView from "@/components/landlord/maintenance_management/
 // TYPES
 // ============================================
 interface MaintenanceRequest {
-    request_id: number;
+    request_id: string;
     subject: string;
     description?: string;
     status: string;
@@ -51,14 +41,15 @@ interface MaintenanceRequest {
     schedule_date?: string;
     completion_date?: string;
     created_at: string;
-    tenant_id?: number;
+    tenant_id?: string;
     tenant_first_name?: string;
     tenant_last_name?: string;
-    property_id?: number;
+    property_id?: string;
     property_name?: string;
-    unit_id?: number;
+    unit_id?: string;
     unit_name?: string;
     photo_urls?: string[];
+    column?: string;
 }
 
 interface NextAction {
@@ -89,13 +80,13 @@ interface KanbanColumnConfig {
 const KANBAN_COLUMNS: KanbanColumnConfig[] = [
     {
         id: "pending",
-        title: "Pending Review",
-        subtitle: "Awaiting approval",
+        title: "PENDING",
+        subtitle: "All pending requests",
         statuses: ["pending"],
-        gradient: "from-amber-500 to-orange-500",
-        bgLight: "bg-amber-50",
-        dotColor: "bg-amber-500",
-        textColor: "text-amber-600",
+        gradient: "from-gray-700 to-gray-600",
+        bgLight: "bg-gray-50",
+        dotColor: "bg-gray-500",
+        textColor: "text-gray-600",
         Icon: Clock,
         acceptsFrom: [],
         mobileLabel: "Pending",
@@ -105,25 +96,20 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
                 status: "approved",
                 color: "bg-emerald-500 hover:bg-emerald-600",
             },
-            {
-                label: "Reject",
-                status: "rejected",
-                color: "bg-red-500 hover:bg-red-600",
-            },
         ],
     },
     {
-        id: "approved",
-        title: "Approved",
-        subtitle: "Ready to schedule",
+        id: "to-be-scheduled",
+        title: "TO BE SCHEDULED",
+        subtitle: "Approved, awaiting date",
         statuses: ["approved"],
-        gradient: "from-emerald-500 to-green-500",
-        bgLight: "bg-emerald-50",
-        dotColor: "bg-emerald-500",
-        textColor: "text-emerald-600",
-        Icon: CheckCircle,
+        gradient: "from-indigo-500 to-purple-500",
+        bgLight: "bg-indigo-50",
+        dotColor: "bg-indigo-500",
+        textColor: "text-indigo-600",
+        Icon: CalendarClock,
         acceptsFrom: ["pending"],
-        mobileLabel: "Approved",
+        mobileLabel: "To Be Scheduled",
         nextActions: [
             {
                 label: "Schedule",
@@ -134,36 +120,16 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
         ],
     },
     {
-        id: "scheduled",
-        title: "Scheduled",
-        subtitle: "Work date set",
-        statuses: ["scheduled"],
-        gradient: "from-purple-500 to-indigo-500",
-        bgLight: "bg-purple-50",
-        dotColor: "bg-purple-500",
-        textColor: "text-purple-600",
-        Icon: CalendarClock,
-        acceptsFrom: ["approved"],
-        mobileLabel: "Scheduled",
-        nextActions: [
-            {
-                label: "Start Work",
-                status: "in-progress",
-                color: "bg-blue-500 hover:bg-blue-600",
-            },
-        ],
-    },
-    {
         id: "in-progress",
-        title: "In Progress",
+        title: "IN PROGRESS",
         subtitle: "Work underway",
-        statuses: ["in-progress"],
-        gradient: "from-blue-500 to-cyan-500",
+        statuses: ["scheduled", "in-progress"],
+        gradient: "from-blue-600 to-blue-500",
         bgLight: "bg-blue-50",
         dotColor: "bg-blue-500",
         textColor: "text-blue-600",
         Icon: Play,
-        acceptsFrom: ["scheduled"],
+        acceptsFrom: ["pending", "to-be-scheduled"],
         mobileLabel: "In Progress",
         nextActions: [
             {
@@ -175,15 +141,15 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
     },
     {
         id: "resolved",
-        title: "Resolved",
+        title: "RESOLVED",
         subtitle: "Completed & rejected",
         statuses: ["completed", "rejected"],
-        gradient: "from-gray-500 to-slate-600",
-        bgLight: "bg-gray-50",
-        dotColor: "bg-gray-500",
-        textColor: "text-gray-600",
+        gradient: "from-green-500 to-emerald-500",
+        bgLight: "bg-green-50",
+        dotColor: "bg-green-500",
+        textColor: "text-green-600",
         Icon: CheckCircle,
-        acceptsFrom: ["in-progress", "pending"],
+        acceptsFrom: ["in-progress", "pending", "to-be-scheduled"],
         mobileLabel: "Resolved",
         nextActions: [],
     },
@@ -214,6 +180,7 @@ function transformApiResponse(data: any[]): MaintenanceRequest[] {
         unit_id: item.unit?.unit_id || null,
         unit_name: item.unit?.unit_name || null,
         photo_urls: item.photo_urls || [],
+        column: item.column,
     }));
 }
 
@@ -461,8 +428,12 @@ export default function MaintenanceRequestPage() {
             return true;
         });
 
-    const getColRequests = (col: KanbanColumnConfig) =>
-        filtered.filter((r) => col.statuses.includes(r.status));
+    const getColRequests = (col: KanbanColumnConfig) => {
+        if (col.id === "pending") {
+            return filtered.filter((r) => r.status === "pending");
+        }
+        return filtered.filter((r) => r.column === col.id);
+    };
     const hasFilters = !!filterPriority || !!search || filterSource !== "all";
     const pendingCount = filtered.filter((r) => r.status === "pending").length;
 
@@ -500,7 +471,7 @@ export default function MaintenanceRequestPage() {
     return (
         <div
             style={{ maxWidth: "100vw", overflowX: "hidden" }}
-            className="bg-gray-50 min-h-screen"
+            className="bg-[#f0f2f5] min-h-screen"
         >
             <motion.div
                 initial={{ opacity: 0 }}
@@ -511,144 +482,52 @@ export default function MaintenanceRequestPage() {
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white border-b border-gray-200 pt-3 sm:pt-5 pb-3 sm:pb-5 px-3 sm:px-6"
+                    className="bg-white border-b border-gray-200 px-6 py-5"
                 >
-                    {/* Title */}
-                    <div className="flex items-start gap-2.5 sm:gap-4 mb-3 sm:mb-5">
-                        <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg sm:rounded-xl flex items-center justify-center shadow-md sm:shadow-lg flex-shrink-0">
-                            <Wrench className="w-4.5 h-4.5 sm:w-6 sm:h-6 text-white" />
-                        </div>
-
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                                    Work Orders
-                                </h1>
-                                <span className="text-[11px] sm:text-xs text-gray-400">
-                                    {filtered.length} total
-                                </span>
-                                {pendingCount > 0 && (
-                                    <span className="text-[11px] sm:text-xs text-amber-600 font-medium">
-                                        · {pendingCount} pending
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-[11px] sm:text-sm text-gray-600 mt-0.5 sm:mt-1">
-                                Manage and track maintenance requests
-                            </p>
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h1 className="text-2xl font-semibold text-gray-900">
+                                Maintenance
+                            </h1>
                         </div>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end mb-3 sm:mb-5">
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => fetchRequests(true)}
-                            disabled={refreshing}
-                            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-white border border-gray-200 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50"
-                        >
-                            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? "animate-spin" : ""}`} />
-                            <span className="truncate">Refresh</span>
-                        </motion.button>
-
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setShowNewModal(true)}
-                            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white text-xs sm:text-sm font-semibold shadow-md hover:scale-95 transition w-full sm:w-auto"
-                        >
-                            <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                            <span className="truncate">New Work Order</span>
-                        </motion.button>
+                    {/* Tabs */}
+                    <div className="flex items-center gap-6 border-b border-gray-200">
+                        <button className="pb-3 border-b-2 border-green-500 text-green-600 font-medium text-sm">
+                            Requests Board
+                        </button>
+                        <button className="pb-3 border-b-2 border-transparent text-gray-500 font-medium text-sm hover:text-gray-700">
+                            Recurring
+                        </button>
                     </div>
+                </motion.div>
 
-                    {/* Mobile Filter Toggle */}
-                    <button
-                        onClick={() => setShowFilters(!showFilters)}
-                        className="sm:hidden flex items-center justify-center gap-2 w-full py-2.5 px-3 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 mb-2"
-                    >
-                        <Filter className="w-3.5 h-3.5" />
-                        {showFilters ? "Hide Filters" : "Show Filters"}
-                        {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                    </button>
-
-                    {/* Filter Section - Desktop always visible, Mobile collapsible */}
-                    <div className={`${showFilters ? 'flex' : 'hidden'} sm:flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3`}>
-                        {/* Search */}
-                        <div className="w-full sm:flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+                {/* Board Header */}
+                <div className="hidden md:block px-6 py-4">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-xl font-semibold text-gray-900">
+                                Request Board
+                            </h2>
+                            <span className="text-sm text-gray-500">
+                                {filtered.length} total
+                            </span>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                placeholder="Search subject, property, unit..."
-                                className="w-full pl-9 sm:pl-11 pr-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500/20 text-xs sm:text-sm"
+                                placeholder="Search tenants"
+                                className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none w-64"
                             />
-                            {search && (
-                                <button
-                                    onClick={() => setSearch("")}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5"
-                                >
-                                    <X className="w-4 h-4 text-gray-400" />
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Filter Row - Priority & Source */}
-                        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3">
-                            <div className="w-full sm:w-auto relative">
-                                <select
-                                    value={filterPriority}
-                                    onChange={(e) => setFilterPriority(e.target.value)}
-                                    className="w-full appearance-none px-3 py-2 sm:py-2.5 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 text-xs sm:text-sm"
-                                >
-                                    <option value="">All Priorities</option>
-                                    <option value="Low">Low</option>
-                                    <option value="Medium">Medium</option>
-                                    <option value="High">High</option>
-                                    <option value="Urgent">Urgent</option>
-                                </select>
-                            </div>
-
-                            <div className="w-full sm:w-auto relative">
-                                <select
-                                    value={filterSource}
-                                    onChange={(e) => setFilterSource(e.target.value as any)}
-                                    className="w-full appearance-none px-3 py-2 sm:py-2.5 border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 text-xs sm:text-sm"
-                                >
-                                    <option value="all">All Sources</option>
-                                    <option value="tenant">Tenant Requests</option>
-                                    <option value="landlord">Work Orders</option>
-                                </select>
-                            </div>
-
-                            {/* Clear Filters */}
-                            {hasFilters && (
-                                <button
-                                    onClick={() => {
-                                        setSearch("");
-                                        setFilterPriority("");
-                                        setFilterSource("all");
-                                    }}
-                                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-200 bg-gray-50 text-gray-700 text-xs sm:text-sm font-medium hover:bg-gray-100 hover:text-blue-600 transition-colors"
-                                >
-                                    <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                    Clear
-                                </button>
-                            )}
                         </div>
                     </div>
 
-                    <p className="hidden md:block text-xs text-gray-400 mt-3">
-                        💡 Drag cards between columns or use action buttons to update status.
-                    </p>
-                </motion.div>
-
-                {/* Board - Desktop Only */}
-                <div
-                    className="hidden md:block px-3 md:px-6 py-2 md:py-4 pb-24 md:pb-8"
-                    style={{ maxWidth: "100%", overflowX: "hidden" }}
-                >
-                    <div className="md:grid md:grid-cols-5 gap-4">
+                    {/* Kanban Board */}
+                    <div className="grid grid-cols-4 gap-4">
                         {KANBAN_COLUMNS.map((col) => (
                             <KanbanColumn
                                 key={col.id}
@@ -827,56 +706,41 @@ function KanbanColumn({
 
     return (
         <div
-            className="flex flex-col min-w-0 h-full"
+            className="flex flex-col min-w-0 rounded-xl bg-[#f5f6f8]"
             onDragOver={(e) => onDragOver?.(e, column.id)}
-onDragLeave={onDragLeave}
+            onDragLeave={onDragLeave}
             onDrop={(e) => onDrop?.(e, column.id)}
         >
-            <div
-                className={`flex items-center justify-between p-2.5 md:p-3 rounded-t-xl bg-gradient-to-r ${column.gradient}`}
-            >
+            {/* Column Header */}
+            <div className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 text-white/90" />
-                    <div>
-                        <h3 className="font-semibold text-white text-sm">{column.title}</h3>
-                        <p className="text-[10px] text-white/70 hidden md:block">
-                            {column.subtitle}
-                        </p>
-                    </div>
+                    <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">
+                        {column.title}
+                    </h3>
                 </div>
-                <span className="px-2 py-0.5 bg-white/20 rounded-lg text-white text-xs font-semibold">
+                <span className="px-2 py-0.5 bg-gray-200 rounded-full text-gray-600 text-xs font-medium">
                     {requests.length}
                 </span>
             </div>
-            <div
-                className={`flex-1 p-2 md:p-2.5 rounded-b-xl border-2 border-t-0 transition-all ${isDragOver && canAccept ? `${column.bgLight} border-dashed ${column.dotColor.replace("bg-", "border-")}` : "bg-gray-50/50 border-gray-100"}`}
-            >
+
+            {/* Cards Container */}
+            <div className="flex-1 px-3 pb-3 space-y-3 overflow-y-auto max-h-[calc(100vh-280px)]">
                 {requests.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-6 md:py-8 text-gray-400 text-center">
-                        <div
-                            className={`w-10 h-10 rounded-xl ${column.bgLight} flex items-center justify-center mb-2`}
-                        >
-                            <Icon className={`w-5 h-5 ${column.textColor}`} />
-                        </div>
-                        <p className="text-sm font-medium">No requests</p>
-                        {canAccept && (
-                            <p className="text-xs mt-1 text-blue-500">Drop here</p>
-                        )}
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400 text-center">
+                        <p className="text-sm">No requests</p>
                     </div>
                 ) : (
-                    <div className="space-y-2.5">
-                        {requests.map((r) => (
-                            <RequestCard
-                                key={r.request_id}
-                                request={r}
-                                column={column}
-                                onClick={() => onCardClick(r)}
-                                onStatusChange={onStatusChange}
-                                onDragStart={onDragStart}
-                                onDragEnd={onDragEnd}
-                            />
-                        ))}
-                    </div>
+                    requests.map((r) => (
+                        <RequestCard
+                            key={r.request_id}
+                            request={r}
+                            column={column}
+                            onClick={() => onCardClick(r)}
+                            onStatusChange={onStatusChange}
+                            onDragStart={onDragStart}
+                            onDragEnd={onDragEnd}
+                        />
+                    ))
                 )}
             </div>
         </div>
@@ -901,9 +765,39 @@ function RequestCard({
     onDragStart?: (r: MaintenanceRequest) => void;
     onDragEnd?: () => void;
 }) {
-    const priority = getPriorityConfig(request.priority_level);
-    const status = getStatusConfig(request.status);
-    const isTenant = !!request.tenant_id;
+    const tenantName = request.tenant_first_name
+        ? `${request.tenant_first_name} ${request.tenant_last_name || ""}`.trim()
+        : "Unassigned";
+    const initial = tenantName.charAt(0).toUpperCase();
+
+    const p = request.priority_level?.toLowerCase();
+    const isUrgent = p === "urgent";
+    const isHigh = p === "high";
+    const isMedium = p === "medium";
+
+    const urgencyClasses = isUrgent
+        ? "border-l-4 border-l-red-500 border-t border-r border-b border-red-200 bg-red-50/40"
+        : isHigh
+            ? "border-l-4 border-l-orange-500 border-t border-r border-b border-orange-200 bg-orange-50/30"
+            : isMedium
+                ? "border-l-4 border-l-blue-400 border-t border-r border-b border-blue-200 bg-blue-50/20"
+                : "border-l-4 border-l-green-400 border-t border-r border-b border-green-200 bg-green-50/10";
+
+    const urgencyBadge = isUrgent
+        ? { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500", label: "Urgent" }
+        : isHigh
+            ? { bg: "bg-orange-100", text: "text-orange-700", dot: "bg-orange-500", label: "High" }
+            : isMedium
+                ? { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-400", label: "Normal" }
+                : { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-400", label: "Low" };
+
+    const avatarGradient = isUrgent
+        ? "from-red-500 to-red-600"
+        : isHigh
+            ? "from-orange-500 to-orange-600"
+            : isMedium
+                ? "from-blue-400 to-blue-500"
+                : "from-green-400 to-green-500";
 
     return (
         <motion.div
@@ -913,90 +807,56 @@ function RequestCard({
             draggable
             onDragStart={() => onDragStart?.(request)}
             onDragEnd={onDragEnd}
-            className="bg-white rounded-xl border border-gray-100 p-3 cursor-pointer hover:shadow-md hover:border-gray-200 transition-all relative group active:scale-[0.98] overflow-hidden"
+            onClick={onClick}
+            className={`rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-all relative group ${urgencyClasses}`}
         >
-            <div className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-50 cursor-grab">
-                <GripVertical className="w-4 h-4 text-gray-400" />
+            <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-gray-500 font-medium">
+                    #{request.request_id}
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${urgencyBadge.bg} ${urgencyBadge.text}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${urgencyBadge.dot}`} />
+                    {urgencyBadge.label}
+                </span>
             </div>
-            <div
-                className={`absolute top-0 left-0 w-1 h-full rounded-l-xl ${priority.dot}`}
-            />
-            <div className="pl-2 min-w-0" onClick={onClick}>
-                <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] text-gray-400 font-mono">
-            #{request.request_id}
-          </span>
-                    {isTenant && (
-                        <span className="text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded font-medium">
-              Tenant
-            </span>
-                    )}
-                </div>
-                <h4 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2 mb-2">
-                    {request.subject}
-                </h4>
-                {request.property_name && (
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-2">
-                        <Home className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{request.property_name}</span>
-                        {request.unit_name && (
-                            <>
-                                <span className="text-gray-300">•</span>
-                                <span className="truncate">{request.unit_name}</span>
-                            </>
-                        )}
+
+            <h4 className="font-medium text-gray-900 text-sm leading-snug mb-3 line-clamp-2">
+                {request.subject}
+            </h4>
+
+            <p className="text-sm text-gray-500 mb-3">
+                {request.property_name || "Luxury Apartment"}
+            </p>
+
+            <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white text-xs font-medium shadow-sm`}>
+                        {initial}
                     </div>
-                )}
-                <div className="flex flex-wrap gap-1.5 mb-2">
-          <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold ${priority.bg} ${priority.text} border ${priority.border}`}
-          >
-            {request.priority_level?.toLowerCase() === "urgent" && (
-                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-            )}
-              {priority.label}
-          </span>
-                    <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 text-[10px] font-medium">
-            {request.category}
-          </span>
-                    {(request.status === "completed" ||
-                        request.status === "rejected") && (
-                        <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-medium ${status.bgLight} ${status.text}`}
-                        >
-              {status.shortLabel}
-            </span>
-                    )}
+                    <span className="text-sm text-gray-700 font-medium truncate max-w-[100px]">
+                        {tenantName}
+                    </span>
                 </div>
-                {request.schedule_date && request.status !== "completed" && (
-                    <div className="flex items-center gap-1 text-xs text-purple-600 mb-2">
-                        <Calendar className="w-3 h-3" />
-                        <span>
-              {new Date(request.schedule_date).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-              })}
-            </span>
-                    </div>
-                )}
+
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1.5 hover:bg-black/5 rounded-full transition-colors"
+                    >
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </button>
+                    <button
+                        onClick={(e) => e.stopPropagation()}
+                        className="p-1.5 hover:bg-black/5 rounded-full transition-colors"
+                    >
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
-            {column.nextActions.length > 0 && (
-                <div className="flex gap-2 mt-2 pt-2 border-t border-gray-100">
-                    {column.nextActions.map((a) => (
-                        <button
-                            key={a.status}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onStatusChange(request.request_id, a.status);
-                            }}
-                            className={`flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-lg text-white text-xs font-medium transition-all active:scale-95 ${a.color}`}
-                        >
-                            <ChevronRight className="w-3 h-3" />
-                            {a.label}
-                        </button>
-                    ))}
-                </div>
-            )}
         </motion.div>
     );
 }

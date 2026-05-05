@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
             `
       SELECT 
         mr.request_id,
-        la.agreement_id,
+        mr.lease_id AS agreement_id,
         mr.subject,
         mr.description,
         mr.status,
@@ -45,18 +45,18 @@ export async function GET(req: NextRequest) {
       JOIN Unit u 
         ON mr.unit_id = u.unit_id
       JOIN Property p 
-        ON u.property_id = p.property_id
+        ON mr.property_id = p.property_id
       JOIN LeaseAgreement la 
-        ON la.unit_id = u.unit_id
-       AND la.tenant_id = mr.tenant_id
-       AND la.status IN ('active', 'completed')
+        ON mr.lease_id = la.agreement_id
+        AND la.tenant_id = ?
+        AND la.status IN ('active', 'completed')
       LEFT JOIN MaintenancePhoto mp 
         ON mp.request_id = mr.request_id
-      WHERE mr.tenant_id = ?
+      WHERE la.tenant_id = ?
       GROUP BY mr.request_id
       ORDER BY mr.created_at DESC;
       `,
-            [tenant_id]
+            [tenant_id, tenant_id]
         );
 
         if (!rows || rows.length === 0) {

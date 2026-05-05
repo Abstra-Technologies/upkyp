@@ -97,7 +97,7 @@ export default function MaintenanceDetailsModal({
   onStart: () => void;
   onComplete: () => void;
   onReschedule: () => void;
-  updateStatus: (id: number, status: string) => void;
+  updateStatus: (id: string, status: string) => void;
   isLocked?: boolean;
 }) {
   const status = getStatusConfig(selectedRequest.status);

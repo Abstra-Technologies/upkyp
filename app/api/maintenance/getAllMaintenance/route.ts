@@ -53,20 +53,23 @@ export async function GET(req: NextRequest) {
                 mr.schedule_date,
                 mr.completion_date,
                 mr.created_at,
-                mr.tenant_id,
+                mr.updated_at,
+                mr.property_id,
+                mr.unit_id,
+                mr.asset_id,
+                mr.lease_id,
 
-                COALESCE(p.property_id, p_via_unit.property_id) AS property_id,
-                COALESCE(p.property_name, p_via_unit.property_name) AS property_name,
+                p.property_name,
 
-                un.unit_id,
                 un.unit_name,
 
+                t.tenant_id,
                 u.firstName AS tenant_first_name,
                 u.lastName AS tenant_last_name,
                 u.email AS tenant_email,
                 u.phoneNumber AS tenant_phone,
 
-                a.asset_id,
+                a.asset_id AS a_asset_id,
                 a.asset_name,
                 a.category AS asset_category,
                 a.model AS asset_model,
@@ -80,21 +83,21 @@ export async function GET(req: NextRequest) {
 
             FROM MaintenanceRequest mr
             
-            LEFT JOIN Unit un ON mr.unit_id = un.unit_id
             LEFT JOIN Property p ON mr.property_id = p.property_id
-            LEFT JOIN Property p_via_unit ON un.property_id = p_via_unit.property_id
-            LEFT JOIN Tenant t ON mr.tenant_id = t.tenant_id
+            LEFT JOIN Unit un ON mr.unit_id = un.unit_id
+            LEFT JOIN LeaseAgreement la ON mr.lease_id = la.agreement_id
+            LEFT JOIN Tenant t ON la.tenant_id = t.tenant_id
             LEFT JOIN User u ON t.user_id = u.user_id
             LEFT JOIN Asset a ON mr.asset_id = a.asset_id
             LEFT JOIN MaintenancePhoto mp ON mr.request_id = mp.request_id
 
-            WHERE p.landlord_id = ? OR p_via_unit.landlord_id = ?
+            WHERE p.landlord_id = ?
             
             GROUP BY mr.request_id
             ORDER BY mr.created_at DESC
         `;
 
-    const [rows]: any = await db.query(query, [landlord_id, landlord_id]);
+    const [rows]: any = await db.query(query, [landlord_id]);
 
     /* --------------------------------------------------
            FORMAT + DECRYPT (ONCE)
@@ -149,6 +152,17 @@ export async function GET(req: NextRequest) {
         schedule_date: req.schedule_date,
         completion_date: req.completion_date,
         created_at: req.created_at,
+        updated_at: req.updated_at,
+        lease_id: req.lease_id,
+
+        column: (() => {
+          const status = req.status?.toLowerCase();
+          if (status === "completed" || status === "rejected") return "resolved";
+          if (status === "scheduled" || status === "in-progress") return "in-progress";
+          if (status === "approved") return "to-be-scheduled";
+          if (status === "pending") return "pending";
+          return "pending";
+        })(),
 
         property: {
           property_id: req.property_id,
@@ -172,9 +186,9 @@ export async function GET(req: NextRequest) {
             }
           : null,
 
-        asset: req.asset_id
+        asset: req.a_asset_id
           ? {
-              asset_id: req.asset_id,
+              asset_id: req.a_asset_id,
               asset_name: req.asset_name,
               category: req.asset_category,
               model: req.asset_model,

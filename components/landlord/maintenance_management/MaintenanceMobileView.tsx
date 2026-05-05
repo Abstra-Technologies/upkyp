@@ -13,7 +13,7 @@ import {
 import { getStatusConfig, getPriorityConfig } from "@/components/landlord/maintenance_management/getStatusConfig";
 
 interface MaintenanceRequest {
-    request_id: number;
+    request_id: string;
     subject: string;
     description?: string;
     status: string;
@@ -23,14 +23,15 @@ interface MaintenanceRequest {
     schedule_date?: string;
     completion_date?: string;
     created_at: string;
-    tenant_id?: number;
+    tenant_id?: string;
     tenant_first_name?: string;
     tenant_last_name?: string;
-    property_id?: number;
+    property_id?: string;
     property_name?: string;
-    unit_id?: number;
+    unit_id?: string;
     unit_name?: string;
     photo_urls?: string[];
+    column?: string;
 }
 
 interface NextAction {
@@ -61,7 +62,7 @@ interface MaintenanceMobileViewProps {
     activeColumnIndex: number;
     onTabChange: (idx: number) => void;
     onCardClick: (r: MaintenanceRequest) => void;
-    onStatusChange: (id: number, status: string, extra?: any) => void;
+    onStatusChange: (id: string, status: string, extra?: any) => void;
     search: string;
     filterPriority: string;
     filterSource: "all" | "tenant" | "landlord";
@@ -182,12 +183,25 @@ function MobileRequestCard({
     const status = getStatusConfig(request.status);
     const isTenant = !!request.tenant_id;
 
+    const p = request.priority_level?.toLowerCase();
+    const isUrgent = p === "urgent";
+    const isHigh = p === "high";
+    const isMedium = p === "medium";
+
+    const urgencyClasses = isUrgent
+        ? "border-l-4 border-l-red-500 border-t border-r border-b border-red-200 bg-red-50/40"
+        : isHigh
+            ? "border-l-4 border-l-orange-500 border-t border-r border-b border-orange-200 bg-orange-50/30"
+            : isMedium
+                ? "border-l-4 border-l-blue-400 border-t border-r border-b border-blue-200 bg-blue-50/20"
+                : "border-l-4 border-l-green-400 border-t border-r border-b border-green-200 bg-green-50/10";
+
     return (
         <motion.div
             layout
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative bg-white rounded-lg border border-gray-200 p-2.5 cursor-pointer active:scale-[0.98] transition-all shadow-sm"
+            className={`relative rounded-lg p-2.5 cursor-pointer active:scale-[0.98] transition-all shadow-sm ${urgencyClasses}`}
             onClick={onClick}
         >
             <div className="flex items-start gap-2">

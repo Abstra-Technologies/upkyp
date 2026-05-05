@@ -16,12 +16,12 @@ export async function POST(req: Request) {
       landlord_id,
       property_id,
       unit_id,
-      tenant_id,
+      lease_id,
       asset_id,
       assigned_to,
       user_id,
       photo_urls,
-      status: requestedStatus, // Allow status from request
+      status: requestedStatus,
     } = body;
 
     if (!subject || !landlord_id || !property_id) {
@@ -35,17 +35,17 @@ export async function POST(req: Request) {
     const request_id = generateMaintenanceId();
 
     // Determine status:
-    // - If tenant_id exists → tenant submitted → 'pending' (needs approval)
-    // - If no tenant_id → landlord created → 'approved' (ready to schedule)
+    // - If lease_id exists → tenant submitted → 'pending' (needs approval)
+    // - If no lease_id → landlord created → 'approved' (ready to schedule)
     // - Allow override via requestedStatus if provided
-    const finalStatus = requestedStatus || (tenant_id ? "pending" : "approved");
+    const finalStatus = requestedStatus || (lease_id ? "pending" : "approved");
 
     // Insert work order
     await db.query(
       `
             INSERT INTO MaintenanceRequest (
                 request_id,
-                tenant_id,
+                lease_id,
                 unit_id,
                 asset_id,
                 subject,
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
             `,
       [
         request_id,
-        tenant_id || null,
+        lease_id || null,
         unit_id || null,
         asset_id || null,
         subject,
@@ -164,12 +164,12 @@ export async function POST(req: Request) {
         property_name,
         unit_id: unit_id || null,
         unit_name,
-        tenant_id: tenant_id || null,
+        lease_id: lease_id || null,
         asset_id: asset_id || null,
         assigned_to: assigned_to || null,
         status: finalStatus,
         created_at: new Date().toISOString(),
-        photo_urls: [], // Photos are encrypted, return empty for now
+        photo_urls: [],
       },
     });
   } catch (error: any) {

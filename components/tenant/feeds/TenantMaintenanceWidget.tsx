@@ -8,8 +8,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 interface MaintenanceRequest {
-    request_id: number;
-    agreement_id: string; // REQUIRED for redirect
+    request_id: string;
+    agreement_id: string;
     subject: string;
     description: string;
     property_name: string;

@@ -77,13 +77,10 @@ export async function PUT(req: NextRequest) {
 
     //Fetch existing request (handles both landlord and tenant requests)
     const [existingRows]: any = await conn.query(
-      `SELECT mr.*, 
-                    COALESCE(p.landlord_id, p_via_unit.landlord_id) AS landlord_id
-             FROM MaintenanceRequest mr
-             LEFT JOIN Unit u ON mr.unit_id = u.unit_id
-             LEFT JOIN Property p ON mr.property_id = p.property_id
-             LEFT JOIN Property p_via_unit ON u.property_id = p_via_unit.property_id
-             WHERE mr.request_id = ?`,
+      `SELECT mr.*, p.landlord_id
+              FROM MaintenanceRequest mr
+              LEFT JOIN Property p ON mr.property_id = p.property_id
+              WHERE mr.request_id = ?`,
       [request_id],
     );
 
@@ -98,8 +95,14 @@ export async function PUT(req: NextRequest) {
     const oldData = existingRows[0];
     const effectiveLandlordId = landlord_id || oldData.landlord_id;
 
-    // Detect if created by tenant or landlord
-    const hasTenant = !!oldData.tenant_id;
+    // Detect if created by tenant (has lease_id linking to a tenant)
+    const [leaseCheck]: any = await conn.query(
+      `SELECT la.tenant_id
+              FROM LeaseAgreement la
+              WHERE la.agreement_id = ?`,
+      [oldData.lease_id],
+    );
+    const hasTenant = leaseCheck.length > 0 && !!leaseCheck[0].tenant_id;
 
     // Determine next state logic
     let nextStatus = status;
@@ -209,10 +212,11 @@ export async function PUT(req: NextRequest) {
 
     // Get tenant info
     const [tenantInfo]: any = await conn.query(
-      `SELECT mr.tenant_id, t.user_id AS tenant_user_id, mr.subject
-             FROM MaintenanceRequest mr
-             JOIN Tenant t ON mr.tenant_id = t.tenant_id
-             WHERE mr.request_id = ?`,
+      `SELECT la.tenant_id, t.user_id AS tenant_user_id, mr.subject
+              FROM MaintenanceRequest mr
+              JOIN LeaseAgreement la ON mr.lease_id = la.agreement_id
+              JOIN Tenant t ON la.tenant_id = t.tenant_id
+              WHERE mr.request_id = ?`,
       [request_id],
     );
 

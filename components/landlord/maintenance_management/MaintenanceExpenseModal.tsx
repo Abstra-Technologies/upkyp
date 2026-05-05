@@ -87,7 +87,7 @@ export default function MaintenanceExpenseModal({
   onSaved,
   userId,
 }: {
-  requestId: number | null;
+  requestId: string | null;
   onClose: () => void;
   onSaved: (expense: {
     amount: string;
