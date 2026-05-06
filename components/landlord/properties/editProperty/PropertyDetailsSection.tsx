@@ -1,7 +1,7 @@
 "use client";
 
 import useEditPropertyStore from "@/zustand/property/useEditPropertyStore";
-import { PROPERTY_TYPES } from "@/constant/propertyTypes";
+import { PROPERTY_TYPES, PROPERTY_SUBTYPES } from "@/constant/propertyTypes";
 import { Check } from "lucide-react";
 
 export default function PropertyDetailsSection() {
@@ -23,7 +23,7 @@ export default function PropertyDetailsSection() {
                         return (
                             <button
                                 key={type.value}
-                                onClick={() => setProperty({ propertyType: type.value })}
+                                onClick={() => setProperty({ propertyType: type.value, propertySubtype: "" })}
                                 className={`
                   relative
                   flex flex-col items-center justify-center
@@ -60,6 +60,59 @@ export default function PropertyDetailsSection() {
                     })}
                 </div>
             </div>
+
+            {/* PROPERTY SUBTYPE */}
+            {property.propertyType && PROPERTY_SUBTYPES[property.propertyType] && (
+                <div>
+                    <label className="text-xs font-semibold text-gray-700">
+                        Property Subtype
+                    </label>
+
+                    <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mt-2">
+                        {PROPERTY_SUBTYPES[property.propertyType].map((subtype) => {
+                            const active = property.propertySubtype === subtype.value;
+
+                            return (
+                                <button
+                                    key={subtype.value}
+                                    onClick={() => setProperty({ propertySubtype: subtype.value })}
+                                    className={`
+                  relative
+                  flex flex-col items-center justify-center
+                  h-[60px] sm:h-[65px]
+                  px-1 py-1
+                  rounded-md
+                  border
+                  text-[9px] sm:text-[10px]
+                  font-medium
+                  transition-all duration-150
+                  active:scale-95
+                  ${
+                                        active
+                                            ? "bg-blue-600 text-white border-blue-600"
+                                            : "bg-gray-100 text-gray-700 border-gray-200"
+                                    }
+                `}
+                                >
+                                    {active && (
+                                        <span className="absolute top-0.5 right-0.5 bg-white text-blue-600 rounded-full p-[1px]">
+                        <Check className="w-2 h-2" />
+                      </span>
+                                    )}
+
+                                    <span className="text-base leading-none">
+                      {subtype.icon}
+                    </span>
+
+                                    <span className="mt-0.5 text-center leading-tight line-clamp-2">
+                      {subtype.label}
+                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* PROPERTY NAME */}
             <div>

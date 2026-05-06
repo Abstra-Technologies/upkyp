@@ -7,6 +7,7 @@ import { persist } from "zustand/middleware";
 const initialEditPropertyState = {
     propertyName: "",
     propertyType: "",
+    propertySubtype: "",
     amenities: [] as string[],
     street: "",
     brgyDistrict: "",
@@ -78,6 +79,7 @@ const safeParse = (value: any) => {
 const normalizeProperty = (data: any) => ({
     propertyName: data.propertyName ?? data.property_name ?? "",
     propertyType: data.propertyType ?? data.property_type ?? "",
+    propertySubtype: data.propertySubtype ?? data.property_subtype ?? "",
 
     amenities: safeParse(data.amenities),
 

@@ -84,6 +84,7 @@ export async function PUT(req: NextRequest) {
         const fields = {
             property_name: body.propertyName,
             property_type: body.propertyType,
+            property_subtype: body.propertySubtype ?? null,
             amenities: Array.isArray(body.amenities)
                 ? body.amenities.join(",")
                 : body.amenities || null,
@@ -113,7 +114,7 @@ export async function PUT(req: NextRequest) {
         await connection.query(
             `
       UPDATE Property SET
-        property_name=?, property_type=?, amenities=?, street=?, brgy_district=?, city=?, zip_code=?, province=?,
+        property_name=?, property_type=?, property_subtype=?, amenities=?, street=?, brgy_district=?, city=?, zip_code=?, province=?,
         water_billing_type=?, electricity_billing_type=?, description=?, floor_area=?,
         flexipay_enabled=?, property_preferences=?, accepted_payment_methods=?,
         latitude=?, longitude=?, updated_at=CURRENT_TIMESTAMP
@@ -122,6 +123,7 @@ export async function PUT(req: NextRequest) {
             [
                 fields.property_name,
                 fields.property_type,
+                fields.property_subtype,
                 fields.amenities,
                 fields.street,
                 fields.brgy_district,

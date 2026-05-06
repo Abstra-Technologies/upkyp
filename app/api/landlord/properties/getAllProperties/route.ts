@@ -33,6 +33,7 @@ export async function GET(req: NextRequest) {
                 p.street,
                 p.property_type,
                 p.status,
+                p.property_subtype,
                 p.created_at,
                 u.unit_id,
                 u.unit_name,

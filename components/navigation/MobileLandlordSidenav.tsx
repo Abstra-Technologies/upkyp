@@ -96,7 +96,7 @@ export default function MobileLandlordSidenav({
                             />
                         </div>
 
-                        <h2 className="font-bold text-base tracking-tight text-white">Menu</h2>
+                        <h2 className="font-bold text-base tracking-tight text-white">Upkyp Sync</h2>
                     </div>
 
                     {/* Right: Close Button */}
