@@ -43,47 +43,55 @@ export default function PaymentDetailsModal({
         <AnimatePresence>
             {open && (
                 <motion.div
-                    className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+                    className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
+                    onClick={onClose}
                 >
                     <motion.div
-                        initial={{ scale: 0.95, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.95, opacity: 0 }}
-                        className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden"
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "tween", duration: 0.3 }}
+                        className="bg-white w-full sm:max-w-4xl sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         {/* ================= HEADER ================= */}
-                        <div className="flex items-center justify-between px-6 py-4 border-b">
-                            <h3 className="text-xl font-bold text-gray-900">
-                                Payment Receipt
-                            </h3>
+                        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b shrink-0">
+                            <div>
+                                <h3 className="text-base sm:text-xl font-bold text-gray-900">
+                                    Payment Receipt
+                                </h3>
+                                <p className="text-xs text-gray-500 sm:hidden">
+                                    #{payment.payment_id}
+                                </p>
+                            </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 rounded-lg hover:bg-gray-100 transition"
+                                className="p-2 rounded-lg hover:bg-gray-100 transition active:bg-gray-200"
                             >
                                 <X className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
 
                         {/* ================= RECEIPT ================= */}
-                        <div className="px-6 py-6 overflow-y-auto max-h-[75vh] text-sm">
+                        <div className="px-4 sm:px-6 py-4 sm:py-6 overflow-y-auto flex-1 text-sm">
                             <div
                                 ref={receiptRef}
-                                className="border border-gray-200 rounded-2xl overflow-hidden"
+                                className="border border-gray-200 rounded-xl sm:rounded-2xl overflow-hidden"
                             >
                                 {/* BRAND HEADER */}
-                                <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-5 text-white">
-                                    <h2 className="text-lg font-extrabold tracking-wide">
+                                <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-4 sm:px-6 py-4 sm:py-5 text-white">
+                                    <h2 className="text-base sm:text-lg font-extrabold tracking-wide">
                                         UPKYP
                                     </h2>
-                                    <p className="text-xs opacity-90">
+                                    <p className="text-[10px] sm:text-xs opacity-90">
                                         Official Digital Payment Receipt
                                     </p>
                                 </div>
 
-                                <div className="p-6 space-y-8">
+                                <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
                                     {/* ================= CORE PAYMENT ================= */}
                                     <Section title="Payment Information">
                                         <Detail label="Payment ID" value={payment.payment_id} />
@@ -186,7 +194,7 @@ export default function PaymentDetailsModal({
                                         </Section>
                                     )}
 
-                                    <p className="text-center text-xs text-gray-400 pt-4">
+                                    <p className="text-center text-[10px] sm:text-xs text-gray-400 pt-2 sm:pt-4">
                                         Generated by UPKYP • {new Date().toLocaleString()}
                                     </p>
                                 </div>
@@ -194,10 +202,10 @@ export default function PaymentDetailsModal({
                         </div>
 
                         {/* ================= FOOTER ================= */}
-                        <div className="px-6 py-4 border-t flex justify-between items-center">
+                        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t flex flex-col sm:flex-row gap-2 sm:justify-between items-stretch sm:items-center shrink-0">
                             <button
                                 onClick={handleDownloadReceipt}
-                                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-lg transition-all"
+                                className="inline-flex justify-center items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-emerald-600 text-white hover:shadow-lg transition-all active:scale-[0.98]"
                             >
                                 <Download className="w-4 h-4" />
                                 Download Receipt
@@ -205,7 +213,7 @@ export default function PaymentDetailsModal({
 
                             <button
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 transition"
+                                className="px-4 py-2.5 text-sm font-semibold rounded-xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition"
                             >
                                 Close
                             </button>
@@ -230,8 +238,8 @@ function Section({
 }) {
     return (
         <div>
-            <h4 className="font-bold text-gray-800 mb-3">{title}</h4>
-            <div className="space-y-2">{children}</div>
+            <h4 className="font-bold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">{title}</h4>
+            <div className="space-y-1.5 sm:space-y-2">{children}</div>
         </div>
     );
 }
@@ -265,8 +273,8 @@ function Detail({
         }[String(value)] || "bg-gray-100 text-gray-700 border-gray-200";
 
     return (
-        <div className="flex justify-between items-center gap-4">
-            <span className="text-gray-500">{label}</span>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-4 py-1.5">
+            <span className="text-gray-500 text-xs sm:text-sm">{label}</span>
 
             {badge ? (
                 <span
@@ -276,8 +284,8 @@ function Detail({
         </span>
             ) : (
                 <span
-                    className={`font-semibold text-right ${
-                        highlight ? "text-emerald-600 text-base" : "text-gray-900"
+                    className={`font-semibold text-right break-all sm:break-normal ${
+                        highlight ? "text-emerald-600 text-sm sm:text-base" : "text-gray-900 text-xs sm:text-sm"
                     } ${capitalize ? "capitalize" : ""}`}
                 >
           {value}
