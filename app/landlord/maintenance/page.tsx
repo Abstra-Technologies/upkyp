@@ -11,6 +11,10 @@ import {
     Play,
     CalendarClock,
     SlidersHorizontal,
+    Check,
+    Calendar,
+    Ban,
+    FileCheck,
 } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -75,13 +79,13 @@ interface KanbanColumnConfig {
 }
 
 // ============================================
-// KANBAN COLUMNS CONFIG
+// KANBAN COLUMNS CONFIG (Active)
 // ============================================
 const KANBAN_COLUMNS: KanbanColumnConfig[] = [
     {
         id: "pending",
         title: "PENDING",
-        subtitle: "All pending requests",
+        subtitle: "Awaiting review",
         statuses: ["pending"],
         gradient: "from-gray-700 to-gray-600",
         bgLight: "bg-gray-50",
@@ -96,6 +100,11 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
                 status: "approved",
                 color: "bg-emerald-500 hover:bg-emerald-600",
             },
+            {
+                label: "Reject",
+                status: "rejected",
+                color: "bg-red-500 hover:bg-red-600",
+            },
         ],
     },
     {
@@ -109,7 +118,7 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
         textColor: "text-indigo-600",
         Icon: CalendarClock,
         acceptsFrom: ["pending"],
-        mobileLabel: "To Be Scheduled",
+        mobileLabel: "To Schedule",
         nextActions: [
             {
                 label: "Schedule",
@@ -120,16 +129,36 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
         ],
     },
     {
+        id: "scheduled",
+        title: "SCHEDULED",
+        subtitle: "Date set, awaiting start",
+        statuses: ["scheduled"],
+        gradient: "from-cyan-500 to-blue-500",
+        bgLight: "bg-cyan-50",
+        dotColor: "bg-cyan-500",
+        textColor: "text-cyan-600",
+        Icon: Calendar,
+        acceptsFrom: ["pending", "to-be-scheduled"],
+        mobileLabel: "Scheduled",
+        nextActions: [
+            {
+                label: "Start",
+                status: "in-progress",
+                color: "bg-blue-500 hover:bg-blue-600",
+            },
+        ],
+    },
+    {
         id: "in-progress",
         title: "IN PROGRESS",
         subtitle: "Work underway",
-        statuses: ["scheduled", "in-progress"],
+        statuses: ["in-progress"],
         gradient: "from-blue-600 to-blue-500",
         bgLight: "bg-blue-50",
         dotColor: "bg-blue-500",
         textColor: "text-blue-600",
         Icon: Play,
-        acceptsFrom: ["pending", "to-be-scheduled"],
+        acceptsFrom: ["scheduled"],
         mobileLabel: "In Progress",
         nextActions: [
             {
@@ -139,25 +168,43 @@ const KANBAN_COLUMNS: KanbanColumnConfig[] = [
             },
         ],
     },
+];
+
+const RESOLVED_COLUMNS: KanbanColumnConfig[] = [
     {
-        id: "resolved",
-        title: "RESOLVED",
-        subtitle: "Completed & rejected",
-        statuses: ["completed", "rejected"],
+        id: "completed",
+        title: "COMPLETED",
+        subtitle: "Work finished",
+        statuses: ["completed"],
         gradient: "from-green-500 to-emerald-500",
         bgLight: "bg-green-50",
         dotColor: "bg-green-500",
         textColor: "text-green-600",
         Icon: CheckCircle,
-        acceptsFrom: ["in-progress", "pending", "to-be-scheduled"],
-        mobileLabel: "Resolved",
+        acceptsFrom: [],
+        mobileLabel: "Completed",
+        nextActions: [],
+    },
+    {
+        id: "rejected",
+        title: "REJECTED",
+        subtitle: "Request declined",
+        statuses: ["rejected"],
+        gradient: "from-red-500 to-rose-500",
+        bgLight: "bg-red-50",
+        dotColor: "bg-red-500",
+        textColor: "text-red-600",
+        Icon: Ban,
+        acceptsFrom: [],
+        mobileLabel: "Rejected",
         nextActions: [],
     },
 ];
 
 const getColumnForStatus = (status: string) => {
     const normalized = normalizeStatus(status);
-    return KANBAN_COLUMNS.find((col) => col.statuses.includes(normalized));
+    const allColumns = [...KANBAN_COLUMNS, ...RESOLVED_COLUMNS];
+    return allColumns.find((col) => col.statuses.includes(normalized));
 };
 
 function transformApiResponse(data: any[]): MaintenanceRequest[] {
@@ -215,6 +262,7 @@ export default function MaintenanceRequestPage() {
     const [showFilters, setShowFilters] = useState(false);
 
     const [activeColumnIndex, setActiveColumnIndex] = useState(0);
+    const [activeTab, setActiveTab] = useState<"active" | "resolved">("active");
 
     const [draggedItem, setDraggedItem] = useState<MaintenanceRequest | null>(
         null,
@@ -429,13 +477,14 @@ export default function MaintenanceRequestPage() {
         });
 
     const getColRequests = (col: KanbanColumnConfig) => {
-        if (col.id === "pending") {
-            return filtered.filter((r) => r.status === "pending");
-        }
-        return filtered.filter((r) => r.column === col.id);
+        return filtered.filter((r) => col.statuses.includes(r.status));
     };
     const hasFilters = !!filterPriority || !!search || filterSource !== "all";
     const pendingCount = filtered.filter((r) => r.status === "pending").length;
+
+    const activeColumns = activeTab === "active" ? KANBAN_COLUMNS : RESOLVED_COLUMNS;
+    const activeCount = filtered.filter((r) => ["pending", "approved", "scheduled", "in-progress"].includes(r.status)).length;
+    const resolvedCount = filtered.filter((r) => ["completed", "rejected"].includes(r.status)).length;
 
     if (loading)
         return (
@@ -494,11 +543,25 @@ export default function MaintenanceRequestPage() {
 
                     {/* Tabs */}
                     <div className="flex items-center gap-6 border-b border-gray-200">
-                        <button className="pb-3 border-b-2 border-green-500 text-green-600 font-medium text-sm">
-                            Requests Board
+                        <button
+                            onClick={() => setActiveTab("active")}
+                            className={`pb-3 border-b-2 font-medium text-sm transition-colors ${
+                                activeTab === "active"
+                                    ? "border-green-500 text-green-600"
+                                    : "border-transparent text-gray-500 hover:text-gray-700"
+                            }`}
+                        >
+                            Active ({activeCount})
                         </button>
-                        <button className="pb-3 border-b-2 border-transparent text-gray-500 font-medium text-sm hover:text-gray-700">
-                            Recurring
+                        <button
+                            onClick={() => setActiveTab("resolved")}
+                            className={`pb-3 border-b-2 font-medium text-sm transition-colors ${
+                                activeTab === "resolved"
+                                    ? "border-green-500 text-green-600"
+                                    : "border-transparent text-gray-500 hover:text-gray-700"
+                            }`}
+                        >
+                            Resolved ({resolvedCount})
                         </button>
                     </div>
                 </motion.div>
@@ -536,8 +599,8 @@ export default function MaintenanceRequestPage() {
                     </div>
 
                     {/* Kanban Board */}
-                    <div className="grid grid-cols-4 gap-4">
-                        {KANBAN_COLUMNS.map((col) => (
+                    <div className={`grid gap-4 ${activeTab === "active" ? "grid-cols-4" : "grid-cols-2"}`}>
+                        {activeColumns.map((col) => (
                             <KanbanColumn
                                 key={col.id}
                                 column={col}
@@ -554,6 +617,9 @@ export default function MaintenanceRequestPage() {
                                 onDragEnd={handleDragEnd}
                                 isDragOver={dragOverColumn === col.id}
                                 draggedItem={draggedItem}
+                                setShowCalendarModal={setShowCalendarModal}
+                                setShowExpenseModal={setShowExpenseModal}
+                                setPendingStatusChange={setPendingStatusChange}
                             />
                         ))}
                     </div>
@@ -693,6 +759,9 @@ function KanbanColumn({
     onDragEnd,
     isDragOver,
     draggedItem,
+    setShowCalendarModal,
+    setShowExpenseModal,
+    setPendingStatusChange,
 }: {
     column: KanbanColumnConfig;
     requests: MaintenanceRequest[];
@@ -705,6 +774,9 @@ function KanbanColumn({
     onDragEnd?: () => void;
     isDragOver?: boolean;
     draggedItem?: MaintenanceRequest | null;
+    setShowCalendarModal: (v: boolean) => void;
+    setShowExpenseModal: (v: boolean) => void;
+    setPendingStatusChange: (v: { requestId: number; status: string } | null) => void;
 }) {
     const Icon = column.Icon;
     const canAccept =
@@ -748,6 +820,9 @@ function KanbanColumn({
                             onStatusChange={onStatusChange}
                             onDragStart={onDragStart}
                             onDragEnd={onDragEnd}
+                            setShowCalendarModal={setShowCalendarModal}
+                            setShowExpenseModal={setShowExpenseModal}
+                            setPendingStatusChange={setPendingStatusChange}
                         />
                     ))
                 )}
@@ -766,6 +841,9 @@ function RequestCard({
     onStatusChange,
     onDragStart,
     onDragEnd,
+    setShowCalendarModal,
+    setShowExpenseModal,
+    setPendingStatusChange,
 }: {
     request: MaintenanceRequest;
     column: KanbanColumnConfig;
@@ -773,6 +851,9 @@ function RequestCard({
     onStatusChange: (id: number, status: string, extra?: any) => void;
     onDragStart?: (r: MaintenanceRequest) => void;
     onDragEnd?: () => void;
+    setShowCalendarModal: (v: boolean) => void;
+    setShowExpenseModal: (v: boolean) => void;
+    setPendingStatusChange: (v: { requestId: number; status: string } | null) => void;
 }) {
     const tenantName = request.tenant_first_name
         ? `${request.tenant_first_name} ${request.tenant_last_name || ""}`.trim()
@@ -837,33 +918,64 @@ function RequestCard({
                 {request.property_name || "Luxury Apartment"}
             </p>
 
-            <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white text-xs font-medium shadow-sm`}>
+            <div className="border-t border-gray-100 pt-3 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${avatarGradient} flex items-center justify-center text-white text-xs font-medium shadow-sm flex-shrink-0`}>
                         {initial}
                     </div>
-                    <span className="text-sm text-gray-700 font-medium truncate max-w-[100px]">
+                    <span className="text-sm text-gray-700 font-medium truncate">
                         {tenantName}
                     </span>
                 </div>
 
-                <div className="flex items-center gap-1">
-                    <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1.5 hover:bg-black/5 rounded-full transition-colors"
-                    >
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                    </button>
-                    <button
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1.5 hover:bg-black/5 rounded-full transition-colors"
-                    >
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                    </button>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {column.nextActions.map((action) => (
+                        <button
+                            key={action.status}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (action.needsDate) {
+                                    setPendingStatusChange({ requestId: Number(request.request_id), status: action.status });
+                                    setShowCalendarModal(true);
+                                } else if (action.status === "completed" && request.tenant_id) {
+                                    const handleComplete = async (withExpense: boolean) => {
+                                        if (withExpense) {
+                                            setPendingStatusChange({ requestId: Number(request.request_id), status: action.status });
+                                            setShowExpenseModal(true);
+                                        } else {
+                                            await onStatusChange(Number(request.request_id), action.status, {
+                                                completion_date: new Date().toISOString(),
+                                            });
+                                        }
+                                    };
+                                    Swal.fire({
+                                        title: "Record Expense?",
+                                        text: "Would you like to add a maintenance expense?",
+                                        icon: "question",
+                                        showDenyButton: true,
+                                        showCancelButton: true,
+                                        confirmButtonText: "Yes, Add Expense",
+                                        denyButtonText: "No, Just Complete",
+                                        confirmButtonColor: "#3b82f6",
+                                        denyButtonColor: "#6b7280",
+                                    }).then((result) => {
+                                        if (result.isConfirmed) handleComplete(true);
+                                        else if (result.isDenied) handleComplete(false);
+                                    });
+                                } else {
+                                    onStatusChange(Number(request.request_id), action.status);
+                                }
+                            }}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 ${action.color} text-white text-[10px] font-semibold rounded-lg transition-all hover:scale-105 active:scale-95`}
+                        >
+                            {action.status === "approved" && <Check className="w-3 h-3" />}
+                            {action.status === "scheduled" && <Calendar className="w-3 h-3" />}
+                            {action.status === "in-progress" && <Play className="w-3 h-3" />}
+                            {action.status === "completed" && <FileCheck className="w-3 h-3" />}
+                            {action.status === "rejected" && <Ban className="w-3 h-3" />}
+                            {action.label}
+                        </button>
+                    ))}
                 </div>
             </div>
         </motion.div>

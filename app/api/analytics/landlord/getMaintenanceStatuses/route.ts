@@ -39,9 +39,10 @@ export async function GET(req: Request) {
                 scheduled: 0,
                 "in-progress": 0,
                 completed: 0,
+                rejected: 0,
             };
             queryRows.forEach((row: any) => {
-                const status = row.status?.toLowerCase();
+                const status = row.status?.toLowerCase().replace(/_/g, "-");
                 if (status && counts[status] !== undefined) {
                     counts[status] = Number(row.count);
                 }
