@@ -21,6 +21,7 @@
     <file url="file://$PROJECT_DIR$/app/api/webhook/xendit/invoice/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/webhook/xendit/payment-request-v3/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/webhook/xendit/subscription-recurring/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/schemas/calendar.sql" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/lib/auth/auth.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/utils/cronjobs/subaccountTransactions.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/utils/cronjobs/subscriptionBilling.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
