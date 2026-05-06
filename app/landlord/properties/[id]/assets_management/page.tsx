@@ -22,6 +22,7 @@ import { AssetCardSkeleton } from "@/components/Commons/SkeletonLoaders";
 
 import useSubscription from "../../../../../hooks/landlord/subscription/useSubscription";
 import useAuthStore from "@/zustand/authStore";
+import FeatureLock from "@/components/landlord/subscription/FeatureLock";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -142,38 +143,6 @@ const AssetsManagementPage = () => {
     );
   }
 
-  if (!loadingSubscription && !canUseAssets) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 max-w-md w-full text-center">
-          <div className="mx-auto mb-4 w-14 h-14 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-600 flex items-center justify-center">
-            <Wrench className="w-7 h-7 text-white" />
-          </div>
-
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Upgrade Required
-          </h2>
-
-          <p className="text-gray-600 text-sm mb-6">
-            Asset Management is not available on your current plan. Upgrade to
-            track and maintain property assets.
-          </p>
-
-          <button
-            onClick={() =>
-              router.push("/public/pricing")
-            }
-            className="w-full px-5 py-2.5 rounded-xl font-semibold text-white
-          bg-gradient-to-r from-blue-600 to-emerald-600
-          hover:from-blue-700 hover:to-emerald-700 transition-all"
-          >
-            View Plans
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // LOADING STATE
   if (isLoading) {
     return (
@@ -237,7 +206,16 @@ const AssetsManagementPage = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 pb-24 md:pb-6">
+      <div className="relative min-h-screen bg-gray-50 pb-24 md:pb-6">
+        {!loadingSubscription && !canUseAssets && (
+          <FeatureLock
+            featureName="Asset Management"
+            description="Upgrade your plan to track and maintain property assets."
+            requiredPlan={subscription?.plan_name}
+            upgradeHref="/public/pricing"
+          />
+        )}
+        <div className={`w-full px-4 md:px-6 pt-20 md:pt-6 ${!loadingSubscription && !canUseAssets ? 'pointer-events-none select-none opacity-30' : ''}`}>
         <div className="w-full px-4 md:px-6 pt-20 md:pt-6">
           {/* Header */}
           <div className="mb-5">
@@ -559,6 +537,7 @@ const AssetsManagementPage = () => {
             )}
           </div>
         </div>
+      </div>
       </div>
 
       <AddAssetModal

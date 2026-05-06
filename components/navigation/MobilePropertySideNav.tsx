@@ -87,22 +87,22 @@ export default function MobilePropertySidenav({
 
           {/* SIDEBAR */}
           <motion.aside
-            initial={{ x: "-100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="lg:hidden fixed top-0 left-0 bottom-0 w-80 max-w-[85vw]
-                             bg-white shadow-2xl z-[70] flex flex-col"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="lg:hidden fixed inset-4 sm:inset-8 md:inset-12
+                             bg-white shadow-2xl z-[70] flex flex-col rounded-2xl overflow-hidden max-w-md mx-auto"
           >
             {/* HEADER */}
-            <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-4 py-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Property Menu</h2>
+            <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-3 py-2.5 flex-shrink-0">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-base font-bold text-white">Property Menu</h2>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
                 >
-                  <X className="w-5 h-5 text-white" />
+                  <X className="w-4 h-4 text-white" />
                 </button>
               </div>
 
@@ -112,25 +112,25 @@ export default function MobilePropertySidenav({
                   router.push("/landlord/properties");
                   onClose();
                 }}
-                className="flex items-center gap-2 text-sm font-medium text-white/90 hover:text-white transition-colors group mb-3 w-full"
+                className="flex items-center gap-2 text-xs font-medium text-white/90 hover:text-white transition-colors group mb-2 w-full"
               >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                 Back to Properties
               </button>
 
               {/* Property Info Card */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
-                    <Building2 className="w-5 h-5 text-white" />
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                <div className="flex items-start gap-2.5">
+                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                    <Building2 className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold text-white truncate">
+                    <h3 className="text-xs font-bold text-white truncate">
                       {propertyName}
                     </h3>
                     {city && province && (
-                      <p className="text-xs text-white/80 flex items-center gap-1 mt-1">
-                        <MapPin className="w-3 h-3 shrink-0" />
+                      <p className="text-[10px] text-white/80 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-2.5 h-2.5 shrink-0" />
                         <span className="truncate">
                           {city}, {province}
                         </span>
@@ -141,14 +141,14 @@ export default function MobilePropertySidenav({
               </div>
 
               {/* Property Switcher */}
-              <div className="mt-3 relative">
+              <div className="mt-2 relative">
                 <button
                   onClick={() => setShowPropertyDropdown(!showPropertyDropdown)}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-left"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all text-left"
                 >
-                  <Building className="w-4 h-4 text-white/80 flex-shrink-0" />
-                  <span className="text-sm text-white/90 truncate flex-1">Switch Property</span>
-                  <ChevronDown className={`w-4 h-4 text-white/60 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
+                  <Building className="w-3.5 h-3.5 text-white/80 flex-shrink-0" />
+                  <span className="text-xs text-white/90 truncate flex-1">Switch Property</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 ${showPropertyDropdown ? "rotate-180" : ""}`} />
                 </button>
 
                 {showPropertyDropdown && (
@@ -183,32 +183,8 @@ export default function MobilePropertySidenav({
               </div>
             </div>
 
-            {/* PROFILE SECTION */}
-            <div className="px-4 py-3 border-b bg-gray-50">
-              <div className="flex items-center gap-3">
-                <Image
-                  src={
-                    user?.profilePicture ||
-                    "https://res.cloudinary.com/dptmeluy0/image/upload/v1766715365/profile-icon-design-free-vector_la6rgj.jpg"
-                  }
-                  alt="Profile"
-                  width={40}
-                  height={40}
-                  className="rounded-xl object-cover border-2 border-gray-200"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate text-gray-900">
-                    {user?.firstName && user?.lastName
-                      ? `${user.firstName} ${user.lastName}`
-                      : user?.companyName || user?.email}
-                  </p>
-                  <p className="text-xs text-gray-500">Property Manager</p>
-                </div>
-              </div>
-            </div>
-
             {/* NAVIGATION */}
-            <nav className="flex-1 overflow-y-auto p-3 space-y-4">
+            <nav className="flex-1 overflow-y-auto p-3 space-y-4 min-h-0">
               {menuGroups.map((group) => (
                 <div key={group.title}>
                   <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-400">

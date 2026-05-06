@@ -34,9 +34,6 @@ export default function ChecklistSetupModal({
     const [showOptions, setShowOptions] = useState<"agreement" | "dates" | null>(null);
 
     const agreement_id = lease?.agreement_id || lease?.lease_id || lease?.agreementId;
-    
-    console.log('SETUP LEASE MODAL: agreement_id =', agreement_id);
-
 
     const [form, setForm] = useState({
         lease_agreement: false,

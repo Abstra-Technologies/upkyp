@@ -14,9 +14,6 @@ import MobilePropertySidenav from "@/components/navigation/MobilePropertySideNav
 
 import {
   Home,
-  Building2,
-  FileText,
-  CreditCard,
   ArrowLeft,
   SlidersHorizontal,
   Zap,
@@ -24,15 +21,12 @@ import {
   ScrollText,
   Menu,
   ChevronLeft,
-  MapPin,
   ChevronRight,
-  ChevronDown,
   Wallet,
   NotebookText,
   Users,
   CopyMinus,
   HandCoins,
-  Building,
 } from "lucide-react";
 import {
   IoGrid,
@@ -43,7 +37,7 @@ import {
   IoChevronForward,
   IoBusiness,
 } from "react-icons/io5";
-import useSubscription from "../../../../hooks/landlord/subscription/useSubscription";
+import useSubscription from "@/hooks/landlord/subscription/useSubscription";
 import { useSessionMonitor } from "@/hooks/useSessionMonitor";
 
 const NotificationSection = dynamic(
@@ -466,7 +460,7 @@ export default function PropertyLayout({
       )}
 
       {/* MAIN CONTENT */}
-      <main className="flex-1 lg:pl-64 pt-14 lg:pt-0 min-h-screen scrollbar-none transition-all duration-300">
+      <main className="flex-1 lg:pl-64 min-h-screen scrollbar-none transition-all duration-300">
         <div className="px-3 sm:px-4 lg:p-6 max-w-md sm:max-w-none mx-auto">
           {children}
         </div>
