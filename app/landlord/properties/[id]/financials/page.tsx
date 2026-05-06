@@ -35,7 +35,7 @@ ChartJS.register(
     Legend
 );
 
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../../../hooks/landlord/subscription/useSubscription";
 import useAuthStore from "@/zustand/authStore";
 import Swal from "sweetalert2";
 

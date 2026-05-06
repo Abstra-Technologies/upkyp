@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import useAuthStore from "@/zustand/authStore";
 
 export default function useSubscriptionData() {
-    const { user, isAuthenticated } = useAuthStore();
+    const { user } = useAuthStore();
 
     const [trialUsed, setTrialUsed] = useState<boolean | null>(null);
     const [currentSubscription, setCurrentSubscription] = useState<any>(null);
@@ -13,7 +13,7 @@ export default function useSubscriptionData() {
 
     useEffect(() => {
         async function fetchData() {
-            if (!user || !isAuthenticated) {
+            if (!user ) {
                 setLoading(false);
                 return;
             }
@@ -43,7 +43,7 @@ export default function useSubscriptionData() {
         }
 
         fetchData();
-    }, [user, isAuthenticated]);
+    }, [user]);
 
     return { trialUsed, currentSubscription, loading, error };
 }

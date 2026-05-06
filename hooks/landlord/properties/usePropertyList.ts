@@ -24,7 +24,7 @@ export const getOccupancyColor = (rate: number) => {
     return "from-gray-400 to-gray-300";
 };
 
-export function usePropertyList({ property, onMutate }: UsePropertyCardProps) {
+export function usePropertyCard({ property, onMutate }: UsePropertyCardProps) {
     const router = useRouter();
 
     const totalUnits = property.total_units || 0;

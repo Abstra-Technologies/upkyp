@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import useAuthStore from "@/zustand/authStore";
 import Swal from "sweetalert2";
 import "react-quill-new/dist/quill.snow.css";
+import FeatureLock from "@/components/landlord/subscription/FeatureLock";
+import { useFeatureAccess } from "@/hooks/landlord/subscription/useFeatureAccess";
 
 const MAX_IMAGES = 10;
 
@@ -15,6 +17,10 @@ const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 export default function CreateAnnouncement() {
     const router = useRouter();
     const { user, fetchSession } = useAuthStore();
+    const { isLocked, loadingSubscription } = useFeatureAccess({
+        landlordId: user?.landlord_id,
+        feature: "announcements",
+    });
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -291,7 +297,14 @@ export default function CreateAnnouncement() {
                 </div>
 
                 {/* Form */}
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="relative bg-white rounded-lg shadow-sm border border-gray-200">
+                    {isLocked && !loadingSubscription && (
+                        <FeatureLock
+                            featureName="Create Announcements"
+                            description="Upgrade your plan to create and manage announcements for your tenants."
+                            requiredPlan="Pro"
+                        />
+                    )}
                     <div className="p-4 sm:p-6">
                         {error && (
                             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

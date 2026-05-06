@@ -16,7 +16,7 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 import useAuthStore from "@/zustand/authStore";
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "./subscription/useSubscription";
 
 interface Announcement {
     id: string | number;

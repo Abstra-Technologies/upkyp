@@ -26,7 +26,7 @@ import {
     Archive,
 } from "lucide-react";
 
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../hooks/landlord/subscription/useSubscription";
 import useAuthStore from "@/zustand/authStore";
 import CreateFolderModal from "@/components/landlord/documents/CreateFolderModal";
 import RenameFolderModal from "@/components/landlord/documents/RenameFolderModal";

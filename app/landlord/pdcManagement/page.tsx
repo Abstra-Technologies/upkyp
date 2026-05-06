@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import PDCUploadModal from "@/components/landlord/pdc/PDCUploadModal";
 import useAuthStore from "@/zustand/authStore";
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../hooks/landlord/subscription/useSubscription";
 
 export default function PDCManagementPage() {
     const { user } = useAuthStore();

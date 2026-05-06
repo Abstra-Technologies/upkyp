@@ -6,7 +6,7 @@ import { Pagination } from "@mui/material";
 import Swal from "sweetalert2";
 import Link from "next/link";
 
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../../hooks/landlord/subscription/useSubscription";
 import UnitLimitsCard from "@/components/landlord/subscriptions-limitations/UnitLimitsCard";
 import useAuthStore from "@/zustand/authStore";
 

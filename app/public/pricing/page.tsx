@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Check, Calculator } from "lucide-react";
 import useAuthStore from "@/zustand/authStore";
-import useSubscriptionData from "@/hooks/landlord/useSubscriptionData";
+import useSubscriptionData from "../../../hooks/landlord/subscription/useSubscriptionData";
 import CurrentSubscriptionBanner from "@/components/subscription_pricing/CurrentSubscriptionBanner";
 import PlanCalculatorModal from "@/components/subscription_pricing/PlanCalculatorModal";
 import { useSubscriptionStore } from "@/zustand/subscriptionStore";

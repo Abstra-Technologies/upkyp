@@ -7,7 +7,7 @@ import useSWR from "swr";
 import axios from "axios";
 import { FolderPlus, Folder, AlertCircle } from "lucide-react";
 
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../../../hooks/landlord/subscription/useSubscription";
 import useAuthStore from "@/zustand/authStore";
 import CreateFolderModal from "@/components/landlord/documents/CreateFolderModal";
 

@@ -20,7 +20,7 @@ import Pagination from "@/components/Commons/Pagination";
 import AddAssetModal from "@/components/landlord/properties/AddAssetModal";
 import { AssetCardSkeleton } from "@/components/Commons/SkeletonLoaders";
 
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../../../hooks/landlord/subscription/useSubscription";
 import useAuthStore from "@/zustand/authStore";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);

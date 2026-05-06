@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import useAuthStore from "@/zustand/authStore";
 import Swal from "sweetalert2";
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "@/hooks/landlord/subscription/useSubscription";
 import DOMPurify from "dompurify";
 import {
     Megaphone,
@@ -41,7 +41,6 @@ const staggerContainer = {
     },
 };
 
-// Skeleton Component
 const AnnouncementSkeleton = () => (
     <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
         <div className="hidden sm:grid sm:grid-cols-5 bg-gray-50 border-b border-gray-200 px-6 py-4">

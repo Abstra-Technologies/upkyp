@@ -43,7 +43,7 @@ import {
   IoChevronForward,
   IoBusiness,
 } from "react-icons/io5";
-import useSubscription from "@/hooks/landlord/useSubscription";
+import useSubscription from "../../../../hooks/landlord/subscription/useSubscription";
 import { useSessionMonitor } from "@/hooks/useSessionMonitor";
 
 const NotificationSection = dynamic(
