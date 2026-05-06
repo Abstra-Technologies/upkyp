@@ -114,7 +114,7 @@ export default function ViewPropertyDetailedPage() {
       link.remove();
 
       Swal.close();
-      Swal.fire("Done", "QR codes generated successfully.", "success");
+      await Swal.fire("Done", "QR codes generated successfully.", "success");
     } catch (err) {
       Swal.close();
       Swal.fire(
@@ -167,23 +167,21 @@ export default function ViewPropertyDetailedPage() {
           {/* Row 2: Quick Action Buttons */}
             <div
                 id="units-action-buttons"
-                className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4"
+                className="grid grid-cols-4 md:grid-cols-4 gap-2 mb-4"
             >
             {/* Add Unit */}
             <button
               onClick={handleAddUnitClick}
               disabled={unitActionsDisabled}
-              className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:shadow-md ${
+              className={`group relative overflow-hidden rounded-xl p-2 md:p-3 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1 ${
                 unitActionsDisabled
                   ? "bg-gray-100 border border-gray-200"
                   : "bg-gradient-to-br from-blue-500 to-blue-600 border border-blue-400"
               }`}
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Plus className="w-4 h-4 text-white" />
-                <span className={`text-xs font-bold ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>Add Unit</span>
-              </div>
-              <span className={`text-[10px] ${unitActionsDisabled ? "text-gray-400" : "text-white/70"}`}>New unit</span>
+              <Plus className="w-5 h-5 md:w-4 md:h-4 text-white" />
+              <span className={`text-[10px] font-bold text-center leading-tight ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>Add Unit</span>
+              <span className={`text-[9px] text-center leading-tight hidden md:block ${unitActionsDisabled ? "text-gray-400" : "text-white/70"}`}>New unit</span>
               {unitActionsDisabled && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-300">
                   <div className="h-full bg-red-500" style={{ width: "100%" }} />
@@ -194,37 +192,31 @@ export default function ViewPropertyDetailedPage() {
             {/* Invite Tenant */}
             <button
               onClick={() => setInviteModalOpen(true)}
-              className="group relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-violet-500 to-violet-600 border border-violet-400 transition-all duration-300 hover:shadow-md"
+              className="group relative overflow-hidden rounded-xl p-2 md:p-3 bg-gradient-to-br from-violet-500 to-violet-600 border border-violet-400 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <Users className="w-4 h-4 text-white" />
-                <span className="text-xs font-bold text-white">Invite Tenant</span>
-              </div>
-              <span className="text-[10px] text-white/70">Send invite</span>
+              <Users className="w-5 h-5 md:w-4 md:h-4 text-white" />
+              <span className="text-[10px] font-bold text-white text-center leading-tight">Invite Tenant</span>
+              <span className="text-[9px] text-white/70 text-center leading-tight hidden md:block">Send invite</span>
             </button>
 
             {/* Active Lease */}
             <Link
               href={`/landlord/properties/${property_id}/activeLease`}
-              className="group relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-md flex flex-col justify-center"
+              className="group relative overflow-hidden rounded-xl p-2 md:p-3 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <ScrollText className="w-4 h-4 text-white" />
-                <span className="text-xs font-bold text-white">Active Lease</span>
-              </div>
-              <span className="text-[10px] text-white/70">View list</span>
+              <ScrollText className="w-5 h-5 md:w-4 md:h-4 text-white" />
+              <span className="text-[10px] font-bold text-white text-center leading-tight">Active Lease</span>
+              <span className="text-[9px] text-white/70 text-center leading-tight hidden md:block">View list</span>
             </Link>
 
             {/* Billing */}
             <Link
               href={`/landlord/properties/${property_id}/utilities`}
-              className="group relative overflow-hidden rounded-xl p-3 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-md flex flex-col justify-center"
+              className="group relative overflow-hidden rounded-xl p-2 md:p-3 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1"
             >
-              <div className="flex items-center gap-2 mb-1">
-                <CreditCard className="w-4 h-4 text-white" />
-                <span className="text-xs font-bold text-white">Utility Cost</span>
-              </div>
-              <span className="text-[10px] text-white/70">View cost</span>
+              <CreditCard className="w-5 h-5 md:w-4 md:h-4 text-white" />
+              <span className="text-[10px] font-bold text-white text-center leading-tight">Utility Cost</span>
+              <span className="text-[9px] text-white/70 text-center leading-tight hidden md:block">View cost</span>
             </Link>
           </div>
 
