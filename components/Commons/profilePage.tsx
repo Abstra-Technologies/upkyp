@@ -1534,7 +1534,7 @@ function MobileBankTab({
             Manage your payout bank accounts for receiving rent payments.
           </p>
           <button
-            onClick={() => router.push("/landlord/payoutDetails")}
+            onClick={() => router.push("/commons/landlord/payoutDetails")}
             className="w-full px-4 py-2.5 text-xs font-semibold
               text-white bg-gradient-to-r from-blue-600
               to-emerald-600 rounded-lg flex items-center

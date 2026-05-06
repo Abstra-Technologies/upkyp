@@ -157,7 +157,7 @@ export default function QuickActions({
         // },
         {
             label: "Work Orders",
-            href: "/landlord/maintenance-request",
+            href: "/landlord/maintenance",
             icon: Construction,
             gradient: "from-yellow-500 to-amber-500",
         },

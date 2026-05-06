@@ -93,7 +93,7 @@ export default function Page() {
                         </div>
                         <div className="min-w-0">
                             <h1 className="text-xl font-bold text-gray-900 truncate">
-                                Accounting
+                                Bank Accounts Linked
                             </h1>
                             <p className="text-sm text-gray-500 truncate">
                                 Manage bank accounts and linked properties
