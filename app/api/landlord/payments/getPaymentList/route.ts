@@ -70,6 +70,8 @@ const getPaymentsCached = unstable_cache(
         p.net_amount,
         p.gateway_fee,
         p.gateway_transaction_ref,
+        p.gateway_settlement_status,
+        p.gateway_settled_at,
         p.raw_gateway_payload,
         p.created_at,
 

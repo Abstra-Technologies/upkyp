@@ -33,9 +33,6 @@ const fetcher = async (url: string) => {
 interface Props {
     landlord_id?: string;
     search?: string;
-    paymentType?: string;
-    paymentStatus?: string;
-    payoutStatus?: string;
     dateRange?: string;
     refreshKey?: number;
 }
@@ -59,9 +56,6 @@ const staggerContainer = {
 export default function PaymentList({
                                         landlord_id,
                                         search = "",
-                                        paymentType = "all",
-                                        paymentStatus = "all",
-                                        payoutStatus = "all",
                                         dateRange = "30",
                                         refreshKey = 0,
                                     }: Props) {
@@ -100,13 +94,10 @@ export default function PaymentList({
         const params = new URLSearchParams();
 
         if (search) params.set("search", search);
-        if (paymentType !== "all") params.set("paymentType", paymentType);
-        if (paymentStatus !== "all") params.set("paymentStatus", paymentStatus);
-        if (payoutStatus !== "all") params.set("payoutStatus", payoutStatus);
         if (dateRange) params.set("dateRange", dateRange);
 
         return params.toString();
-    }, [search, paymentType, paymentStatus, payoutStatus, dateRange]);
+    }, [search, dateRange]);
 
     const {
         data: payments = [],
@@ -206,15 +197,15 @@ export default function PaymentList({
             {/* =========================
         DESKTOP TABLE
     ========================== */}
-            <div className="hidden lg:block">
-                <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700 px-6 py-4">
+            <div className="hidden lg:block w-full overflow-x-auto">
+                <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200 text-sm font-semibold text-gray-700 px-6 py-4 min-w-[1200px]">
                     <div>Date Paid</div>
                     <div>Tenant</div>
                     <div>Property / Unit</div>
-                    {/*<div>Type</div>*/}
                     <div className="text-right">Amount Paid</div>
                     <div className="text-right">Net Amount</div>
                     <div className="text-center">Payment Status</div>
+                    <div className="text-center">Settlement Status</div>
                     <div className="text-center">Action</div>
                 </div>
 
@@ -228,7 +219,7 @@ export default function PaymentList({
                         <motion.div
                             key={payment.payment_id}
                             variants={fadeInUp}
-                            className="grid grid-cols-8 items-center px-6 py-4 text-sm
+                            className="grid grid-cols-8 items-center px-6 py-4 text-sm min-w-[1200px]
             hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-emerald-50/50 transition-colors"
                         >
                             {/* Date */}
@@ -236,7 +227,7 @@ export default function PaymentList({
                                 <p className="text-gray-700 font-medium">
                                     {new Date(payment.payment_date).toLocaleDateString()}
                                 </p>
-                                <p className="text-[11px] text-gray-400 font-mono truncate max-w-[120px]" title={payment.transaction_id}>
+                                <p className="text-[11px] text-gray-400 font-mono" title={payment.transaction_id}>
                                     {payment.transaction_id || "—"}
                                 </p>
                             </div>
@@ -252,9 +243,6 @@ export default function PaymentList({
                                 {payment.property_name} •{" "}
                                 <span className="text-gray-500">{payment.unit_name}</span>
                             </div>
-
-                            {/* Type */}
-                            {/*<PaymentTypeBadge type={payment.payment_type} />*/}
 
                             {/* Gross Amount (Tenant Paid) */}
                             <div className="text-right font-semibold text-gray-900">
@@ -274,7 +262,12 @@ export default function PaymentList({
 
                             {/* Status */}
                             <div className="text-center">
-                                <StatusBadge status={payment.payment_status} />
+                                <StatusBadge status={payment?.payment_status} />
+                            </div>
+
+                            {/* Settlement Status */}
+                            <div className="text-center">
+                                <SettlementBadge status={payment?.gateway_settlement_status} />
                             </div>
 
                             {/* Action */}
@@ -341,7 +334,10 @@ export default function PaymentList({
 
                         {/* Bottom Row */}
                         <div className="mt-2.5 flex items-center justify-between">
-                            <StatusBadge status={payment.payment_status} />
+                            <div className="flex items-center gap-2">
+                                <StatusBadge status={payment.payment_status} />
+                                <SettlementBadge status={payment.gateway_settlement_status} />
+                            </div>
 
                             <button
                                 onClick={() => openDetails(payment)}
@@ -514,6 +510,24 @@ function StatusBadge({ status }: { status: string }) {
             }`}
         >
       {status}
+    </span>
+    );
+}
+
+function SettlementBadge({ status }: { status: string }) {
+    const styles: Record<string, string> = {
+        settled: "bg-emerald-100 text-emerald-700 border-emerald-200",
+        pending: "bg-amber-100 text-amber-700 border-amber-200",
+        failed: "bg-red-100 text-red-700 border-red-200",
+    };
+
+    return (
+        <span
+            className={`px-2.5 py-1 rounded-lg text-xs font-semibold border capitalize ${
+                styles[status] || "bg-gray-100 text-gray-600 border-gray-200"
+            }`}
+        >
+      {status || "pending"}
     </span>
     );
 }

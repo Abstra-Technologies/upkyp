@@ -5,11 +5,8 @@ import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
 import crypto from "crypto";
 
-const XENDIT_SECRET = process.env.XENDIT_TEST_TRANSBAL || process.env.XENDIT_API_KEY;
+const XENDIT_SECRET = process.env.XENDIT_TEST_TRANSBAL ;
 
-/**
- * 🔐 Fetch transaction by ID from Xendit
- */
 async function fetchTransactionById(transactionId: string, forUserId?: string) {
     const headers: Record<string, string> = {
         Authorization: "Basic " + Buffer.from(`${XENDIT_SECRET}:`).toString("base64"),
@@ -40,6 +37,8 @@ async function fetchTransactionById(transactionId: string, forUserId?: string) {
         status: tx.status,
         amount: Number(tx.amount || 0),
         fee: tx.fee || {},
+        actual_settlement_date: tx.actual_settlement_date,
+        settlement_status: tx.settlement_status,
     };
 }
 
@@ -53,9 +52,6 @@ function generateLedgerKey(paymentId: number, landlordId: string) {
         .digest("hex");
 }
 
-/**
- * ✅ MAIN API
- */
 export async function GET(req: NextRequest) {
     try {
         const session = await getSessionUser();
@@ -127,10 +123,12 @@ export async function GET(req: NextRequest) {
                     continue;
                 }
 
+                const XENDIT_TXN_REGEX = /^txn_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
                 const idsToTry = [
                     { source: "transaction_id", value: p.transaction_id },
                     { source: "gateway_transaction_ref", value: p.gateway_transaction_ref },
-                ].filter(id => id.value && id.value.startsWith("txn_"));
+                ].filter(id => id.value && XENDIT_TXN_REGEX.test(id.value));
 
                 if (idsToTry.length === 0) {
                     console.log("[SETTLEMENT] No valid Xendit transaction ID found");
@@ -166,9 +164,9 @@ export async function GET(req: NextRequest) {
                     continue;
                 }
 
-                console.log("[SETTLEMENT] Xendit status:", tx.status, "(using ID:", usedId, ")");
+                console.log("[SETTLEMENT] Xendit status:", tx.status, "settlement_status:", tx.settlement_status, "(using ID:", usedId, ")");
 
-                if (tx.status !== "SETTLED") {
+                if (tx.status !== "SUCCESS") {
                     results.push({
                         payment_id: p.payment_id,
                         status: "pending",
@@ -241,17 +239,62 @@ export async function GET(req: NextRequest) {
                 /**
                  * 🔐 Update Payment
                  */
-                await db.query(
+                const dbSettlementStatus = tx.settlement_status === "SETTLED" ? "settled" : tx.settlement_status === "FAILED" ? "failed" : "pending";
+
+                console.log("========== [DEBUG] PAYMENT UPDATE START ==========");
+                console.log("[DEBUG] Payment ID:", p.payment_id);
+                console.log("[DEBUG] Full Xendit TX Response:", JSON.stringify(tx, null, 2));
+                console.log("[DEBUG] tx.settlement_status:", tx.settlement_status);
+                console.log("[DEBUG] tx.fee:", JSON.stringify(tx.fee, null, 2));
+                console.log("[DEBUG] tx.fee?.status:", tx.fee?.status);
+                console.log("[DEBUG] Computed dbSettlementStatus:", dbSettlementStatus);
+                console.log("[DEBUG] tx.actual_settlement_date:", tx.actual_settlement_date);
+                console.log("[DEBUG] tx.actual_settlement_date type:", typeof tx.actual_settlement_date);
+                console.log("[DEBUG] tx.amount:", tx.amount);
+                console.log("[DEBUG] tx.fee?.xendit_fee:", tx.fee?.xendit_fee);
+                console.log("[DEBUG] tx.fee?.value_added_tax:", tx.fee?.value_added_tax);
+                console.log("[DEBUG] net:", net);
+
+                console.log("[DEBUG] Executing SQL:");
+                console.log(`UPDATE Payment SET gateway_settlement_status = '${dbSettlementStatus}', gateway_settled_at = '${tx.actual_settlement_date ? new Date(tx.actual_settlement_date).toISOString() : 'NULL'}', net_amount = ${net}, gross_amount = ${tx.amount}, platform_fee = ${tx.fee?.xendit_fee || 0}, gateway_vat = ${tx.fee?.value_added_tax || 0} WHERE payment_id = ${p.payment_id}`);
+
+                const [beforeRows]: any = await db.query(
+                    `SELECT payment_id, gateway_settlement_status, gateway_settled_at, net_amount, gross_amount, platform_fee, gateway_vat FROM Payment WHERE payment_id = ?`,
+                    [p.payment_id]
+                );
+                console.log("[DEBUG] BEFORE Update:", JSON.stringify(beforeRows[0], null, 2));
+
+                const [updateResult]: any = await db.query(
                     `
                     UPDATE Payment
                     SET 
-                        gateway_settlement_status = 'settled',
-                        gateway_settled_at = NOW(),
-                        net_amount = ?
+                        gateway_settlement_status = ?,
+                        gateway_settled_at = ?,
+                        net_amount = ?,
+                        gross_amount = ?,
+                        platform_fee = ?,
+                        gateway_vat = ?
                     WHERE payment_id = ?
                     `,
-                    [net, p.payment_id]
+                    [
+                        dbSettlementStatus,
+                        tx.actual_settlement_date ? new Date(tx.actual_settlement_date) : null,
+                        net,
+                        tx.amount,
+                        tx.fee?.xendit_fee || 0,
+                        tx.fee?.value_added_tax || 0,
+                        p.payment_id
+                    ]
                 );
+
+                console.log("[DEBUG] Update Result:", JSON.stringify(updateResult, null, 2));
+
+                const [afterRows]: any = await db.query(
+                    `SELECT payment_id, gateway_settlement_status, gateway_settled_at, net_amount, gross_amount, platform_fee, gateway_vat FROM Payment WHERE payment_id = ?`,
+                    [p.payment_id]
+                );
+                console.log("[DEBUG] AFTER Update:", JSON.stringify(afterRows[0], null, 2));
+                console.log("========== [DEBUG] PAYMENT UPDATE END ==========");
 
                 total += net;
 
