@@ -13,12 +13,12 @@ const MONTHS = [
 ];
 const DAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
-const EVENT_COLORS: Record<string, string> = {
-    "rent-due": "bg-red-500",
-    "move-in": "bg-emerald-500",
-    "inspection": "bg-amber-500",
-    "maintenance": "bg-blue-500",
-    "visit": "bg-purple-500",
+const ITEM_COLORS: Record<string, string> = {
+    task: "bg-blue-500",
+    event: "bg-purple-500",
+    reminder: "bg-amber-500",
+    visit: "bg-emerald-500",
+    maintenance: "bg-red-500",
 };
 
 export default function TodayCalendar({ landlordId }: { landlordId?: string }) {
@@ -36,14 +36,17 @@ export default function TodayCalendar({ landlordId }: { landlordId?: string }) {
     const isCurrentMonth =
         viewDate.year === today.getFullYear() && viewDate.month === today.getMonth();
 
-    const { data: selectedDayEvents, isLoading: loadingSelected } = useSWR(
+    const { data: selectedDayData, isLoading: loadingSelected } = useSWR(
         landlordId ? `/api/landlord/calendar/events?landlord_id=${landlordId}&date=${selectedDate}` : null,
         fetcher,
         { revalidateOnFocus: false, dedupingInterval: 60_000 },
     );
 
-    const { data: monthEvents, isLoading: loadingMonth } = useSWR(
-        landlordId ? `/api/landlord/calendar/events/month?landlord_id=${landlordId}&year=${viewDate.year}&month=${viewDate.month + 1}` : null,
+    const monthStart = `${viewDate.year}-${String(viewDate.month + 1).padStart(2, "0")}-01`;
+    const monthEnd = `${viewDate.year}-${String(viewDate.month + 1).padStart(2, "0")}-${new Date(viewDate.year, viewDate.month + 1, 0).getDate()}`;
+
+    const { data: monthData, isLoading: loadingMonth } = useSWR(
+        landlordId ? `/api/landlord/calendar/events?landlord_id=${landlordId}&startDate=${monthStart}&endDate=${monthEnd}` : null,
         fetcher,
         { revalidateOnFocus: false, dedupingInterval: 120_000 },
     );
@@ -62,32 +65,44 @@ export default function TodayCalendar({ landlordId }: { landlordId?: string }) {
 
     const eventDates = useMemo(() => {
         const map: Record<number, any[]> = {};
-        if (monthEvents?.events) {
-            for (const ev of monthEvents.events) {
-                const day = new Date(ev.date).getDate();
-                if (!map[day]) map[day] = [];
-                map[day].push(ev);
-            }
+        const items = monthData?.calendarItems || [];
+        for (const ev of items) {
+            const day = new Date(ev.item_date + "T00:00:00").getDate();
+            if (!map[day]) map[day] = [];
+            map[day].push(ev);
         }
         return map;
-    }, [monthEvents]);
+    }, [monthData]);
 
     const upcomingEvents = useMemo(() => {
-        const visits = selectedDayEvents?.propertyVisits || [];
-        const maintenance = selectedDayEvents?.maintenanceRequests || [];
+        const visits = selectedDayData?.propertyVisits || [];
+        const maintenance = selectedDayData?.maintenanceRequests || [];
+        const items = selectedDayData?.calendarItems || [];
         return [
             ...visits.map((v: any) => ({
                 type: "visit",
                 label: v.property_name ? `${v.property_name} — ${v.unit_name}` : "Property Visit",
-                date: v.visit_date,
+                time: v.visit_time,
             })),
             ...maintenance.map((m: any) => ({
                 type: "maintenance",
                 label: `${m.unit_name} — ${m.subject}`,
-                date: m.scheduled_date,
+                time: null,
             })),
-        ];
-    }, [selectedDayEvents]);
+            ...items.map((item: any) => ({
+                type: item.item_type,
+                label: item.title,
+                time: item.all_day ? "All day" : item.item_time,
+            })),
+        ].sort((a, b) => {
+            if (!a.time && !b.time) return 0;
+            if (!a.time) return 1;
+            if (!b.time) return -1;
+            if (a.time === "All day") return -1;
+            if (b.time === "All day") return 1;
+            return a.time.localeCompare(b.time);
+        });
+    }, [selectedDayData]);
 
     const prevMonth = () =>
         setViewDate((p) =>
@@ -109,7 +124,7 @@ export default function TodayCalendar({ landlordId }: { landlordId?: string }) {
     const isSelectedInCurrentView = selectedYear === viewDate.year && selectedMonth === viewDate.month;
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 h-full flex flex-col">
+        <div className="bg-gradient-to-br from-gray-50 to-emerald-50/30 rounded-2xl border border-gray-200 shadow-sm p-4 h-full flex flex-col hover:shadow-md hover:border-gray-300 transition-all duration-200">
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <h2 className="text-sm font-semibold text-gray-900">Schedule</h2>
@@ -193,14 +208,14 @@ export default function TodayCalendar({ landlordId }: { landlordId?: string }) {
                 ) : (
                     <div className="space-y-2 overflow-y-auto flex-1">
                         {upcomingEvents.map((ev, idx) => {
-                            const color = EVENT_COLORS[ev.type] || "bg-gray-500";
+                            const color = ITEM_COLORS[ev.type] || "bg-gray-500";
                             return (
                                 <div key={idx} className="flex items-start gap-2">
                                     <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${color}`} />
                                     <div className="flex-1 min-w-0">
                                         <p className="text-xs text-gray-700 truncate">{ev.label}</p>
-                                        {ev.date && (
-                                            <p className="text-[10px] text-gray-400">{ev.date}</p>
+                                        {ev.time && (
+                                            <p className="text-[10px] text-gray-400">{ev.time}</p>
                                         )}
                                     </div>
                                 </div>
@@ -211,11 +226,11 @@ export default function TodayCalendar({ landlordId }: { landlordId?: string }) {
 
                 {/* Legend */}
                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 pt-2 border-t border-gray-100">
-                    {Object.entries(EVENT_COLORS).map(([key, color]) => (
+                    {Object.entries(ITEM_COLORS).map(([key, color]) => (
                         <div key={key} className="flex items-center gap-1">
                             <span className={`w-1.5 h-1.5 rounded-full ${color}`} />
                             <span className="text-[9px] text-gray-400 capitalize">
-                                {key.replace("-", " ")}
+                                {key}
                             </span>
                         </div>
                     ))}

@@ -22,6 +22,7 @@ import {
 import useAuthStore from "@/zustand/authStore";
 import LoadingScreen from "@/components/loadingScreen";
 import MobileCommonsSidenav from "@/components/navigation/MobileCommonsSidenav";
+import { useSessionMonitor } from "@/hooks/useSessionMonitor";
 
 const profileNavLinks = [
   {
@@ -71,6 +72,7 @@ export default function SideNavProfile({
   children: React.ReactNode;
 }) {
   const { user, signOut, signOutAdmin, fetchSession } = useAuthStore();
+  useSessionMonitor();
   const pathname = usePathname();
   const router = useRouter();
 

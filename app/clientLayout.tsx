@@ -6,6 +6,7 @@ import Navbar from "../components/navigation/navbar";
 import useAuthStore from "../zustand/authStore";
 import Swal from "sweetalert2";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { useSessionMonitor } from "@/hooks/useSessionMonitor";
 
 function urlBase64ToUint8Array(base64String: string) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -16,6 +17,7 @@ function urlBase64ToUint8Array(base64String: string) {
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const { fetchSession, user, admin } = useAuthStore();
+    useSessionMonitor();
     const user_id = user?.user_id ?? admin?.admin_id;
     const [sessionExpired, setSessionExpired] = useState(false);
     const [sessionChecked, setSessionChecked] = useState(false);

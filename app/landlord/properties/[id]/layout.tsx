@@ -44,6 +44,7 @@ import {
   IoBusiness,
 } from "react-icons/io5";
 import useSubscription from "@/hooks/landlord/useSubscription";
+import { useSessionMonitor } from "@/hooks/useSessionMonitor";
 
 const NotificationSection = dynamic(
   () => import("@/components/notification/notifCenter"),
@@ -68,6 +69,7 @@ export default function PropertyLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { user, fetchSession, signOut } = useAuthStore();
+  useSessionMonitor();
   const landlordId = user?.landlord_id;
   const { subscription, loadingSubscription } = useSubscription(landlordId);
   const emailVerified = user?.emailVerified ?? false;

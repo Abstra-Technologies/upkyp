@@ -2,9 +2,7 @@ import { cookies, headers } from "next/headers";
 import { jwtVerify, SignJWT } from "jose";
 import { db } from "@/lib/db";
 
-/* ===============================
-   Session User Type
-================================ */
+
 export interface SessionUser {
     user_id: string;
     tenant_id: string | null;
@@ -14,9 +12,6 @@ export interface SessionUser {
     emailVerified: boolean | null;
 }
 
-/* ===============================
-   Token Payload Type
-================================ */
 interface TokenPayload {
     user_id: string;
     userType: string;
@@ -29,9 +24,6 @@ interface TokenPayload {
     sub: string;
 }
 
-/* ===============================
-   Get Client IP Address
-================================ */
 export async function getClientIp(): Promise<string> {
     const headersList = await headers();
     const forwardedFor = headersList.get("x-forwarded-for");
