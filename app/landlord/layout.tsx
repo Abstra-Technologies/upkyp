@@ -208,6 +208,7 @@ export default function LandlordLayout({
     {
       section: "Support",
       items: [
+        { id: "nav-news", label: "News and Updates", href: "/public/news", icon: IoHelpCircle },
         { id: "nav-help", label: "Help Center", href: "/public/help", icon: IoHelpCircle },
         { id: "nav-guide", label: "User Guide", href: "/public/guide", icon: IoBook },
       ]

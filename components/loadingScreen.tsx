@@ -93,11 +93,11 @@ const LoadingScreen = ({ message = "Loading…" }) => {
             <div className="absolute bottom-4 sm:bottom-6 z-10 flex flex-col items-center gap-1 px-4">
                 <img
                     src="https://res.cloudinary.com/dptmeluy0/image/upload/v1764504569/abstra_dark_rvu7id.png"
-                    alt="Abstra Technologies"
+                    alt="Myojin Information Technologies"
                     className="w-20 sm:w-28 opacity-70"
                 />
                 <p className="text-[9px] sm:text-[11px] text-gray-400 font-medium">
-                    Property Management Platform
+                    Myojin Information Technology Solutions | Property Management Platform
                 </p>
             </div>
         </div>
