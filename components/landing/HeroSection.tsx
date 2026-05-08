@@ -50,9 +50,7 @@ export default function HeroSection() {
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-white/80 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              The all-in-one platform that helps landlords manage 
-              properties, track payments, and connect with tenants—without 
-              the spreadsheet chaos.
+              A platform for property owners to manage rentals, track payments, and stay connected with tenants, with clear property data that removes the guesswork.
             </p>
 
             {/* CTAs */}
@@ -62,7 +60,7 @@ export default function HeroSection() {
                 className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold text-lg rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="relative z-10">Get Started Free</span>
+                <span className="relative z-10">Get Started</span>
                 <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
 
@@ -75,25 +73,12 @@ export default function HeroSection() {
               </Link>
             </div>
 
-            {/* Trust Indicators */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.8 }}
               className="mt-10 flex flex-wrap items-center gap-6 justify-center lg:justify-start text-white/60 text-sm"
             >
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>60 Days free </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Secure Payments You Can Track</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Built for Property Owners</span>
-              </div>
             </motion.div>
           </motion.div>
 
