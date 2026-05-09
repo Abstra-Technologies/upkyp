@@ -10,7 +10,6 @@ import "@/app/styles/landing-animations.css";
 const AnimatedFeatures = lazy(() => import("@/components/ui/Process"));
 const FeaturesShowcase = lazy(() => import("@/components/landing/FeaturesShowcase"));
 const CTASection = lazy(() => import("@/components/landing/CTASection"));
-const PhilippineMarketSection = lazy(() => import("@/components/landing/MarketSection"));
 const Page_footer = lazy(() => import("../components/navigation/page_footer"));
 
 function SectionSkeleton() {
