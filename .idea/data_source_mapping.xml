@@ -14,5 +14,6 @@
     <file url="file://$PROJECT_DIR$/app/api/landlord/verification/callback/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/verification/start/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/maintenance/createMaintenance/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/api/unitListing/publish/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
   </component>
 </project>

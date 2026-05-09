@@ -12,11 +12,14 @@ import {
     UserPlus,
     MoreVertical,
     ImageOff,
+    ShieldCheck,
+    AlertTriangle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { QrCode } from "lucide-react";
+import Link from "next/link";
 
 import {
     MaterialReactTable,
@@ -29,6 +32,7 @@ interface UnitsTabProps {
     units: any[];
     isLoading: boolean;
     propertyId: string | number;
+    propertyVerificationStatus?: string | null;
     handleEditUnit: (unitId: number) => void;
     handleDeleteUnit: (unitId: number) => void;
     handleAddUnitClick: () => void;
@@ -41,6 +45,7 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                                                units,
                                                isLoading,
                                                propertyId,
+                                               propertyVerificationStatus,
                                                handleEditUnit,
                                                handleDeleteUnit,
                                                handleAddUnitClick,
@@ -301,6 +306,31 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
 
     return (
         <div className="w-full overflow-x-hidden">
+            {/* Verification Banner */}
+            {propertyVerificationStatus !== "Verified" && (
+                <div className="mx-2 mt-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <div className="flex items-start gap-2.5">
+                        <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <ShieldCheck className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-amber-800">Property Not Verified</p>
+                            <p className="text-[11px] text-amber-700 mt-0.5">
+                                {propertyVerificationStatus === "Pending"
+                                    ? "Verification is under review."
+                                    : "Submit documents to publish units."}
+                            </p>
+                            <Link
+                                href={`/landlord/properties/${propertyId}/verify`}
+                                className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-1 bg-amber-600 text-white rounded-md text-[10px] font-bold hover:bg-amber-700 transition-colors"
+                            >
+                                <AlertTriangle className="w-3 h-3" />
+                                Verify Now
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* =============================================================== */}
             {/* MOBILE: STACKED LIST + PAGINATION                               */}

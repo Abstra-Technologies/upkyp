@@ -2,22 +2,30 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    default: "Find Rent | Browse Properties for Rent - UpKyp",
+    default: "Apartment & Condo for Rent in Philippines | Find Your Home - UpKyp",
     template: "%s | UpKyp",
   },
   description:
-    "Search rental units including apartments, condos, dorms, and rooms for rent in the Philippines. Find your perfect home with UpKyp.",
+    "Find apartments, condos, rooms, and dormitories for rent in Quezon City, Manila, Makati, and across the Philippines. Browse verified rental listings with photos, prices, and direct landlord contact. Your next home is one search away.",
   keywords: [
-    "rent",
-    "apartment",
-    "condo",
+    "apartment for rent",
+    "condo for rent",
     "room for rent",
-    "Philippines",
-    "property rental",
-    "Metro Manila",
-    "Cebu",
-    "Davao",
-    "affordable housing",
+    "apartment for rent in quezon city",
+    "condo for rent in manila",
+    "affordable apartment for rent",
+    "room for rent in makati",
+    "dormitory for rent",
+    "apartment for rent philippines",
+    "rental properties quezon city",
+    "apartments near me",
+    "cheap apartment for rent",
+    "studio apartment for rent",
+    "1 bedroom apartment for rent",
+    "2 bedroom apartment for rent",
+    "furnished apartment for rent",
+    "unfurnished apartment for rent",
+    "UpKyp",
   ],
   authors: [{ name: "UpKyp" }],
   creator: "UpKyp",
@@ -32,19 +40,28 @@ export const metadata: Metadata = {
     canonical: "/find-rent",
   },
   openGraph: {
-    title: "Find Rent | Browse Properties for Rent - UpKyp",
+    title: "Apartment & Condo for Rent in Philippines | UpKyp",
     description:
-      "Search rental units including apartments, condos, dorms, and rooms for rent in the Philippines.",
+      "Find apartments, condos, rooms for rent in Quezon City, Manila, Makati, and across the Philippines. Browse verified listings with photos and direct landlord contact.",
     url: "/find-rent",
     siteName: "UpKyp",
     locale: "en_PH",
     type: "website",
+    images: [
+      {
+        url: "/og-find-rent.png",
+        width: 1200,
+        height: 630,
+        alt: "Find rental properties in the Philippines - UpKyp",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Find Rent | Browse Properties for Rent - UpKyp",
+    title: "Apartment & Condo for Rent in Philippines | UpKyp",
     description:
-      "Search rental units including apartments, condos, dorms, and rooms for rent in the Philippines.",
+      "Find apartments, condos, rooms for rent in Quezon City, Manila, Makati, and across the Philippines.",
+    images: ["/og-find-rent.png"],
   },
   robots: {
     index: true,
@@ -57,9 +74,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    // Add your verification tokens here if needed
-    // google: 'your-google-verification-token',
+  verification: {},
+  category: "Real Estate",
+  other: {
+    "geo.region": "PH",
+    "geo.country": "PH",
   },
 };
 

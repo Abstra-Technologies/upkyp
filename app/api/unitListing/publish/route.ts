@@ -19,11 +19,10 @@ export async function PUT(req: NextRequest) {
             );
         }
 
-        /* ---------- CHECK LANDLORD VERIFICATION ---------- */
-        // Only check when trying to publish (not when unpublishing)
+        /* ---------- CHECK PROPERTY VERIFICATION ---------- */
         if (publish) {
             const [unitRows]: any = await db.execute(
-                `SELECT p.landlord_id FROM rentalley_db.Unit u 
+                `SELECT p.property_id, p.landlord_id FROM rentalley_db.Unit u 
                  JOIN rentalley_db.Property p ON u.property_id = p.property_id 
                  WHERE u.unit_id = ?`,
                 [unit_id]
@@ -36,17 +35,43 @@ export async function PUT(req: NextRequest) {
                 );
             }
 
-            const landlord_id = unitRows[0].landlord_id;
+            const { property_id, landlord_id } = unitRows[0];
 
-            // Check if landlord is verified
-            const [landlordRows]: any = await db.execute(
-                `SELECT is_verified FROM Landlord WHERE landlord_id = ?`,
+            // Check if property is verified
+            const [verificationRows]: any = await db.execute(
+                `SELECT pv.status, pv.verified FROM rentalley_db.PropertyVerification pv 
+                 WHERE pv.property_id = ? 
+                 ORDER BY pv.verification_id DESC LIMIT 1`,
+                [property_id]
+            );
+
+            const isVerified = verificationRows.length > 0 && verificationRows[0].verified === 1;
+
+            if (!isVerified) {
+                return NextResponse.json(
+                    { 
+                        success: false, 
+                        message: "This property must be verified before publishing units. Please submit your property documents for verification.",
+                        property_id,
+                        needs_verification: true,
+                    },
+                    { status: 403 }
+                );
+            }
+
+            // Check if landlord has TIN
+            const [tinRows]: any = await db.execute(
+                `SELECT tin_number FROM LandlordTaxProfile WHERE landlord_id = ? LIMIT 1`,
                 [landlord_id]
             );
 
-            if (!landlordRows.length || landlordRows[0].is_verified !== 1) {
+            if (!tinRows.length || !tinRows[0].tin_number) {
                 return NextResponse.json(
-                    { success: false, message: "Your account must be verified before publishing units. Please complete your identity verification first." },
+                    { 
+                        success: false, 
+                        message: "Please set up your Tax Profile (TIN) before publishing units.",
+                        needs_tin: true,
+                    },
                     { status: 403 }
                 );
             }

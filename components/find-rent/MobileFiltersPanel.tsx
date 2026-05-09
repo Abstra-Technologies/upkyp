@@ -213,7 +213,7 @@ export default function MobileFiltersPanel({
   if (!mounted || !isVisible) return null;
 
   const content = (
-    <div className="fixed inset-0 z-[300]">
+    <div className="fixed inset-0 z-[9999]">
       <div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
         style={{ opacity: getBackdropOpacity() }}

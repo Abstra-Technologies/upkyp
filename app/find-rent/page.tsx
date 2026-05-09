@@ -185,6 +185,60 @@ function UnitSearchContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      {/* SEO: Hidden H1 for search engines */}
+      <h1 className="sr-only">
+        Apartments, Condos, and Rooms for Rent in the Philippines
+      </h1>
+
+      {/* JSON-LD Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: "Find Rent - Apartments, Condos, and Rooms for Rent in Philippines",
+            description:
+              "Search rental units including apartments, condos, dorms, and rooms for rent in Quezon City, Manila, Makati, and across the Philippines.",
+            url: "https://upkyp.com/find-rent",
+            publisher: {
+              "@type": "Organization",
+              name: "UpKyp",
+              url: "https://upkyp.com",
+            },
+            mainEntity: {
+              "@type": "ItemList",
+              name: "Rental Properties in Philippines",
+              numberOfItems: filteredUnits.length,
+              itemListElement: filteredUnits.slice(0, 12).map((unit, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                item: {
+                  "@type": "RealEstateListing",
+                  name: `${unit.unit_name} - ${unit.property_name}`,
+                  description: `${unit.unit_style || "Unit"} for rent in ${unit.city}, ${unit.province}`,
+                  url: `https://upkyp.com/find-rent/${unit.property_id}/${unit.unit_id}`,
+                  price: unit.rent_amount,
+                  priceCurrency: "PHP",
+                  address: {
+                    "@type": "PostalAddress",
+                    addressLocality: unit.city,
+                    addressRegion: unit.province,
+                    addressCountry: "PH",
+                  },
+                  numberOfRooms: unit.unit_style || undefined,
+                  floorSize: {
+                    "@type": "QuantitativeValue",
+                    value: unit.unit_size,
+                    unitCode: "MTK",
+                  },
+                },
+              })),
+            },
+          }),
+        }}
+      />
+
       {/* Subtle pattern background */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.015]"
@@ -225,7 +279,7 @@ function UnitSearchContent() {
 
           {/* Map View - Adjusted height for navbar + search header */}
           {viewMode === "map" && (
-            <div className="h-[calc(100vh-200px)] md:h-[calc(100vh-220px)]">
+            <div className="h-[calc(100vh-200px)] md:h-[calc(100vh-220px)] overflow-hidden relative">
               {/* 
                 Height calculation:
                 - Mobile: 100vh - 56px navbar - ~144px header = ~200px total

@@ -5,6 +5,7 @@ import { Home, Plus, Sparkles, Search, QrCode, HelpCircle, FileSpreadsheet, User
 import { Pagination } from "@mui/material";
 import Swal from "sweetalert2";
 import Link from "next/link";
+import useSWR from "swr";
 
 import useSubscription from "@/hooks/landlord/subscription/useSubscription";
 import UnitLimitsCard from "@/components/landlord/subscriptions-limitations/UnitLimitsCard";
@@ -23,6 +24,8 @@ import { propertyUnitsTourSteps } from "@/lib/onboarding/propertyUnitsTourSteps"
 import { propertyUnitsTourStepsMobile } from "@/lib/onboarding/propertyUnitsTourStepsMobile";
 import axios from "axios";
 import { mutate } from "swr";
+
+const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 export default function ViewPropertyDetailedPage() {
   const { user } = useAuthStore();
@@ -58,6 +61,14 @@ export default function ViewPropertyDetailedPage() {
     addUnitModalOpen,
     setAddUnitModalOpen,
   } = usePropertyUnitsPage();
+
+  const { data: verificationData } = useSWR(
+    property_id ? `/api/landlord/properties/docs/${property_id}` : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
+  const verificationStatus = verificationData?.[0]?.status || null;
 
   const currentUnitsCount = units.length;
   const maxUnits = subscription?.limits?.maxUnits ?? null;
@@ -254,6 +265,7 @@ export default function ViewPropertyDetailedPage() {
             units={currentUnits}
             isLoading={isLoading}
             propertyId={property_id}
+            propertyVerificationStatus={verificationStatus}
             handleEditUnit={handleEditUnit}
             handleDeleteUnit={handleDeleteUnit}
             handleAddUnitClick={handleAddUnitClick}

@@ -9,9 +9,6 @@ import {
     Plus,
     Search,
     RefreshCw,
-    Home,
-    TrendingUp,
-    Users,
 } from "lucide-react";
 
 import useAuthStore from "@/zustand/authStore";
@@ -143,61 +140,21 @@ export default function PropertiesPage() {
                     <button
                         onClick={handleRefresh}
                         disabled={isRefreshing}
-                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 font-semibold text-sm disabled:opacity-50 hover:bg-gray-50 transition-colors"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 font-semibold text-xs disabled:opacity-50 hover:bg-gray-50 transition-colors"
                     >
-                        <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                        <span className="hidden sm:inline">Refresh</span>
+                        <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                        Refresh
                     </button>
 
                     <button
                         onClick={() => router.push("/landlord/properties/create-property")}
-                        className={`flex items-center gap-2 px-4 py-2 ${GRADIENT_PRIMARY} text-white rounded-lg font-semibold text-sm hover:shadow-lg transition-all`}
+                        className={`flex items-center justify-center gap-1.5 px-3 py-2 ${GRADIENT_PRIMARY} text-white rounded-lg font-semibold text-xs hover:shadow-lg transition-all`}
                     >
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Add Property</span>
+                        <Plus className="w-3.5 h-3.5" />
+                        Add Property
                     </button>
                 </div>
             </header>
-
-            {/* Stats Row */}
-            {properties.length > 0 && (
-                <div className="hidden sm:grid sm:grid-cols-4 gap-3 mb-6">
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Building2 className="w-4 h-4 text-blue-600" />
-                            <span className="text-xs text-gray-500 font-medium">Total</span>
-                        </div>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-900">{properties.length}</p>
-                    </div>
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Home className="w-4 h-4 text-emerald-600" />
-                            <span className="text-xs text-gray-500 font-medium">Units</span>
-                        </div>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                            {properties.reduce((sum, p) => sum + p.total_units, 0)}
-                        </p>
-                    </div>
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Users className="w-4 h-4 text-violet-600" />
-                            <span className="text-xs text-gray-500 font-medium">Occupied</span>
-                        </div>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                            {properties.reduce((sum, p) => sum + p.occupied_units, 0)}
-                        </p>
-                    </div>
-                    <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4">
-                        <div className="flex items-center gap-2 mb-1">
-                            <TrendingUp className="w-4 h-4 text-amber-600" />
-                            <span className="text-xs text-gray-500 font-medium">Income</span>
-                        </div>
-                        <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                            ₱{properties.reduce((sum, p) => sum + p.total_income, 0).toLocaleString()}
-                        </p>
-                    </div>
-                </div>
-            )}
 
             {/* Search */}
             {properties.length > 0 && (
