@@ -2,19 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { generateMaintenanceId } from "@/utils/id_generator";
 import { encryptData } from "@/crypto/encrypt";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { uploadToS3 } from "@/lib/s3";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 import { getSessionUser } from "@/lib/auth/auth";
-
-const s3Client = new S3Client({
-    region: process.env.NEXT_AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY!,
-    },
-});
-
-const encryptionSecret = process.env.ENCRYPTION_SECRET!;
 
 function sanitizeFilename(filename: string) {
     return filename.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\s+/g, "_");
@@ -35,8 +25,11 @@ export async function POST(req: NextRequest) {
         const formData = await req.formData();
 
         const session = await getSessionUser();
-        if (!session) {
-            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        if (!session || session.userType !== "tenant" || !session.tenant_id) {
+            return NextResponse.json(
+                { error: "Only tenants can create maintenance requests" },
+                { status: 403 }
+            );
         }
 
         const agreement_id = formData.get("agreement_id")?.toString();
@@ -52,10 +45,6 @@ export async function POST(req: NextRequest) {
                 { error: "Missing required fields: agreement_id, subject, category" },
                 { status: 400 }
             );
-        }
-
-        if (session.userType !== "tenant" || !session.tenant_id) {
-            return NextResponse.json({ error: "Only tenants can create maintenance requests" }, { status: 403 });
         }
 
         const files: File[] = [];
@@ -104,7 +93,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { landlord_user_id } = landlordRows[0];
+        const { landlord_id, landlord_user_id } = landlordRows[0];
 
         const request_id = generateMaintenanceId();
 
@@ -161,19 +150,10 @@ export async function POST(req: NextRequest) {
             for (const file of files) {
                 const buffer = Buffer.from(await file.arrayBuffer());
                 const safeName = sanitizeFilename(file.name);
-                const key = `maintenancePhoto/${request_id}/${Date.now()}_${safeName}`;
-                const photoUrl = `https://${process.env.NEXT_S3_BUCKET_NAME}.s3.${process.env.NEXT_AWS_REGION}.amazonaws.com/${key}`;
+                const key = `${landlord_id}/${property_id}/${process.env.NEXT_AWS_MAINTENANCE_PHOTO}/${request_id}/${Date.now()}_${safeName}`;
+                const s3Url = await uploadToS3(buffer, key, file.type);
                 const encryptedUrl = JSON.stringify(
-                    encryptData(photoUrl, encryptionSecret)
-                );
-
-                await s3Client.send(
-                    new PutObjectCommand({
-                        Bucket: process.env.NEXT_S3_BUCKET_NAME!,
-                        Key: key,
-                        Body: buffer,
-                        ContentType: file.type,
-                    })
+                    encryptData(s3Url, process.env.ENCRYPTION_SECRET!)
                 );
 
                 uploads.push([request_id, encryptedUrl, new Date(), new Date()]);
