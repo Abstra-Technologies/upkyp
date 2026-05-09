@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Home,
@@ -9,152 +8,194 @@ import {
   CreditCard,
   Sparkles,
   ArrowRight,
+  Layers,
 } from "lucide-react";
 import { motion } from "motion/react";
 
-export default function AnimatedFeaturesPopLoop() {
-  const [reducedMotion, setReducedMotion] = useState(false);
+const layers = [
+  {
+    icon: <Home className="w-5 h-5" />,
+    title: "List",
+    subtitle: "Rental Listings",
+    description:
+      "Publish verified rental listings with complete property details.",
+    gradient: "from-blue-500 to-blue-600",
+    bg: "bg-blue-50",
+    border: "border-blue-200",
+    iconText: "text-blue-600",
+  },
+  {
+    icon: <Wrench className="w-5 h-5" />,
+    title: "Manage",
+    subtitle: "Properties & Tenants",
+    description:
+      "Manage units, tenants, maintenance, and documents in one place.",
+    gradient: "from-purple-500 to-purple-600",
+    bg: "bg-purple-50",
+    border: "border-purple-200",
+    iconText: "text-purple-600",
+  },
+  {
+    icon: <BarChart3 className="w-5 h-5" />,
+    title: "Track",
+    subtitle: "Activity & Records",
+    description:
+      "Track rent status, billing history, and property activity in real time.",
+    gradient: "from-indigo-500 to-indigo-600",
+    bg: "bg-indigo-50",
+    border: "border-indigo-200",
+    iconText: "text-indigo-600",
+  },
+  {
+    icon: <CreditCard className="w-5 h-5" />,
+    title: "Pay",
+    subtitle: "Rent & Utilities",
+    description:
+      "Secure rent and utility payments with automated billing.",
+    gradient: "from-emerald-500 to-emerald-600",
+    bg: "bg-emerald-50",
+    border: "border-emerald-200",
+    iconText: "text-emerald-600",
+  },
+];
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const handler = () => setReducedMotion(mq.matches);
-    mq.addEventListener?.("change", handler);
-    return () => mq.removeEventListener?.("change", handler);
-  }, []);
-
-  const features = [
-    {
-      icon: <Home className="w-8 h-8" />,
-      title: "List",
-      subtitle: "Rental Listings",
-      description:
-        "Publish verified rental listings for apartments, homes, offices, and warehouses with complete property details.",
-      gradient: "from-blue-500 to-blue-600",
-      lightGradient: "from-blue-50 to-blue-100",
-      glowColor: "shadow-blue-500/20",
-    },
-    {
-      icon: <Wrench className="w-8 h-8" />,
-      title: "Manage",
-      subtitle: "Properties & Tenants",
-      description:
-        "Manage units, tenants, maintenance requests, and documents from a single, centralized platform.",
-      gradient: "from-purple-500 to-purple-600",
-      lightGradient: "from-purple-50 to-purple-100",
-      glowColor: "shadow-purple-500/20",
-    },
-    {
-      icon: <BarChart3 className="w-8 h-8" />,
-      title: "Track",
-      subtitle: "Activity & Records",
-      description:
-        "Track rent status, billing history, maintenance progress, and property activity in real time.",
-      gradient: "from-indigo-500 to-indigo-600",
-      lightGradient: "from-indigo-50 to-indigo-100",
-      glowColor: "shadow-indigo-500/20",
-    },
-    {
-      icon: <CreditCard className="w-8 h-8" />,
-      title: "Pay",
-      subtitle: "Rent & Utilities",
-      description:
-        "Enable secure rent and utility payments with automated billing and clear transaction records.",
-      gradient: "from-emerald-500 to-emerald-600",
-      lightGradient: "from-emerald-50 to-emerald-100",
-      glowColor: "shadow-emerald-500/20",
-    },
-  ];
-
+export default function Process() {
   return (
-    <section className="relative py-16 sm:py-20 overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white" />
+    <section className="relative py-16 sm:py-24 bg-white overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-white" />
 
-      {/* Decorative blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-blue-100/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-emerald-100/40 rounded-full blur-3xl" />
-      </div>
-
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-5 border border-gray-200 shadow-sm">
             <Sparkles className="w-4 h-4 text-blue-600" />
             <span className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
-              How Upkyp Works
+              One Ecosystem
             </span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-            List. Manage. Track. Pay.
+            Built as a Unified Stack
           </h2>
 
           <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-            Upkyp is a rental listing and property management platform designed
-            to simplify operations for landlords and tenants.
+            Every layer connects seamlessly — from listing properties to collecting payments.
           </p>
         </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {features.map((feature, index) => {
-            const animateProps = reducedMotion ? {} : { y: [0, -10, 0] };
+        {/* Central Hub + Layer Cards in One Row */}
+        <div className="relative">
+          {/* Connection lines - desktop only */}
+          <div className="hidden lg:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-200 via-purple-200 via-indigo-200 to-emerald-200" />
 
-            const transitionProps = reducedMotion
-              ? {}
-              : {
-                  duration: 1.8,
-                  ease: "easeInOut",
-                  repeat: Infinity,
-                  repeatDelay: 0.8,
-                  delay: index * 0.25,
-                };
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
+            {/* Central Layers Hub */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="hidden lg:flex justify-center"
+            >
+              <div className="relative">
+                <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-2xl">
+                  <Layers className="w-12 h-12 text-emerald-400" />
+                </div>
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-3xl bg-emerald-400/20 blur-xl" />
+                {/* Label */}
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Ecosystem Core</span>
+                </div>
+              </div>
+            </motion.div>
 
-            return (
+            {/* Layer Cards */}
+            {layers.map((layer, index) => (
               <motion.div
                 key={index}
-                animate={animateProps}
-                transition={transitionProps}
-                className="relative"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
               >
-                <div className="relative bg-white rounded-2xl p-6 border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 h-full">
-                  {/* Hover background */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${feature.lightGradient} rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-300`}
-                  />
+                <div
+                  className={`relative ${layer.bg} ${layer.border} border-2 rounded-xl p-4 sm:p-5 hover:shadow-lg transition-all duration-300 h-full`}
+                >
+                  {/* Connector dot */}
+                  <div className="hidden lg:block absolute -top-3 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-gray-300 border-2 border-white" />
 
-                  <div className="relative z-10">
-                    {/* Icon */}
-                    <div
-                      className={`mb-4 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg ${feature.glowColor}`}
-                    >
-                      {feature.icon}
-                    </div>
-
-                    {/* Title */}
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm font-medium text-gray-500 mb-3">
-                      {feature.subtitle}
-                    </p>
-
-                    {/* Description */}
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      {feature.description}
-                    </p>
+                  {/* Icon */}
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${layer.gradient} flex items-center justify-center text-white shadow-lg mb-3`}>
+                    {layer.icon}
                   </div>
+
+                  {/* Content */}
+                  <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${layer.iconText}`}>
+                    Layer {index + 1}
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mt-0.5">
+                    {layer.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
+                    {layer.description}
+                  </p>
                 </div>
               </motion.div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Mobile: Central hub above cards */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center shadow-xl">
+                <Layers className="w-8 h-8 text-emerald-400" />
+              </div>
+              <div className="absolute inset-0 rounded-2xl bg-emerald-400/20 blur-lg" />
+            </div>
+          </div>
+
+          {/* Mobile: Cards in 2x2 grid */}
+          <div className="lg:hidden grid grid-cols-2 gap-3">
+            {layers.map((layer, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+              >
+                <div
+                  className={`${layer.bg} ${layer.border} border-2 rounded-xl p-3 hover:shadow-lg transition-all duration-300 h-full`}
+                >
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${layer.gradient} flex items-center justify-center text-white shadow-md mb-2`}>
+                    {layer.icon}
+                  </div>
+                  <span className={`text-[9px] font-bold uppercase tracking-wider ${layer.iconText}`}>
+                    Layer {index + 1}
+                  </span>
+                  <h3 className="text-sm font-bold text-gray-900 mt-0.5">
+                    {layer.title}
+                  </h3>
+                  <p className="text-[10px] text-gray-600 mt-0.5 leading-tight">
+                    {layer.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Ecosystem badge */}
+        <div className="mt-10 sm:mt-14 flex justify-center">
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gray-900 text-white shadow-lg">
+            <Layers className="w-5 h-5 text-emerald-400" />
+            <span className="text-sm font-semibold">One Platform. One Ecosystem.</span>
+          </div>
         </div>
 
         {/* Learn More Link */}
-        <div className="mt-12 text-center">
+        <div className="mt-8 text-center">
           <Link
             href="/public/how-it-works"
             className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
