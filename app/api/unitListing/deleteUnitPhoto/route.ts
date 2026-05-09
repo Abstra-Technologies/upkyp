@@ -1,45 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
-
-/**
- * @method      DELETE
- * @route       /api/unitListing/deleteUnitPhoto
- * @desc        delete a unit photo single.
- * @usedIn      app/landlord/properties/[id]/units/edit/[unitId]/page.tsx
- * @returns     n/a
- */
-
-
-const s3Client = new S3Client({
-    region: process.env.NEXT_AWS_REGION!,
-    credentials: {
-        accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY!,
-    },
-});
-
-// Encryption secret
-const encryptionSecret = process.env.ENCRYPTION_SECRET!;
+import { deleteFromS3 } from "@/lib/s3";
+import { getSessionUser } from "@/lib/auth/auth";
 
 export async function DELETE(req: NextRequest) {
+    const session = await getSessionUser();
+
+    if (!session || !session.landlord_id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(req.url);
     const photoId = searchParams.get("id");
-
-    console.log("photo id", photoId);
 
     if (!photoId) {
         return NextResponse.json({ error: "Missing photo ID" }, { status: 400 });
     }
 
-    let connection;
-    try {
-        connection = await db.getConnection();
+    const connection = await db.getConnection();
 
-        // Fetch the encrypted photo URL
+    try {
         const [rows]: any = await connection.execute(
-            `SELECT photo_url FROM UnitPhoto WHERE id = ?`,
+            `SELECT up.photo_url, u.unit_id, u.property_id 
+             FROM UnitPhoto up 
+             JOIN Unit u ON up.unit_id = u.unit_id 
+             WHERE up.id = ?`,
             [photoId]
         );
 
@@ -47,10 +33,13 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ error: "Photo not found" }, { status: 404 });
         }
 
-        let photoUrl = rows[0].photo_url;
-
+        let photoUrl: string;
         try {
-            photoUrl = decryptData(JSON.parse(photoUrl), encryptionSecret);
+            const decrypted = decryptData(JSON.parse(rows[0].photo_url), process.env.ENCRYPTION_SECRET!);
+            if (!decrypted || typeof decrypted !== "string") {
+                throw new Error("Decryption returned invalid data");
+            }
+            photoUrl = decrypted;
         } catch (err) {
             console.error("Error decrypting photo URL:", err);
             return NextResponse.json(
@@ -59,15 +48,8 @@ export async function DELETE(req: NextRequest) {
             );
         }
 
-        const key = new URL(photoUrl).pathname.substring(1);
-
         try {
-            await s3Client.send(
-                new DeleteObjectCommand({
-                    Bucket: process.env.NEXT_S3_BUCKET_NAME!,
-                    Key: key,
-                })
-            );
+            await deleteFromS3(photoUrl);
         } catch (s3Error: any) {
             console.error("Error deleting from S3:", s3Error);
             return NextResponse.json(
@@ -89,6 +71,6 @@ export async function DELETE(req: NextRequest) {
             { status: 500 }
         );
     } finally {
-        if (connection) connection.release();
+        connection.release();
     }
 }

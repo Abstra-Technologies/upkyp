@@ -26,8 +26,6 @@ export async function deleteFromS3(fileUrl: string) {
             Key: key,
         })
     );
-
-    console.log("✅ S3 deleted:", key);
 }
 
 export async function uploadToS3(

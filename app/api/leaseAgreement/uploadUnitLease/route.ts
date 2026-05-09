@@ -1,22 +1,25 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { randomUUID } from "crypto";
+import { uploadToS3 } from "@/lib/s3";
 import { encryptData } from "@/crypto/encrypt";
-
-const s3 = new S3Client({
-    region: process.env.NEXT_AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY!,
-    },
-});
+import { getSessionUser } from "@/lib/auth/auth";
 
 function sanitizeFilename(filename: string): string {
     return filename.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\s+/g, "_");
 }
 
 export async function POST(req: NextRequest) {
+    const session = await getSessionUser();
+
+    if (!session || !session.landlord_id) {
+        return NextResponse.json(
+            { success: false, error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    const landlordId = session.landlord_id;
+
     const connection = await db.getConnection();
 
     try {
@@ -37,31 +40,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Convert file to buffer for S3 upload
-        const buffer = Buffer.from(await leaseFile.arrayBuffer());
-        const sanitizedFilename = sanitizeFilename(leaseFile.name || `Lease_${agreement_id}.pdf`);
-        const s3Key = `leaseUploads/${Date.now()}_${randomUUID()}_${sanitizedFilename}`;
-
-        // Upload to S3
-        await s3.send(
-            new PutObjectCommand({
-                Bucket: process.env.NEXT_S3_BUCKET_NAME!,
-                Key: s3Key,
-                Body: buffer,
-                ContentType: "application/pdf",
-            })
-        );
-
-        const s3Url = `https://${process.env.NEXT_S3_BUCKET_NAME}.s3.${process.env.NEXT_AWS_REGION}.amazonaws.com/${s3Key}`;
-        const encryptedUrl = JSON.stringify(encryptData(s3Url, process.env.ENCRYPTION_SECRET!));
-
-        // Flags for payment statuses
-        const isSecPaid = !securityDepositAmount ? 1 : 0;
-        const isAdvPaid = !advancePaymentAmount ? 1 : 0;
-
         await connection.beginTransaction();
 
-        // 🧩 Get tenant + unit from existing LeaseAgreement
         const [leaseRows]: any = await connection.execute(
             `SELECT tenant_id, unit_id FROM LeaseAgreement WHERE agreement_id = ? LIMIT 1`,
             [agreement_id]
@@ -77,7 +57,31 @@ export async function POST(req: NextRequest) {
 
         const { tenant_id, unit_id } = leaseRows[0];
 
-        // 🧩 Update existing lease
+        const [unitInfo]: any = await connection.execute(
+            `SELECT property_id FROM Unit WHERE unit_id = ? LIMIT 1`,
+            [unit_id]
+        );
+
+        if (!unitInfo || unitInfo.length === 0) {
+            await connection.rollback();
+            return NextResponse.json(
+                { success: false, error: "Unit not found" },
+                { status: 404 }
+            );
+        }
+
+        const property_id = unitInfo[0].property_id;
+
+        const buffer = Buffer.from(await leaseFile.arrayBuffer());
+        const sanitizedFilename = sanitizeFilename(leaseFile.name || `Lease_${agreement_id}.pdf`);
+        const key = `${landlordId}/${property_id}/${process.env.NEXT_AWS_LEASE_AGREEMENTS}/${agreement_id}/${Date.now()}_${sanitizedFilename}`;
+
+        const s3Url = await uploadToS3(buffer, key, "application/pdf");
+        const encryptedUrl = JSON.stringify(encryptData(s3Url, process.env.ENCRYPTION_SECRET!));
+
+        const isSecPaid = !securityDepositAmount ? 1 : 0;
+        const isAdvPaid = !advancePaymentAmount ? 1 : 0;
+
         await connection.execute(
             `
                 UPDATE LeaseAgreement
@@ -106,7 +110,6 @@ export async function POST(req: NextRequest) {
             ]
         );
 
-        // 🧩 If unsigned, create pending signatures
         if (signatureOption === "docusign") {
             await connection.execute(
                 `INSERT INTO LeaseSignature (agreement_id, role, status)
@@ -115,7 +118,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 🧩 Get tenant's user_id to notify
         const [tenantUser]: any = await connection.execute(
             `
                 SELECT u.user_id
@@ -130,15 +132,14 @@ export async function POST(req: NextRequest) {
         if (tenantUser.length > 0) {
             const user_id = tenantUser[0].user_id;
 
-            // 🏠 Fetch property and unit name
             const [propInfo]: any = await connection.execute(
                 `
-    SELECT p.property_name, u.unit_name
-    FROM Unit u
-    JOIN Property p ON u.property_id = p.property_id
-    WHERE u.unit_id = ?
-    LIMIT 1
-    `,
+                    SELECT p.property_name, u.unit_name
+                    FROM Unit u
+                    JOIN Property p ON u.property_id = p.property_id
+                    WHERE u.unit_id = ?
+                    LIMIT 1
+                `,
                 [unit_id]
             );
 
@@ -148,7 +149,6 @@ export async function POST(req: NextRequest) {
             const notifTitle = "Lease Activated";
             const notifBody = `A lease agreement has been uploaded for ${property_name} – ${unit_name}.`;
 
-            // 🧩 Create tenant notification
             await connection.execute(
                 `
                     INSERT INTO Notification (user_id, title, body, url, is_read, created_at)
@@ -162,7 +162,6 @@ export async function POST(req: NextRequest) {
                 ]
             );
         }
-
 
         await connection.commit();
 

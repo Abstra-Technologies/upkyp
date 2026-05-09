@@ -1,26 +1,26 @@
-
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { uploadToS3 } from "@/lib/s3";
 import { encryptData } from "@/crypto/encrypt";
-import { randomUUID } from "crypto";
+import { getSessionUser } from "@/lib/auth/auth";
 import puppeteer from "puppeteer";
-
-const encryptionSecret = process.env.ENCRYPTION_SECRET;
-
-const s3 = new S3Client({
-    region: process.env.NEXT_AWS_REGION,
-    credentials: {
-        accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY!,
-    },
-});
 
 function sanitizeFilename(filename: string): string {
     return filename.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\s+/g, "_");
 }
 
 export async function POST(req: NextRequest) {
+    const session = await getSessionUser();
+
+    if (!session || !session.landlord_id) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    const landlordId = session.landlord_id;
+
     const connection = await db.getConnection();
 
     try {
@@ -33,12 +33,10 @@ export async function POST(req: NextRequest) {
             gracePeriod,
             latePenalty,
             billingDueDay,
-            expenses,       // [{category, type, amount, frequency}]
-            otherPenalties, // [{type, amount}]
+            expenses,
+            otherPenalties,
             content,
         } = await req.json();
-
-        console.log('body response penalyu', otherPenalties);
 
         if (!unitId || !startDate || !endDate || !content) {
             return NextResponse.json(
@@ -49,7 +47,21 @@ export async function POST(req: NextRequest) {
 
         await connection.beginTransaction();
 
-        // Step 1: Find tenant
+        const [unitInfo]: any = await connection.execute(
+            `SELECT property_id FROM Unit WHERE unit_id = ? LIMIT 1`,
+            [unitId]
+        );
+
+        if (!unitInfo || unitInfo.length === 0) {
+            await connection.rollback();
+            return NextResponse.json(
+                { error: "Unit not found" },
+                { status: 404 }
+            );
+        }
+
+        const property_id = unitInfo[0].property_id;
+
         const [leaseRows] = await connection.execute(
             `SELECT agreement_id, tenant_id
              FROM LeaseAgreement
@@ -76,6 +88,7 @@ export async function POST(req: NextRequest) {
             );
 
             if ((ptRows as any[]).length === 0) {
+                await connection.rollback();
                 return NextResponse.json(
                     { error: "No approved tenant found for this unit" },
                     { status: 404 }
@@ -84,7 +97,6 @@ export async function POST(req: NextRequest) {
             tenant_id = (ptRows as any[])[0].tenant_id;
         }
 
-        // Step 2: Prevent duplicate active lease
         const [existingLease] = await connection.execute(
             `SELECT agreement_id
              FROM LeaseAgreement
@@ -93,13 +105,13 @@ export async function POST(req: NextRequest) {
         );
 
         if ((existingLease as any[]).length > 0) {
+            await connection.rollback();
             return NextResponse.json(
                 { error: "Active lease already exists for this tenant and unit." },
                 { status: 409 }
             );
         }
 
-        // Step 3: Generate PDF from HTML content
         const browser = await puppeteer.launch({
             // @ts-ignore
             headless: "new",
@@ -107,12 +119,12 @@ export async function POST(req: NextRequest) {
         });
         const page = await browser.newPage();
         await page.setContent(`
-      <html>
-        <head><meta charset="UTF-8" /></head>
-        <body>${content}</body>
-      </html>
-    `);
-        const pdfBuffer = await page.pdf({
+            <html>
+                <head><meta charset="UTF-8" /></head>
+                <body>${content}</body>
+            </html>
+        `);
+        const pdfBuffer = Buffer.from(await page.pdf({
             format: "A4",
             printBackground: true,
             margin: {
@@ -121,26 +133,15 @@ export async function POST(req: NextRequest) {
                 left: "0.75in",
                 right: "0.75in",
             },
-        });
+        }));
         await browser.close();
 
-        // Step 4: Upload to S3
         const sanitizedFilename = sanitizeFilename(`Lease_${unitId}.pdf`);
-        const s3Key = `leaseAgreements/${Date.now()}_${randomUUID()}_${sanitizedFilename}`;
+        const key = `${landlordId}/${property_id}/${process.env.NEXT_AWS_LEASE_AGREEMENTS}/${agreement_id || 'pending'}/${Date.now()}_${sanitizedFilename}`;
 
-        await s3.send(
-            new PutObjectCommand({
-                Bucket: process.env.NEXT_S3_BUCKET_NAME!,
-                Key: s3Key,
-                Body: pdfBuffer,
-                ContentType: "application/pdf",
-            })
-        );
+        const s3Url = await uploadToS3(pdfBuffer, key, "application/pdf");
+        const encryptedUrl = JSON.stringify(encryptData(s3Url, process.env.ENCRYPTION_SECRET!));
 
-        const s3Url = `https://${process.env.NEXT_S3_BUCKET_NAME}.s3.${process.env.NEXT_AWS_REGION}.amazonaws.com/${s3Key}`;
-        const encryptedUrl = JSON.stringify(encryptData(s3Url, encryptionSecret!));
-
-        // Step 5: Insert or Update LeaseAgreement
         if (isFromLeaseAgreement && agreement_id) {
             await connection.execute(
                 `UPDATE LeaseAgreement
@@ -164,11 +165,11 @@ export async function POST(req: NextRequest) {
         } else {
             const [insertResult]: any = await connection.execute(
                 `INSERT INTO LeaseAgreement
-     (tenant_id, unit_id, start_date, end_date, agreement_url,
-      security_deposit_amount, advance_payment_amount,
-      grace_period_days, late_penalty_amount, billing_due_day,
-      created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
+                 (tenant_id, unit_id, start_date, end_date, agreement_url,
+                  security_deposit_amount, advance_payment_amount,
+                  grace_period_days, late_penalty_amount, billing_due_day,
+                  created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
                 [
                     tenant_id,
                     unitId,
@@ -183,39 +184,24 @@ export async function POST(req: NextRequest) {
                 ]
             );
             agreement_id = insertResult.insertId;
-
         }
 
         if (agreement_id) {
             await connection.execute(
                 `INSERT INTO LeaseSignature (agreement_id, role, status)
-         VALUES (?, 'landlord', 'pending'), (?, 'tenant', 'pending')`,
+                 VALUES (?, 'landlord', 'pending'), (?, 'tenant', 'pending')`,
                 [agreement_id, agreement_id]
             );
         }
 
-
-// Step 7: Save excluded/maintenance expenses if provided
         if (expenses && Array.isArray(expenses)) {
-            console.log("📦 Expenses received:", expenses);
             for (const row of expenses) {
-                if (!row.type || !row.amount) {
-                    console.log("⚠️ Skipping invalid expense row:", row);
-                    continue;
-                }
-
-                console.log("➕ Inserting expense:", {
-                    agreement_id,
-                    category: row.category || "excluded_fee",
-                    type: row.type,
-                    amount: row.amount,
-                    frequency: row.frequency || "monthly",
-                });
+                if (!row.type || !row.amount) continue;
 
                 await connection.execute(
                     `INSERT INTO LeaseAdditionalExpense 
-         (agreement_id, category, expense_type, amount, frequency, created_at)
-       VALUES (?, ?, ?, ?, ?, NOW())`,
+                     (agreement_id, category, expense_type, amount, frequency, created_at)
+                     VALUES (?, ?, ?, ?, ?, NOW())`,
                     [
                         agreement_id,
                         row.category || "excluded_fee",
@@ -227,26 +213,14 @@ export async function POST(req: NextRequest) {
             }
         }
 
-
-// Step 8: Save other penalties if provided
         if (otherPenalties && Array.isArray(otherPenalties)) {
-            console.log("📦 Other penalties received:", otherPenalties);
             for (const row of otherPenalties) {
-                if (!row.type || !row.amount) {
-                    console.log("⚠️ Skipping invalid penalty row:", row);
-                    continue;
-                }
-
-                console.log("➕ Inserting penalty:", {
-                    agreement_id,
-                    type: row.type,
-                    amount: row.amount,
-                });
+                if (!row.type || !row.amount) continue;
 
                 await connection.execute(
                     `INSERT INTO LeaseAdditionalExpense 
-         (agreement_id, category, expense_type, amount, frequency, created_at)
-       VALUES (?, ?, ?, ?, ?, NOW())`,
+                     (agreement_id, category, expense_type, amount, frequency, created_at)
+                     VALUES (?, ?, ?, ?, ?, NOW())`,
                     [
                         agreement_id,
                         "penalty",
@@ -258,25 +232,24 @@ export async function POST(req: NextRequest) {
             }
         }
 
-
         await connection.commit();
-        connection.release();
 
         return NextResponse.json({
             message: "Lease agreement generated & uploaded successfully.",
             fileBase64: Buffer.from(pdfBuffer).toString("base64"),
             signedUrl: s3Url,
-            fileKey: s3Key,
+            fileKey: key,
             agreementId: agreement_id,
         });
 
     } catch (error: any) {
         await connection.rollback();
-        connection.release();
-        console.error("Lease Upload Error:", error);
+        console.error("Lease Generation Error:", error);
         return NextResponse.json(
             { error: "Internal server error", message: error.message },
             { status: 500 }
         );
+    } finally {
+        connection.release();
     }
 }
