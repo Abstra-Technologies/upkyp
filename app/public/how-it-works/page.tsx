@@ -74,7 +74,7 @@ const paymentMethods = [
   {
     name: "E-Wallet",
     icon: <DevicePhoneMobileIcon className="w-4 h-4 sm:w-6 sm:h-6" />,
-    fee: "2%",
+    fee: "1.8% - 2.3%",
     gradient: "from-blue-500 to-blue-600",
     bg: "bg-blue-50",
     border: "border-2 border-blue-200",
@@ -82,7 +82,7 @@ const paymentMethods = [
   {
     name: "Direct Debit",
     icon: <BanknotesIcon className="w-4 h-4 sm:w-6 sm:h-6" />,
-    fee: "3%",
+    fee: "1% or Php 15",
     gradient: "from-emerald-500 to-emerald-600",
     bg: "bg-emerald-50",
     border: "border-2 border-emerald-200",
@@ -90,19 +90,19 @@ const paymentMethods = [
   {
     name: "QR PH",
     icon: <QrCodeIcon className="w-4 h-4 sm:w-6 sm:h-6" />,
-    fee: "0%",
+    fee: "1.4% or Php 15",
     gradient: "from-violet-500 to-violet-600",
     bg: "bg-violet-50",
     border: "border-2 border-violet-200",
   },
-  {
-    name: "Credit Card",
-    icon: <CreditCardIcon className="w-4 h-4 sm:w-6 sm:h-6" />,
-    fee: "2.9% + ₱15",
-    gradient: "from-amber-500 to-amber-600",
-    bg: "bg-amber-50",
-    border: "border-2 border-amber-200",
-  },
+  // {
+  //   name: "Credit Card",
+  //   icon: <CreditCardIcon className="w-4 h-4 sm:w-6 sm:h-6" />,
+  //   fee: "2.9% + ₱15",
+  //   gradient: "from-amber-500 to-amber-600",
+  //   bg: "bg-amber-50",
+  //   border: "border-2 border-amber-200",
+  // },
 ];
 
 export default function HowItWorks() {
@@ -249,23 +249,46 @@ export default function HowItWorks() {
               </p>
             </div>
 
-            <div className="grid grid-cols-4 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {paymentSteps.map((item, i) => (
                 <motion.div
                   key={i}
                   variants={fadeInUp}
                   whileHover={{ y: -6, scale: 1.03 }}
                   transition={{ duration: 0.2 }}
-                  className={`relative p-2 sm:p-6 rounded-2xl ${item.bg} ${item.border} shadow-sm hover:shadow-lg cursor-default`}
+                  className={`relative p-3 sm:p-6 rounded-2xl ${item.bg} ${item.border} shadow-sm hover:shadow-lg cursor-default`}
                 >
-                  <div className={`absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br ${item.gradient} flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-lg z-10`}>
+                  <div className={`absolute -top-2 left-3 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br ${item.gradient} flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-lg z-10`}>
                     {item.step}
                   </div>
-                  <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-lg ${item.badge} flex items-center justify-center mx-auto mb-2 sm:mb-4 mt-3 sm:mt-2`}>
+                  <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg ${item.badge} flex items-center justify-center mx-auto mb-2 sm:mb-4 mt-3 sm:mt-2`}>
                     {item.icon}
                   </div>
-                  <h3 className="font-semibold text-gray-900 text-[10px] sm:text-lg text-center leading-tight">{item.title}</h3>
-                  <p className="text-[9px] sm:text-sm text-gray-500 mt-1 sm:mt-2 leading-tight hidden sm:block">{item.desc}</p>
+                  <h3 className="font-semibold text-gray-900 text-xs sm:text-lg text-center leading-tight">{item.title}</h3>
+                  <p className="text-[10px] sm:text-sm text-gray-500 mt-1 sm:mt-2 leading-tight">{item.desc}</p>
+
+                  {/* Arrow indicators on mobile */}
+                  {i === 0 && (
+                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 sm:hidden">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  )}
+                  {i === 1 && (
+                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-10 sm:hidden">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                      </svg>
+                    </div>
+                  )}
+                  {i === 2 && (
+                    <div className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 sm:hidden">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  )}
                 </motion.div>
               ))}
             </div>
