@@ -7,6 +7,7 @@
     <file url="file://$PROJECT_DIR$/app/api/landlord/[landlord_id]/subscription/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/payments/checkSettlement/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/payments/years/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/api/landlord/properties/docs/[propertyId]/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/properties/getAllProperties/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/reports/paymentList/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/subscription/active/[landlord_id]/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
@@ -14,6 +15,8 @@
     <file url="file://$PROJECT_DIR$/app/api/landlord/verification/callback/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/verification/start/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/maintenance/createMaintenance/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/api/propertyListing/propertyVerification/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/unitListing/publish/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/schemas/property_verification.sql" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
   </component>
 </project>

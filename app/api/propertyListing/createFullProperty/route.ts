@@ -1,22 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { uploadToS3 } from "@/lib/s3";
 import { encryptData } from "@/crypto/encrypt";
 import { generatePropertyId } from "@/utils/id_generator";
-
-const s3Client = new S3Client({
-    region: process.env.NEXT_AWS_REGION!,
-    credentials: {
-        accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY!,
-    },
-});
-
-const encryptionSecret = process.env.ENCRYPTION_SECRET!;
-
-/* =====================================================
-   UTILS
-===================================================== */
+import { getSessionUser } from "@/lib/auth/auth";
 
 function sanitizeFilename(filename: string) {
     return filename
@@ -24,44 +11,23 @@ function sanitizeFilename(filename: string) {
         .replace(/\s+/g, "_");
 }
 
-async function uploadToS3(file: File, folder: string) {
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const sanitizedFilename = sanitizeFilename(
-        file.name ?? "upload"
-    );
-
-    const key = `${folder}/${Date.now()}_${sanitizedFilename}`;
-
-    await s3Client.send(
-        new PutObjectCommand({
-            Bucket: process.env.NEXT_S3_BUCKET_NAME!,
-            Key: key,
-            Body: buffer,
-            ContentType:
-                file.type ?? "application/octet-stream",
-        })
-    );
-
-    const url = `https://${process.env.NEXT_S3_BUCKET_NAME}.s3.${process.env.NEXT_AWS_REGION}.amazonaws.com/${key}`;
-
-    return JSON.stringify(encryptData(url, encryptionSecret));
-}
-
-/* =====================================================
-   POST – CREATE PROPERTY (SIMPLIFIED)
-===================================================== */
-
 export async function POST(req: NextRequest) {
+    const session = await getSessionUser();
+
+    if (!session || !session.landlord_id) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    const landlordId = session.landlord_id;
+
     const formData = await req.formData();
 
-    const landlord_id =
-        formData.get("landlord_id")?.toString();
+    const propertyRaw = formData.get("property")?.toString();
 
-    const propertyRaw =
-        formData.get("property")?.toString();
-
-    if (!landlord_id || !propertyRaw) {
+    if (!propertyRaw) {
         return NextResponse.json(
             { error: "Missing required data" },
             { status: 400 }
@@ -71,7 +37,11 @@ export async function POST(req: NextRequest) {
     const property = JSON.parse(propertyRaw);
     const photos = formData.getAll("photos") as File[];
 
+    const connection = await db.getConnection();
+
     try {
+        await connection.beginTransaction();
+
         /* =====================================================
            1️⃣ Generate Unique Property ID
         ===================================================== */
@@ -82,7 +52,7 @@ export async function POST(req: NextRequest) {
         while (!unique) {
             const idCandidate = generatePropertyId();
 
-            const [rows]: any = await db.execute(
+            const [rows]: any = await connection.execute(
                 `SELECT COUNT(*) AS count FROM Property WHERE property_id = ?`,
                 [idCandidate]
             );
@@ -94,39 +64,39 @@ export async function POST(req: NextRequest) {
         }
 
         /* =====================================================
-           2️⃣ Insert Property (Nullable Safe)
+           2️⃣ Insert Property
         ===================================================== */
 
-        await db.execute(
+        await connection.execute(
             `
-      INSERT INTO Property (
-        property_id,
-        landlord_id,
-        property_name,
-        property_type,
-        property_subtype,
-        amenities,
-        street,
-        brgy_district,
-        city,
-        zip_code,
-        province,
-        water_billing_type,
-        electricity_billing_type,
-        description,
-        floor_area,
-        latitude,
-        longitude,
-        rent_increase_percent,
-        status,
-        created_at,
-        updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())
-      `,
+            INSERT INTO Property (
+                property_id,
+                landlord_id,
+                property_name,
+                property_type,
+                property_subtype,
+                amenities,
+                street,
+                brgy_district,
+                city,
+                zip_code,
+                province,
+                water_billing_type,
+                electricity_billing_type,
+                description,
+                floor_area,
+                latitude,
+                longitude,
+                rent_increase_percent,
+                status,
+                created_at,
+                updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', NOW(), NOW())
+            `,
             [
                 propertyId,
-                landlord_id,
+                landlordId,
                 property.propertyName,
                 property.propertyType,
                 property.propertySubtype || "",
@@ -151,29 +121,31 @@ export async function POST(req: NextRequest) {
         ===================================================== */
 
         if (photos?.length > 0) {
-            const uploadedPhotos = await Promise.all(
-                photos.map((file) =>
-                    uploadToS3(file, "property-photo")
-                )
+            const photoUploads = await Promise.all(
+                photos.map(async (file) => {
+                    const buffer = Buffer.from(await file.arrayBuffer());
+                    const sanitizedFilename = sanitizeFilename(file.name);
+                    const key = `${landlordId}/${propertyId}/${process.env.NEXT_PUBLIC_S3_PROPHOTOS}/${Date.now()}_${sanitizedFilename}`;
+                    const s3Url = await uploadToS3(buffer, key, file.type);
+                    return JSON.stringify(encryptData(s3Url, process.env.ENCRYPTION_SECRET!));
+                })
             );
 
             await Promise.all(
-                uploadedPhotos.map((url) =>
-                    db.execute(
+                photoUploads.map((url) =>
+                    connection.execute(
                         `
-            INSERT INTO PropertyPhoto
-            (property_id, photo_url, created_at, updated_at)
-            VALUES (?, ?, NOW(), NOW())
-            `,
+                        INSERT INTO PropertyPhoto
+                        (property_id, photo_url, created_at, updated_at)
+                        VALUES (?, ?, NOW(), NOW())
+                        `,
                         [propertyId, url]
                     )
                 )
             );
         }
 
-        /* =====================================================
-           SUCCESS
-        ===================================================== */
+        await connection.commit();
 
         return NextResponse.json(
             {
@@ -185,6 +157,7 @@ export async function POST(req: NextRequest) {
         );
 
     } catch (err: any) {
+        await connection.rollback();
         console.error("Property creation failed:", err);
 
         return NextResponse.json(
@@ -194,5 +167,7 @@ export async function POST(req: NextRequest) {
             },
             { status: 500 }
         );
+    } finally {
+        connection.release();
     }
 }

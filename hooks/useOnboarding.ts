@@ -250,14 +250,66 @@ const injectCustomStyles = () => {
     @media (max-width: 640px) {
       .driver-popover.driverjs-theme-upkyp {
         max-width: 90vw !important;
+        min-width: 280px !important;
       }
 
       .driver-popover.driverjs-theme-upkyp .driver-popover-title {
         font-size: 14px !important;
+        padding: 14px 36px 8px 14px !important;
       }
 
       .driver-popover.driverjs-theme-upkyp .driver-popover-description {
         font-size: 13px !important;
+        padding: 10px 14px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-footer {
+        padding: 6px 10px 10px 10px !important;
+        flex-wrap: wrap !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-footer button {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-progress-text {
+        font-size: 11px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-close-btn {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 12px !important;
+        top: 10px !important;
+        right: 10px !important;
+      }
+    }
+
+    /* ========================================
+       SMALL MOBILE (under 380px)
+    ======================================== */
+    @media (max-width: 380px) {
+      .driver-popover.driverjs-theme-upkyp {
+        max-width: 95vw !important;
+        min-width: 260px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-title {
+        font-size: 13px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-description {
+        font-size: 12px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-footer {
+        gap: 4px !important;
+      }
+
+      .driver-popover.driverjs-theme-upkyp .driver-popover-footer button {
+        padding: 5px 8px !important;
+        font-size: 10px !important;
       }
     }
   `;

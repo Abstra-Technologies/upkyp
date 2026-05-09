@@ -33,18 +33,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {
             title: "User Management",
             items: [
-                { label: "Tenant Management", href: "/system_admin/tenant_landlord/tenant_mgt", icon: Users },
                 { label: "Suspended Accounts", href: "/system_admin/tenant_landlord/suspendedAccounts", icon: Users },
                 { label: "Deactivated Accounts", href: "/system_admin/deactivatedAccounts", icon: Users },
-
             ],
         },
         {
-            title: "Landlord Management",
+            title: "Landlord & Tenant Management",
             items: [
                 { label: "Landlord Verification", href: "/system_admin/tenant_landlord/verification", icon: Users },
                 { label: "Landlord UserList", href: "/system_admin/tenant_landlord/landlord_mgt", icon: Users },
-                { label: "Beta Program", href: "/system_admin/beta_programs", icon: Users },
+                { label: "Tenant Management", href: "/system_admin/tenant_landlord/tenant_mgt", icon: Users },
 
             ],
         },
@@ -65,14 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 { label: "Payout History", href: "/system_admin/payouts/history", icon: History },
             ],
         },
-        {
-            title: "Subscription Programs",
-            items: [
-                { label: "Beta Users List", href: "/system_admin/beta_programs", icon: Users },
-                { label: "Plan List", href: "/system_admin/subscription_plans", icon: Users },
 
-            ],
-        },
         {
             title: "System Administration",
             items: [
@@ -82,7 +73,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {
             title: "Property Management",
             items: [
-                { label: "Property Verification", href: "/system_admin/propertyManagement/list", icon: Building2 },
+                { label: "Property Verification", href: "/system_admin/property_verification", icon: Building2 },
                 { label: "Content Management", href: "/system_admin/cms", icon: Users2 },
             ],
         },

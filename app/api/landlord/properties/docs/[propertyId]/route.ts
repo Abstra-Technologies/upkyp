@@ -1,13 +1,12 @@
-
 import { NextRequest } from "next/server";
 import mysql from "mysql2/promise";
 import { decryptData } from "@/crypto/encrypt";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { propertyId: string } }
+    { params }: { params: Promise<{ propertyId: string }> }
 ) {
-    const propertyId = params.propertyId;
+    const { propertyId } = await params;
 
     if (!propertyId) {
         return new Response(
@@ -31,9 +30,7 @@ export async function GET(
                  property_id,
                  doc_type,
                  submitted_doc,
-                 gov_id,
-                 outdoor_photo,
-                 indoor_photo,
+                 tin_number,
                  status,
                  admin_message,
                  reviewed_by,
@@ -75,15 +72,12 @@ export async function GET(
             }
         };
 
-        // Map results directly from schema
         const decryptedData = (rows as any[]).map((row) => ({
             verification_id: row.verification_id,
             property_id: row.property_id,
             doc_type: row.doc_type,
             submitted_doc: decryptIfValid(row.submitted_doc),
-            gov_id: decryptIfValid(row.gov_id),
-            outdoor_photo: decryptIfValid(row.outdoor_photo),
-            indoor_photo: decryptIfValid(row.indoor_photo),
+            tin_number: row.tin_number,
             status: row.status,
             admin_message: row.admin_message,
             reviewed_by: row.reviewed_by,
@@ -102,4 +96,3 @@ export async function GET(
         );
     }
 }
-

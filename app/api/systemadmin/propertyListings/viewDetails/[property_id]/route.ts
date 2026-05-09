@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
   try {
     const [propertyRows] = await db.execute(
         `SELECT p.*,
-                pv.doc_type, pv.submitted_doc, pv.gov_id, pv.outdoor_photo, pv.indoor_photo,
+                pv.doc_type, pv.submitted_doc, pv.tin_number,
                 pv.status AS verification_status, pv.verified
          FROM Property p
                 LEFT JOIN PropertyVerification pv ON p.property_id = pv.property_id
@@ -43,23 +43,11 @@ export async function GET(req, { params }) {
       }
     };
 
-    // Note: The original code references a 'photos' column, but the schema doesn't include it.
-    // Assuming it might be derived from outdoor_photo and indoor_photo
-    const photosArray = [];
-    // @ts-ignore
-    if (propertyRows[0].outdoor_photo) photosArray.push(propertyRows[0].outdoor_photo);
-    // @ts-ignore
-    if (propertyRows[0].indoor_photo) photosArray.push(propertyRows[0].indoor_photo);
-    const uniquePhotos = [...new Set(photosArray)];
-
     const property = {
       // @ts-ignore
       ...propertyRows[0],
       submitted_doc: decryptIfValid(propertyRows[0].submitted_doc),
-      gov_id: decryptIfValid(propertyRows[0].gov_id),
-      outdoor_photo: decryptIfValid(propertyRows[0].outdoor_photo),
-      indoor_photo: decryptIfValid(propertyRows[0].indoor_photo),
-      photos: uniquePhotos
+      tin_number: propertyRows[0].tin_number,
     };
 
     return Response.json(property);

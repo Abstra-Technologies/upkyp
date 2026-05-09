@@ -22,9 +22,8 @@ export const propertyUnitsTourSteps = [
               justify-content: center;
               margin: 0 auto 16px auto;
               border: 1px solid rgba(255,255,255,0.25);
-              padding: 10px;
             ">
-              <img src="/upkeep_blue.png" alt="UpKyp" style="width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1);" />
+              <span style="font-size: 36px;">🏢</span>
             </div>
             <h2 style="color: #ffffff; font-size: 22px; font-weight: 800; margin: 0 0 6px 0; letter-spacing: -0.3px;">Property Management</h2>
             <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 0;">Let's walk you through your property</p>
@@ -48,78 +47,126 @@ export const propertyUnitsTourSteps = [
     },
   },
 
-  // ─── PROPERTY SETUP NAV ────────────────────────────────────────────────
+  // ─── STEP 1: UNITS ─────────────────────────────────────────────────────
   {
     element: "#prop-nav-units",
     popover: {
       title: "🏠 Units",
-      description: "View and manage all units under this property.",
+      description: "View and manage all units under this property. This is where you'll add, edit, and track your rental units.",
       side: "right",
       align: "start",
     },
-  },
-  {
-    element: "#prop-nav-edit",
-    popover: {
-      title: "✏️ Edit Property",
-      description:
-        "Update your property's name, address, amenities, and photos.",
-      side: "right",
-      align: "start",
-    },
-  },
-  {
-    element: "#prop-nav-policy",
-    popover: {
-      title: "📋 House Policy",
-      description:
-        "Write the house rules tenants of this property must follow.",
-      side: "right",
-      align: "start",
+    // Expand Operations section before moving to Active Lease
+    onNextClick: () => {
+      const btn = document.querySelector('[data-nav-section="operations"]') as HTMLElement;
+      if (btn) {
+        const isCollapsed = btn.getAttribute('aria-expanded') === 'false';
+        if (isCollapsed) btn.click();
+      }
     },
   },
 
-  // ─── OPERATIONS NAV ────────────────────────────────────────────────────
+  // ─── STEP 2: ACTIVE LEASE ──────────────────────────────────────────────
   {
     element: "#prop-nav-active-lease",
     popover: {
       title: "📜 Active Lease",
-      description: "See all active lease agreements and their current status.",
+      description: "Manage all active lease agreements, track tenant status, and handle lease renewals or extensions.",
       side: "right",
       align: "start",
     },
+    // Expand Utilities & Settings section before moving to Configuration
+    onNextClick: () => {
+      const btn = document.querySelector('[data-nav-section="utilities-&-settings"]') as HTMLElement;
+      if (btn) {
+        const isCollapsed = btn.getAttribute('aria-expanded') === 'false';
+        if (isCollapsed) btn.click();
+      }
+    },
   },
+
+  // ─── STEP 3: CONFIGURATION ─────────────────────────────────────────────
+  {
+    element: "#prop-nav-configuration",
+    popover: {
+      title: "⚙️ Configuration",
+      description: "Set up billing due dates, utility types, late payment penalties, and other property-specific settings.",
+      side: "right",
+      align: "start",
+    },
+    // Expand Property Setup section before moving to Edit Property
+    onNextClick: () => {
+      const btn = document.querySelector('[data-nav-section="property-setup"]') as HTMLElement;
+      if (btn) {
+        const isCollapsed = btn.getAttribute('aria-expanded') === 'false';
+        if (isCollapsed) btn.click();
+      }
+    },
+  },
+
+  // ─── STEP 4: EDIT PROPERTY ──────────────────────────────────────────────
+  {
+    element: "#prop-nav-edit",
+    popover: {
+      title: "✏️ Edit Property",
+      description: "Update your property's name, address, amenities, and photos.",
+      side: "right",
+      align: "start",
+    },
+    // Property Setup section is already expanded
+  },
+
+  // ─── STEP 5: HOUSE POLICY ──────────────────────────────────────────────
+  {
+    element: "#prop-nav-policy",
+    popover: {
+      title: "📋 House Policy",
+      description: "Write the house rules tenants of this property must follow.",
+      side: "right",
+      align: "start",
+    },
+    // Expand Operations section before moving to Prospectives
+    onNextClick: () => {
+      const btn = document.querySelector('[data-nav-section="operations"]') as HTMLElement;
+      if (btn) {
+        const isCollapsed = btn.getAttribute('aria-expanded') === 'false';
+        if (isCollapsed) btn.click();
+      }
+    },
+  },
+
+  // ─── STEP 6: PROSPECTIVES ──────────────────────────────────────────────
   {
     element: "#prop-nav-prospectives",
     popover: {
       title: "👥 Prospectives",
-      description:
-        "Review tenant applicants and their AI-powered screening reports.",
+      description: "Review tenant applicants and their AI-powered screening reports.",
       side: "right",
       align: "start",
     },
+    // Operations section is already expanded
   },
+
+  // ─── STEP 7: ASSETS ────────────────────────────────────────────────────
   {
     element: "#prop-nav-assets",
     popover: {
       title: "🔧 Assets",
-      description:
-        "Track physical assets assigned to this property or its units.",
+      description: "Track physical assets assigned to this property or its units.",
       side: "right",
       align: "start",
+    },
+    // Expand Finance section before moving to Payments
+    onNextClick: () => {
+      const btn = document.querySelector('[data-nav-section="finance"]') as HTMLElement;
+      if (btn) {
+        const isCollapsed = btn.getAttribute('aria-expanded') === 'false';
+        if (isCollapsed) btn.click();
+      }
     },
   },
 
-  // ─── FINANCE NAV ───────────────────────────────────────────────────────
-  {
-    element: "#prop-nav-billing",
-    popover: {
-      title: "💳 Billing",
-      description: "Manage unit bills and set water & electricity rates.",
-      side: "right",
-      align: "start",
-    },
-  },
+  // ─── STEP 8: PAYMENTS ──────────────────────────────────────────────────
   {
     element: "#prop-nav-payments",
     popover: {
@@ -128,79 +175,68 @@ export const propertyUnitsTourSteps = [
       side: "right",
       align: "start",
     },
+    // Finance section is already expanded
   },
-  {
-    element: "#prop-nav-pdc-management",
-    popover: {
-      title: "🧾 PDC Management",
-      description: "Track post-dated checks submitted by tenants.",
-      side: "right",
-      align: "start",
-    },
-  },
+
+  // ─── STEP 9: FINANCIALS ────────────────────────────────────────────────
   {
     element: "#prop-nav-finance",
     popover: {
       title: "📊 Financials",
-      description:
-        "Monitor gross and net operating income with monthly trends.",
+      description: "Monitor gross and net operating income with monthly trends.",
       side: "right",
       align: "start",
     },
+    // Expand Utilities & Settings section before moving to Utilities
+    onNextClick: () => {
+      const btn = document.querySelector('[data-nav-section="utilities-&-settings"]') as HTMLElement;
+      if (btn) {
+        const isCollapsed = btn.getAttribute('aria-expanded') === 'false';
+        if (isCollapsed) btn.click();
+      }
+    },
   },
 
-  // ─── UTILITIES & SETTINGS NAV ──────────────────────────────────────────
+  // ─── STEP 10: UTILITIES ────────────────────────────────────────────────
   {
     element: "#prop-nav-utilities",
     popover: {
       title: "⚡ Utilities",
-      description:
-        "View historical water and electricity costs per billing period.",
-      side: "right",
-      align: "start",
-    },
-  },
-  {
-    element: "#prop-nav-configuration",
-    popover: {
-      title: "⚙️ Configuration",
-      description:
-        "Set billing due dates, utility types, and late payment penalties.",
+      description: "View historical water and electricity costs per billing period.",
       side: "right",
       align: "start",
     },
   },
 
-  // ─── UNITS PAGE SECTIONS ───────────────────────────────────────────────
+  // ─── UNITS PAGE: QUICK ACTIONS ──────────────────────────────────────────
   {
     element: "#units-action-buttons",
     popover: {
-      title: "⚡ Unit Actions",
-      description:
-        "Add a unit, bulk import, or invite an existing tenant directly.",
+      title: "⚡ Quick Actions",
+      description: "Add a unit, bulk import, invite tenants, or view active leases and utility costs at a glance.",
       side: "bottom",
       align: "end",
     },
   },
+
+  // ─── UNITS PAGE: UNITS LIST ─────────────────────────────────────────────
   {
     element: "#units-list",
     popover: {
       title: "📋 Units List",
-      description:
-        "All your units are listed here with their rent amount and publish status. Toggle a unit between Published (visible to tenants in the listing) and Hidden (not visible). Click View to see the unit's Meter readings, Analytics, and Lease History.",
+      description: "All your units are listed here with rent amount and publish status. Toggle between Published (visible to tenants) and Hidden. Click View to see Meter readings, Analytics, and Lease History.",
       side: "top",
       align: "start",
     },
   },
 
   // ─── DONE ──────────────────────────────────────────────────────────────
-    {
-        popover: {
-            title: "You're all set!",
-            description:
-                "You're now familiar with your property dashboard. Start by adding your first unit, then set up billing and invite your tenant. You can click 'Show Guide' anytime if you'd like a quick refresher.",
-            side: "over",
-            align: "center",
-        },
+  {
+    popover: {
+      title: "🎉 You're all set!",
+      description: "You're now familiar with your property dashboard. Start by adding your first unit, then set up billing and invite your tenant. Click 'Show Guide' anytime for a quick refresher.",
+      side: "over",
+      align: "center",
     },
+  },
 ];

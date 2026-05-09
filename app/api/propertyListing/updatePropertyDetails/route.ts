@@ -1,33 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { db } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { encryptData } from "@/crypto/encrypt";
+import { uploadToS3 } from "@/lib/s3";
 import { getSessionUser } from "@/lib/auth/auth";
 
-/* =========================
-   AWS S3 CLIENT
-========================= */
-const s3Client = new S3Client({
-    region: process.env.NEXT_AWS_REGION!,
-    credentials: {
-        accessKeyId: process.env.NEXT_AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.NEXT_AWS_SECRET_ACCESS_KEY!,
-    },
-});
-
-const encryptionSecret = process.env.ENCRYPTION_SECRET!;
-
-/* =========================
-   HELPERS
-========================= */
 function sanitizeFilename(filename: string): string {
     return filename.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\s+/g, "_");
 }
 
-/* =========================
-   PUT — UPDATE PROPERTY
-========================= */
 export async function PUT(req: NextRequest) {
     const property_id = req.nextUrl.searchParams.get("property_id");
     const formData = await req.formData();
@@ -53,9 +34,6 @@ export async function PUT(req: NextRequest) {
     try {
         await connection.beginTransaction();
 
-        /* =========================
-           1️⃣ Verify Ownership
-        ========================= */
         const [rows]: any = await connection.query(
             "SELECT property_id, landlord_id FROM Property WHERE property_id = ? LIMIT 1",
             [property_id]
@@ -75,9 +53,6 @@ export async function PUT(req: NextRequest) {
             );
         }
 
-        /* =========================
-           2️⃣ Parse Property Data
-        ========================= */
         const raw = formData.get("data")?.toString() || "{}";
         const body = JSON.parse(raw);
 
@@ -108,18 +83,15 @@ export async function PUT(req: NextRequest) {
             longitude: body.lng ?? null,
         };
 
-        /* =========================
-           3️⃣ Update Property
-        ========================= */
         await connection.query(
             `
-      UPDATE Property SET
-        property_name=?, property_type=?, property_subtype=?, amenities=?, street=?, brgy_district=?, city=?, zip_code=?, province=?,
-        water_billing_type=?, electricity_billing_type=?, description=?, floor_area=?,
-        flexipay_enabled=?, property_preferences=?, accepted_payment_methods=?,
-        latitude=?, longitude=?, updated_at=CURRENT_TIMESTAMP
-      WHERE property_id=?
-      `,
+            UPDATE Property SET
+                property_name=?, property_type=?, property_subtype=?, amenities=?, street=?, brgy_district=?, city=?, zip_code=?, province=?,
+                water_billing_type=?, electricity_billing_type=?, description=?, floor_area=?,
+                flexipay_enabled=?, property_preferences=?, accepted_payment_methods=?,
+                latitude=?, longitude=?, updated_at=CURRENT_TIMESTAMP
+            WHERE property_id=?
+            `,
             [
                 fields.property_name,
                 fields.property_type,
@@ -143,9 +115,6 @@ export async function PUT(req: NextRequest) {
             ]
         );
 
-        /* =========================
-           4️⃣ Upload NEW Photos
-        ========================= */
         const files = formData.getAll("files");
         const uploadedPhotos: any[] = [];
 
@@ -159,24 +128,9 @@ export async function PUT(req: NextRequest) {
 
             const buffer = Buffer.from(await file.arrayBuffer());
             const cleanName = sanitizeFilename(file.name);
-
-            const key = `${folder}/${Date.now()}_${cleanName}`;
-
-            const publicUrl = `https://${process.env.NEXT_S3_BUCKET_NAME}.s3.${process.env.NEXT_AWS_REGION}.amazonaws.com/${key}`;
-
-            const encryptedUrl = JSON.stringify(
-                encryptData(publicUrl, encryptionSecret)
-            );
-
-            await s3Client.send(
-                new PutObjectCommand({
-                    Bucket: process.env.NEXT_S3_BUCKET_NAME!,
-                    Key: key,
-                    Body: buffer,
-                    ContentType: file.type,
-                    CacheControl: "public, max-age=31536000",
-                })
-            );
+            const key = `${sessionUser.landlord_id}/${property_id}/${folder}/${Date.now()}_${cleanName}`;
+            const s3Url = await uploadToS3(buffer, key, file.type);
+            const encryptedUrl = JSON.stringify(encryptData(s3Url, process.env.ENCRYPTION_SECRET!));
 
             uploadedPhotos.push([property_id, encryptedUrl, new Date(), new Date()]);
         }
@@ -184,16 +138,13 @@ export async function PUT(req: NextRequest) {
         if (uploadedPhotos.length) {
             await connection.query(
                 `
-        INSERT INTO PropertyPhoto (property_id, photo_url, created_at, updated_at)
-        VALUES ?
-        `,
+                INSERT INTO PropertyPhoto (property_id, photo_url, created_at, updated_at)
+                VALUES ?
+                `,
                 [uploadedPhotos]
             );
         }
 
-        /* =========================
-           5️⃣ Activity Log
-        ========================= */
         await connection.query(
             "INSERT INTO ActivityLog (user_id, action, timestamp) VALUES (?, ?, NOW())",
             [sessionUser.user_id, `Edited Property: ${fields.property_name}`]
@@ -201,15 +152,9 @@ export async function PUT(req: NextRequest) {
 
         await connection.commit();
 
-        /* =========================
-           6️⃣ Invalidate Cache
-        ========================= */
         const cacheKey = `properties:landlord:${sessionUser.landlord_id}`;
         await redis.del(cacheKey);
 
-        /* =========================
-           ✅ RESPONSE
-        ========================= */
         return NextResponse.json({
             success: true,
             uploadedPhotos: uploadedPhotos.map((p) => ({

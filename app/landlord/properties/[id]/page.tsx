@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Home, Plus, Sparkles, Search, QrCode, HelpCircle, FileSpreadsheet, Users, CreditCard, ScrollText, ReceiptText, ChevronRight } from "lucide-react";
+import { Home, Plus, Search, HelpCircle, Users, CreditCard, ScrollText } from "lucide-react";
 import { Pagination } from "@mui/material";
 import Swal from "sweetalert2";
 import Link from "next/link";
@@ -30,7 +30,6 @@ const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 export default function ViewPropertyDetailedPage() {
   const { user } = useAuthStore();
   const landlordId = user?.landlord_id;
-
   const { subscription, loadingSubscription } = useSubscription(landlordId);
 
   const {

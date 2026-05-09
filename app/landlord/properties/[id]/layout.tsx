@@ -64,8 +64,8 @@ export default function PropertyLayout({
   const router = useRouter();
   const { user, fetchSession, signOut } = useAuthStore();
   useSessionMonitor();
-  const landlordId = user?.landlord_id;
-  const { subscription, loadingSubscription } = useSubscription(landlordId);
+  const landlordId = user?.landlord_id ?? "";
+  const { subscription, loadingSubscription } = useSubscription(landlordId ?? undefined);
   const emailVerified = user?.emailVerified ?? false;
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -75,7 +75,12 @@ export default function PropertyLayout({
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showPropertyDropdown, setShowPropertyDropdown] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    "Property Setup": false,
+    "Operations": false,
+    "Finance": false,
+    "Utilities & Settings": false,
+  });
 
   useEffect(() => {
     if (!user) {
@@ -201,12 +206,17 @@ export default function PropertyLayout({
           {/* HEADER / BRAND */}
           <div className="px-4 py-5 border-b border-gray-800">
             <Link id="nav-brand" href="/landlord/dashboard" className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-lg">
-                <IoGrid className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 relative">
+                <Image
+                    src="/upkyp_white.png"
+                    alt="Upkyp Logo"
+                    fill
+                    className="object-contain rounded-lg"
+                    priority
+                />
               </div>
               <div>
-                <h1 className="text-base font-bold text-white">Upkyp</h1>
-                <p className="text-[10px] text-gray-400">Property Management</p>
+                <h1 className="text-base font-bold text-white">Upkyp Sync</h1>
               </div>
             </Link>
           </div>
@@ -324,9 +334,12 @@ export default function PropertyLayout({
           <nav className="flex-1 px-3 py-3 overflow-y-auto no-scrollbar overflow-auto">
             {menuGroups.map((group) => {
               const isCollapsed = collapsedSections[group.section];
+              const sectionSlug = group.section.toLowerCase().replace(/\s+/g, "-");
               return (
                 <div key={group.section} className="mb-4">
                   <button
+                    data-nav-section={sectionSlug}
+                    aria-expanded={!isCollapsed}
                     onClick={() => toggleSection(group.section)}
                     className="w-full flex items-center justify-between px-2 mb-1.5 group hover:bg-gray-800/50 rounded-lg p-1 -mx-1 transition-colors"
                   >
