@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { Home, Plus, Sparkles, Search, QrCode, HelpCircle, FileSpreadsheet, Users, CreditCard, ScrollText } from "lucide-react";
+import { Home, Plus, Sparkles, Search, QrCode, HelpCircle, FileSpreadsheet, Users, CreditCard, ScrollText, ReceiptText, ChevronRight } from "lucide-react";
 import { Pagination } from "@mui/material";
 import Swal from "sweetalert2";
 import Link from "next/link";
 
-import useSubscription from "../../../../hooks/landlord/subscription/useSubscription";
+import useSubscription from "@/hooks/landlord/subscription/useSubscription";
 import UnitLimitsCard from "@/components/landlord/subscriptions-limitations/UnitLimitsCard";
 import useAuthStore from "@/zustand/authStore";
 
@@ -74,8 +74,8 @@ export default function ViewPropertyDetailedPage() {
     steps: isMobile ? propertyUnitsTourStepsMobile : propertyUnitsTourSteps,
     autoStart: true,
     config: {
-      allowClose: false, // don't exit on outside click
-      showEndTourButton: true, // show End Tour button on every step
+      allowClose: false,
+      showEndTourButton: true,
     },
   });
 
@@ -139,99 +139,98 @@ export default function ViewPropertyDetailedPage() {
       <div className="w-full px-4 md:px-6 pt-20 md:pt-6">
         {/* ================= HEADER ================= */}
         <div id="units-header" className="mb-6">
-          {/* Row 1: Title + Show Guide */}
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+          {/* Title Row */}
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
                 <Home className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900">
                   Unit Overview
                 </h1>
-                <p className="text-xs md:text-sm text-gray-600 mt-0.5">
-                  Manage and search all units under this property
-                </p>
               </div>
             </div>
 
             <button
               onClick={startTour}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all shrink-0 shadow-sm"
             >
               <HelpCircle className="w-4 h-4" />
-              Show Guide
+              Guide
             </button>
           </div>
 
-          {/* Row 2: Quick Action Buttons */}
+          {/* Quick Action Buttons */}
             <div
                 id="units-action-buttons"
-                className="grid grid-cols-4 md:grid-cols-4 gap-2 mb-4"
+                className="grid grid-cols-4 md:grid-cols-4 text-center gap-2.5 mb-4"
             >
             {/* Add Unit */}
             <button
               onClick={handleAddUnitClick}
               disabled={unitActionsDisabled}
-              className={`group relative overflow-hidden rounded-xl p-2 md:p-3 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1 ${
+              className={`group relative overflow-hidden rounded-xl p-3 md:p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2 ${
                 unitActionsDisabled
-                  ? "bg-gray-100 border border-gray-200"
-                  : "bg-gradient-to-br from-blue-500 to-blue-600 border border-blue-400"
+                  ? "bg-gray-100 border border-gray-200 opacity-60 cursor-not-allowed"
+                  : "bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30"
               }`}
             >
-              <Plus className="w-5 h-5 md:w-4 md:h-4 text-white" />
-              <span className={`text-[10px] font-bold text-center leading-tight ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>Add Unit</span>
-              <span className={`text-[9px] text-center leading-tight hidden md:block ${unitActionsDisabled ? "text-gray-400" : "text-white/70"}`}>New unit</span>
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${unitActionsDisabled ? "bg-gray-200" : "bg-white/20"}`}>
+                <Plus className={`w-5 h-5 ${unitActionsDisabled ? "text-gray-400" : "text-white"}`} />
+              </div>
+              <span className={`text-xs font-bold ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>Add Unit</span>
               {unitActionsDisabled && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-300">
-                  <div className="h-full bg-red-500" style={{ width: "100%" }} />
-                </div>
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500/50" />
               )}
             </button>
 
             {/* Invite Tenant */}
             <button
               onClick={() => setInviteModalOpen(true)}
-              className="group relative overflow-hidden rounded-xl p-2 md:p-3 bg-gradient-to-br from-violet-500 to-violet-600 border border-violet-400 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1"
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2"
             >
-              <Users className="w-5 h-5 md:w-4 md:h-4 text-white" />
-              <span className="text-[10px] font-bold text-white text-center leading-tight">Invite Tenant</span>
-              <span className="text-[9px] text-white/70 text-center leading-tight hidden md:block">Send invite</span>
+              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                <Users className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-bold text-white">Invite Tenant</span>
             </button>
 
             {/* Active Lease */}
             <Link
               href={`/landlord/properties/${property_id}/activeLease`}
-              className="group relative overflow-hidden rounded-xl p-2 md:p-3 bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-400 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1"
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-amber-500 to-orange-600 shadow-md shadow-amber-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2"
             >
-              <ScrollText className="w-5 h-5 md:w-4 md:h-4 text-white" />
-              <span className="text-[10px] font-bold text-white text-center leading-tight">Active Lease</span>
-              <span className="text-[9px] text-white/70 text-center leading-tight hidden md:block">View list</span>
+              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                <ScrollText className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-bold text-white">Active Leases</span>
             </Link>
 
-            {/* Billing */}
+            {/* Utility Cost */}
             <Link
               href={`/landlord/properties/${property_id}/utilities`}
-              className="group relative overflow-hidden rounded-xl p-2 md:p-3 bg-gradient-to-br from-rose-500 to-pink-600 border border-rose-400 transition-all duration-300 hover:shadow-md hover:brightness-110 hover:scale-[1.02] flex flex-col items-center justify-center gap-0.5 md:gap-1"
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-rose-500 to-pink-600 shadow-md shadow-rose-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2"
             >
-              <CreditCard className="w-5 h-5 md:w-4 md:h-4 text-white" />
-              <span className="text-[10px] font-bold text-white text-center leading-tight">Utility Cost</span>
-              <span className="text-[9px] text-white/70 text-center leading-tight hidden md:block">View cost</span>
+              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                <CreditCard className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xs font-bold text-white">Utility Costs</span>
             </Link>
           </div>
 
           {/* SEARCH */}
           <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search units"
+              placeholder="Search units..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
             />
           </div>
         </div>
@@ -249,7 +248,7 @@ export default function ViewPropertyDetailedPage() {
         {/* ================= UNITS LIST ================= */}
         <div
           id="units-list"
-          className="bg-white rounded-lg shadow-sm border overflow-hidden"
+          className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
         >
           <UnitsTab
             units={currentUnits}
@@ -271,7 +270,7 @@ export default function ViewPropertyDetailedPage() {
           />
 
           {filteredUnits.length > itemsPerPage && (
-            <div className="flex justify-center p-4 border-t">
+            <div className="flex justify-center p-4 border-t border-gray-100">
               <Pagination
                 count={Math.ceil(filteredUnits.length / itemsPerPage)}
                 page={page}

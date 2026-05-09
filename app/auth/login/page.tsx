@@ -60,8 +60,8 @@ function Login() {
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
 
             {/* Main Content */}
-            <div className="relative z-10 w-full flex items-center justify-center p-4">
-                <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-16 max-w-full">
+            <div className="relative z-10 w-full flex items-center justify-center px-4 py-8 sm:p-4">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 max-w-full w-full justify-center">
                     {/* Hero Text */}
                     <div className="hidden lg:block max-w-md text-center flex-shrink-0">
                         <h1
@@ -97,7 +97,7 @@ function Login() {
                         <div className="hidden sm:block">
                             <LoginForm callbackUrl={callbackUrl} />
                         </div>
-                        <div className="sm:hidden">
+                        <div className="sm:hidden w-full flex justify-center">
                             <MobileLoginForm />
                         </div>
                     </div>

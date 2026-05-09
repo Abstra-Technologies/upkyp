@@ -11,6 +11,7 @@ import {
     ChevronRight,
     UserPlus,
     MoreVertical,
+    ImageOff,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -60,6 +61,18 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
         (mobilePage - 1) * ITEMS_PER_PAGE,
         mobilePage * ITEMS_PER_PAGE
     );
+
+    /* ------------------------------------------------------------------ */
+    /* PHOTO HELPER                                                       */
+    /* ------------------------------------------------------------------ */
+    const getUnitPhoto = (unit: any): string | null => {
+        const photos = unit.unitPhotos || unit.photos || unit.unit_photos || [];
+        if (Array.isArray(photos) && photos.length > 0) {
+            const first = photos[0];
+            return typeof first === "string" ? first : null;
+        }
+        return null;
+    };
 
     /* ------------------------------------------------------------------ */
     /* PUBLISH TOGGLE                                                     */
@@ -127,22 +140,35 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
             {
                 accessorKey: "unit_name",
                 header: "Unit",
-                size: 220,
-                Cell: ({ row }) => (
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <Home className="w-4 h-4 text-blue-600" />
-                        </div>
-                        <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">
-                                {row.original.unit_name || "Untitled Unit"}
-                            </p>
-                            <div className="mt-1">
-                                {getStatusBadge(row.original.status)}
+                size: 240,
+                Cell: ({ row }) => {
+                    const photo = getUnitPhoto(row.original);
+                    return (
+                        <div className="flex items-center gap-3">
+                            {photo ? (
+                                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-gray-200">
+                                    <img
+                                        src={photo}
+                                        alt={row.original.unit_name}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shrink-0 border border-gray-200">
+                                    <ImageOff className="w-5 h-5 text-gray-400" />
+                                </div>
+                            )}
+                            <div className="min-w-0">
+                                <p className="font-semibold text-gray-900 truncate">
+                                    {row.original.unit_name || "Untitled Unit"}
+                                </p>
+                                <div className="mt-1">
+                                    {getStatusBadge(row.original.status)}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ),
+                    );
+                },
             },
             {
                 accessorKey: "rent_amount",
@@ -279,79 +305,97 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
             {/* =============================================================== */}
             {/* MOBILE: STACKED LIST + PAGINATION                               */}
             {/* =============================================================== */}
-            <div className="md:hidden px-2 py-2 space-y-2">
-                {pagedUnits.map((unit) => (
-                    <div
-                        key={unit.unit_id}
-                        className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-                    >
-                        {/* Header Row: Name + Status + Live/Hidden */}
-                        <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-emerald-50 border-b border-gray-100">
-                            <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center shrink-0">
-                                <Home className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-gray-900 truncate">{unit.unit_name || "Untitled Unit"}</p>
-                                <div className="mt-0.5">{getStatusBadge(unit.status)}</div>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-semibold text-gray-500">₱{Number(unit.rent_amount || 0).toLocaleString()}/mo</span>
-                                <button
-                                    onClick={() => handleTogglePublish(unit.unit_id, !!unit.publish)}
-                                    className={`px-2 py-1 text-[10px] font-bold rounded border ${
-                                        unit.publish ? "bg-emerald-500 text-white border-emerald-600" : "bg-gray-200 text-gray-500 border-gray-300"
-                                    }`}
-                                >
-                                    {unit.publish ? "Live" : "Off"}
-                                </button>
-                            </div>
-                        </div>
+            <div className="md:hidden px-2 py-2 space-y-3">
+                {pagedUnits.map((unit) => {
+                    const photo = getUnitPhoto(unit);
+                    return (
+                        <div
+                            key={unit.unit_id}
+                            className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+                        >
+                            {/* Photo + Header Row */}
+                            <div className="flex items-stretch">
+                                {/* Photo */}
+                                <div className="w-20 shrink-0 relative">
+                                    {photo ? (
+                                        <img
+                                            src={photo}
+                                            alt={unit.unit_name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full min-h-[72px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                            <ImageOff className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                    )}
+                                </div>
 
-                        {/* Actions Row */}
-                        <div className="flex items-center gap-1.5 px-2 py-1.5">
-                            <button
-                                onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${unit.unit_id}`)}
-                                className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-blue-500 text-white"
-                            >
-                                <Eye className="w-3.5 h-3.5" />
-                                View
-                            </button>
-                            {(unit.status?.toLowerCase() === "unoccupied" || unit.status?.toLowerCase() === "available") && (
+                                {/* Info */}
+                                <div className="flex-1 min-w-0 px-3 py-2">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-gray-900 truncate">{unit.unit_name || "Untitled Unit"}</p>
+                                            <div className="mt-1">{getStatusBadge(unit.status)}</div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleTogglePublish(unit.unit_id, !!unit.publish)}
+                                            className={`px-2 py-1 text-[10px] font-bold rounded border shrink-0 ${
+                                                unit.publish ? "bg-emerald-500 text-white border-emerald-600" : "bg-gray-200 text-gray-500 border-gray-300"
+                                            }`}
+                                        >
+                                            {unit.publish ? "Live" : "Off"}
+                                        </button>
+                                    </div>
+                                    <p className="text-xs font-semibold text-gray-700 mt-1.5">₱{Number(unit.rent_amount || 0).toLocaleString()}/mo</p>
+                                </div>
+                            </div>
+
+                            {/* Actions Row */}
+                            <div className="flex items-center gap-1.5 px-2 py-1.5 border-t border-gray-100">
                                 <button
-                                    onClick={() => {
-                                        setSelectedUnit({ id: unit.unit_id, name: unit.unit_name });
-                                        setInviteModalOpen(true);
-                                    }}
-                                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-emerald-500 text-white"
+                                    onClick={() => router.push(`/landlord/properties/${propertyId}/units/details/${unit.unit_id}`)}
+                                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-blue-500 text-white"
                                 >
-                                    <UserPlus className="w-3.5 h-3.5" />
-                                    Invite
+                                    <Eye className="w-3.5 h-3.5" />
+                                    View
                                 </button>
-                            )}
-                            <button
-                                onClick={() => handleEditUnit(unit.unit_id)}
-                                className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-amber-500 text-white"
-                            >
-                                <Edit2 className="w-3.5 h-3.5" />
-                                Edit
-                            </button>
-                            <button
-                                onClick={() => handleDeleteUnit(unit.unit_id)}
-                                className="flex items-center justify-center p-2 rounded-md text-xs font-semibold bg-red-500 text-white"
-                            >
-                                <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                            {unit.qr_code_url && (
+                                {(unit.status?.toLowerCase() === "unoccupied" || unit.status?.toLowerCase() === "available") && (
+                                    <button
+                                        onClick={() => {
+                                            setSelectedUnit({ id: unit.unit_id, name: unit.unit_name });
+                                            setInviteModalOpen(true);
+                                        }}
+                                        className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-emerald-500 text-white"
+                                    >
+                                        <UserPlus className="w-3.5 h-3.5" />
+                                        Invite
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => window.open(unit.qr_code_url, "_blank")}
-                                    className="flex items-center justify-center p-2 rounded-md text-xs font-semibold bg-gray-800 text-white"
+                                    onClick={() => handleEditUnit(unit.unit_id)}
+                                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-amber-500 text-white"
                                 >
-                                    <QrCode className="w-3.5 h-3.5" />
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                    Edit
                                 </button>
-                            )}
+                                <button
+                                    onClick={() => handleDeleteUnit(unit.unit_id)}
+                                    className="flex items-center justify-center p-2 rounded-md text-xs font-semibold bg-red-500 text-white"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                                {unit.qr_code_url && (
+                                    <button
+                                        onClick={() => window.open(unit.qr_code_url, "_blank")}
+                                        className="flex items-center justify-center p-2 rounded-md text-xs font-semibold bg-gray-800 text-white"
+                                    >
+                                        <QrCode className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {/* MOBILE PAGINATION */}
                 {totalPages > 1 && (

@@ -88,6 +88,32 @@ export async function GET(req: NextRequest) {
                 tenant_name = null;
             }
 
+            let unitPhotos: string[] = [];
+            try {
+                const [photoRows]: any = await connection.execute(
+                    `SELECT photo_url FROM UnitPhoto WHERE unit_id = ? ORDER BY id ASC LIMIT 1`,
+                    [row.unit_id]
+                );
+                if (photoRows && photoRows.length > 0) {
+                    const secret = process.env.ENCRYPTION_SECRET;
+                    if (secret) {
+                        for (const photoRow of photoRows) {
+                            try {
+                                if (photoRow.photo_url) {
+                                    const parsed = JSON.parse(photoRow.photo_url);
+                                    const decrypted = decryptData(parsed as any, secret) as string | null;
+                                    if (decrypted) unitPhotos.push(decrypted);
+                                }
+                            } catch {
+                                // skip unreadable photos
+                            }
+                        }
+                    }
+                }
+            } catch {
+                // skip photo errors
+            }
+
             result.push({
                 unit_id: row.unit_id,
                 property_id: row.property_id,
@@ -98,7 +124,7 @@ export async function GET(req: NextRequest) {
                 furnish: row.furnish,
                 publish: row.publish,
                 amenities: row.amenities,
-                status: row.unit_status, // ✅ direct from DB
+                status: row.unit_status,
                 last_updated: row.last_updated,
                 lease_agreement_id: row.lease_agreement_id || null,
                 lease_status: row.lease_status || null,
@@ -110,6 +136,7 @@ export async function GET(req: NextRequest) {
                 qr_code_url: row.qr_code_url || null,
                 qr_enabled: !!row.qr_enabled,
                 qr_claim_enabled: !!row.qr_claim_enabled,
+                unitPhotos,
             });
         }
 

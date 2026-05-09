@@ -3,7 +3,6 @@
 import {
     Home,
     MapPin,
-    TrendingUp,
 } from "lucide-react";
 import { usePropertyList, getOccupancyColor } from "@/hooks/landlord/properties/usePropertyList";
 
@@ -53,9 +52,9 @@ export default function PropertyCard({ property, gradientBg, onMutate }: Propert
                 />
             </div>
 
-            <div className="relative flex flex-row p-3 lg:flex-col lg:p-4 h-full gap-3 lg:gap-0">
-                {/* Photo */}
-                <div className="relative w-24 lg:w-full h-28 lg:h-32 rounded-xl overflow-hidden lg:mb-3 bg-white/60 flex-shrink-0">
+            <div className="relative flex flex-row lg:flex-col h-full">
+                {/* Photo - edge to edge */}
+                <div className="relative w-24 lg:w-full h-28 lg:h-32 flex-shrink-0">
                     {property.photos.length > 0 && property.photos[0]?.photo_url ? (
                         <img
                             src={property.photos[0].photo_url}
@@ -86,7 +85,7 @@ export default function PropertyCard({ property, gradientBg, onMutate }: Propert
                 </div>
 
                 {/* Info */}
-                <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex flex-col flex-1 min-w-0 p-3 lg:p-4 lg:pt-3">
                     <div className="flex-1">
                         {/* Name */}
                         <h3 className="text-sm font-bold text-gray-900 line-clamp-1 mb-0.5">
@@ -94,7 +93,7 @@ export default function PropertyCard({ property, gradientBg, onMutate }: Propert
                         </h3>
 
                         {/* Location */}
-                        <div className="flex items-center text-gray-500 text-xs mb-2 lg:mb-3">
+                        <div className="flex items-center text-gray-500 text-xs mb-2 lg:mb-2.5">
                             <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                             <span className="line-clamp-1">
                                 {[property.city, property.province]
@@ -104,7 +103,7 @@ export default function PropertyCard({ property, gradientBg, onMutate }: Propert
                         </div>
 
                         {/* Occupancy */}
-                        <div className="mb-2 lg:mb-3">
+                        <div className="mb-2 lg:mb-2.5">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-xs font-medium text-gray-600">Occupancy</span>
                                 <span className={`text-xs font-bold bg-gradient-to-r ${getOccupancyColor(occupancyRate)} bg-clip-text text-transparent`}>
@@ -121,24 +120,13 @@ export default function PropertyCard({ property, gradientBg, onMutate }: Propert
                                 {occupiedUnits} of {totalUnits} units occupied
                             </p>
                         </div>
-
-                        {/* Income */}
-                        <div className="flex items-center gap-1.5 p-2 bg-white/60 rounded-lg">
-                            <TrendingUp className="h-4 w-4 text-blue-600" />
-                            <div>
-                                <p className="text-[10px] text-gray-500 leading-tight">Monthly Income</p>
-                                <p className="text-sm font-bold text-gray-800">
-                                    ₱{property.total_income.toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="flex lg:mt-3 mt-2 gap-2 w-full">
+                    <div className="flex lg:mt-2.5 mt-2 gap-2 w-full">
                         <button
                             onClick={handleView}
-                            className="flex-1 flex items-center justify-center gap-1 py-2 lg:py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-sm hover:shadow-md transition-all"
+                            className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-emerald-500 text-white shadow-sm hover:shadow-md transition-all"
                         >
                             <Home className="w-3.5 h-3.5" />
                             View
