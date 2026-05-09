@@ -42,8 +42,6 @@ const RevenueExpenseTrendChart = dynamic(
   { ssr: false },
 );
 
-import ActiveListingsCard from "@/components/landlord/analytics/activeListings";
-import PendingListingsCard from "@/components/landlord/analytics/getPendingListings";
 import ScoreCard from "@/components/landlord/analytics/scoreCards";
 
 // Animation variants
@@ -234,12 +232,7 @@ export default function PropertyPerformancePage() {
             animate="visible"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
           >
-            <motion.div variants={fadeInUp}>
-              <ActiveListingsCard landlordId={user?.landlord_id} />
-            </motion.div>
-            <motion.div variants={fadeInUp}>
-              <PendingListingsCard landlordId={user?.landlord_id} />
-            </motion.div>
+
             <motion.div variants={fadeInUp}>
               <ScoreCard
                 title="Total Active Tenants"
