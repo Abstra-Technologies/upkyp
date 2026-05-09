@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { Mail, MessageSquare, HelpCircle, Send } from "lucide-react";
-import Page_footer from "@/components/navigation/page_footer";
+import Page_footer from "../../../components/navigation/page_footer";
 
 const ISSUES = [
   "Billing & Payments",

@@ -1,95 +1,228 @@
+'use client'
 
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 
-import React from "react";
+const sections = [
+  { id: "overview", label: "Overview" },
+  { id: "eligibility", label: "Refund Eligibility" },
+  { id: "non-refundable", label: "Non-Refundable Cases" },
+  { id: "process", label: "Refund Process" },
+  { id: "processing-time", label: "Processing Time" },
+  { id: "changes", label: "Changes to Policy" },
+  { id: "contact", label: "Contact Us" },
+];
 
 export default function RefundPolicyPage() {
   const lastUpdated = "November 30, 2025";
+  const [activeSection, setActiveSection] = useState("");
+  const [tocOpen, setTocOpen] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -70% 0px" }
+    );
+
+    sections.forEach(({ id }) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+    setTocOpen(false);
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 sm:p-12">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-        <header className="px-6 py-8 sm:px-12 sm:py-10 border-b">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900">Return & Refund Policy</h1>
-          <p className="mt-2 text-sm text-gray-600">Last updated: <span className="font-medium text-gray-800">{lastUpdated}</span></p>
-        </header>
+    <main className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeftIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-sm sm:text-base font-medium">Back</span>
+            </Link>
+            <h1 className="text-sm sm:text-lg font-bold text-gray-900">Refund Policy</h1>
+            <button
+              onClick={() => setTocOpen(!tocOpen)}
+              className="sm:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              aria-label="Toggle table of contents"
+            >
+              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <div className="hidden sm:block w-16" />
+          </div>
+        </div>
+      </header>
 
-        <article className="px-6 py-8 sm:px-12 sm:py-10 prose max-w-none text-gray-700">
+      {/* Mobile TOC Dropdown */}
+      {tocOpen && (
+        <div className="sm:hidden fixed inset-0 z-30 bg-black/40" onClick={() => setTocOpen(false)}>
+          <div
+            className="bg-white w-72 h-full overflow-y-auto shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-gray-200">
+              <h2 className="font-semibold text-gray-900">Contents</h2>
+            </div>
+            <nav className="p-3">
+              {sections.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => scrollTo(s.id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                    activeSection === s.id
+                      ? "bg-blue-50 text-blue-600 font-medium"
+                      : "text-gray-600 hover:bg-gray-50"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </div>
+      )}
 
-          <section>
-            <p>
-              Thank you for choosing UPKYP. We aim to give you a smooth and rewarding experience while using and purchasing our services.
-              By purchasing or using any UPKYP service, you agree to this Return & Refund Policy and our Privacy Policy.
-            </p>
-          </section>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+        <div className="flex gap-6 lg:gap-10">
+          {/* Desktop Sidebar TOC */}
+          <aside className="hidden sm:block w-56 lg:w-64 flex-shrink-0">
+            <div className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3 px-3">
+                Contents
+              </h2>
+              <nav className="space-y-0.5">
+                {sections.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() => scrollTo(s.id)}
+                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs transition-colors ${
+                      activeSection === s.id
+                        ? "bg-blue-50 text-blue-600 font-medium"
+                        : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </aside>
 
-          <section>
-            <h2>Definitions and Key Terms</h2>
-            <ul>
-              <li><strong>Company:</strong> Refers to UPKYP, which is responsible for this policy.</li>
-              <li><strong>Customer:</strong> Any person or organization using UPKYP services.</li>
-              <li><strong>Device:</strong> Any internet-connected device used to access UPKYP.</li>
-              <li><strong>Service:</strong> The software and tools provided by UPKYP.</li>
-              <li><strong>Website:</strong> https://rent-alley-web.vercel.app/</li>
-              <li><strong>You:</strong> A registered user of UPKYP.</li>
-            </ul>
-          </section>
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              {/* Title area */}
+              <div className="px-5 py-6 sm:px-10 sm:py-8 border-b border-gray-100">
+                <h1 className="text-xl sm:text-3xl font-extrabold text-gray-900">
+                  UPKYP — Refund Policy
+                </h1>
+                <p className="mt-2 text-xs sm:text-sm text-gray-500">
+                  Last updated: <span className="font-medium text-gray-700">{lastUpdated}</span>
+                </p>
+              </div>
 
-          <section>
-            <h2>Return & Refund Policy</h2>
-            <p>
-              If something is wrong with the service you purchased or you are unhappy with it, you may request a refund
-              within <strong>1 week</strong> of your purchase. Refunds will only be processed if the request follows the guidelines described in this policy.
-            </p>
-          </section>
+              {/* Scrollable content */}
+              <div className="px-5 py-6 sm:px-10 sm:py-8 max-h-[calc(100vh-12rem)] overflow-y-auto">
+                <div className="space-y-8 text-gray-700 text-sm sm:text-base leading-relaxed">
+                  {/* Overview */}
+                  <section id="overview">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">Overview</h2>
+                    <p>
+                      Thank you for choosing UPKYP. We aim to provide a smooth and rewarding experience. This Refund Policy outlines the conditions under which refunds may be requested and processed for our subscription services.
+                    </p>
+                  </section>
 
-          <section>
-            <h2>Refunds</h2>
-            <p>
-              UPKYP strives to provide high-quality digital services. All services are inspected and verified before being delivered.
-              However, if a service becomes unavailable or cannot be fulfilled (e.g., technical issues or system limitations), we may cancel your order.
-            </p>
-            <p>
-              If you paid online, your refund will be processed after confirmation from our support team. Refund processing time
-              may vary, but you will be notified once the refund has been issued.
-            </p>
-            <p>
-              Note: UPKYP is not responsible for any damages or losses caused by third-party systems, integrations, or transportation of physical goods (if applicable).
-            </p>
-          </section>
+                  {/* Eligibility */}
+                  <section id="eligibility">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">1. Refund Eligibility</h2>
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 sm:p-5 mb-4">
+                      <p className="font-semibold text-blue-900 text-sm sm:text-base">
+                        Refunds are only available within <span className="underline">10 days</span> of your subscription purchase.
+                      </p>
+                      <p className="text-blue-800 text-xs sm:text-sm mt-2">
+                        After the 10-day window, no refunds will be issued under any circumstances.
+                      </p>
+                    </div>
+                    <p>
+                      To qualify for a refund, you must:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-1 mt-3">
+                      <li>Submit your refund request within 10 days of the subscription date</li>
+                      <li>Provide your account details and proof of purchase</li>
+                      <li>Not have violated our Terms of Service</li>
+                    </ul>
+                  </section>
 
-          <section>
-            <h2>Shipping</h2>
-            <p>
-              If a return of any physical materials is required, UPKYP will cover all return shipping costs, even if the
-              original item did not have free shipping.
-            </p>
-          </section>
+                  {/* Non-Refundable */}
+                  <section id="non-refundable">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">2. Non-Refundable Cases</h2>
+                    <p className="mb-3">Refunds will <strong>not</strong> be issued in the following cases:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Requests made after the 10-day refund window</li>
+                      <li>Accounts suspended or terminated for policy violations</li>
+                      <li>Partial usage of subscription features beyond evaluation</li>
+                      <li>Change of mind after the refund period has expired</li>
+                    </ul>
+                  </section>
 
-          <section>
-            <h2>Your Consent</h2>
-            <p>
-              By using our website, registering an account, or making a purchase, you consent to the terms outlined in this Return & Refund Policy.
-            </p>
-          </section>
+                  {/* Process */}
+                  <section id="process">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">3. Refund Process</h2>
+                    <p>
+                      To request a refund, contact our support team at <span className="font-semibold text-blue-600">support@upkyp.com</span> with your account details and reason for the request. Our team will review your case and respond within 3-5 business days.
+                    </p>
+                    <p className="mt-3">
+                      If approved, the refund will be processed back to the original payment method used during purchase.
+                    </p>
+                  </section>
 
-          <section>
-            <h2>Changes to This Policy</h2>
-            <p>
-              UPKYP may update or modify this Return & Refund Policy at any time to accurately reflect service changes. Updates will
-              be posted on this page. Continued use of the Service after changes means you accept the updated terms.
-            </p>
-          </section>
+                  {/* Processing Time */}
+                  <section id="processing-time">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">4. Processing Time</h2>
+                    <p>
+                      Refund processing times may vary depending on your payment provider. Typically, refunds are completed within 5-10 business days after approval. You will receive a confirmation email once the refund has been issued.
+                    </p>
+                  </section>
 
-          <section>
-            <h2>Contact Us</h2>
-            <p>If you are not fully satisfied with your UPKYP service, contact us:</p>
-            <p className="font-medium">abstra.technologies@gmail.com</p>
-          </section>
+                  {/* Changes */}
+                  <section id="changes">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">5. Changes to This Policy</h2>
+                    <p>
+                      UPKYP may update this Refund Policy at any time to reflect service changes. Updates will be posted on this page. Continued use of the Service after changes means you accept the updated terms.
+                    </p>
+                  </section>
 
-          <footer className="mt-6 text-sm text-gray-500">
-            <p>This Return & Refund Policy explains how UPKYP handles cancellations and refunds.</p>
-          </footer>
-        </article>
+                  {/* Contact */}
+                  <section id="contact">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-3">6. Contact Us</h2>
+                    <p className="mb-2">If you have questions or need to request a refund, contact us at:</p>
+                    <p className="font-semibold text-blue-600">support@upkyp.com</p>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   );

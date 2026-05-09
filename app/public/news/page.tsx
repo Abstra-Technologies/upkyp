@@ -14,7 +14,7 @@ import {
   ShieldCheckIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import Page_footer from "@/components/navigation/page_footer";
+import Page_footer from "../../../components/navigation/page_footer";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
