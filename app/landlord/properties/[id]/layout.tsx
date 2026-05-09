@@ -148,7 +148,7 @@ export default function PropertyLayout({
   };
 
   /* ============================
-     MENU GROUPS — navId added for Driver.js targeting
+     MENU GROUPS —
   ============================ */
   const menuGroups = [
     {
@@ -163,17 +163,17 @@ export default function PropertyLayout({
       section: "Operations",
       items: [
         { id: "prop-nav-active-lease", label: "Active Lease", href: `/landlord/properties/${id}/activeLease`, icon: ScrollText },
+        { id: "prop-nav-payments", label: "Payments", href: `/landlord/properties/${id}/payments`, icon: Wallet },
         { id: "prop-nav-prospectives", label: "Prospectives", href: `/landlord/properties/${id}/prospectives`, icon: Users },
         { id: "prop-nav-assets", label: "Assets", href: `/landlord/properties/${id}/assets_management`, icon: Videotape },
       ]
     },
-    {
-      section: "Finance",
-      items: [
-        { id: "prop-nav-payments", label: "Payments", href: `/landlord/properties/${id}/payments`, icon: Wallet },
-        { id: "prop-nav-finance", label: "Financials", href: `/landlord/properties/${id}/financials`, icon: HandCoins },
-      ]
-    },
+    // {
+    //   section: "Finance",
+    //   items: [
+    //     { id: "prop-nav-finance", label: "Financials", href: `/landlord/properties/${id}/financials`, icon: HandCoins },
+    //   ]
+    // },
     {
       section: "Utilities & Settings",
       items: [
