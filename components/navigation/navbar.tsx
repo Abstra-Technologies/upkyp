@@ -624,11 +624,11 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="absolute top-14 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-xl max-h-[calc(100vh-3.5rem)] overflow-y-auto px-4"
+                  className="absolute top-14 left-3 right-3 mt-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl max-h-[calc(100vh-5rem)] overflow-y-auto"
                 >
                   {/* User Info (if logged in) */}
                   {(user || admin) && (
-                    <div className="px-4 py-4 bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-100 dark:border-gray-800">
+                    <div className="px-4 py-4 bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 border-b border-gray-100 dark:border-gray-800 rounded-t-2xl">
                       <div className="flex items-center gap-3">
                         <Image
                           src={
@@ -709,7 +709,7 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
 
                   {/* User Actions (if logged in) */}
                   {(user || admin) && (
-                    <div className="border-t border-gray-100 py-2 px-4">
+                    <div className="border-t border-gray-100 py-2 px-4 rounded-b-2xl">
                       <Link
                         href={
                           user
@@ -740,10 +740,10 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
 
                   {/* Auth Buttons (if not logged in) */}
                   {!user && !admin && !loading && (
-                    <div className="border-t border-gray-100 p-4 space-y-3">
+                    <div className="border-t border-gray-100 p-4 space-y-3 rounded-b-2xl">
                       <Link
                         href="/auth/login"
-                        className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                        className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-blue-600 bg-white border-2 border-blue-600 rounded-xl transition-colors hover:bg-blue-50"
                       >
                         Login
                       </Link>
@@ -751,7 +751,7 @@ href={user?.userType === "tenant" ? "/tenant/feeds" : "/"}
                         href="/auth/selectRole"
                         className="flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-emerald-600 hover:shadow-lg hover:shadow-blue-500/25 rounded-xl transition-all"
                       >
-                        Get Started Free
+                        Get Started
                         <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
