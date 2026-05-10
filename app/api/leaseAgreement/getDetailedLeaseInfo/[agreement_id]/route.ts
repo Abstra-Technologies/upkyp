@@ -78,47 +78,6 @@ export async function GET(
 
         const lease = leaseRows[0];
 
-        /* ---------------- SECURITY DEPOSIT ---------------- */
-        const [[securityDeposit]]: any = await db.execute(
-            `
-      SELECT
-        deposit_id,
-        amount,
-        status,
-        received_at,
-        refunded_at,
-        proof_of_payment,
-        refund_reason,
-        notes,
-        created_at
-      FROM SecurityDeposit
-      WHERE lease_id = ?
-      ORDER BY created_at DESC
-      LIMIT 1;
-      `,
-            [agreement_id]
-        );
-
-        /* ---------------- ADVANCE PAYMENT ---------------- */
-        const [[advancePayment]]: any = await db.execute(
-            `
-      SELECT
-        advance_id,
-        amount,
-        months_covered,
-        status,
-        received_at,
-        proof_of_payment,
-        applied_to_billing_id,
-        notes,
-        created_at
-      FROM AdvancePayment
-      WHERE lease_id = ?
-      ORDER BY created_at DESC
-      LIMIT 1;
-      `,
-            [agreement_id]
-        );
 
         /* ---------------- HELPERS ---------------- */
         const safeDecrypt = (val?: string) => {
@@ -165,12 +124,6 @@ export async function GET(
 
                 rent_amount,
                 default_rent_amount: lease.unit_default_rent_amount,
-
-                security_deposit_amount: lease.security_deposit_amount,
-                advance_payment_amount: lease.advance_payment_amount,
-
-                security_deposit_details: securityDeposit || null,
-                advance_payment_details: advancePayment || null,
 
         billing_due_day: lease.billing_due_day ?? 30,
             grace_period_days: lease.grace_period_days ?? 3,

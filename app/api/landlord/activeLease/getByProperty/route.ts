@@ -6,12 +6,25 @@ const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
 export async function GET(req: NextRequest) {
     const property_id = req.nextUrl.searchParams.get("property_id");
+    const month = req.nextUrl.searchParams.get("month");
+    const year = req.nextUrl.searchParams.get("year");
 
     if (!property_id) {
         return NextResponse.json(
             { error: "Missing property_id" },
             { status: 400 }
         );
+    }
+
+    let periodFilter = "";
+    let periodParams: any[] = [property_id];
+
+    if (month !== null && year !== null) {
+        const monthNum = parseInt(month);
+        const yearNum = parseInt(year);
+        const periodEnd = new Date(yearNum, monthNum + 1, 0);
+        periodFilter = ` AND (la.start_date <= ? OR (la.start_date IS NULL AND la.created_at <= ?))`;
+        periodParams = [property_id, periodEnd.toISOString().split('T')[0], periodEnd.toISOString().split('T')[0]];
     }
 
     try {
@@ -71,6 +84,7 @@ export async function GET(req: NextRequest) {
                 u.unit_id,
                 u.unit_name,
                 u.property_id,
+                u.rent_amount,
 
                 p.property_name,
                 p.city AS property_city,
@@ -99,9 +113,10 @@ export async function GET(req: NextRequest) {
                     'landlord_signed',
                     'expired'
               )
+              ${periodFilter}
             ORDER BY la.start_date DESC;
             `,
-            [property_id]
+            periodParams
         );
 
         /* ========================================================

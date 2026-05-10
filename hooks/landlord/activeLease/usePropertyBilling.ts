@@ -26,7 +26,6 @@ export function usePropertyBilling(propertyId: string) {
     const [payoutMissing, setPayoutMissing] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [openMeterList, setOpenMeterList] = useState(false);
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const [billingForm, setBillingForm] = useState({
         billingPeriod: "",
@@ -67,9 +66,9 @@ export function usePropertyBilling(propertyId: string) {
         }
     };
 
-    const checkDefaultPayoutAccount = async (landlordId: string) => {
+    const checkDefaultPayoutAccount = async (landlord_id: string) => {
         try {
-            const { data } = await axios.get("/api/landlord/payout/getAccount", { params: { landlord_id: landlordId } });
+            const { data } = await axios.get("/api/landlord/payout/getAccount", { params: { landlord_id } });
             const isValid = data?.hasDefaultPayout === true && data?.account && Number(data.account.is_active) === 1;
             setPayoutMissing(!isValid);
         } catch {
@@ -115,13 +114,11 @@ export function usePropertyBilling(propertyId: string) {
             try {
                 await Promise.all([
                     checkPropertyConfig(),
-                    checkDefaultPayoutAccount(landlord_id || ""),
+                    checkDefaultPayoutAccount(landlord_id),
                     fetchPropertyDetails(),
                 ]);
             } catch (err) {
                 console.error("Initial load error:", err);
-            } finally {
-                setIsInitialLoad(false);
             }
         };
 
@@ -163,8 +160,8 @@ export function usePropertyBilling(propertyId: string) {
         guardBillingAction(async () => {
             await axios.post("/api/landlord/billing/savePropertyConcessionaireRates", {
                 property_id: propertyId,
-                period_start: billingForm.billingPeriod,
-                period_end: billingForm.billingPeriod,
+                period_start: billingForm.periodStart,
+                period_end: billingForm.periodEnd,
                 electricityConsumption: +billingForm.electricityConsumption || 0,
                 electricityTotal: +billingForm.electricityTotal || 0,
                 waterConsumption: +billingForm.waterConsumption || 0,
@@ -191,13 +188,12 @@ export function usePropertyBilling(propertyId: string) {
     };
 
     return {
-        property_id: propertyId,
+        propertyId,
         landlord_id,
         router,
 
         bills,
         loadingBills,
-        isInitialLoad,
         error: billsData?.error,
 
         propertyDetails,

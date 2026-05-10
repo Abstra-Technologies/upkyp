@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
 import useSWR from "swr";
 import axios from "axios";
 import Swal from "sweetalert2";
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
 
-export function usePropertyLeases(propertyId: string) {
+export function useActiveLease(propertyId: string) {
+    const router = useRouter();
+
     const [search, setSearch] = useState("");
     const [allDraftLeases, setAllDraftLeases] = useState<any[]>([]);
-    const [selectedKypLease, setSelectedKypLease] = useState<any>(null);
-    const [kypOpen, setKypOpen] = useState(false);
 
-    const { data: leasesData, isLoading, mutate } = useSWR(
+    const { data: leasesData, isLoading: loadingLeases, mutate: mutateLeases } = useSWR(
         propertyId
             ? `/api/landlord/activeLease/getByProperty?property_id=${propertyId}`
             : null,
@@ -22,6 +23,22 @@ export function usePropertyLeases(propertyId: string) {
     );
 
     const leases = leasesData?.leases || [];
+
+    useEffect(() => {
+        const fetchDrafts = async () => {
+            try {
+                const res = await fetch(`/api/landlord/activeLease/getByProperty?property_id=${propertyId}`);
+                const data = await res.json();
+                const drafts = (data.leases || []).filter((l: any) =>
+                    (l.status ?? l.lease_status)?.toLowerCase() === "draft"
+                );
+                setAllDraftLeases(drafts);
+            } catch (err) {
+                console.error("Error fetching drafts:", err);
+            }
+        };
+        if (propertyId) fetchDrafts();
+    }, [propertyId]);
 
     const activeLeasesOnly = leases.filter((l: any) =>
         (l.status ?? l.lease_status)?.toLowerCase() !== "draft"
@@ -63,7 +80,7 @@ export function usePropertyLeases(propertyId: string) {
             Swal.fire({ title: "Ending lease...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
             await axios.post("/api/landlord/activeLease/endLease", { agreement_id: lease.lease_id });
             Swal.fire("Success", "Lease completed.", "success");
-            mutate();
+            mutateLeases();
         } catch (err: any) {
             Swal.fire("Error", err?.response?.data?.message || "Something went wrong.", "error");
         }
@@ -82,29 +99,25 @@ export function usePropertyLeases(propertyId: string) {
         const status = (lease.status ?? lease.lease_status)?.toLowerCase();
         const endDate = lease.end_date ? new Date(lease.end_date) : null;
         const isExpiringSoon = endDate && endDate <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
-
+        
         if (status === "active" && isExpiringSoon) return "Expiring Soon";
         return status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown";
     };
 
     return {
+        router,
         leases,
         activeLeasesOnly,
         filteredLeases,
         allDraftLeases,
-        loadingLeases: isLoading,
-        isLoading,
+        loadingLeases,
         error: leasesData?.error,
         search,
         setSearch,
         scorecards,
         handleEndLease,
-        mutateLeases: mutate,
+        mutateLeases,
         getStatusConfig,
         getStatusLabel,
-        selectedKypLease,
-        setSelectedKypLease,
-        kypOpen,
-        setKypOpen,
     };
 }

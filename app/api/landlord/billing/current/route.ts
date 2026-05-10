@@ -38,7 +38,8 @@ export async function GET(req: NextRequest) {
 
                     -- Tenant info
                     usr.firstName AS enc_firstName,
-                    usr.lastName  AS enc_lastName
+                    usr.lastName  AS enc_lastName,
+                    usr.email     AS enc_email
 
                 FROM LeaseAgreement la
                          LEFT JOIN Unit u
@@ -72,6 +73,7 @@ export async function GET(req: NextRequest) {
         const bills = rows.map((r: any) => {
             const first = safeDec(r.enc_firstName);
             const last = safeDec(r.enc_lastName);
+            const email = safeDec(r.enc_email);
             const tenantName = `${first} ${last}`.trim();
 
             return {
@@ -88,6 +90,7 @@ export async function GET(req: NextRequest) {
                 total_amount_due: r.total_amount_due ? Number(r.total_amount_due) : 0,
                 billing_status: r.billing_status || "no_bill",
                 tenant_name: tenantName,
+                tenant_email: email || "",
             };
         });
         return NextResponse.json({ bills }, { status: 200 });

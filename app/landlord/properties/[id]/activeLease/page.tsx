@@ -1,32 +1,56 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { FileText, ReceiptText, AlertTriangle, Banknote, Clock, Gauge, Download, Settings, CheckCircle2, AlertCircle, FileSignature } from "lucide-react";
+import { useState, useMemo } from "react";
+import {
+  FileText,
+  ReceiptText,
+  AlertTriangle,
+  Banknote,
+  Clock,
+  Gauge,
+  Download,
+  Settings,
+  CheckCircle2,
+  AlertCircle,
+  Search,
+  ChevronDown,
+  Eye,
+  Pencil,
+  Trash2,
+  ArrowUpDown,
 
-import LeaseTable from "@/components/landlord/activeLease/LeaseTable";
+} from "lucide-react";
+
 import LeaseStack from "@/components/landlord/activeLease/LeaseStack";
 import EKypModal from "@/components/landlord/activeLease/EKypModal";
 import ChecklistModal from "@/components/landlord/activeLease/ChecklistModal";
-import { usePropertyLeases } from "@/hooks/landlord/activeLease/usePropertyLeases";
-import {
-  LeaseCardSkeleton,
-} from "@/components/Commons/SkeletonLoaders";
+import { LeaseCardSkeleton } from "@/components/Commons/SkeletonLoaders";
 
 import PropertyRatesModal from "@/components/landlord/properties/utilityRatesSetter";
 import UnitMeterReadingsModal from "@/components/landlord/unitBilling/UnitMeterReadingsModal";
 import PropertyBulkMeterReadingModal from "@/components/landlord/activeLease/PropertyBulkMeterReadingModal";
-import { usePropertyBilling } from "@/hooks/landlord/billing/usePropertyBilling";
 import BillingRateStatus from "@/components/landlord/property-billing/BillingRateStatus";
 import BillingUnitListMobile from "@/components/landlord/property-billing/BillingUnitListMobile";
 import BillingUnitTableDesktop from "@/components/landlord/property-billing/BillingUnitTableDesktop";
 import BillingSkeleton from "@/components/landlord/property-billing/BillingSkeleton";
+import { usePropertyLeases } from "@/hooks/landlord/activeLease/usePropertyLeases";
+import { usePropertyBilling } from "@/hooks/landlord/billing/usePropertyBilling";
 
 export default function PropertyLeasesPage() {
   const { id } = useParams();
   const router = useRouter();
 
   const [mode, setMode] = useState<"lease" | "billing">("lease");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [termFilter, setTermFilter] = useState("all");
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<string>("tenant");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [billingSortColumn, setBillingSortColumn] = useState<string>("tenant");
+  const [billingSortDirection, setBillingSortDirection] = useState<"asc" | "desc">("asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const {
     filteredLeases,
@@ -38,7 +62,6 @@ export default function PropertyLeasesPage() {
     setKypOpen,
     isLoading,
     error,
-    getStatus,
     handleEndLease,
     scorecards,
     leases,
@@ -73,22 +96,322 @@ export default function PropertyLeasesPage() {
 
   const handleExtendLease = (lease: any) => {
     router.push(
-      `/landlord/properties/${id}/activeLease/extend/${lease.lease_id}`,
+      `/landlord/properties/${id}/activeLease/extend/${lease.lease_id}`
     );
   };
 
   const handleAuthenticateLease = (lease: any) => {
     router.push(
-      `/landlord/properties/${id}/activeLease/authenticate/${lease.lease_id}`,
+      `/landlord/properties/${id}/activeLease/authenticate/${lease.lease_id}`
     );
   };
 
   const billingBlocked = billing.configMissing || billing.payoutMissing;
-
   const billingMonth = new Date().toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
+
+  const getCurrencyFromLocation = () => {
+    const prop = billing.propertyDetails;
+    if (!prop) return { currency: "PHP", locale: "en-PH", symbol: "₱" };
+
+    const countryMap: Record<string, { currency: string; locale: string; symbol: string }> = {
+      PH: { currency: "PHP", locale: "en-PH", symbol: "₱" },
+      Philippines: { currency: "PHP", locale: "en-PH", symbol: "₱" },
+      US: { currency: "USD", locale: "en-US", symbol: "$" },
+      "United States": { currency: "USD", locale: "en-US", symbol: "$" },
+      SG: { currency: "SGD", locale: "en-SG", symbol: "S$" },
+      Singapore: { currency: "SGD", locale: "en-SG", symbol: "S$" },
+      AE: { currency: "AED", locale: "en-AE", symbol: "د.إ" },
+      "United Arab Emirates": { currency: "AED", locale: "en-AE", symbol: "د.إ" },
+      GB: { currency: "GBP", locale: "en-GB", symbol: "£" },
+      "United Kingdom": { currency: "GBP", locale: "en-GB", symbol: "£" },
+      AU: { currency: "AUD", locale: "en-AU", symbol: "A$" },
+      Australia: { currency: "AUD", locale: "en-AU", symbol: "A$" },
+      CA: { currency: "CAD", locale: "en-CA", symbol: "C$" },
+      Canada: { currency: "CAD", locale: "en-CA", symbol: "C$" },
+      JP: { currency: "JPY", locale: "ja-JP", symbol: "¥" },
+      Japan: { currency: "JPY", locale: "ja-JP", symbol: "¥" },
+      TH: { currency: "THB", locale: "th-TH", symbol: "฿" },
+      Thailand: { currency: "THB", locale: "th-TH", symbol: "฿" },
+      MY: { currency: "MYR", locale: "ms-MY", symbol: "RM" },
+      Malaysia: { currency: "MYR", locale: "ms-MY", symbol: "RM" },
+      ID: { currency: "IDR", locale: "id-ID", symbol: "Rp" },
+      Indonesia: { currency: "IDR", locale: "id-ID", symbol: "Rp" },
+      VN: { currency: "VND", locale: "vi-VN", symbol: "₫" },
+      Vietnam: { currency: "VND", locale: "vi-VN", symbol: "₫" },
+      IN: { currency: "INR", locale: "en-IN", symbol: "₹" },
+      India: { currency: "INR", locale: "en-IN", symbol: "₹" },
+      CN: { currency: "CNY", locale: "zh-CN", symbol: "¥" },
+      China: { currency: "CNY", locale: "zh-CN", symbol: "¥" },
+      KR: { currency: "KRW", locale: "ko-KR", symbol: "₩" },
+      "South Korea": { currency: "KRW", locale: "ko-KR", symbol: "₩" },
+    };
+
+    const province = prop.province?.toUpperCase() || "";
+    const city = prop.city?.toUpperCase() || "";
+
+    for (const [key, value] of Object.entries(countryMap)) {
+      if (province.includes(key.toUpperCase()) || city.includes(key.toUpperCase())) {
+        return value;
+      }
+    }
+
+    return { currency: "PHP", locale: "en-PH", symbol: "₱" };
+  };
+
+  const currencyConfig = getCurrencyFromLocation();
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat(currencyConfig.locale, {
+      style: "currency",
+      currency: currencyConfig.currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const formatCurrencyExact = (amount: number) => {
+    return new Intl.NumberFormat(currencyConfig.locale, {
+      style: "currency",
+      currency: currencyConfig.currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  };
+
+  const toggleRowSelection = (leaseId: string) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(leaseId)) {
+      newSelected.delete(leaseId);
+    } else {
+      newSelected.add(leaseId);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedRows.size === paginatedLeases.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(paginatedLeases.map((l: any) => l.lease_id)));
+    }
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const handleBillingSort = (column: string) => {
+    if (billingSortColumn === column) {
+      setBillingSortDirection(billingSortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setBillingSortColumn(column);
+      setBillingSortDirection("asc");
+    }
+  };
+
+  const sortedBillingBills = useMemo(() => {
+    return [...billing.bills].sort((a: any, b: any) => {
+      let aValue: any, bValue: any;
+      switch (billingSortColumn) {
+        case "tenant":
+          aValue = a.tenant_name || "";
+          bValue = b.tenant_name || "";
+          break;
+        case "unit":
+          aValue = a.unit_name || "";
+          bValue = b.unit_name || "";
+          break;
+        case "prevBalance":
+          aValue = Number(a.previous_balance || 0);
+          bValue = Number(b.previous_balance || 0);
+          break;
+        case "currentRent":
+          aValue = Number(a.current_rent || a.total_amount_due || 0);
+          bValue = Number(b.current_rent || b.total_amount_due || 0);
+          break;
+        case "totalDue":
+          aValue = Number(a.previous_balance || 0) + Number(a.current_rent || a.total_amount_due || 0);
+          bValue = Number(b.previous_balance || 0) + Number(b.current_rent || b.total_amount_due || 0);
+          break;
+        case "status":
+          aValue = (a.billing_status || "unpaid").toLowerCase();
+          bValue = (b.billing_status || "unpaid").toLowerCase();
+          break;
+        default:
+          aValue = a.tenant_name || "";
+          bValue = b.tenant_name || "";
+      }
+
+      if (typeof aValue === "string") {
+        return billingSortDirection === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      return billingSortDirection === "asc" ? aValue - bValue : bValue - aValue;
+    });
+  }, [billing.bills, billingSortColumn, billingSortDirection]);
+
+  const getStatusBadge = (lease: any) => {
+    const status = (lease.status ?? lease.lease_status)?.toLowerCase();
+    const endDate = lease.end_date ? new Date(lease.end_date) : null;
+    const isExpiringSoon =
+      endDate && endDate <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+
+    if (status === "active" && isExpiringSoon) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+          <Clock className="w-3.5 h-3.5" />
+          Expiring Soon
+        </span>
+      );
+    }
+
+    switch (status) {
+      case "active":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Active
+          </span>
+        );
+      case "pending":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+            <AlertCircle className="w-3.5 h-3.5" />
+            Pending
+          </span>
+        );
+      case "draft":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">
+            <FileText className="w-3.5 h-3.5" />
+            Draft
+          </span>
+        );
+      case "expired":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Expired
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-50 text-gray-700 border border-gray-200">
+            {status?.charAt(0).toUpperCase() + status?.slice(1) || "Unknown"}
+          </span>
+        );
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "—";
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const getAvatarColor = (name: string) => {
+    const colors = [
+      "bg-blue-100 text-blue-600",
+      "bg-emerald-100 text-emerald-600",
+      "bg-purple-100 text-purple-600",
+      "bg-amber-100 text-amber-600",
+      "bg-pink-100 text-pink-600",
+      "bg-indigo-100 text-indigo-600",
+      "bg-teal-100 text-teal-600",
+      "bg-rose-100 text-rose-600",
+    ];
+    const index =
+      name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
+      colors.length;
+    return colors[index];
+  };
+
+  const filteredAndSortedLeases = [...filteredLeases]
+    .filter((lease: any) => {
+      const status = (lease.status ?? lease.lease_status)?.toLowerCase();
+      if (statusFilter !== "all" && status !== statusFilter) return false;
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      let aValue: any, bValue: any;
+      switch (sortColumn) {
+        case "tenant":
+          aValue = a.tenant_name || "";
+          bValue = b.tenant_name || "";
+          break;
+        case "unit":
+          aValue = a.unit_name || "";
+          bValue = b.unit_name || "";
+          break;
+        case "rent":
+          aValue = Number(a.monthly_rent || 0);
+          bValue = Number(b.monthly_rent || 0);
+          break;
+        case "deposit":
+          aValue = Number(a.security_deposit || 0);
+          bValue = Number(b.security_deposit || 0);
+          break;
+        case "status":
+          aValue = (a.status ?? a.lease_status)?.toLowerCase() || "";
+          bValue = (b.status ?? b.lease_status)?.toLowerCase() || "";
+          break;
+        default:
+          aValue = a.tenant_name || "";
+          bValue = b.tenant_name || "";
+      }
+
+      if (typeof aValue === "string") {
+        return sortDirection === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+    });
+
+  const totalPages = Math.ceil(filteredAndSortedLeases.length / itemsPerPage);
+  const paginatedLeases = filteredAndSortedLeases.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortColumn !== column) return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />;
+    return sortDirection === "asc" ? (
+      <ArrowUpDown className="w-3.5 h-3.5 text-blue-600 rotate-180" />
+    ) : (
+      <ArrowUpDown className="w-3.5 h-3.5 text-blue-600" />
+    );
+  };
+
+  const BillingSortIcon = ({ column }: { column: string }) => {
+    if (billingSortColumn !== column) return <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />;
+    return billingSortDirection === "asc" ? (
+      <ArrowUpDown className="w-3.5 h-3.5 text-blue-600 rotate-180" />
+    ) : (
+      <ArrowUpDown className="w-3.5 h-3.5 text-blue-600" />
+    );
+  };
 
   if (isLoading || (mode === "billing" && billing.isInitialLoad)) {
     return (
@@ -102,16 +425,6 @@ export default function PropertyLeasesPage() {
                 <div className="h-3 bg-gray-100 rounded w-28 animate-pulse" />
               </div>
             </div>
-            <div className="flex gap-1 mb-0">
-              <div className="h-10 bg-gray-200 rounded-t-xl rounded-b-none w-32 animate-pulse" />
-              <div className="h-10 bg-gray-200 rounded-t-xl rounded-b-none w-24 animate-pulse" />
-            </div>
-            <div className="h-12 bg-gray-200 rounded-b-xl rounded-t-none animate-pulse" />
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <div className="h-16 bg-gray-200 rounded-xl animate-pulse" />
-              <div className="h-16 bg-gray-200 rounded-xl animate-pulse" />
-              <div className="h-16 bg-gray-200 rounded-xl animate-pulse" />
-            </div>
           </div>
           <div className="block md:hidden">
             <LeaseCardSkeleton count={4} />
@@ -121,7 +434,7 @@ export default function PropertyLeasesPage() {
               <table className="min-w-full divide-y">
                 <thead className="bg-gray-50">
                   <tr>
-                    {[...Array(6)].map((_, i) => (
+                    {[...Array(7)].map((_, i) => (
                       <th key={i} className="px-4 py-3">
                         <div className="h-4 bg-gray-200 rounded animate-pulse" />
                       </th>
@@ -131,7 +444,7 @@ export default function PropertyLeasesPage() {
                 <tbody className="divide-y">
                   {[...Array(5)].map((_, rowIdx) => (
                     <tr key={rowIdx}>
-                      {[...Array(6)].map((_, colIdx) => (
+                      {[...Array(7)].map((_, colIdx) => (
                         <td key={colIdx} className="px-4 py-3">
                           <div className="h-4 bg-gray-100 rounded animate-pulse" />
                         </td>
@@ -166,115 +479,370 @@ export default function PropertyLeasesPage() {
             <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-              Active Leases
-            </h1>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                Active Leases
+              </h1>
+              <p className="text-sm text-gray-500">
+                {filteredAndSortedLeases.length} of {leases.length} total leases
+              </p>
+            </div>
           </div>
         </div>
 
         {/* ================= TAB SWITCHER ================= */}
-        <div className="flex gap-1 mb-4 bg-gray-100 rounded-xl p-1">
+        <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
           <button
             onClick={() => setMode("lease")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${
+            className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
               mode === "lease"
-                ? "bg-white text-blue-700 shadow-sm"
+                ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
             <FileText className="w-4 h-4" />
-            Leases
+            Lease Details
           </button>
           <button
             onClick={() => setMode("billing")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${
+            className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
               mode === "billing"
-                ? "bg-white text-emerald-700 shadow-sm"
+                ? "bg-white text-gray-900 shadow-sm"
                 : "text-gray-500 hover:text-gray-700"
             }`}
           >
             <ReceiptText className="w-4 h-4" />
-            Billing
+            Billing Mode
           </button>
         </div>
 
         {mode === "lease" && (
           <>
-            {/* ================= SUMMARY CARDS ================= */}
-            <div className="grid grid-cols-3 gap-2.5 mb-4">
-              <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-emerald-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            {/* ================= TOOLBAR ================= */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-4">
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                  {/* Search */}
+                  <div className="relative flex-1 max-w-md w-full">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search tenants or units..."
+                      className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white outline-none transition-all"
+                    />
                   </div>
-                  <span className="text-[10px] font-medium text-gray-500">Active</span>
+
+                  {/* Filters */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Status Filter */}
+                    <div className="relative">
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="appearance-none pl-3 pr-8 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
+                      >
+                        <option value="all">Status: All</option>
+                        <option value="active">Status: Active</option>
+                        <option value="pending">Status: Pending</option>
+                        <option value="draft">Status: Draft</option>
+                        <option value="expired">Status: Expired</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+
+                    {/* Term Filter */}
+                    <div className="relative">
+                      <select
+                        value={termFilter}
+                        onChange={(e) => setTermFilter(e.target.value)}
+                        className="appearance-none pl-3 pr-8 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer"
+                      >
+                        <option value="all">Term: All</option>
+                        <option value="monthly">Term: Monthly</option>
+                        <option value="yearly">Term: Yearly</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+
+                    {/* Export Button */}
+                    <button className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                      <Download className="w-4 h-4" />
+                      Export
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xl font-bold text-emerald-700">{scorecards.active}</p>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-amber-600" />
+              {/* ================= TABLE ================= */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-100">
+                  <thead className="bg-gray-50/50">
+                    <tr>
+                      <th className="px-4 py-3.5 text-left w-12">
+                        <input
+                          type="checkbox"
+                          checked={
+                            selectedRows.size === paginatedLeases.length &&
+                            paginatedLeases.length > 0
+                          }
+                          onChange={toggleAllSelection}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                      </th>
+                      <th
+                        className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                        onClick={() => handleSort("tenant")}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Tenant
+                          <SortIcon column="tenant" />
+                        </div>
+                      </th>
+                      <th
+                        className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                        onClick={() => handleSort("unit")}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Unit
+                          <SortIcon column="unit" />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Lease Term
+                      </th>
+                      <th
+                        className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                        onClick={() => handleSort("rent")}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Rent
+                          <SortIcon column="rent" />
+                        </div>
+                      </th>
+                      <th
+                        className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                        onClick={() => handleSort("deposit")}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Deposit
+                          <SortIcon column="deposit" />
+                        </div>
+                      </th>
+                      <th
+                        className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
+                        onClick={() => handleSort("status")}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          Status
+                          <SortIcon column="status" />
+                        </div>
+                      </th>
+                      <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedLeases.map((lease: any) => {
+                      const isSelected = selectedRows.has(lease.lease_id);
+                      return (
+                        <tr
+                          key={lease.lease_id}
+                          className={`transition-colors ${
+                            isSelected
+                              ? "bg-blue-50/50"
+                              : "hover:bg-gray-50/50"
+                          }`}
+                        >
+                          {/* Checkbox */}
+                          <td className="px-4 py-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleRowSelection(lease.lease_id)}
+                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                          </td>
+
+                          {/* Tenant */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold ${getAvatarColor(
+                                  lease.tenant_name || "Unknown"
+                                )}`}
+                              >
+                                {getInitials(lease.tenant_name || "U")}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                  {lease.tenant_name || "Unknown Tenant"}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {lease.tenant_email || "—"}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Unit */}
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {lease.unit_name || "—"}
+                            </span>
+                          </td>
+
+                          {/* Lease Term */}
+                          <td className="px-4 py-3">
+                            <div className="text-sm">
+                              <p className="font-semibold text-gray-900">
+                                {formatDate(lease.start_date)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                to {formatDate(lease.end_date)}
+                              </p>
+                            </div>
+                          </td>
+
+                          {/* Rent */}
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatCurrency(lease.monthly_rent || 0)}
+                              <span className="text-xs text-gray-500 font-normal">
+                                /mo
+                              </span>
+                            </span>
+                          </td>
+
+                          {/* Deposit */}
+                          <td className="px-4 py-3">
+                            <span className="text-sm text-gray-600">
+                              {formatCurrency(lease.security_deposit || 0)}
+                            </span>
+                          </td>
+
+                          {/* Status */}
+                          <td className="px-4 py-3">
+                            {getStatusBadge(lease)}
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                onClick={() => handlePrimaryAction(lease)}
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="View Details"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleExtendLease(lease)}
+                                className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                title="Extend Lease"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleEndLease(lease)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="End Lease"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Empty State */}
+                {paginatedLeases.length === 0 && !isLoading && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <FileText className="w-12 h-12 text-gray-300 mb-3" />
+                    <p className="text-base font-semibold text-gray-900">
+                      No leases found
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Leases will appear here once you set them up
+                    </p>
                   </div>
-                  <span className="text-[10px] font-medium text-gray-500">Expiring</span>
-                </div>
-                <p className="text-xl font-bold text-amber-700">{scorecards.expiringSoon}</p>
+                )}
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 p-3 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-blue-100 flex items-center justify-center">
-                    <FileSignature className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <span className="text-[10px] font-medium text-gray-500">Pending</span>
-                </div>
-                <p className="text-xl font-bold text-blue-700">{scorecards.pendingSignatures}</p>
+              {/* ================= MOBILE VIEW ================= */}
+              <div className="md:hidden">
+                <LeaseStack
+                  leases={paginatedLeases}
+                  onPrimary={handlePrimaryAction}
+                  onExtend={handleExtendLease}
+                  onEnd={handleEndLease}
+                  onKyp={(l) => {
+                    setSelectedKypLease(l);
+                    setKypOpen(true);
+                  }}
+                />
               </div>
+
+              {/* ================= PAGINATION ================= */}
+              {totalPages > 1 && (
+                <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    Showing{" "}
+                    <span className="font-semibold text-gray-900">
+                      {(currentPage - 1) * itemsPerPage + 1}
+                    </span>{" "}
+                    to{" "}
+                    <span className="font-semibold text-gray-900">
+                      {Math.min(currentPage * itemsPerPage, filteredAndSortedLeases.length)}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-gray-900">
+                      {filteredAndSortedLeases.length}
+                    </span>{" "}
+                    leases
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Previous
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors ${
+                            currentPage === page
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
+                    <button
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* ================= SEARCH ================= */}
-            <div className="relative w-full max-w-md mb-4">
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search unit, tenant, email, status…"
-                className="w-full pl-4 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all shadow-sm"
-              />
-            </div>
-
-            {/* ================= LEASE LIST ================= */}
-            <LeaseStack
-              leases={filteredLeases}
-              onPrimary={handlePrimaryAction}
-              onExtend={handleExtendLease}
-              onEnd={handleEndLease}
-              onKyp={(l) => {
-                setSelectedKypLease(l);
-                setKypOpen(true);
-              }}
-            />
-
-            <LeaseTable
-              leases={filteredLeases}
-              onPrimary={handlePrimaryAction}
-              onExtend={handleExtendLease}
-              onAuthenticate={handleAuthenticateLease}
-              onEnd={handleEndLease}
-              onKyp={(l) => {
-                setSelectedKypLease(l);
-                setKypOpen(true);
-              }}
-            />
-
-            {filteredLeases.length === 0 && !isLoading && (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <FileText className="w-12 h-12 text-gray-300 mb-3" />
-                <p className="text-base font-semibold text-gray-900">No leases found</p>
-                <p className="text-sm text-gray-500 mt-1">Leases will appear here once you set them up</p>
-              </div>
-            )}
-
+            {/* ================= MODALS ================= */}
             <EKypModal
               open={kypOpen}
               lease={selectedKypLease}
@@ -297,229 +865,225 @@ export default function PropertyLeasesPage() {
         )}
 
         {mode === "billing" && (
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-6">
-            {/* PERMANENT CONFIG BANNER */}
-            {billing.configMissing && (
-              <div className="mb-5 p-5 rounded-xl border-2 border-amber-300 bg-amber-50">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                    <Settings className="w-5 h-5 text-amber-600" />
+          <>
+            {/* ================= BILLING SUMMARY CARDS ================= */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-emerald-600" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-amber-800 text-base">
-                      Configuration Required
-                    </h3>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Set up billing due date, reminder day
-                      {billing.propertyDetails?.is_submetered ? ", and meter reading date" : ""}{" "}
-                      before you can generate bills.
-                    </p>
-                    <button
-                      onClick={() =>
-                        router.push(
-                          `/landlord/properties/${id}/configurations?id=${id}`
-                        )
-                      }
-                      className="mt-3 px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-lg shadow-md shadow-amber-500/25 transition-all active:scale-95"
-                    >
-                      Go to Configuration
-                    </button>
-                  </div>
+                  <span className="text-sm font-medium text-gray-500">Collected</span>
                 </div>
+                <p className="text-2xl font-bold text-emerald-600">
+                  {formatCurrencyExact(
+                    billing.bills
+                      .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
+                      .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
+                  )}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
+                </p>
               </div>
-            )}
 
-            {/* PAYOUT BANNER */}
-            {billing.payoutMissing && (
-              <div className="mb-5 p-5 rounded-xl border-2 border-amber-300 bg-amber-50">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-amber-600" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-amber-800 text-base">
-                      Payout Account Required
-                    </h3>
-                    <p className="text-sm text-amber-700 mt-1">
-                      Set your default payout account before issuing billing.
-                      This ensures rent payments can be transferred to your bank.
-                    </p>
-                    <button
-                      onClick={() =>
-                        router.push("/landlord/settings/payout")
-                      }
-                      className="mt-3 px-5 py-2.5 text-sm font-semibold bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-lg shadow-md shadow-amber-500/25 transition-all active:scale-95"
-                    >
-                      Set Up Payout Account
-                    </button>
-                  </div>
+                  <span className="text-sm font-medium text-gray-500">Pending</span>
                 </div>
+                <p className="text-2xl font-bold text-amber-600">
+                  {formatCurrencyExact(
+                    billing.bills
+                      .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
+                      .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
+                  )}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
+                </p>
               </div>
-            )}
 
-            {/* BILLING CONTENT (only when configured) */}
-            {!billingBlocked && (
-              <>
-                <div className="mb-4">
-                  <h2 className="text-lg font-bold text-gray-900 mb-3">
-                    {billingMonth}
-                  </h2>
-
-                  <div className="hidden md:grid md:grid-cols-3 gap-2">
-                    <div className="bg-gray-50 rounded-xl border border-gray-200 p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-7 h-7 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shrink-0">
-                          <Banknote className="w-3.5 h-3.5 text-white" />
-                        </div>
-                        <span className="text-xs font-medium text-gray-500">Collected</span>
-                      </div>
-                      <p className="text-xl font-bold text-emerald-600">
-                        ₱{billing.bills
-                          .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
-                          .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
-                          .toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
-                        {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
-                      </p>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-xl border border-gray-200 p-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="w-7 h-7 rounded-md bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
-                          <Clock className="w-3.5 h-3.5 text-white" />
-                        </div>
-                        <span className="text-xs font-medium text-gray-500">Pending</span>
-                      </div>
-                      <p className="text-xl font-bold text-amber-600">
-                        ₱{billing.bills
-                          .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
-                          .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
-                          .toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                      </p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">
-                        {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <BillingRateStatus
-                        propertyDetails={billing.propertyDetails}
-                        hasBillingForMonth={billing.hasBillingForMonth}
-                        billingData={billing.billingData}
-                        setIsModalOpen={billing.setIsModalOpen}
-                      />
-                      {(billing.propertyDetails?.water_billing_type === "submetered" ||
-                        billing.propertyDetails?.electricity_billing_type === "submetered") && (
-                        <button
-                          onClick={() => setBulkMeterOpen(true)}
-                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl font-semibold text-xs shadow-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                        >
-                          <Gauge className="w-3.5 h-3.5" />
-                          Bulk Meter
-                        </button>
-                      )}
-                    </div>
+              <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Download className="w-5 h-5 text-blue-600" />
                   </div>
-
-                  <div className="md:hidden">
-                    <div className="grid grid-cols-3 gap-2 mb-2">
-                      <div className="bg-gray-50 rounded-xl border border-gray-200 p-2.5">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shrink-0">
-                            <Banknote className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="text-[10px] font-medium text-gray-500 truncate">Collected</span>
-                        </div>
-                        <p className="text-sm font-bold text-emerald-600 truncate">
-                          ₱{billing.bills
-                            .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
-                            .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
-                            .toLocaleString("en-PH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">
-                          {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
-                        </p>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-xl border border-gray-200 p-2.5">
-                        <div className="flex items-center gap-1.5 mb-1">
-                          <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0">
-                            <Clock className="w-3 h-3 text-white" />
-                          </div>
-                          <span className="text-[10px] font-medium text-gray-500 truncate">Pending</span>
-                        </div>
-                        <p className="text-sm font-bold text-amber-600 truncate">
-                          ₱{billing.bills
-                            .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
-                            .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
-                            .toLocaleString("en-PH", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                        </p>
-                        <p className="text-[9px] text-gray-400 mt-0.5">
-                          {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
-                        </p>
-                      </div>
-
-                      <div className="flex flex-col justify-center">
-                        {(billing.propertyDetails?.water_billing_type === "submetered" ||
-                          billing.propertyDetails?.electricity_billing_type === "submetered") && (
-                          <button
-                            onClick={() => setBulkMeterOpen(true)}
-                            className="w-full inline-flex items-center justify-center gap-1 px-2 py-2 rounded-lg font-semibold text-[10px] shadow-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                          >
-                            <Gauge className="w-3 h-3" />
-                            Bulk
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <BillingRateStatus
-                      propertyDetails={billing.propertyDetails}
-                      hasBillingForMonth={billing.hasBillingForMonth}
-                      billingData={billing.billingData}
-                      setIsModalOpen={billing.setIsModalOpen}
-                    />
-                  </div>
+                  <span className="text-sm font-medium text-gray-500">Actions</span>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mb-4">
+                <div className="flex flex-col gap-2 mt-2">
                   <button
                     onClick={billing.handleDownloadSummary}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm shadow-md bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 text-white shadow-lg shadow-blue-500/25 transition-all active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs shadow-sm bg-gradient-to-r from-blue-600 to-emerald-600 text-white transition-all active:scale-95"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5" />
                     Download Summary
                   </button>
+                  {(billing.propertyDetails?.water_billing_type === "submetered" ||
+                    billing.propertyDetails?.electricity_billing_type === "submetered") && (
+                    <button
+                      onClick={() => setBulkMeterOpen(true)}
+                      className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-semibold text-xs shadow-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white transition-all active:scale-95"
+                    >
+                      <Gauge className="w-3.5 h-3.5" />
+                      Bulk Meter
+                    </button>
+                  )}
                 </div>
+              </div>
+            </div>
 
-                <PropertyRatesModal
-                  isOpen={billing.isModalOpen}
-                  onClose={() => billing.setIsModalOpen(false)}
-                  billingData={billing.billingData}
-                  billingForm={billing.billingForm}
-                  propertyDetails={billing.propertyDetails}
-                  hasBillingForMonth={billing.hasBillingForMonth}
-                  handleInputChange={billing.handleInputChange}
-                  handleSaveorUpdateRates={billing.handleSaveorUpdateRates}
-                  onBillingUpdated={(updated) => {
-                    billing.setBillingData(updated);
-                    billing.setHasBillingForMonth(true);
-                  }}
-                />
+            {/* ================= BILLING TABLE ================= */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-4">
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                  <div className="relative flex-1 max-w-md w-full">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                      placeholder="Search tenants or units..."
+                      className="w-full pl-10 pr-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="relative">
+                      <select className="appearance-none pl-3 pr-8 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all cursor-pointer">
+                        <option>Status: All</option>
+                        <option>Paid</option>
+                        <option>Unpaid</option>
+                        <option>Overdue</option>
+                        <option>Processing</option>
+                      </select>
+                      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+                    <button className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                      <Download className="w-4 h-4" />
+                      Export
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-                <UnitMeterReadingsModal
-                  isOpen={billing.openMeterList}
-                  onClose={() => billing.setOpenMeterList(false)}
-                  property_id={billing.property_id}
-                />
+              {/* ================= BILLING TABLE ================= */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-100">
+                  <thead className="bg-gray-50/50">
+                    <tr>
+                      <th className="px-4 py-3.5 text-left w-12">
+                        <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                      </th>
+                      <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("tenant")}>
+                        <div className="flex items-center gap-1.5">Tenant <BillingSortIcon column="tenant" /></div>
+                      </th>
+                      <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("unit")}>
+                        <div className="flex items-center gap-1.5">Unit <BillingSortIcon column="unit" /></div>
+                      </th>
+                      <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("prevBalance")}>
+                        <div className="flex items-center justify-end gap-1.5">Prev. Balance <BillingSortIcon column="prevBalance" /></div>
+                      </th>
+                      <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("currentRent")}>
+                        <div className="flex items-center justify-end gap-1.5">Current Rent <BillingSortIcon column="currentRent" /></div>
+                      </th>
+                      <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("totalDue")}>
+                        <div className="flex items-center justify-end gap-1.5">Total Due <BillingSortIcon column="totalDue" /></div>
+                      </th>
+                      <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("status")}>
+                        <div className="flex items-center gap-1.5">Status <BillingSortIcon column="status" /></div>
+                      </th>
+                      <th className="px-4 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {sortedBillingBills.map((bill: any) => {
+                      const status = bill.billing_status?.toLowerCase() || "unpaid";
+                      const prevBalance = Number(bill.previous_balance || 0);
+                      const currentRent = Number(bill.current_rent || bill.total_amount_due || 0);
+                      const totalDue = prevBalance + currentRent;
+                      const isOverdue = status === "overdue";
+                      const isPaid = status === "paid";
+                      const isProcessing = status === "processing";
 
-                <PropertyBulkMeterReadingModal
-                  isOpen={bulkMeterOpen}
-                  onClose={() => setBulkMeterOpen(false)}
-                  property_id={String(id)}
-                />
+                      return (
+                        <tr key={bill.bill_id || bill.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-4 py-3">
+                            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold ${getAvatarColor(bill.tenant_name || "Unknown")}`}>
+                                {getInitials(bill.tenant_name || "U")}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 truncate">{bill.tenant_name || "Unknown Tenant"}</p>
+                                <p className="text-xs text-gray-500 truncate">{bill.tenant_email || "—"}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-sm font-semibold text-gray-900">{bill.unit_name || "—"}</span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className={`text-sm font-semibold ${prevBalance > 0 ? "text-red-600" : "text-gray-500"}`}>
+                              {formatCurrency(prevBalance)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="text-sm font-semibold text-gray-900">{formatCurrency(currentRent)}</span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <span className="text-sm font-bold text-gray-900">{formatCurrency(totalDue)}</span>
+                          </td>
+                          <td className="px-4 py-3">
+                            {isPaid ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Paid
+                              </span>
+                            ) : isOverdue ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                <AlertCircle className="w-3.5 h-3.5" />
+                                Overdue
+                              </span>
+                            ) : isProcessing ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                <Clock className="w-3.5 h-3.5" />
+                                Processing
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                <Clock className="w-3.5 h-3.5" />
+                                Unpaid
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-1">
+                              <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Send Reminder">
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
 
+                {billing.bills.length === 0 && !billing.loadingBills && (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <ReceiptText className="w-12 h-12 text-gray-300 mb-3" />
+                    <p className="text-base font-semibold text-gray-900">No bills found</p>
+                    <p className="text-sm text-gray-500 mt-1">Bills will appear here once generated</p>
+                  </div>
+                )}
+              </div>
+
+              {/* ================= MOBILE BILLING VIEW ================= */}
+              <div className="md:hidden">
                 <BillingUnitListMobile
                   bills={billing.bills}
                   loadingBills={billing.loadingBills}
@@ -529,19 +1093,46 @@ export default function PropertyLeasesPage() {
                   guardActionWithConfig={billing.guardBillingAction}
                   getStatusConfig={billing.getStatusConfig}
                 />
+              </div>
 
-                <BillingUnitTableDesktop
-                  bills={billing.bills}
-                  loadingBills={billing.loadingBills}
-                  propertyDetails={billing.propertyDetails}
-                  router={billing.router}
-                  property_id={billing.property_id}
-                  guardActionWithConfig={billing.guardBillingAction}
-                  getStatusConfig={billing.getStatusConfig}
-                />
-              </>
-            )}
-          </div>
+              {/* ================= PAGINATION ================= */}
+              {billing.bills.length > 10 && (
+                <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    Showing <span className="font-semibold text-gray-900">{billing.bills.length}</span> bills
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* ================= BILLING MODALS ================= */}
+            <PropertyRatesModal
+              isOpen={billing.isModalOpen}
+              onClose={() => billing.setIsModalOpen(false)}
+              billingData={billing.billingData}
+              billingForm={billing.billingForm}
+              propertyDetails={billing.propertyDetails}
+              hasBillingForMonth={billing.hasBillingForMonth}
+              handleInputChange={billing.handleInputChange}
+              handleSaveorUpdateRates={billing.handleSaveorUpdateRates}
+              onBillingUpdated={(updated) => {
+                billing.setBillingData(updated);
+                billing.setHasBillingForMonth(true);
+              }}
+            />
+
+            <UnitMeterReadingsModal
+              isOpen={billing.openMeterList}
+              onClose={() => billing.setOpenMeterList(false)}
+              property_id={billing.property_id}
+            />
+
+            <PropertyBulkMeterReadingModal
+              isOpen={bulkMeterOpen}
+              onClose={() => setBulkMeterOpen(false)}
+              property_id={String(id)}
+            />
+          </>
         )}
       </div>
     </div>

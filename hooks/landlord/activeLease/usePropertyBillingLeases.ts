@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useSWR from "swr";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -9,7 +9,7 @@ import useAuthStore from "@/zustand/authStore";
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
 
-export function usePropertyBilling(propertyId: string) {
+export function usePropertyBillingLeases(propertyId: string) {
     const router = useRouter();
     const { user } = useAuthStore();
     const landlord_id = user?.landlord_id;
@@ -19,14 +19,17 @@ export function usePropertyBilling(propertyId: string) {
         year: new Date().getFullYear(),
     });
 
+    const [openMeterList, setOpenMeterList] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [propertyDetails, setPropertyDetails] = useState<any>(null);
     const [billingData, setBillingData] = useState<any>(null);
     const [hasBillingForMonth, setHasBillingForMonth] = useState(false);
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
     const [configMissing, setConfigMissing] = useState(false);
     const [payoutMissing, setPayoutMissing] = useState(false);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [openMeterList, setOpenMeterList] = useState(false);
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
 
     const [billingForm, setBillingForm] = useState({
         billingPeriod: "",
@@ -36,6 +39,14 @@ export function usePropertyBilling(propertyId: string) {
         waterTotal: "",
     });
 
+    const { data: leasesData, isLoading: loadingLeases, mutate: mutateLeases } = useSWR(
+        propertyId
+            ? `/api/landlord/activeLease/getByProperty?property_id=${propertyId}&month=${selectedPeriod.month}&year=${selectedPeriod.year}`
+            : null,
+        fetcher,
+        { refreshInterval: 5000, revalidateOnFocus: false }
+    );
+
     const { data: billsData, isLoading: loadingBills, mutate: mutateBills } = useSWR(
         propertyId
             ? `/api/landlord/billing/current?property_id=${propertyId}&month=${selectedPeriod.month}&year=${selectedPeriod.year}`
@@ -43,6 +54,7 @@ export function usePropertyBilling(propertyId: string) {
         fetcher
     );
 
+    const leases = leasesData?.leases || [];
     const bills = billsData?.bills || [];
 
     const checkPropertyConfig = async () => {
@@ -67,9 +79,9 @@ export function usePropertyBilling(propertyId: string) {
         }
     };
 
-    const checkDefaultPayoutAccount = async (landlordId: string) => {
+    const checkDefaultPayoutAccount = async (landlord_id: string) => {
         try {
-            const { data } = await axios.get("/api/landlord/payout/getAccount", { params: { landlord_id: landlordId } });
+            const { data } = await axios.get("/api/landlord/payout/getAccount", { params: { landlord_id } });
             const isValid = data?.hasDefaultPayout === true && data?.account && Number(data.account.is_active) === 1;
             setPayoutMissing(!isValid);
         } catch {
@@ -113,9 +125,10 @@ export function usePropertyBilling(propertyId: string) {
 
         const load = async () => {
             try {
+                setIsInitialLoad(true);
                 await Promise.all([
                     checkPropertyConfig(),
-                    checkDefaultPayoutAccount(landlord_id || ""),
+                    checkDefaultPayoutAccount(landlord_id),
                     fetchPropertyDetails(),
                 ]);
             } catch (err) {
@@ -163,8 +176,8 @@ export function usePropertyBilling(propertyId: string) {
         guardBillingAction(async () => {
             await axios.post("/api/landlord/billing/savePropertyConcessionaireRates", {
                 property_id: propertyId,
-                period_start: billingForm.billingPeriod,
-                period_end: billingForm.billingPeriod,
+                period_start: billingForm.periodStart,
+                period_end: billingForm.periodEnd,
                 electricityConsumption: +billingForm.electricityConsumption || 0,
                 electricityTotal: +billingForm.electricityTotal || 0,
                 waterConsumption: +billingForm.waterConsumption || 0,
@@ -181,6 +194,49 @@ export function usePropertyBilling(propertyId: string) {
         });
     };
 
+    const handleEndLease = async (lease: any) => {
+        const result = await Swal.fire({
+            title: "End Lease?",
+            text: "This will permanently mark the lease as completed.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, end lease",
+            confirmButtonColor: "#d33",
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            Swal.fire({ title: "Ending lease...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            await axios.post("/api/landlord/activeLease/endLease", { agreement_id: lease.lease_id });
+            Swal.fire("Success", "Lease completed.", "success");
+            mutateLeases();
+        } catch (err: any) {
+            Swal.fire("Error", err?.response?.data?.message || "Something went wrong.", "error");
+        }
+    };
+
+    const toggleActionMenu = (leaseId: string) => {
+        setOpenActionMenu(openActionMenu === leaseId ? null : leaseId);
+    };
+
+    const getStatus = (lease: any) => (lease.status ?? lease.lease_status)?.toLowerCase();
+
+    const filteredLeases = useMemo(() => {
+        if (!search.trim()) return leases;
+        const q = search.toLowerCase();
+        return leases.filter((l: any) =>
+            l.unit_name?.toLowerCase().includes(q) ||
+            l.tenant_name?.toLowerCase().includes(q) ||
+            l.tenant_email?.toLowerCase().includes(q) ||
+            getStatus(l)?.includes(q)
+        );
+    }, [leases, search]);
+
+    const filteredByStatus = filteredLeases.filter((l: any) => {
+        if (statusFilter === "all") return true;
+        return getStatus(l) === statusFilter;
+    });
+
     const getStatusConfig = (status: string) => {
         switch (status?.toLowerCase()) {
             case "paid": return "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -191,14 +247,17 @@ export function usePropertyBilling(propertyId: string) {
     };
 
     return {
-        property_id: propertyId,
+        propertyId,
         landlord_id,
         router,
 
+        leases,
+        filteredLeases: filteredByStatus,
         bills,
+        loadingLeases,
         loadingBills,
         isInitialLoad,
-        error: billsData?.error,
+        error: leasesData?.error || billsData?.error,
 
         propertyDetails,
         billingData,
@@ -206,11 +265,17 @@ export function usePropertyBilling(propertyId: string) {
         hasBillingForMonth,
         configMissing,
         payoutMissing,
-        isModalOpen,
         openMeterList,
+        isModalOpen,
 
         selectedPeriod,
         setSelectedPeriod,
+        search,
+        setSearch,
+        statusFilter,
+        setStatusFilter,
+        openActionMenu,
+        setOpenActionMenu,
 
         setIsModalOpen,
         setOpenMeterList,
@@ -220,8 +285,11 @@ export function usePropertyBilling(propertyId: string) {
         handleInputChange,
         handleSaveorUpdateRates,
         handleDownloadSummary,
+        handleEndLease,
         guardBillingAction,
         getStatusConfig,
+        toggleActionMenu,
+        mutateLeases,
         mutateBills,
     };
 }

@@ -5,6 +5,7 @@
     <file url="file://$PROJECT_DIR$/app/api/analytics/landlord/getRevenuePerformance/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/cron/subaccount_transaction/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/[landlord_id]/subscription/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
+    <file url="file://$PROJECT_DIR$/app/api/landlord/activeLease/getByProperty/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/payments/checkSettlement/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/payments/years/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />
     <file url="file://$PROJECT_DIR$/app/api/landlord/properties/docs/[propertyId]/route.ts" value="ed68ab1a-5989-490f-9bcb-da4e6db7fb41" />

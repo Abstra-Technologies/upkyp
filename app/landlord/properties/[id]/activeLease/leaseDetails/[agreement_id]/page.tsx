@@ -24,7 +24,7 @@ import LeaseInfo from "@/components/landlord/activeLease/leaseInfo";
 import LeasePayments from "@/components/landlord/activeLease/leasePayments";
 import LeasePDCs from "@/components/landlord/activeLease/LeasePDCs";
 import LeaseBilling from "@/components/landlord/activeLease/LeaseBilling";
-import { usePropertyLeases } from "@/hooks/landlord/activeLease/usePropertyLeases";
+import { usePropertyBillingLeases } from "@/hooks/landlord/activeLease/usePropertyBillingLeases";
 import EKypModal from "@/components/landlord/activeLease/EKypModal";
 import ModifyLeaseDatesModal from "@/components/landlord/activeLease/ModifyLeaseDatesModal";
 import TenantInfoModal from "@/components/landlord/activeLease/TenantInfoModal";
@@ -57,7 +57,7 @@ export default function LeaseDetailsPage() {
   const [tenantModalOpen, setTenantModalOpen] = useState(false);
   const [selectedTenantId, setSelectedTenantId] = useState<string>("");
 
-  const { handleEndLease } = usePropertyLeases(
+  const { handleEndLease } = usePropertyBillingLeases(
     lease?.property_id ? String(lease.property_id) : "",
   );
 

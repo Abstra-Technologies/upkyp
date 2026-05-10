@@ -7,8 +7,6 @@ import Swal from "sweetalert2";
 import Link from "next/link";
 import useSWR from "swr";
 
-import useSubscription from "@/hooks/landlord/subscription/useSubscription";
-import UnitLimitsCard from "@/components/landlord/subscriptions-limitations/UnitLimitsCard";
 import useAuthStore from "@/zustand/authStore";
 
 import UnitsTab from "@/components/landlord/properties/UnitsTab";
@@ -30,7 +28,6 @@ const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 export default function ViewPropertyDetailedPage() {
   const { user } = useAuthStore();
   const landlordId = user?.landlord_id;
-  const { subscription, loadingSubscription } = useSubscription(landlordId);
 
   const {
     property_id,
@@ -68,14 +65,6 @@ export default function ViewPropertyDetailedPage() {
   );
 
   const verificationStatus = verificationData?.[0]?.status || null;
-
-  const currentUnitsCount = units.length;
-  const maxUnits = subscription?.limits?.maxUnits ?? null;
-
-  const reachedUnitLimit = maxUnits !== null && currentUnitsCount >= maxUnits;
-
-  const unitActionsDisabled =
-    loadingSubscription || !subscription || reachedUnitLimit;
 
   const isMobile = typeof window !== "undefined" && window.innerWidth < 1024;
 
@@ -174,31 +163,23 @@ export default function ViewPropertyDetailedPage() {
           {/* Quick Action Buttons */}
             <div
                 id="units-action-buttons"
-                className="grid grid-cols-4 md:grid-cols-4 text-center gap-2.5 mb-4"
+                className="grid grid-cols-2 md:grid-cols-4 gap-2.5 mb-4"
             >
             {/* Add Unit */}
             <button
               onClick={handleAddUnitClick}
-              disabled={unitActionsDisabled}
-              className={`group relative overflow-hidden rounded-xl p-3 md:p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2 ${
-                unitActionsDisabled
-                  ? "bg-gray-100 border border-gray-200 opacity-60 cursor-not-allowed"
-                  : "bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/20 hover:shadow-blue-500/30"
-              }`}
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-blue-500 to-blue-600 shadow-md shadow-blue-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2 active:scale-95"
             >
-              <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${unitActionsDisabled ? "bg-gray-200" : "bg-white/20"}`}>
-                <Plus className={`w-5 h-5 ${unitActionsDisabled ? "text-gray-400" : "text-white"}`} />
+              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-white" />
               </div>
-              <span className={`text-xs font-bold ${unitActionsDisabled ? "text-gray-500" : "text-white"}`}>Add Unit</span>
-              {unitActionsDisabled && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-red-500/50" />
-              )}
+              <span className="text-xs font-bold text-white">Add Unit</span>
             </button>
 
             {/* Invite Tenant */}
             <button
               onClick={() => setInviteModalOpen(true)}
-              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2"
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-violet-500 to-violet-600 shadow-md shadow-violet-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-violet-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2 active:scale-95"
             >
               <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
                 <Users className="w-5 h-5 text-white" />
@@ -209,7 +190,7 @@ export default function ViewPropertyDetailedPage() {
             {/* Active Lease */}
             <Link
               href={`/landlord/properties/${property_id}/activeLease`}
-              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-amber-500 to-orange-600 shadow-md shadow-amber-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2"
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-amber-500 to-orange-600 shadow-md shadow-amber-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2 active:scale-95"
             >
               <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
                 <ScrollText className="w-5 h-5 text-white" />
@@ -220,7 +201,7 @@ export default function ViewPropertyDetailedPage() {
             {/* Utility Cost */}
             <Link
               href={`/landlord/properties/${property_id}/utilities`}
-              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-rose-500 to-pink-600 shadow-md shadow-rose-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2"
+              className="group relative overflow-hidden rounded-xl p-3 md:p-4 bg-gradient-to-br from-rose-500 to-pink-600 shadow-md shadow-rose-500/20 transition-all duration-300 hover:shadow-lg hover:shadow-rose-500/30 hover:-translate-y-0.5 flex flex-col items-center justify-center gap-2 active:scale-95"
             >
               <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
                 <CreditCard className="w-5 h-5 text-white" />
@@ -230,7 +211,7 @@ export default function ViewPropertyDetailedPage() {
           </div>
 
           {/* SEARCH */}
-          <div className="relative w-full max-w-md">
+          <div className="relative w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -244,16 +225,6 @@ export default function ViewPropertyDetailedPage() {
             />
           </div>
         </div>
-
-        {/* ================= UNIT LIMITS ================= */}
-        {!loadingSubscription && (
-          <div className="mb-4 max-w-xl">
-            <UnitLimitsCard
-              subscription={subscription}
-              currentUnitsCount={currentUnitsCount}
-            />
-          </div>
-        )}
 
         {/* ================= UNITS LIST ================= */}
         <div
