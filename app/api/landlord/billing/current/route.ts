@@ -14,9 +14,17 @@ const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 export async function GET(req: NextRequest) {
     try {
         const property_id = req.nextUrl.searchParams.get("property_id");
+        const monthParam = req.nextUrl.searchParams.get("month");
+        const month = monthParam !== null ? parseInt(monthParam) + 1 : new Date().getMonth() + 1;
+        const year = parseInt(req.nextUrl.searchParams.get("year") || String(new Date().getFullYear()));
+
         if (!property_id) {
             return NextResponse.json({ error: "Missing property_id" }, { status: 400 });
         }
+
+        const periodStart = `${year}-${String(month).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const periodEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
         const [rows]: any = await db.query(
             `
@@ -25,7 +33,7 @@ export async function GET(req: NextRequest) {
                     la.status AS lease_status,
                     la.start_date,
                     la.end_date,
-                    la.rent_amount,
+                    COALESCE(NULLIF(la.rent_amount, 0), u.rent_amount, 0) AS rent_amount,
 
                     u.unit_id,
                     u.unit_name,
@@ -43,21 +51,23 @@ export async function GET(req: NextRequest) {
 
                 FROM LeaseAgreement la
                          LEFT JOIN Unit u
-                              ON la.unit_id = u.unit_id
+                               ON la.unit_id = u.unit_id
                          LEFT JOIN Tenant t
-                              ON la.tenant_id = t.tenant_id
+                               ON la.tenant_id = t.tenant_id
                          LEFT JOIN User usr
-                              ON t.user_id = usr.user_id
+                               ON t.user_id = usr.user_id
                          LEFT JOIN Billing b
                                    ON b.lease_id = la.agreement_id
-                                       AND MONTH(b.billing_period) = MONTH(CURDATE())
-                                       AND YEAR(b.billing_period) = YEAR(CURDATE())
+                                       AND MONTH(b.billing_period) = ?
+                                       AND YEAR(b.billing_period) = ?
 
                 WHERE u.property_id = ?
-                  AND la.status IN ('active', 'draft', 'pending', 'sent', 'pending_signature', 'tenant_signed', 'landlord_signed', 'expired')
+                  AND la.status = 'active'
+                  AND la.start_date <= ?
+                  AND (la.end_date IS NULL OR la.end_date >= ?)
                 ORDER BY u.unit_name ASC;
             `,
-            [property_id]
+            [month, year, property_id, periodEnd, periodStart]
         );
 
         // Decrypt helper

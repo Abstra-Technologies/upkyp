@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, FileText, Edit, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { Building2, FileText, Edit, Clock, CheckCircle, AlertCircle, Eye } from "lucide-react";
 
 const statusConfig = {
   paid: { bg: "from-emerald-500 to-green-500", text: "text-emerald-700", icon: CheckCircle, label: "Paid" },
@@ -16,6 +16,7 @@ export default function BillingUnitListMobile({
   router,
   property_id,
   guardActionWithConfig,
+  isCreateBillAllowed,
 }: any) {
   if (!bills.length) return null;
 
@@ -57,26 +58,31 @@ export default function BillingUnitListMobile({
               </div>
             </div>
 
-            <button
-              onClick={() =>
-                guardActionWithConfig(() =>
+            {bill.billing_status === "no_bill" && isCreateBillAllowed ? (
+              <button
+                onClick={() =>
+                  guardActionWithConfig(() =>
+                    router.push(
+                      `/landlord/properties/${property_id}/billing/createUnitBill/${bill.agreement_id || bill.lease_id}`,
+                    ),
+                  )
+                }
+                className="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm"
+              >
+                <FileText className="w-3 h-3" /> Create Unit Bill
+              </button>
+            ) : bill.billing_status !== "no_bill" ? (
+              <button
+                onClick={() =>
                   router.push(
                     `/landlord/properties/${property_id}/billing/createUnitBill/${bill.agreement_id || bill.lease_id}`,
-                  ),
-                )
-              }
-              className="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-semibold shadow-sm"
-            >
-              {bill.billing_status === "draft" || bill.billing_status === "no_bill" ? (
-                <>
-                  <Edit className="w-3 h-3" /> Create Bill
-                </>
-              ) : (
-                <>
-                  <FileText className="w-3 h-3" /> Review
-                </>
-              )}
-            </button>
+                  )
+                }
+                className="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold shadow-sm"
+              >
+                <Eye className="w-3 h-3" /> View Bill
+              </button>
+            ) : null}
           </div>
         );
       })}

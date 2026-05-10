@@ -186,6 +186,7 @@ export function usePropertyBilling(propertyId: string) {
             case "paid": return "bg-emerald-50 text-emerald-700 border-emerald-200";
             case "overdue": return "bg-red-50 text-red-700 border-red-200";
             case "unpaid": return "bg-amber-50 text-amber-700 border-amber-200";
+            case "no_bill": return "bg-gray-50 text-gray-500 border-gray-200";
             default: return "bg-gray-50 text-gray-700 border-gray-200";
         }
     };

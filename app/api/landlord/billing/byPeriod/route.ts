@@ -30,6 +30,10 @@ export async function GET(req: NextRequest) {
             );
         }
 
+        const periodStart = `${year}-${String(month).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const periodEnd = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
         const [rows]: any = await db.query(
             `
             SELECT
@@ -38,7 +42,7 @@ export async function GET(req: NextRequest) {
                 la.status AS lease_status,
                 la.start_date,
                 la.end_date,
-                la.rent_amount,
+                COALESCE(NULLIF(la.rent_amount, 0), u.rent_amount, 0) AS rent_amount,
 
                 u.unit_id,
                 u.unit_name,
@@ -62,10 +66,12 @@ export async function GET(req: NextRequest) {
                 AND MONTH(b.billing_period) = ?
                 AND YEAR(b.billing_period) = ?
             WHERE u.property_id = ?
-              AND la.status IN ('active', 'draft', 'pending', 'sent', 'pending_signature', 'tenant_signed', 'landlord_signed', 'expired')
+              AND la.status = 'active'
+              AND la.start_date <= ?
+              AND (la.end_date IS NULL OR la.end_date >= ?)
             ORDER BY u.unit_name ASC
             `,
-            [month, year, property_id]
+            [month, year, property_id, periodEnd, periodStart]
         );
 
         const safeDec = (val: any) => {
