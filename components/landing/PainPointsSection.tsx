@@ -37,17 +37,17 @@ export default function PainPointsSection() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="text-center mb-14">
+        <div className="text-center mb-8 sm:mb-14">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
               Sound Familiar?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto">
               Managing rental properties shouldn't feel like a second full-time
               job.
             </p>
@@ -55,7 +55,7 @@ export default function PainPointsSection() {
         </div>
 
         {/* Pain Points Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-6 lg:gap-8">
           {painPoints.map((item, index) => (
             <motion.div
               key={index}
@@ -65,17 +65,17 @@ export default function PainPointsSection() {
               transition={{ duration: 0.5, delay: index * 0.1 }}
               className="group relative"
             >
-              <div className="relative bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 border border-red-100/50 hover:border-red-200 transition-all duration-300 h-full">
+              <div className="relative bg-gradient-to-br from-red-50 to-orange-50 rounded-xl sm:rounded-2xl p-3 sm:p-6 border border-red-100/50 hover:border-red-200 transition-all duration-300 h-full">
                 {/* Icon */}
-                <div className="mb-4 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-100 text-red-600">
+                <div className="mb-2 sm:mb-4 inline-flex items-center justify-center w-8 h-8 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-red-100 text-red-600">
                   {item.icon}
                 </div>
 
                 {/* Content */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <h3 className="text-xs sm:text-base lg:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 leading-tight sm:leading-normal">
                   {item.problem}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-gray-600 text-[10px] sm:text-sm leading-relaxed">
                   {item.description}
                 </p>
               </div>

@@ -19,6 +19,11 @@ import {
     ChevronDown,
     ChevronUp,
     SlidersHorizontal,
+    Info,
+    X,
+    Banknote,
+    ArrowDownRight,
+    Clock,
 } from "lucide-react";
 
 
@@ -56,6 +61,7 @@ export default function PaymentsPage() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const [showFilters, setShowFilters] = useState(false);
+    const [showInfoModal, setShowInfoModal] = useState(false);
 
     const clearFilters = () => {
         setSearch("");
@@ -187,10 +193,18 @@ export default function PaymentsPage() {
                             <span className="truncate">Report</span>
                         </button>
 
+                        <button
+                            onClick={() => setShowInfoModal(true)}
+                            className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-white border border-gray-200 text-gray-700 text-xs sm:text-sm font-semibold hover:bg-gray-50"
+                        >
+                            <Info className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
+                            <span className="truncate">What's This?</span>
+                        </button>
+
                         <Link href="/landlord/payouts">
                             <button className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-emerald-500 to-blue-600 text-white text-xs sm:text-sm font-semibold shadow-md hover:scale-95 transition w-full">
                                 <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                <span className="truncate">Payouts</span>
+                                <span className="truncate">Disburse to Bank</span>
                             </button>
                         </Link>
                     </div>
@@ -315,6 +329,56 @@ export default function PaymentsPage() {
                     />
                 </motion.div>
             </div>
+
+            {/* ================= INFO MODAL ================= */}
+            {showInfoModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setShowInfoModal(false)}
+                    />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-hidden"
+                    >
+                        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100">
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <Banknote className="w-5 h-5 text-emerald-600" />
+                                Understanding Payments
+                            </h2>
+                            <button
+                                onClick={() => setShowInfoModal(false)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+
+                        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)] space-y-5">
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <ArrowDownRight className="w-4 h-4 text-emerald-600" />
+                                    Total Payment Transferred to Bank Account
+                                </h3>
+                                <p className="text-sm text-gray-700">
+                                    Payments that have been transferred to the bank account linked to your account.
+                                </p>
+                            </div>
+
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                                    <Clock className="w-4 h-4 text-amber-600" />
+                                    Pending Disbursement to Bank Account
+                                </h3>
+                                <p className="text-sm text-gray-700">
+                                    Payment that is waiting to be sent to their bank accounts.
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
 
             {/* ================= REPORT MODAL ================= */}
             <PaymentReportModal

@@ -40,8 +40,8 @@ export default function ChecklistSetupModal({
         set_lease_dates: false,
         lease_start_date: "",
         lease_end_date: "",
-        include_move_in: false,
-        include_move_out: false,
+        // include_move_in: false,
+        // include_move_out: false,
     });
 
 
@@ -62,13 +62,13 @@ export default function ChecklistSetupModal({
                     ),
                     lease_start_date: formatDateForInput(res.data?.lease_start_date),
                     lease_end_date: formatDateForInput(res.data?.lease_end_date),
-                    include_move_in: r.move_in_checklist === 1,
-                    include_move_out: r.move_out_checklist === 1,
+                    // include_move_in: r.move_in_checklist === 1,
+                    // include_move_out: r.move_out_checklist === 1,
                 };
 
                 setForm(loadedForm);
 
-                if (loadedForm.lease_agreement || loadedForm.set_lease_dates || loadedForm.include_move_in || loadedForm.include_move_out) {
+                if (loadedForm.lease_agreement || loadedForm.set_lease_dates) {
                     setShowDecision(true);
                 }
             })
@@ -86,9 +86,7 @@ export default function ChecklistSetupModal({
 
     const canProceed =
         (showOptions === "agreement") ||
-        (showOptions === "dates" && form.lease_start_date) ||
-        form.include_move_in ||
-        form.include_move_out;
+        (showOptions === "dates" && form.lease_start_date);
 
 
     const handleSave = async () => {
@@ -112,7 +110,7 @@ export default function ChecklistSetupModal({
 
         try {
 
-            const isDatesOnly = showOptions === "dates" && !form.include_move_in && !form.include_move_out;
+            const isDatesOnly = showOptions === "dates";
             
             if (showOptions === "dates") {
                 console.log("Calling updateLeaseDateSet with:", {
@@ -130,7 +128,7 @@ export default function ChecklistSetupModal({
                 console.log("updateLeaseDateSet response:", dateSetRes.data);
             }
 
-            const shouldSaveChecklist = showOptions === "agreement" || form.include_move_in || form.include_move_out;
+            const shouldSaveChecklist = showOptions === "agreement";
                 
             if (shouldSaveChecklist) {
                 const checklistRes = await axios.post(
@@ -138,8 +136,8 @@ export default function ChecklistSetupModal({
                     {
                         agreement_id,
                         lease_agreement: showOptions === "agreement",
-                        move_in_checklist: form.include_move_in,
-                        move_out_checklist: form.include_move_out,
+                        // move_in_checklist: form.include_move_in,
+                        // move_out_checklist: form.include_move_out,
                         security_deposit: showOptions === "agreement",
                         advance_payment: showOptions === "agreement",
                         lease_start_date: form.lease_start_date || null,
@@ -294,7 +292,7 @@ export default function ChecklistSetupModal({
                                     </div>
                                 </div>
 
-                                <div>
+                                {/* <div>
                                     <h3 className="font-semibold text-gray-900 mb-3">
                                         Additional Checklists <span className="text-gray-400 font-normal">(optional)</span>
                                     </h3>
@@ -367,7 +365,7 @@ export default function ChecklistSetupModal({
                                             </div>
                                         </button>
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {showOptions === "dates" && (
                                     <div className="bg-gray-50 rounded-xl p-4 space-y-3">
@@ -410,7 +408,7 @@ export default function ChecklistSetupModal({
                                 >
                                     Cancel
                                 </button>
-                                {showOptions === "dates" && !form.include_move_in && !form.include_move_out ? (
+                                {showOptions === "dates" ? (
                                     <button
                                         onClick={handleSave}
                                         disabled={loading || !canProceed || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)}
@@ -425,9 +423,9 @@ export default function ChecklistSetupModal({
                                 ) : (
                                     <button
                                         onClick={handleSave}
-                                        disabled={loading || !canProceed || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)}
+                                        disabled={loading || !canProceed || hasInvalidDates}
                                         className={`flex-1 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 ${
-                                            !canProceed || loading || hasInvalidDates || (showOptions === "dates" && !form.lease_start_date)
+                                            !canProceed || loading || hasInvalidDates
                                                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                                                 : "bg-gradient-to-r from-blue-600 to-emerald-600 text-white"
                                         }`}

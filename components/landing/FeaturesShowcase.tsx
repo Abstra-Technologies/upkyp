@@ -103,7 +103,7 @@ export default function FeaturesShowcase() {
           onMouseEnter={() => setIsAutoPlaying(false)}
           onMouseLeave={() => setIsAutoPlaying(true)}
         >
-          <div className="relative min-h-[420px] sm:min-h-[500px]">
+          <div className="relative">
             <AnimatePresence mode="wait">
               <motion.div
                 key={current}
@@ -111,46 +111,45 @@ export default function FeaturesShowcase() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.4 }}
-                className="absolute inset-0"
               >
-                {/* Large Background Image */}
-                <div className="absolute inset-0 bg-gray-50">
-                  <Image
-                    src={features[current].image}
-                    alt={features[current].title}
-                    fill
-                    className="object-contain p-6 sm:p-8 lg:p-10"
-                    priority
-                  />
-                </div>
-
-                {/* Gradient overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent sm:via-white/40 sm:to-white/10" />
-
-                {/* Text Content */}
-                <div className="relative z-10 flex flex-col justify-center h-full p-6 sm:p-10 lg:p-14 max-w-lg">
-                <div className="flex items-center gap-3 mb-2">
-                  <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${features[current].gradient} text-white flex items-center justify-center shadow-lg`}
-                  >
-                    {features[current].icon}
+                <div className="flex flex-col">
+                  {/* Screenshot - bigger area */}
+                  <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] lg:aspect-[16/9] bg-gray-50">
+                    <Image
+                      src={features[current].image}
+                      alt={features[current].title}
+                      fill
+                      className="object-contain p-4 sm:p-6 lg:p-8"
+                      priority
+                    />
                   </div>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                    {features[current].title}
-                  </h3>
-                </div>
 
-                <span className={`text-xs font-bold uppercase tracking-wider mb-3 block ${
-                  current === 0 ? "text-blue-600" :
-                  current === 1 ? "text-purple-600" :
-                  current === 2 ? "text-emerald-600" : "text-orange-600"
-                }`}>
-                  Feature {current + 1} of {features.length}
-                </span>
+                  {/* Text Content - below the screenshot */}
+                  <div className="p-5 sm:p-8 pb-16 sm:pb-20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div
+                        className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${features[current].gradient} text-white flex items-center justify-center shadow-lg shrink-0`}
+                      >
+                        {features[current].icon}
+                      </div>
+                      <div>
+                        <h3 className="text-xl sm:text-2xl font-bold text-gray-900">
+                          {features[current].title}
+                        </h3>
+                        <span className={`text-xs font-bold uppercase tracking-wider ${
+                          current === 0 ? "text-blue-600" :
+                          current === 1 ? "text-purple-600" :
+                          current === 2 ? "text-emerald-600" : "text-orange-600"
+                        }`}>
+                          Feature {current + 1} of {features.length}
+                        </span>
+                      </div>
+                    </div>
 
-                  <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
-                    {features[current].description}
-                  </p>
+                    <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                      {features[current].description}
+                    </p>
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>

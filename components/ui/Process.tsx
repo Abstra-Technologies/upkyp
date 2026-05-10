@@ -9,6 +9,9 @@ import {
   Sparkles,
   ArrowRight,
   Layers,
+  UserCheck,
+  RefreshCw,
+  ShieldCheck,
 } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -110,7 +113,7 @@ export default function Process() {
               </div>
             </motion.div>
 
-            {/* Layer Cards */}
+            {/* Layer Cards - hidden on mobile to prevent duplication */}
             {layers.map((layer, index) => (
               <motion.div
                 key={index}
@@ -118,6 +121,7 @@ export default function Process() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
+                className="hidden lg:block"
               >
                 <div
                   className={`relative ${layer.bg} ${layer.border} border-2 rounded-xl p-4 sm:p-5 hover:shadow-lg transition-all duration-300 h-full`}
@@ -155,8 +159,8 @@ export default function Process() {
             </div>
           </div>
 
-          {/* Mobile: Cards in 2x2 grid */}
-          <div className="lg:hidden grid grid-cols-2 gap-3">
+          {/* Mobile: Cards in one row */}
+          <div className="lg:hidden grid grid-cols-4 gap-2">
             {layers.map((layer, index) => (
               <motion.div
                 key={index}
@@ -191,6 +195,78 @@ export default function Process() {
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gray-900 text-white shadow-lg">
             <Layers className="w-5 h-5 text-emerald-400" />
             <span className="text-sm font-semibold">One Platform. One Ecosystem.</span>
+          </div>
+        </div>
+
+        {/* Payment Infrastructure Section */}
+        <div className="mt-12 sm:mt-16">
+          <div className="text-center mb-8 sm:mb-10">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              Built with  Xendit — Secure by Design Payment Infrastructure
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+              Enterprise-grade payment infrastructure, invisible to your tenants.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            {[
+              {
+                icon: <UserCheck className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Dedicated Landlord Subaccounts",
+                desc: "Each landlord is assigned a managed Xendit subaccount within the master platform to ensure secure and isolated fund management.",
+                gradient: "from-blue-500 to-blue-600",
+                bg: "bg-blue-50",
+                border: "border-blue-200",
+                iconBg: "text-blue-600",
+              },
+              {
+                icon: <CreditCard className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Unique Virtual Accounts (VAs)",
+                desc: "The system generates a specific VA number for every tenant, acting as a dedicated gateway for their individual rent payments.",
+                gradient: "from-purple-500 to-purple-600",
+                bg: "bg-purple-50",
+                border: "border-purple-200",
+                iconBg: "text-purple-600",
+              },
+              {
+                icon: <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Automated Reconciliation",
+                desc: "Because each VA is unique, the platform instantly identifies the payer and reconciles the invoice the moment funds are received.",
+                gradient: "from-emerald-500 to-emerald-600",
+                bg: "bg-emerald-50",
+                border: "border-emerald-200",
+                iconBg: "text-emerald-600",
+              },
+              {
+                icon: <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />,
+                title: "Zero-Touch Verification",
+                desc: "Eliminates the need for landlords to manually check bank statements or verify payment — the dashboard updates automatically.",
+                gradient: "from-orange-500 to-orange-600",
+                bg: "bg-orange-50",
+                border: "border-orange-200",
+                iconBg: "text-orange-600",
+              },
+            ].map((item, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.1 }}
+                className={`${item.bg} ${item.border} border-2 rounded-xl p-4 sm:p-5 hover:shadow-lg transition-all duration-300 h-full`}
+              >
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br ${item.gradient} flex items-center justify-center text-white shadow-lg mb-3`}>
+                  {item.icon}
+                </div>
+                <h4 className="text-sm sm:text-base font-bold text-gray-900 mb-1.5">
+                  {item.title}
+                </h4>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                  {item.desc}
+                </p>
+              </motion.div>
+            ))}
           </div>
         </div>
 

@@ -49,7 +49,7 @@ export default function PaymentSummaryGrid({ landlord_id }: Props) {
             valueColor: "text-blue-700",
         },
         {
-            title: "Total Disbursed Payments",
+            title: "Total Payment Transferred to Bank Account",
             value: formatCurrency(summary.totalDisbursed),
             icon: ArrowDownRight,
             bg: "bg-emerald-50",
@@ -58,7 +58,7 @@ export default function PaymentSummaryGrid({ landlord_id }: Props) {
             valueColor: "text-emerald-700",
         },
         {
-            title: "Pending Payouts",
+            title: "Pending Disbursement to Bank Account",
             value: formatCurrency(summary.pendingPayouts),
             icon: Clock,
             bg: "bg-amber-50",
@@ -66,7 +66,7 @@ export default function PaymentSummaryGrid({ landlord_id }: Props) {
             iconColor: "text-amber-600",
             valueColor: "text-amber-700",
             link: "/landlord/payouts",
-            helper: "View payout schedule",
+            helper: "View disbursement schedule",
         },
     ];
 
