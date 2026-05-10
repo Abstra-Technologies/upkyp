@@ -109,115 +109,164 @@ export default function QuickActions({
         },
     ];
 
-    const mobileActions = [
+    const actionItems = [
+        {
+            label: "Add Property",
+            tag: "List a new unit",
+            icon: Home,
+            onClick: () => handleAction(onAddProperty),
+            gradient: "from-blue-500 to-blue-600",
+            disabled: !emailVerified,
+        },
+        {
+            label: "Invite Tenant",
+            tag: "Add a renter",
+            icon: UserPlus,
+            onClick: () => handleAction(onInviteTenant),
+            gradient: "from-emerald-500 to-emerald-600",
+            disabled: !emailVerified,
+        },
+        {
+            label: "Announcement",
+            tag: "Notify tenants",
+            icon: Megaphone,
+            onClick: () => handleAction(onAnnouncement),
+            gradient: "from-purple-500 to-purple-600",
+            disabled: !emailVerified,
+        },
+        {
+            label: "Work Orders",
+            tag: "Request a repair",
+            icon: List,
+            onClick: () => handleAction(onWorkOrder),
+            gradient: "from-orange-500 to-orange-600",
+            disabled: !emailVerified,
+        },
+    ];
 
+    const viewItems = [
         {
             label: "Properties",
+            tag: "View all units",
             href: "/landlord/properties",
             icon: Building,
             gradient: "from-emerald-500 to-teal-500",
         },
         {
-            label: "My Tenants",
+            label: "Tenants",
+            tag: "Manage renters",
             href: "/landlord/tenants",
             icon: Users,
             gradient: "from-purple-500 to-pink-500",
         },
         {
-            label: "Payouts",
+            label: "Disbursements",
+            tag: "Payouts & earnings",
             href: "/landlord/payouts",
             icon: Wallet,
             gradient: "from-cyan-500 to-blue-500",
         },
-
-        {
-            label: "Announcements",
-            href: "/landlord/announcement",
-            icon: Megaphone,
-            gradient: "from-orange-500 to-red-500",
-        },
         {
             label: "Messages",
+            tag: "Chat inbox",
             href: "/landlord/chat",
             icon: MessageSquareMore,
             gradient: "from-green-500 to-emerald-500",
         },
         {
             label: "Calendar",
+            tag: "Schedule & events",
             href: "/landlord/calendar",
             icon: Calendar,
             gradient: "from-rose-500 to-pink-500",
         },
-
-        // {
-        //     label: "Transactions",
-        //     href: "/landlord/payments",
-        //     icon: ReceiptText,
-        //     gradient: "from-amber-500 to-orange-500",
-        // },
         {
-            label: "Work Orders",
+            label: "Maintenance",
+            tag: "Work order requests",
             href: "/landlord/maintenance",
             icon: Construction,
             gradient: "from-yellow-500 to-amber-500",
         },
         {
             label: "Expenses",
+            tag: "Record spending",
             icon: DollarSign,
             gradient: "from-rose-500 to-pink-500",
             onClick: () => setExpenseOpen(true),
         },
         {
-            label: "My Profile",
+            label: "Profile",
+            tag: "My account",
             href: "/commons/profile",
             icon: UserPen,
             gradient: "from-blue-500 to-indigo-500",
         },
-
     ];
+
+    function renderItem({ label, tag, href, icon: Icon, gradient, onClick, disabled }: {
+        label: string; tag: string; href?: string; icon: any; gradient: string; onClick?: () => void; disabled?: boolean;
+    }) {
+        const content = (
+            <>
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}>
+                    <Icon className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-[9px] font-bold text-gray-800 dark:text-gray-100 text-center leading-none">
+                    {label}
+                </span>
+                <span className="text-[7px] text-gray-400 dark:text-gray-500 text-center leading-none">
+                    {tag}
+                </span>
+            </>
+        );
+
+        const classes = "flex flex-col items-center justify-center gap-1 py-2.5 px-0.5 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-90 transition-all " + (disabled ? "opacity-40 cursor-not-allowed" : "");
+
+        if (onClick) {
+            return (
+                <button
+                    key={label}
+                    onClick={onClick}
+                    disabled={disabled}
+                    className={classes}
+                    title={disabled ? "Verify your email first" : label}
+                >
+                    {content}
+                </button>
+            );
+        }
+
+        return (
+            <Link
+                key={label}
+                href={href!}
+                className={classes}
+            >
+                {content}
+            </Link>
+        );
+    }
 
     return (
         <>
-            <div className="md:hidden">
-                <div className={`${SECTION_HEADER} mb-3 px-1`}>
-                    <span className={GRADIENT_DOT} />
-                    <h2 className={`${SECTION_TITLE} text-xs`}>Quick Actions</h2>
+            <div className="md:hidden space-y-5">
+                <div>
+                    <div className="flex items-center gap-2 mb-3 px-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                        <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Do Something</h3>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                        {actionItems.map((item) => renderItem(item))}
+                    </div>
                 </div>
-
-                <div className="grid grid-cols-3 gap-2 px-0.5">
-                    {mobileActions.map(({ label, href, icon: Icon, gradient, onClick }) => (
-                        onClick ? (
-                            <button
-                                key={label}
-                                onClick={onClick}
-                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-95 transition-transform"
-                            >
-                                <div
-                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
-                                >
-                                    <Icon className="w-5 h-5 text-white" />
-                                </div>
-                                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
-                                    {label}
-                                </span>
-                            </button>
-                        ) : (
-                            <Link
-                                key={label}
-                                href={href!}
-                                className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm active:scale-95 transition-transform"
-                            >
-                                <div
-                                    className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-sm`}
-                                >
-                                    <Icon className="w-5 h-5 text-white" />
-                                </div>
-                                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">
-                                    {label}
-                                </span>
-                            </Link>
-                        )
-                    ))}
+                <div>
+                    <div className="flex items-center gap-2 mb-3 px-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400" />
+                        <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quick View</h3>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                        {viewItems.map((item) => renderItem(item))}
+                    </div>
                 </div>
             </div>
 
