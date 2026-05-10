@@ -17,6 +17,7 @@ export default function BillingUnitListMobile({
   property_id,
   guardActionWithConfig,
   isCreateBillAllowed,
+  onViewBill,
 }: any) {
   if (!bills.length) return null;
 
@@ -73,11 +74,7 @@ export default function BillingUnitListMobile({
               </button>
             ) : bill.billing_status !== "no_bill" ? (
               <button
-                onClick={() =>
-                  router.push(
-                    `/landlord/properties/${property_id}/billing/createUnitBill/${bill.agreement_id || bill.lease_id}`,
-                  )
-                }
+                onClick={() => onViewBill?.(bill)}
                 className="w-full mt-2 inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold shadow-sm"
               >
                 <Eye className="w-3 h-3" /> View Bill

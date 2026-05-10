@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import crypto from "crypto";
 import { sendInviteTenantEmail } from "@/lib/email/sendInviteTenantEmail";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
+import { generateLeaseId } from "@/utils/id_generator";
 
 function generateShortCode(length: number = 4): string {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -76,6 +77,8 @@ export async function POST(req: NextRequest) {
             startDate,
             endDate,
             datesDeferred = false,
+            rentAmount,
+            securityDepositAmount,
         } = await req.json();
 
         if (!email || !unitId || !unitName) {
@@ -221,6 +224,37 @@ export async function POST(req: NextRequest) {
                 propertyName = propRows[0].property_name;
             }
 
+            let leaseId = null;
+            if (!datesDeferred) {
+                while (true) {
+                    leaseId = generateLeaseId();
+                    try {
+                        await conn.query(
+                            `INSERT INTO LeaseAgreement (agreement_id, unit_id, start_date, end_date, rent_amount, security_deposit_amount, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'draft', NOW())`,
+                            [
+                                leaseId,
+                                unitId,
+                                startDate,
+                                endDate,
+                                rentAmount || 0,
+                                securityDepositAmount || 0,
+                            ]
+                        );
+                        break;
+                    } catch (err: any) {
+                        if (err.code === "ER_DUP_ENTRY") continue;
+                        throw err;
+                    }
+                }
+
+                if (rentAmount && parseFloat(rentAmount) > 0) {
+                    await conn.query(
+                        `UPDATE Unit SET rent_amount = ? WHERE unit_id = ?`,
+                        [rentAmount, unitId]
+                    );
+                }
+            }
+
             await conn.query(
                 `UPDATE Unit SET status = 'reserved' WHERE unit_id = ?`,
                 [unitId]
@@ -266,6 +300,7 @@ export async function POST(req: NextRequest) {
                 timeLeft: 600,
                 propertyName,
                 datesDeferred,
+                leaseId,
                 message: "Invite sent and unit reserved.",
             });
         } catch (err) {

@@ -68,42 +68,54 @@ export async function POST(req: Request) {
         }
 
         /* ===============================
-           3️⃣ Create LeaseAgreement (DRAFT) – UNIQUE GUARANTEED
+           3️⃣ Find or create LeaseAgreement
+           First check if a draft lease was created at invite time
         =============================== */
-        while (true) {
-            leaseId = generateLeaseId();
+        const [existingLeases]: any = await conn.query(
+            `SELECT agreement_id FROM LeaseAgreement WHERE unit_id = ? AND status = 'draft' LIMIT 1`,
+            [invite.unitId]
+        );
 
-            try {
-                await conn.query(
-                    `
-                    INSERT INTO LeaseAgreement (
-                        agreement_id,
-                        tenant_id,
-                        unit_id,
-                        start_date,
-                        end_date,
-                        status,
-                        created_at
-                    )
-                    VALUES (?, ?, ?, ?, ?, 'draft', NOW())
-                    `,
-                    [
-                        leaseId,
-                        tenant.tenant_id,
-                        invite.unitId,
-                        invite.start_date ?? null,
-                        invite.end_date ?? null,
-                    ]
-                );
+        if (existingLeases.length > 0) {
+            leaseId = existingLeases[0].agreement_id;
+            await conn.query(
+                `UPDATE LeaseAgreement SET tenant_id = ?, status = 'active', updated_at = NOW() WHERE agreement_id = ?`,
+                [tenant.tenant_id, leaseId]
+            );
+        } else {
+            while (true) {
+                leaseId = generateLeaseId();
 
-                // ✅ Insert succeeded → unique lease ID
-                break;
-            } catch (err: any) {
-                if (err.code === "ER_DUP_ENTRY") {
-                    // 🔁 Collision → generate again
-                    continue;
+                try {
+                    await conn.query(
+                        `
+                        INSERT INTO LeaseAgreement (
+                            agreement_id,
+                            tenant_id,
+                            unit_id,
+                            start_date,
+                            end_date,
+                            status,
+                            created_at
+                        )
+                        VALUES (?, ?, ?, ?, ?, 'active', NOW())
+                        `,
+                        [
+                            leaseId,
+                            tenant.tenant_id,
+                            invite.unitId,
+                            invite.start_date ?? null,
+                            invite.end_date ?? null,
+                        ]
+                    );
+
+                    break;
+                } catch (err: any) {
+                    if (err.code === "ER_DUP_ENTRY") {
+                        continue;
+                    }
+                    throw err;
                 }
-                throw err; // ❌ real failure
             }
         }
 

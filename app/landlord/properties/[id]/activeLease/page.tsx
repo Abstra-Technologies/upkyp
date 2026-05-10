@@ -32,6 +32,7 @@ import { LeaseCardSkeleton } from "@/components/Commons/SkeletonLoaders";
 import PropertyRatesModal from "@/components/landlord/properties/utilityRatesSetter";
 import UnitMeterReadingsModal from "@/components/landlord/unitBilling/UnitMeterReadingsModal";
 import PropertyBulkMeterReadingModal from "@/components/landlord/activeLease/PropertyBulkMeterReadingModal";
+import BillingDetailModal from "@/components/landlord/property-billing/BillingDetailModal";
 import BillingRateStatus from "@/components/landlord/property-billing/BillingRateStatus";
 import BillingUnitListMobile from "@/components/landlord/property-billing/BillingUnitListMobile";
 import BillingUnitTableDesktop from "@/components/landlord/property-billing/BillingUnitTableDesktop";
@@ -44,7 +45,7 @@ export default function PropertyLeasesPage() {
   const router = useRouter();
 
   const [mode, setMode] = useState<"lease" | "billing">("lease");
-  const [statusFilter, setStatusFilter] = useState("active");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [termFilter, setTermFilter] = useState("all");
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<string>("tenant");
@@ -72,6 +73,7 @@ export default function PropertyLeasesPage() {
   const [checklistOpen, setChecklistOpen] = useState(false);
   const [selectedLease, setSelectedLease] = useState<any>(null);
   const [bulkMeterOpen, setBulkMeterOpen] = useState(false);
+  const [selectedBillForDetail, setSelectedBillForDetail] = useState<any>(null);
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -665,6 +667,8 @@ export default function PropertyLeasesPage() {
                   <tbody className="divide-y divide-gray-100">
                     {paginatedLeases.map((lease: any) => {
                       const isSelected = selectedRows.has(lease.lease_id);
+                      const leaseStatus = (lease.status ?? lease.lease_status)?.toLowerCase();
+                      const isDraft = leaseStatus === "draft";
                       return (
                         <tr
                           key={lease.lease_id}
@@ -749,27 +753,39 @@ export default function PropertyLeasesPage() {
                           {/* Actions */}
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-1">
-                              <button
-                                onClick={() => handlePrimaryAction(lease)}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="View Details"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleExtendLease(lease)}
-                                className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                title="Extend Lease"
-                              >
-                                <Pencil className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleEndLease(lease)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                title="End Lease"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                              {isDraft ? (
+                                <button
+                                  onClick={() => handlePrimaryAction(lease)}
+                                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all active:scale-95"
+                                >
+                                  <FileText className="w-3.5 h-3.5" />
+                                  Setup Lease
+                                </button>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handlePrimaryAction(lease)}
+                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                    title="View Details"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleExtendLease(lease)}
+                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                                    title="Extend Lease"
+                                  >
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleEndLease(lease)}
+                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="End Lease"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -1142,7 +1158,7 @@ export default function PropertyLeasesPage() {
                                 </button>
                               ) : !isNoBill ? (
                                 <button
-                                  onClick={() => router.push(`/landlord/properties/${id}/billing/createUnitBill/${bill.lease_id}`)}
+                                  onClick={() => setSelectedBillForDetail(bill)}
                                   className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-700 bg-gray-100 border border-gray-200 rounded-lg hover:bg-gray-200 transition-all active:scale-95"
                                 >
                                   <Eye className="w-3.5 h-3.5" />
@@ -1179,6 +1195,7 @@ export default function PropertyLeasesPage() {
                   guardActionWithConfig={billing.guardBillingAction}
                   getStatusConfig={billing.getStatusConfig}
                   isCreateBillAllowed={billingMonth === currentMonth && billingYear === currentYear}
+                  onViewBill={(bill: any) => setSelectedBillForDetail(bill)}
                 />
               </div>
 
@@ -1218,6 +1235,15 @@ export default function PropertyLeasesPage() {
               isOpen={bulkMeterOpen}
               onClose={() => setBulkMeterOpen(false)}
               property_id={String(id)}
+            />
+
+            <BillingDetailModal
+              isOpen={!!selectedBillForDetail}
+              onClose={() => setSelectedBillForDetail(null)}
+              billing_id={selectedBillForDetail?.billing_id || ""}
+              lease_id={selectedBillForDetail?.lease_id || ""}
+              month={billingMonth}
+              year={billingYear}
             />
           </>
         )}

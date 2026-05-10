@@ -13,7 +13,6 @@ import UnitsTab from "@/components/landlord/properties/UnitsTab";
 import ErrorBoundary from "@/components/Commons/ErrorBoundary";
 import AIUnitGenerator from "@/components/landlord/ai/AIUnitGenerator";
 import InviteTenantModal from "@/components/landlord/properties/InviteTenantModalPerProperty";
-import BulkImportUnitModal from "@/components/landlord/properties/BulkImportUnitModal";
 import AddUnitModal from "@/components/landlord/properties/AddUnitModal";
 
 import { usePropertyUnitsPage } from "@/hooks/landlord/usePropertyUnitsPage";

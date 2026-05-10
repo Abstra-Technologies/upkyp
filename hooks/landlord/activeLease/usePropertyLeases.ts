@@ -28,15 +28,15 @@ export function usePropertyLeases(propertyId: string) {
     );
 
     const filteredLeases = useMemo(() => {
-        if (!search.trim()) return activeLeasesOnly;
+        if (!search.trim()) return leases;
         const q = search.toLowerCase();
-        return activeLeasesOnly.filter((l: any) =>
+        return leases.filter((l: any) =>
             l.unit_name?.toLowerCase().includes(q) ||
             l.tenant_name?.toLowerCase().includes(q) ||
             l.tenant_email?.toLowerCase().includes(q) ||
             (l.status ?? l.lease_status)?.toLowerCase().includes(q)
         );
-    }, [activeLeasesOnly, search]);
+    }, [leases, search]);
 
     const scorecards = {
         total: leases.length,

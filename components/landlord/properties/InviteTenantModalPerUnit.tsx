@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { Mail, Copy, Check, Clock, X, RefreshCw } from "lucide-react";
+import LeaseConfigForm from "./LeaseConfigForm";
 
 interface InviteTenantModalPerUnitProps {
   unitId: string | number;
@@ -41,9 +42,12 @@ export default function InviteTenantModalPerUnit({
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
-  const [setDatesNow, setSetDatesNow] = useState(false);
+  const [configureLease, setConfigureLease] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [rentAmount, setRentAmount] = useState("");
+  const [securityDeposit, setSecurityDeposit] = useState("");
+  const [unitRent, setUnitRent] = useState<number>(0);
 
   const fetchExistingInvite = useCallback(async () => {
     try {
@@ -60,6 +64,21 @@ export default function InviteTenantModalPerUnit({
   useEffect(() => {
     fetchExistingInvite();
   }, [fetchExistingInvite]);
+
+  useEffect(() => {
+    async function fetchUnitRent() {
+      try {
+        const res = await axios.get(`/api/unitListing/getUnitListings?unit_id=${unitId}`);
+        const data = Array.isArray(res.data) ? res.data[0] : null;
+        if (data?.rent_amount) {
+          setUnitRent(Number(data.rent_amount));
+        }
+      } catch {
+        setUnitRent(0);
+      }
+    }
+    if (unitId) fetchUnitRent();
+  }, [unitId]);
 
   const calculateTimeLeft = useCallback(() => {
     if (!existingInvite?.expiresAt && !inviteResult?.expiresAt) return 0;
@@ -115,16 +134,16 @@ export default function InviteTenantModalPerUnit({
       return;
     }
 
-    if (inviteMethod === "email" && setDatesNow) {
-      if (!startDate || !endDate) {
-        Swal.fire("Missing Dates", "Please provide both start and end dates.", "warning");
-        return;
+      if (configureLease) {
+        if (!startDate || !endDate) {
+          Swal.fire("Missing Dates", "Please provide both start and end dates.", "warning");
+          return;
+        }
+        if (new Date(startDate) >= new Date(endDate)) {
+          Swal.fire("Invalid Dates", "End date must be after start date.", "warning");
+          return;
+        }
       }
-      if (new Date(startDate) >= new Date(endDate)) {
-        Swal.fire("Invalid Dates", "End date must be after start date.", "warning");
-        return;
-      }
-    }
 
     if (existingInvite) {
       const confirm = await Swal.fire({
@@ -149,7 +168,7 @@ export default function InviteTenantModalPerUnit({
         const newInvite = {
           code: res.data.code,
           expiresAt: new Date(res.data.expiresAt),
-          email: inviteMethod === "email" ? email : null,
+          email: inviteMethod === "email" ? email : "",
         };
 
         setInviteResult(newInvite);
@@ -159,8 +178,8 @@ export default function InviteTenantModalPerUnit({
           email: inviteMethod === "email" ? email : "",
           status: "PENDING",
           expiresAt: res.data.expiresAt,
-          startDate: setDatesNow ? startDate : null,
-          endDate: setDatesNow ? endDate : null,
+          startDate: configureLease ? startDate : null,
+          endDate: configureLease ? endDate : null,
           timeLeft: res.data.timeLeft,
         });
         setTimeLeft(res.data.timeLeft);
@@ -185,13 +204,15 @@ export default function InviteTenantModalPerUnit({
         unitId,
         unitName,
         inviteMethod: inviteMethod,
-        datesDeferred: !setDatesNow,
+        datesDeferred: !configureLease,
+        rentAmount: configureLease ? rentAmount : null,
+        securityDepositAmount: configureLease ? securityDeposit : null,
       };
 
       if (inviteMethod === "email") {
         payload.email = email;
-        payload.startDate = setDatesNow ? startDate : null;
-        payload.endDate = setDatesNow ? endDate : null;
+        payload.startDate = configureLease ? startDate : null;
+        payload.endDate = configureLease ? endDate : null;
       }
 
       const res = await axios.post("/api/invite/perUnit", payload);
@@ -203,8 +224,8 @@ export default function InviteTenantModalPerUnit({
           email: email,
           status: "PENDING",
           expiresAt: res.data.expiresAt,
-          startDate: setDatesNow ? startDate : null,
-          endDate: setDatesNow ? endDate : null,
+          startDate: configureLease ? startDate : null,
+          endDate: configureLease ? endDate : null,
           timeLeft: res.data.timeLeft,
         });
         setTimeLeft(res.data.timeLeft);
@@ -401,46 +422,19 @@ export default function InviteTenantModalPerUnit({
                 </div>
               )}
 
-              {inviteMethod === "email" && (
-                <div className="p-3 rounded-xl border bg-gray-50">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={setDatesNow}
-                      onChange={() => setSetDatesNow((prev) => !prev)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    Set lease dates now
-                  </label>
-                </div>
-              )}
-
-              {setDatesNow && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      Lease Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-1 block">
-                      Lease End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="w-full px-3 py-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                    />
-                  </div>
-                </div>
-              )}
+              <LeaseConfigForm
+                configureLease={configureLease}
+                onToggle={() => setConfigureLease((prev: boolean) => !prev)}
+                startDate={startDate}
+                endDate={endDate}
+                rentAmount={rentAmount}
+                securityDeposit={securityDeposit}
+                onStartDateChange={setStartDate}
+                onEndDateChange={setEndDate}
+                onRentAmountChange={setRentAmount}
+                onSecurityDepositChange={setSecurityDeposit}
+                rentFromUnit={unitRent}
+              />
 
               <button
                 onClick={handleInvite}

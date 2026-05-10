@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { HelpCircle, X, Clock, Copy, Check, RefreshCw } from "lucide-react";
 import { useOnboarding } from "@/hooks/useOnboarding";
 import { inviteTenantTourSteps } from "@/lib/onboarding/inviteTenantTourSteps";
+import LeaseConfigForm from "./LeaseConfigForm";
 
 interface Props {
   propertyId: string | number;
@@ -35,9 +36,12 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [copied, setCopied] = useState(false);
 
-  const [setDatesNow, setSetDatesNow] = useState(false);
+  const [configureLease, setConfigureLease] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [rentAmount, setRentAmount] = useState("");
+  const [securityDeposit, setSecurityDeposit] = useState("");
+  const [unitRent, setUnitRent] = useState<number>(0);
 
   const { startTour } = useOnboarding({
     tourId: "invite_tenant_modal",
@@ -107,6 +111,15 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
     }
   }, [unitId, fetchExistingInvite]);
 
+  useEffect(() => {
+    const selected = units.find((u) => String(u.unit_id) === String(unitId));
+    if (selected) {
+      setUnitRent(selected.rent_amount || 0);
+    } else {
+      setUnitRent(0);
+    }
+  }, [unitId, units]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -135,12 +148,12 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
       return;
     }
 
-    if (setDatesNow) {
+    if (configureLease) {
       if (!startDate || !endDate) {
         Swal.fire(
           "Missing Dates",
           "Please provide both start and end dates.",
-          "warning",
+          "warning"
         );
         return;
       }
@@ -148,12 +161,11 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
         Swal.fire(
           "Invalid Dates",
           "End date must be after start date.",
-          "warning",
+          "warning"
         );
         return;
       }
     }
-
     const selectedUnit = units.find(
       (u) => String(u.unit_id) === String(unitId),
     );
@@ -168,9 +180,11 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
         email,
         unitId,
         unitName: selectedUnit.unit_name,
-        datesDeferred: !setDatesNow,
-        startDate: setDatesNow ? startDate : null,
-        endDate: setDatesNow ? endDate : null,
+        datesDeferred: !configureLease,
+        startDate: configureLease ? startDate : null,
+        endDate: configureLease ? endDate : null,
+        rentAmount: configureLease ? rentAmount : null,
+        securityDepositAmount: configureLease ? securityDeposit : null,
       });
 
       if (res.data.existing) {
@@ -180,8 +194,8 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
           email: email,
           status: "PENDING",
           expiresAt: res.data.expiresAt,
-          startDate: setDatesNow ? startDate : null,
-          endDate: setDatesNow ? endDate : null,
+          startDate: configureLease ? startDate : null,
+          endDate: configureLease ? endDate : null,
           timeLeft: res.data.timeLeft,
         });
         setTimeLeft(res.data.timeLeft);
@@ -389,50 +403,19 @@ return (
                                 )}
                             </div>
 
-                            <div className="p-4 rounded-xl border-2 border-gray-100 bg-gray-50">
-                                <label className="flex items-center gap-3 text-sm font-medium text-gray-700 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={setDatesNow}
-                                        onChange={() => setSetDatesNow((prev) => !prev)}
-                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 w-5 h-5"
-                                    />
-                                    <span>Set lease dates now</span>
-                                </label>
-                                <p className="text-xs text-gray-500 mt-2 ml-8">
-                                    You can also set lease dates later during agreement setup.
-                                </p>
-                            </div>
-
-                            {setDatesNow && (
-                                <div className="space-y-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-2">
-                                            Lease Start Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
-                                            min={new Date().toISOString().split('T')[0]}
-                                            className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-700 block mb-2">
-                                            Lease End Date
-                                        </label>
-                                        <input
-                                            type="date"
-                                            value={endDate}
-                                            onChange={(e) => setEndDate(e.target.value)}
-                                            min={startDate || new Date().toISOString().split('T')[0]}
-                                            className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            <LeaseConfigForm
+                                configureLease={configureLease}
+                                onToggle={() => setConfigureLease((prev: boolean) => !prev)}
+                                startDate={startDate}
+                                endDate={endDate}
+                                rentAmount={rentAmount}
+                                securityDeposit={securityDeposit}
+                                onStartDateChange={setStartDate}
+                                onEndDateChange={setEndDate}
+                                onRentAmountChange={setRentAmount}
+                                onSecurityDepositChange={setSecurityDeposit}
+                                rentFromUnit={unitRent}
+                            />
                         </>
                     )}
                 </div>

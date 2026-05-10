@@ -20,7 +20,6 @@ export async function PUT(req: NextRequest) {
             advance_payment_amount = 0,
         } = body;
 
-        // ✅ Validate BEFORE transaction
         if (!agreement_id || !start_date) {
             return NextResponse.json(
                 { error: "Agreement ID and start date are required" },
@@ -47,6 +46,13 @@ export async function PUT(req: NextRequest) {
         }
 
         const { tenant_id, unit_id, xendit_customer_id: existingCustomerId } = leaseRows[0];
+
+        // ✅ Get unit rent amount
+        const [unitRows]: any = await connection.execute(
+            `SELECT rent_amount FROM Unit WHERE unit_id = ? LIMIT 1`,
+            [unit_id]
+        );
+        const unitRentAmount = unitRows?.[0]?.rent_amount || 0;
 
         // ✅ Get landlord Xendit account
         const [landlordRow]: any = await connection.execute(
@@ -117,6 +123,7 @@ export async function PUT(req: NextRequest) {
                     start_date = ?,
                     end_date = ?,
                     status = 'active',
+                    rent_amount = ?,
                     security_deposit_amount = ?,
                     advance_payment_amount = ?,
                     grace_period_days = 3,
@@ -126,6 +133,7 @@ export async function PUT(req: NextRequest) {
                 [
                     start_date,
                     end_date,
+                    unitRentAmount,
                     security_deposit_amount,
                     advance_payment_amount,
                     xenditCustomerId,

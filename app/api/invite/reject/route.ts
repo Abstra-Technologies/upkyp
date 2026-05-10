@@ -71,7 +71,15 @@ export async function POST(req: NextRequest) {
         );
 
         /* ===============================
-           4️⃣ Notify landlord (REUSABLE)
+           4️⃣ Delete draft lease agreement if one exists
+        =============================== */
+        await conn.query(
+            `DELETE FROM LeaseAgreement WHERE unit_id = ? AND status = 'draft'`,
+            [invite.unitId]
+        );
+
+        /* ===============================
+           6️⃣ Notify landlord (REUSABLE)
         =============================== */
         const [landlordRows]: any = await conn.query(
             `

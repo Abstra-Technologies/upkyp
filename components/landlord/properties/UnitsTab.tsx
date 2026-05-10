@@ -10,7 +10,6 @@ import {
     ChevronLeft,
     ChevronRight,
     UserPlus,
-    MoreVertical,
     ImageOff,
     ShieldCheck,
     AlertTriangle,
