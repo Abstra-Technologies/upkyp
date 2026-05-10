@@ -2,23 +2,26 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { generateLeaseId } from "@/utils/id_generator";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
+import { getSessionUser } from "@/lib/auth/auth";
 
 //  TENANT: invitation accept. process with lease draft.
 
 export async function POST(req: Request) {
+    const session = await getSessionUser();
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const conn = await db.getConnection();
 
     let leaseId: string;
 
     try {
-        const { inviteCode, userId } = await req.json();
+        const { inviteCode } = await req.json();
 
-        console.log('invite code', inviteCode);
-        console.log('userId', userId);
-
-        if (!inviteCode || !userId) {
+        if (!inviteCode) {
             return NextResponse.json(
-                { error: "Missing invite code or user ID" },
+                { error: "Missing invite code" },
                 { status: 400 }
             );
         }
@@ -55,7 +58,7 @@ export async function POST(req: Request) {
         =============================== */
         const [tenantRows]: any = await conn.query(
             `SELECT tenant_id FROM Tenant WHERE user_id = ?`,
-            [userId]
+            [session.user_id]
         );
 
         const tenant = tenantRows[0];
@@ -72,16 +75,31 @@ export async function POST(req: Request) {
            First check if a draft lease was created at invite time
         =============================== */
         const [existingLeases]: any = await conn.query(
-            `SELECT agreement_id FROM LeaseAgreement WHERE unit_id = ? AND status = 'draft' LIMIT 1`,
+            `SELECT agreement_id, rent_amount FROM LeaseAgreement WHERE unit_id = ? AND status = 'draft' LIMIT 1`,
             [invite.unitId]
         );
 
         if (existingLeases.length > 0) {
             leaseId = existingLeases[0].agreement_id;
+            const draftRent = existingLeases[0].rent_amount;
+
             await conn.query(
                 `UPDATE LeaseAgreement SET tenant_id = ?, status = 'active', updated_at = NOW() WHERE agreement_id = ?`,
                 [tenant.tenant_id, leaseId]
             );
+
+            if (draftRent && parseFloat(draftRent) > 0) {
+                const [unitRows]: any = await conn.query(
+                    `SELECT rent_amount FROM Unit WHERE unit_id = ?`,
+                    [invite.unitId]
+                );
+                if (unitRows.length > 0 && parseFloat(unitRows[0].rent_amount) !== parseFloat(draftRent)) {
+                    await conn.query(
+                        `UPDATE Unit SET rent_amount = ? WHERE unit_id = ?`,
+                        [draftRent, invite.unitId]
+                    );
+                }
+            }
         } else {
             while (true) {
                 leaseId = generateLeaseId();
@@ -98,7 +116,7 @@ export async function POST(req: Request) {
                             status,
                             created_at
                         )
-                        VALUES (?, ?, ?, ?, ?, 'active', NOW())
+                        VALUES (?, ?, ?, ?, ?, 'draft', NOW())
                         `,
                         [
                             leaseId,

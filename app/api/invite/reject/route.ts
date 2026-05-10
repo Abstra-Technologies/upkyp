@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
+import { getSessionUser } from "@/lib/auth/auth";
 
 export async function POST(req: NextRequest) {
+    const session = await getSessionUser();
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const conn = await db.getConnection();
 
     try {
@@ -46,32 +52,7 @@ export async function POST(req: NextRequest) {
         }
 
         /* ===============================
-           2️⃣ Reject invite
-        =============================== */
-        await conn.query(
-            `
-            UPDATE InviteCode
-            SET status = 'REJECTED'
-            WHERE code = ?
-            `,
-            [inviteCode]
-        );
-
-        /* ===============================
-           3️⃣ Release unit
-        =============================== */
-        await conn.query(
-            `
-            UPDATE Unit
-            SET status = 'unoccupied',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE unit_id = ?
-            `,
-            [invite.unitId]
-        );
-
-        /* ===============================
-           4️⃣ Delete draft lease agreement if one exists
+           2️⃣ Delete draft lease agreement if one exists
         =============================== */
         await conn.query(
             `DELETE FROM LeaseAgreement WHERE unit_id = ? AND status = 'draft'`,
@@ -79,7 +60,23 @@ export async function POST(req: NextRequest) {
         );
 
         /* ===============================
-           6️⃣ Notify landlord (REUSABLE)
+           3️⃣ Release unit (rent_amount stays unchanged)
+        =============================== */
+        await conn.query(
+            `UPDATE Unit SET status = 'unoccupied', updated_at = CURRENT_TIMESTAMP WHERE unit_id = ?`,
+            [invite.unitId]
+        );
+
+        /* ===============================
+           4️⃣ Delete invite record
+        =============================== */
+        await conn.query(
+            `DELETE FROM InviteCode WHERE code = ?`,
+            [inviteCode]
+        );
+
+        /* ===============================
+           5️⃣ Notify landlord
         =============================== */
         const [landlordRows]: any = await conn.query(
             `
@@ -107,14 +104,6 @@ export async function POST(req: NextRequest) {
                 conn,
             });
         }
-
-        /* ===============================
-           5️⃣ Delete invite record
-         =============================== */
-        await conn.query(
-            `DELETE FROM InviteCode WHERE code = ?`,
-            [inviteCode]
-        );
 
         await conn.commit();
 

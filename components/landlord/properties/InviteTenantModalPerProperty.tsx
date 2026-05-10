@@ -149,15 +149,15 @@ export default function InviteTenantModal({ propertyId, onClose }: Props) {
     }
 
     if (configureLease) {
-      if (!startDate || !endDate) {
+      if (!startDate) {
         Swal.fire(
-          "Missing Dates",
-          "Please provide both start and end dates.",
+          "Missing Start Date",
+          "Please provide a start date.",
           "warning"
         );
         return;
       }
-      if (new Date(startDate) >= new Date(endDate)) {
+      if (endDate && new Date(startDate) >= new Date(endDate)) {
         Swal.fire(
           "Invalid Dates",
           "End date must be after start date.",

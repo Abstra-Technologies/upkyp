@@ -69,6 +69,28 @@ export function usePropertyLeases(propertyId: string) {
         }
     };
 
+    const handleCancelDraftLease = async (lease: any) => {
+        const agreementId = lease.agreement_id || lease.lease_id;
+        const result = await Swal.fire({
+            title: "Cancel Draft Lease?",
+            text: "This will permanently delete the draft lease agreement. This action cannot be undone.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, delete it",
+            confirmButtonColor: "#d33",
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            Swal.fire({ title: "Deleting...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            await axios.delete("/api/landlord/activeLease/cancel", { data: { agreement_id: agreementId } });
+            Swal.fire("Success", "Draft lease cancelled.", "success");
+            mutate();
+        } catch (err: any) {
+            Swal.fire("Error", err?.response?.data?.message || "Something went wrong.", "error");
+        }
+    };
+
     const getStatusConfig = (status: string) => {
         const s = status?.toLowerCase();
         if (s === "active") return "bg-emerald-50 text-emerald-700 border-emerald-200";
@@ -99,6 +121,7 @@ export function usePropertyLeases(propertyId: string) {
         setSearch,
         scorecards,
         handleEndLease,
+        handleCancelDraftLease,
         mutateLeases: mutate,
         getStatusConfig,
         getStatusLabel,

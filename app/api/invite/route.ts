@@ -89,14 +89,14 @@ export async function POST(req: NextRequest) {
         }
 
         if (!datesDeferred) {
-            if (!startDate || !endDate) {
+            if (!startDate) {
                 return NextResponse.json(
-                    { error: "Start and end date are required." },
+                    { error: "Start date is required." },
                     { status: 400 }
                 );
             }
 
-            if (new Date(startDate) >= new Date(endDate)) {
+            if (endDate && new Date(startDate) >= new Date(endDate)) {
                 return NextResponse.json(
                     { error: "End date must be after start date." },
                     { status: 400 }
@@ -200,7 +200,7 @@ export async function POST(req: NextRequest) {
                     unitId,
                     propertyId,
                     datesDeferred ? null : startDate,
-                    datesDeferred ? null : endDate,
+                    datesDeferred ? null : (endDate || null),
                     expiresAt,
                 ]
             );
@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
                                 leaseId,
                                 unitId,
                                 startDate,
-                                endDate,
+                                endDate || null,
                                 rentAmount || 0,
                                 securityDepositAmount || 0,
                             ]
@@ -247,12 +247,6 @@ export async function POST(req: NextRequest) {
                     }
                 }
 
-                if (rentAmount && parseFloat(rentAmount) > 0) {
-                    await conn.query(
-                        `UPDATE Unit SET rent_amount = ? WHERE unit_id = ?`,
-                        [rentAmount, unitId]
-                    );
-                }
             }
 
             await conn.query(

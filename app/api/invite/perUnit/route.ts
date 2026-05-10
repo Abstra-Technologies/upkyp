@@ -32,14 +32,14 @@ export async function POST(req: NextRequest) {
         }
 
         if (inviteMethod === "email" && !datesDeferred) {
-            if (!startDate || !endDate) {
+            if (!startDate) {
                 return NextResponse.json(
-                    { error: "Start and end date are required." },
+                    { error: "Start date is required." },
                     { status: 400 }
                 );
             }
 
-            if (new Date(startDate) >= new Date(endDate)) {
+            if (endDate && new Date(startDate) >= new Date(endDate)) {
                 return NextResponse.json(
                     { error: "End date must be after start date." },
                     { status: 400 }
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
                     email || null,
                     String(unitId),
                     datesDeferred ? null : startDate,
-                    datesDeferred ? null : endDate,
+                    datesDeferred ? null : (endDate || null),
                     expiresAt,
                 ]
             );

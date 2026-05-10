@@ -66,6 +66,7 @@ export default function PropertyLeasesPage() {
     isLoading,
     error,
     handleEndLease,
+    handleCancelDraftLease,
     scorecards,
     leases,
   } = usePropertyLeases(String(id));
@@ -754,13 +755,22 @@ export default function PropertyLeasesPage() {
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-end gap-1">
                               {isDraft ? (
-                                <button
-                                  onClick={() => handlePrimaryAction(lease)}
-                                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all active:scale-95"
-                                >
-                                  <FileText className="w-3.5 h-3.5" />
-                                  Setup Lease
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => handlePrimaryAction(lease)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all active:scale-95"
+                                  >
+                                    <FileText className="w-3.5 h-3.5" />
+                                    Setup Lease
+                                  </button>
+                                  <button
+                                    onClick={() => handleCancelDraftLease(lease)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-all active:scale-95"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Cancel
+                                  </button>
+                                </>
                               ) : (
                                 <>
                                   <button
@@ -815,6 +825,7 @@ export default function PropertyLeasesPage() {
                   onPrimary={handlePrimaryAction}
                   onExtend={handleExtendLease}
                   onEnd={handleEndLease}
+                  onCancel={handleCancelDraftLease}
                   onKyp={(l) => {
                     setSelectedKypLease(l);
                     setKypOpen(true);

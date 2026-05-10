@@ -13,6 +13,7 @@ import {
     ImageOff,
     ShieldCheck,
     AlertTriangle,
+    Undo2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
@@ -113,6 +114,50 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                 text:
                     error.response?.data?.message ||
                     "Unable to update unit status.",
+                showConfirmButton: false,
+                timer: 2500,
+            });
+        }
+    };
+
+    /* ------------------------------------------------------------------ */
+    /* UNIT STATUS CHANGE                                                  */
+    /* ------------------------------------------------------------------ */
+    const handleStatusChange = async (unitId: number | string, newStatus: string) => {
+        const confirm = await Swal.fire({
+            title: "Change Status?",
+            text: `Set this unit to "${newStatus}"?`,
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, change it",
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+            await axios.put("/api/landlord/properties/updatePropertyUnitStatus", {
+                unitId,
+                status: newStatus,
+            });
+
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "success",
+                title: `Status changed to ${newStatus}`,
+                showConfirmButton: false,
+                timer: 1500,
+            });
+
+            router.refresh();
+        } catch (err: any) {
+            Swal.fire({
+                toast: true,
+                position: "top-end",
+                icon: "error",
+                title: err?.response?.data?.message || "Failed to update status",
                 showConfirmButton: false,
                 timer: 2500,
             });
@@ -224,6 +269,15 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                                 >
                                     <UserPlus className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Invite</span>
+                                </button>
+                            )}
+                            {row.original.status?.toLowerCase() === "reserved" && (
+                                <button
+                                    onClick={() => handleStatusChange(row.original.unit_id, "unoccupied")}
+                                    className="px-3 py-2 rounded-lg text-xs font-medium bg-purple-100 text-purple-700 hover:bg-purple-200 border border-purple-300 flex items-center gap-1"
+                                >
+                                    <Undo2 className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Set Unoccupied</span>
                                 </button>
                             )}
                             <button
@@ -398,6 +452,15 @@ const UnitsTab: React.FC<UnitsTabProps> = ({
                                     >
                                         <UserPlus className="w-3.5 h-3.5" />
                                         Invite
+                                    </button>
+                                )}
+                                {unit.status?.toLowerCase() === "reserved" && (
+                                    <button
+                                        onClick={() => handleStatusChange(unit.unit_id, "unoccupied")}
+                                        className="flex-1 flex items-center justify-center gap-1 py-2 rounded-md text-xs font-semibold bg-purple-500 text-white"
+                                    >
+                                        <Undo2 className="w-3.5 h-3.5" />
+                                        Set Unoccupied
                                     </button>
                                 )}
                                 <button

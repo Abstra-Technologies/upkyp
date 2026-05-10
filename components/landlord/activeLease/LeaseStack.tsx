@@ -26,6 +26,7 @@ interface Props {
     onPrimary: (lease: any) => void;
     onExtend: (lease: any) => void;
     onEnd: (lease: any) => void;
+    onCancel: (lease: any) => void;
     onKyp: (lease: any) => void;
 }
 
@@ -34,6 +35,7 @@ export default function LeaseStack({
     onPrimary,
     onExtend,
     onEnd,
+    onCancel,
     onKyp,
 }: Props) {
     return (
@@ -102,12 +104,20 @@ export default function LeaseStack({
 
                                 <div className="flex items-center gap-1.5">
                                     {status === "draft" && (
-                                        <button
-                                            onClick={() => onPrimary(lease)}
-                                            className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold"
-                                        >
-                                            Setup
-                                        </button>
+                                        <>
+                                            <button
+                                                onClick={() => onPrimary(lease)}
+                                                className="px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-bold"
+                                            >
+                                                Setup
+                                            </button>
+                                            <button
+                                                onClick={() => onCancel(lease)}
+                                                className="px-2.5 py-1.5 bg-red-600 text-white rounded-lg text-[10px] font-bold"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </>
                                     )}
 
                                     {status === "expired" && (
