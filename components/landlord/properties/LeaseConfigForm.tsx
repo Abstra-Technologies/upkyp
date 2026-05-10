@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface LeaseConfigFormProps {
   configureLease: boolean;
   onToggle: () => void;
@@ -29,6 +31,12 @@ export default function LeaseConfigForm({
 }: LeaseConfigFormProps) {
   const customRent = rentAmount ? parseFloat(rentAmount) : 0;
   const rentDiffers = configureLease && customRent > 0 && customRent !== rentFromUnit;
+
+  useEffect(() => {
+    if (configureLease && rentFromUnit > 0 && !rentAmount) {
+      onRentAmountChange(String(rentFromUnit));
+    }
+  }, [configureLease, rentFromUnit]);
 
   return (
     <div className="space-y-3">
@@ -69,7 +77,6 @@ export default function LeaseConfigForm({
                 type="date"
                 value={endDate}
                 onChange={(e) => onEndDateChange(e.target.value)}
-                min={startDate || undefined}
                 className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               />
             </div>
