@@ -30,12 +30,12 @@ export default function CTASection() {
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                  Ready to Manage
-                  <span className="block mt-1 text-emerald-300">Smarter?</span>
+                  Ready to Stop
+                  <span className="block mt-1 text-emerald-300">Chasing Rent?</span>
                 </h2>
 
                 <p className="mt-4 sm:mt-6 text-base sm:text-lg text-white/80 max-w-lg mx-auto lg:mx-0">
-                  Track rent, manage tenants, and keep your property data organized — all in one place.
+                  Set up your portfolio once. From there, rent collects itself, tenants stay in the loop, and your properties practically run themselves.
                 </p>
 
                 {/* Buttons */}
@@ -61,10 +61,10 @@ export default function CTASection() {
               <div className="hidden lg:block">
                 <div className="space-y-4">
                   {[
-                    "Add properties in minutes",
-                    "Invite tenants & manage leases",
-                    "Track payments & history",
-                    "Access property data anytime",
+                    "Onboard properties in under 5 minutes",
+                    "Each tenant gets a unique virtual account",
+                    "Rent auto-reconciles when paid",
+                    "Zero manual follow-ups, ever",
                   ].map((item, i) => (
                     <div
                       key={i}

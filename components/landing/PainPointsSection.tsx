@@ -14,19 +14,19 @@ export default function PainPointsSection() {
       icon: <FileSpreadsheet className="w-6 h-6" />,
       problem: "Drowning in Spreadsheets",
       description:
-        "Tracking rent, tenants, and maintenance across multiple files is a nightmare waiting to happen.",
+        "You didn't become a landlord to become an accountant. Yet here you are, juggling files, second-guessing balances, and praying you didn't miss a row.",
     },
     {
       icon: <Clock className="w-6 h-6" />,
       problem: "Chasing Late Payments",
       description:
-        "Manually following up on overdue rent takes hours you could spend growing your portfolio.",
+        "Nothing kills your weekend like following up on overdue rent. Upkyp automates collections so you get paid without the awkward conversations.",
     },
     {
       icon: <MessageSquare className="w-6 h-6" />,
       problem: "Scattered Communication",
       description:
-        "Stop searching through Viber, SMS, and Messenger. Upkyp centralizes all tenant requests in one place so you never miss a repair or a payment update.",
+        "A leak in Unit 3, a question from Unit 7, a late notice for Unit 12&mdash;all buried across different apps. Upkyp pulls everything into one place so nothing slips through the cracks.",
     },
   ];
 
@@ -45,11 +45,10 @@ export default function PainPointsSection() {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
-              Sound Familiar?
+              Does This Sound Like Your Week?
             </h2>
             <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto">
-              Managing rental properties shouldn't feel like a second full-time
-              job.
+              Being a landlord should mean building wealth, not drowning in busywork.
             </p>
           </motion.div>
         </div>
@@ -93,7 +92,7 @@ export default function PainPointsSection() {
         >
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-blue-500/20">
             <Zap className="w-5 h-5" />
-            <span>There's a better way</span>
+            <span>Let&rsquo;s automate the madness</span>
             <ArrowRight className="w-5 h-5" />
           </div>
         </motion.div>

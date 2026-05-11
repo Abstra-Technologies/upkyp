@@ -42,15 +42,15 @@ export default function HeroSection() {
 
             {/* Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
-              Connect More,
+              Your Properties.
               <span className="block mt-2 bg-gradient-to-r from-emerald-300 via-blue-300 to-emerald-300 bg-clip-text text-transparent">
-                Manage Less
+                On Autopilot.
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-lg sm:text-xl text-white/80 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              A platform for property owners to manage rentals, track payments, and stay connected with tenants, with clear property data that removes the guesswork.
+              No more chasing payments. No more scattered spreadsheets. Upkyp automates rent collection, tenant communication, and maintenance tracking&mdash;so you stop managing paperwork and start growing your portfolio.
             </p>
 
             {/* CTAs */}

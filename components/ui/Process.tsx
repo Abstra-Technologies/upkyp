@@ -21,7 +21,7 @@ const layers = [
     title: "List",
     subtitle: "Rental Listings",
     description:
-      "Publish verified rental listings with complete property details.",
+      "Publish properties with complete details &mdash; no more reposting across platforms.",
     gradient: "from-blue-500 to-blue-600",
     bg: "bg-blue-50",
     border: "border-blue-200",
@@ -32,7 +32,7 @@ const layers = [
     title: "Manage",
     subtitle: "Properties & Tenants",
     description:
-      "Manage units, tenants, maintenance, and documents in one place.",
+      "Leases, documents, maintenance &mdash; everything organized without the paper trail.",
     gradient: "from-purple-500 to-purple-600",
     bg: "bg-purple-50",
     border: "border-purple-200",
@@ -43,7 +43,7 @@ const layers = [
     title: "Track",
     subtitle: "Activity & Records",
     description:
-      "Track rent status, billing history, and property activity in real time.",
+      "Live dashboard showing who paid, who&rsquo;s late, and what needs attention.",
     gradient: "from-indigo-500 to-indigo-600",
     bg: "bg-indigo-50",
     border: "border-indigo-200",
@@ -54,7 +54,7 @@ const layers = [
     title: "Pay",
     subtitle: "Rent & Utilities",
     description:
-      "Secure rent and utility payments with automated billing.",
+      "Tenants get unique virtual accounts. Payments reconcile themselves. No follow-ups needed.",
     gradient: "from-emerald-500 to-emerald-600",
     bg: "bg-emerald-50",
     border: "border-emerald-200",
@@ -73,16 +73,16 @@ export default function Process() {
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-5 border border-gray-200 shadow-sm">
             <Sparkles className="w-4 h-4 text-blue-600" />
             <span className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
-              One Ecosystem
+              One Platform
             </span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-            Built as a Unified Stack
+            From Listing to Payment. All in One Place.
           </h2>
 
           <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-            Every layer connects seamlessly — from listing properties to collecting payments.
+            Every piece of your property workflow connects seamlessly &mdash; so nothing falls through the cracks.
           </p>
         </div>
 
@@ -194,7 +194,7 @@ export default function Process() {
         <div className="mt-10 sm:mt-14 flex justify-center">
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gray-900 text-white shadow-lg">
             <Layers className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-semibold">One Platform. One Ecosystem.</span>
+            <span className="text-sm font-semibold">One Platform. Zero Manual Work.</span>
           </div>
         </div>
 
@@ -202,10 +202,10 @@ export default function Process() {
         <div className="mt-12 sm:mt-16">
           <div className="text-center mb-8 sm:mb-10">
             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              Built with  Xendit — Secure by Design Payment Infrastructure
+              The Secret Sauce: Rent That Collects Itself
             </h3>
             <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
-              Enterprise-grade payment infrastructure, invisible to your tenants.
+              Powered by Xendit. Invisible to tenants. Indispensable for landlords.
             </p>
           </div>
 
@@ -276,7 +276,7 @@ export default function Process() {
             href="/public/how-it-works"
             className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
           >
-            See the full breakdown
+            See how auto-reconciliation works
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

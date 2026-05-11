@@ -10,7 +10,7 @@ const features = [
     icon: <Building2 className="w-6 h-6" />,
     title: "Property Portfolio",
     description:
-      "Manage all your properties in one place—apartments, houses, commercial spaces. Track occupancy, lease terms, and property details effortlessly.",
+      "Every property, lease, and document in one place. Upkyp gives you a live snapshot of your entire portfolio&mdash;occupancy rates, lease expirations, and financial performance&mdash;without digging through cabinets or folders.",
     gradient: "from-blue-500 to-blue-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226235/dashboard_gesrl5.png",
   },
@@ -18,15 +18,15 @@ const features = [
     icon: <Users className="w-6 h-6" />,
     title: "Tenant Management",
     description:
-      "Store tenant information, lease agreements, and communication history. Send announcements and handle concerns through a dedicated portal.",
+      "From lease signing to move-out, every interaction lives in one thread. Tenants get a portal to submit requests and view their balance. You get a complete history without scrolling through old chat messages.",
     gradient: "from-purple-500 to-purple-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226419/tenantProfile_ljhipv.png",
   },
   {
     icon: <Receipt className="w-6 h-6" />,
-    title: "Billing & Payments",
+    title: "Self-Paying Rent",
     description:
-      "Automate rent billing, track payment status, and generate receipts. Get notified instantly when tenants pay—or when they're late.",
+      "Each tenant gets a unique virtual account. When they pay, the system automatically matches, reconciles, and updates your books. No manual checking. No chasing. Rent that literally pays itself.",
     gradient: "from-emerald-500 to-emerald-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226442/payment_yddeqw.png",
   },
@@ -34,7 +34,7 @@ const features = [
     icon: <Wrench className="w-6 h-6" />,
     title: "Maintenance Tracking",
     description:
-      "Receive and manage maintenance requests digitally. Track progress, assign tasks, and keep tenants updated on repair status.",
+      "Tenants report issues directly through the portal. You get notified instantly with photos and details. Assign vendors, track progress, and close the loop&mdash;all without a single phone tag marathon.",
     gradient: "from-orange-500 to-orange-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226646/payment_ry5u2a.png",
   },
@@ -88,12 +88,12 @@ export default function FeaturesShowcase() {
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
             Everything You Need to
             <span className="block mt-1 bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-              Manage Smarter
+              Stop Managing
             </span>
           </h2>
 
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Purpose-built tools designed specifically for landlords managing residential and commercial properties.
+            Unlike generic property tools, Upkyp is built around automated payment reconciliation&mdash;so you collect rent without lifting a finger.
           </p>
         </div>
 
