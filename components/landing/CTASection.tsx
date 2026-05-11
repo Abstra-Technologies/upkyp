@@ -24,18 +24,18 @@ export default function CTASection() {
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
               {/* Left Content */}
               <div className="text-center lg:text-left">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm mb-6">
-                  <Sparkles className="w-4 h-4 text-emerald-300" />
-                  <span className="text-white/90 text-sm font-medium">Free to start</span>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 backdrop-blur-sm rounded-full mb-5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-medium text-white/60 uppercase tracking-widest">The Climax — Your New Reality</span>
                 </div>
 
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
-                  Ready to Stop
-                  <span className="block mt-1 text-emerald-300">Chasing Rent?</span>
+                  Ready to Grow Without
+                  <span className="block mt-1 text-emerald-300">the Stress?</span>
                 </h2>
 
                 <p className="mt-4 sm:mt-6 text-base sm:text-lg text-white/80 max-w-lg mx-auto lg:mx-0">
-                  Set up your portfolio once. From there, rent collects itself, tenants stay in the loop, and your properties practically run themselves.
+                  You&rsquo;ve seen the ordinary world. You&rsquo;ve felt the conflict. Now take the leap. Set up your portfolio in five minutes and let Upkyp handle the rest.
                 </p>
 
                 {/* Buttons */}
@@ -44,7 +44,7 @@ export default function CTASection() {
                     href="/auth/selectRole"
                     className="group inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-gray-900 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                   >
-                    Get Started
+                    Start Free
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>
 
@@ -52,7 +52,7 @@ export default function CTASection() {
                     href="/about-us"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 border border-white/30 text-white font-semibold rounded-xl hover:bg-white/20 transition-all duration-200"
                   >
-                    Learn More
+                    See How It Works
                   </Link>
                 </div>
               </div>
@@ -61,10 +61,10 @@ export default function CTASection() {
               <div className="hidden lg:block">
                 <div className="space-y-4">
                   {[
-                    "Onboard properties in under 5 minutes",
-                    "Each tenant gets a unique virtual account",
-                    "Rent auto-reconciles when paid",
-                    "Zero manual follow-ups, ever",
+                    "List your first property in under 5 minutes",
+                    "Invite tenants &amp; issue virtual accounts instantly",
+                    "Watch rent auto-reconcile on day one",
+                    "Never chase a payment again",
                   ].map((item, i) => (
                     <div
                       key={i}
@@ -80,7 +80,7 @@ export default function CTASection() {
 
                 {/* Trust badge */}
                 <div className="mt-6 text-white/60 text-sm">
-                  No credit card required
+                  No credit card required &bull; Free to start
                 </div>
               </div>
             </div>

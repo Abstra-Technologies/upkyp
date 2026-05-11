@@ -21,7 +21,7 @@ const layers = [
     title: "List",
     subtitle: "Rental Listings",
     description:
-      "Publish properties with complete details &mdash; no more reposting across platforms.",
+      "Publish properties with complete details — no more reposting across platforms.",
     gradient: "from-blue-500 to-blue-600",
     bg: "bg-blue-50",
     border: "border-blue-200",
@@ -32,7 +32,7 @@ const layers = [
     title: "Manage",
     subtitle: "Properties & Tenants",
     description:
-      "Leases, documents, maintenance &mdash; everything organized without the paper trail.",
+      "Leases, documents, maintenance — everything organized without the paper trail.",
     gradient: "from-purple-500 to-purple-600",
     bg: "bg-purple-50",
     border: "border-purple-200",
@@ -43,7 +43,7 @@ const layers = [
     title: "Track",
     subtitle: "Activity & Records",
     description:
-      "Live dashboard showing who paid, who&rsquo;s late, and what needs attention.",
+      "Live dashboard plus full history—compare months, spot trends, and forecast income using data that goes back to day one.",
     gradient: "from-indigo-500 to-indigo-600",
     bg: "bg-indigo-50",
     border: "border-indigo-200",
@@ -70,19 +70,17 @@ export default function Process() {
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-5 border border-gray-200 shadow-sm">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-xs font-semibold text-gray-700 tracking-wide uppercase">
-              One Platform
-            </span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-full mb-5">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+            <span className="text-xs font-medium text-indigo-600 uppercase tracking-widest">The Guide</span>
           </div>
 
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 leading-tight">
-            From Listing to Payment. All in One Place.
+            Meet Upkyp: The Command Center for Your Properties.
           </h2>
 
           <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto leading-relaxed">
-            Every piece of your property workflow connects seamlessly &mdash; so nothing falls through the cracks.
+            We handle the tracking so you can focus on growing your portfolio. From listings to payments—one platform, zero chaos.
           </p>
         </div>
 
@@ -159,8 +157,8 @@ export default function Process() {
             </div>
           </div>
 
-          {/* Mobile: Cards in one row */}
-          <div className="lg:hidden grid grid-cols-4 gap-2">
+          {/* Mobile: Cards in two rows */}
+          <div className="lg:hidden grid grid-cols-2 gap-3">
             {layers.map((layer, index) => (
               <motion.div
                 key={index}
@@ -175,13 +173,13 @@ export default function Process() {
                   <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${layer.gradient} flex items-center justify-center text-white shadow-md mb-2`}>
                     {layer.icon}
                   </div>
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${layer.iconText}`}>
+                  <span className={`text-[10px] sm:text-xs font-bold uppercase tracking-wider ${layer.iconText}`}>
                     Layer {index + 1}
                   </span>
-                  <h3 className="text-sm font-bold text-gray-900 mt-0.5">
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900 mt-0.5">
                     {layer.title}
                   </h3>
-                  <p className="text-[10px] text-gray-600 mt-0.5 leading-tight">
+                  <p className="text-[11px] sm:text-sm text-gray-600 mt-0.5 leading-snug">
                     {layer.description}
                   </p>
                 </div>
@@ -194,7 +192,7 @@ export default function Process() {
         <div className="mt-10 sm:mt-14 flex justify-center">
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gray-900 text-white shadow-lg">
             <Layers className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-semibold">One Platform. Zero Manual Work.</span>
+            <span className="text-sm font-semibold">Your properties, under your command.</span>
           </div>
         </div>
 
@@ -202,10 +200,10 @@ export default function Process() {
         <div className="mt-12 sm:mt-16">
           <div className="text-center mb-8 sm:mb-10">
             <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              The Secret Sauce: Rent That Collects Itself
+              The Engine That Makes It Possible
             </h3>
             <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
-              Powered by Xendit. Invisible to tenants. Indispensable for landlords.
+              Automated reconciliation powered by Xendit. Every payment identifies itself, records itself, and updates your books—without you lifting a finger.
             </p>
           </div>
 
@@ -232,7 +230,7 @@ export default function Process() {
               {
                 icon: <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6" />,
                 title: "Automated Reconciliation",
-                desc: "Because each VA is unique, the platform instantly identifies the payer and reconciles the invoice the moment funds are received.",
+                desc: "Because each VA is unique, the platform instantly identifies the payer and reconciles the invoice — building your payment history automatically with every transaction.",
                 gradient: "from-emerald-500 to-emerald-600",
                 bg: "bg-emerald-50",
                 border: "border-emerald-200",
@@ -241,7 +239,7 @@ export default function Process() {
               {
                 icon: <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />,
                 title: "Zero-Touch Verification",
-                desc: "Eliminates the need for landlords to manually check bank statements or verify payment — the dashboard updates automatically.",
+                desc: "Eliminates the need to manually check bank statements — the dashboard updates automatically and every transaction becomes part of your historical record.",
                 gradient: "from-orange-500 to-orange-600",
                 bg: "bg-orange-50",
                 border: "border-orange-200",
@@ -276,7 +274,7 @@ export default function Process() {
             href="/public/how-it-works"
             className="group inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-semibold transition-colors"
           >
-            See how auto-reconciliation works
+            Dive deeper into the engine
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

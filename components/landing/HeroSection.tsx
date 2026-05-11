@@ -6,7 +6,7 @@ import PaymentPartnersMarquee from "@/components/Commons/PaymentPartnersMarquee"
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden will-change-transform">
+    <section className="relative min-h-[80vh] lg:min-h-[90vh] flex items-center overflow-hidden will-change-transform">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-900 to-emerald-900" />
 
@@ -40,18 +40,39 @@ export default function HeroSection() {
             className="text-center lg:text-left"
           >
 
-            {/* Headline */}
+            {/* The Hook — The Ordinary World */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full mb-5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="text-xs font-medium text-white/60 uppercase tracking-widest">The Hook</span>
+            </div>
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-[1.1] tracking-tight">
-              Your Properties.
-              <span className="block mt-2 bg-gradient-to-r from-emerald-300 via-blue-300 to-emerald-300 bg-clip-text text-transparent">
-                On Autopilot.
+              Stop Drowning in Spreadsheets
+              <span className="block mt-2 bg-gradient-to-r from-amber-300 via-orange-300 to-red-300 bg-clip-text text-transparent">
+                and Chasing Late Payments.
               </span>
             </h1>
 
             {/* Subheadline */}
-            <p className="text-lg sm:text-xl text-white/80 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              No more chasing payments. No more scattered spreadsheets. Upkyp automates rent collection, tenant communication, and maintenance tracking&mdash;so you stop managing paperwork and start growing your portfolio.
+            <p className="text-lg sm:text-xl text-white/80 mb-6 leading-relaxed max-w-xl mx-auto lg:mx-0">
+              You became a landlord to build wealth, not to spend hours tracking rent, juggling tenant messages, and reconciling bank statements. Yet here you are — doing the work of three people just to keep things afloat.
             </p>
+
+            {/* Pain Signals */}
+            <div className="flex flex-wrap gap-3 mb-8 justify-center lg:justify-start">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-white/80 text-sm">
+                <span className="text-red-300 text-xs font-bold">&#10005;</span>
+                4+ hours a week on admin
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-white/80 text-sm">
+                <span className="text-red-300 text-xs font-bold">&#10005;</span>
+                Late payments you have to chase
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full text-white/80 text-sm">
+                <span className="text-red-300 text-xs font-bold">&#10005;</span>
+                Paper records that pile up
+              </div>
+            </div>
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -60,7 +81,7 @@ export default function HeroSection() {
                 className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-white text-gray-900 font-semibold text-lg rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <span className="relative z-10">Get Started</span>
+                <span className="relative z-10">Start Your Journey</span>
                 <ArrowRight className="relative z-10 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
 
@@ -68,7 +89,7 @@ export default function HeroSection() {
                 href="#features"
                 className="group inline-flex items-center justify-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-md border border-white/30 text-white font-semibold text-lg rounded-xl hover:bg-white/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
               >
-                See How It Works
+                Show me a way out
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>

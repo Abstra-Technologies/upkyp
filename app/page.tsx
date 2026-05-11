@@ -57,11 +57,56 @@ export default function SplashScreen() {
 
       <HeroSection />
 
+      {/* Narrative Divider */}
+      <div className="relative py-8 sm:py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 justify-center">
+            <div className="h-px flex-1 max-w-32 bg-gradient-to-r from-transparent to-gray-200" />
+            <div className="flex gap-2">
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+            </div>
+            <div className="h-px flex-1 max-w-32 bg-gradient-to-l from-transparent to-gray-200" />
+          </div>
+        </div>
+      </div>
+
       <PainPointsSection />
+
+      {/* Narrative Divider */}
+      <div className="relative py-8 sm:py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 justify-center">
+            <div className="h-px flex-1 max-w-32 bg-gradient-to-r from-transparent to-gray-200" />
+            <div className="flex gap-2">
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+            </div>
+            <div className="h-px flex-1 max-w-32 bg-gradient-to-l from-transparent to-gray-200" />
+          </div>
+        </div>
+      </div>
 
       <Suspense fallback={<SectionSkeleton />}>
         <AnimatedFeatures />
       </Suspense>
+
+      {/* Narrative Divider */}
+      <div className="relative py-8 sm:py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-4 justify-center">
+            <div className="h-px flex-1 max-w-32 bg-gradient-to-r from-transparent to-gray-200" />
+            <div className="flex gap-2">
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+              <span className="w-2 h-2 rounded-full bg-gray-300" />
+            </div>
+            <div className="h-px flex-1 max-w-32 bg-gradient-to-l from-transparent to-gray-200" />
+          </div>
+        </div>
+      </div>
 
       <Suspense fallback={<SectionSkeleton />}>
         <FeaturesShowcase />

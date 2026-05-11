@@ -14,19 +14,19 @@ export default function PainPointsSection() {
       icon: <FileSpreadsheet className="w-6 h-6" />,
       problem: "Drowning in Spreadsheets",
       description:
-        "You didn't become a landlord to become an accountant. Yet here you are, juggling files, second-guessing balances, and praying you didn't miss a row.",
+        "You didn't become a landlord to become an accountant. Yet here you are—juggling files, second-guessing balances, and hoping you didn't miss a row. Every mistake costs you money.",
     },
     {
       icon: <Clock className="w-6 h-6" />,
       problem: "Chasing Late Payments",
       description:
-        "Nothing kills your weekend like following up on overdue rent. Upkyp automates collections so you get paid without the awkward conversations.",
+        "Nothing kills your momentum like following up on overdue rent. Every awkward reminder strains the relationship—and every late payment strains your cash flow.",
     },
     {
       icon: <MessageSquare className="w-6 h-6" />,
       problem: "Scattered Communication",
       description:
-        "A leak in Unit 3, a question from Unit 7, a late notice for Unit 12&mdash;all buried across different apps. Upkyp pulls everything into one place so nothing slips through the cracks.",
+        "Tenant requests arrive via Viber, SMS, and Messenger—each one demanding context you can't find. A leak in Unit 3 goes unreported. A question sits for days. Trust erodes.",
     },
   ];
 
@@ -44,17 +44,22 @@ export default function PainPointsSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-red-50 border border-red-200 rounded-full mb-5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+              <span className="text-xs font-medium text-red-600 uppercase tracking-widest">The Conflict</span>
+            </div>
+
             <h2 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-2 sm:mb-4">
-              Does This Sound Like Your Week?
+              Is Your Portfolio Growing — or Just Keeping You Busy?
             </h2>
             <p className="text-sm sm:text-lg text-gray-600 max-w-2xl mx-auto">
-              Being a landlord should mean building wealth, not drowning in busywork.
+              Without a central system, important tasks fall through the cracks, tenants slip through the gaps, and your growth stalls. Here&rsquo;s what that looks like day to day.
             </p>
           </motion.div>
         </div>
 
         {/* Pain Points Grid */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {painPoints.map((item, index) => (
             <motion.div
               key={index}
@@ -71,10 +76,10 @@ export default function PainPointsSection() {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xs sm:text-base lg:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 leading-tight sm:leading-normal">
+                <h3 className="text-sm sm:text-base lg:text-lg font-semibold text-gray-900 mb-1 sm:mb-2 leading-tight sm:leading-normal">
                   {item.problem}
                 </h3>
-                <p className="text-gray-600 text-[10px] sm:text-sm leading-relaxed">
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">
                   {item.description}
                 </p>
               </div>
@@ -92,7 +97,7 @@ export default function PainPointsSection() {
         >
           <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-blue-500/20">
             <Zap className="w-5 h-5" />
-            <span>Let&rsquo;s automate the madness</span>
+            <span>There is a better way</span>
             <ArrowRight className="w-5 h-5" />
           </div>
         </motion.div>

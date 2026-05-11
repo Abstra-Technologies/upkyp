@@ -10,7 +10,7 @@ const features = [
     icon: <Building2 className="w-6 h-6" />,
     title: "Property Portfolio",
     description:
-      "Every property, lease, and document in one place. Upkyp gives you a live snapshot of your entire portfolio&mdash;occupancy rates, lease expirations, and financial performance&mdash;without digging through cabinets or folders.",
+      "Every payment, lease, and maintenance record auto-syncs into a living timeline. Compare year-over-year performance, forecast cash flow, and walk into any bank meeting with data that proves your portfolio&rsquo;s worth—no manual reports needed.",
     gradient: "from-blue-500 to-blue-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226235/dashboard_gesrl5.png",
   },
@@ -18,7 +18,7 @@ const features = [
     icon: <Users className="w-6 h-6" />,
     title: "Tenant Management",
     description:
-      "From lease signing to move-out, every interaction lives in one thread. Tenants get a portal to submit requests and view their balance. You get a complete history without scrolling through old chat messages.",
+      "From lease signing to move-out, every message, request, and payment lives in a single thread. Tenants get a self-serve portal. You get a complete history—no more scrolling through old Messenger chats to find out who owes what.",
     gradient: "from-purple-500 to-purple-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226419/tenantProfile_ljhipv.png",
   },
@@ -26,7 +26,7 @@ const features = [
     icon: <Receipt className="w-6 h-6" />,
     title: "Self-Paying Rent",
     description:
-      "Each tenant gets a unique virtual account. When they pay, the system automatically matches, reconciles, and updates your books. No manual checking. No chasing. Rent that literally pays itself.",
+      "Each tenant gets a unique virtual account. When they pay, the system auto-matches, auto-reconciles, and auto-updates your books. No checking. No chasing. No awkward follow-ups. Rent that literally pays itself.",
     gradient: "from-emerald-500 to-emerald-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226442/payment_yddeqw.png",
   },
@@ -34,7 +34,7 @@ const features = [
     icon: <Wrench className="w-6 h-6" />,
     title: "Maintenance Tracking",
     description:
-      "Tenants report issues directly through the portal. You get notified instantly with photos and details. Assign vendors, track progress, and close the loop&mdash;all without a single phone tag marathon.",
+      "Tenants submit requests with photos right from their portal. You get notified instantly, assign vendors, and track progress in one place. No more phone tag, no more &lsquo;did you send someone?&rsquo; texts. Just closed loops and happy tenants.",
     gradient: "from-orange-500 to-orange-600",
     image: "https://res.cloudinary.com/dptmeluy0/image/upload/v1776226646/payment_ry5u2a.png",
   },
@@ -78,22 +78,20 @@ export default function FeaturesShowcase() {
       <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-10 sm:mb-14">
-          <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-5">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-semibold text-blue-700">
-              Powerful Features
-            </span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full mb-5">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+            <span className="text-xs font-medium text-blue-600 uppercase tracking-widest">The Transformation</span>
           </div>
 
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
-            Everything You Need to
+            Never Miss a Payment.
             <span className="block mt-1 bg-gradient-to-r from-blue-600 to-emerald-600 bg-clip-text text-transparent">
-              Stop Managing
+              Never Lose a Record.
             </span>
           </h2>
 
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Unlike generic property tools, Upkyp is built around automated payment reconciliation&mdash;so you collect rent without lifting a finger.
+            Every feature is designed to save you time and put historical data to work—so you stop putting out fires and start making moves.
           </p>
         </div>
 
