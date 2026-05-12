@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 
-export const runtime = "nodejs"; // ← Important for raw body in Vercel/edge cases
+// ← Important for raw body in Vercel/edge cases
 
 // ────────────────────────────────────────────────
 // Helper: stable canonical JSON (Didit style)

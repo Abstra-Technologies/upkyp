@@ -4,8 +4,6 @@ import { generateBillId } from "@/utils/id_generator";
 import { parse } from "cookie";
 import { jwtVerify } from "jose";
 
-export const runtime = "nodejs";
-
 /* =====================================================
    HELPERS
 ===================================================== */

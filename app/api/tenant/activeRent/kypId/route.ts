@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
 import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
-export const runtime = "nodejs";
 export async function GET() {
     try {
         /* ===============================

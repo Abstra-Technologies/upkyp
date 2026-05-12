@@ -14,8 +14,6 @@ webpush.setVapidDetails(
   VAPID_PRIVATE_KEY,
 );
 
-export const runtime = "nodejs";
-
 function detectDevice(ua: string) {
   const agent = ua.toLowerCase();
   if (agent.includes("mobile")) return "mobile";

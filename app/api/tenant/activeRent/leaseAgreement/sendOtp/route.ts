@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import moment from "moment-timezone";
 import { sendLeaseOtpEmail } from "@/lib/email/sendLeaseOtpEmail";
 
-export const runtime = "nodejs";
 /**
  * ✅ POST /api/tenant/activeLease/sendOtp
  * Body:

@@ -6,7 +6,6 @@ import { jwtVerify } from "jose";
 //  to be deleted. using webhook.
 
 
-export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
     const connection = await db.getConnection();
 

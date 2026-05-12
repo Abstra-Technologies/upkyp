@@ -3,8 +3,6 @@
 /* -------------------------------------------------------------------------- */
 /* Handles both billing and subscription payments based on external_id        */
 
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";

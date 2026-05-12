@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 
-export const runtime = "nodejs";
 type SubscriptionRow = RowDataPacket & {
     subscription_id: number;
     payment_status: string;

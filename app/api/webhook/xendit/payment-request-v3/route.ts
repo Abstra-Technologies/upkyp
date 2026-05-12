@@ -11,8 +11,6 @@
 /* - recurring.plan.inactivated: Subscription cancelled                       */
 /* -------------------------------------------------------------------------- */
 
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 

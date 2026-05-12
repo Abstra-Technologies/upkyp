@@ -7,8 +7,6 @@
 /* - recurring.cycle.paid         : Payment cycle completed                    */
 /* - recurring.cycle.failed      : Payment cycle failed                       */
 
-export const runtime = "nodejs";
-
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 

@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 
-export const runtime = "nodejs";
-
 /* -------------------------------------------------------------------------- */
 /* DB CONNECTION                                                              */
 /* -------------------------------------------------------------------------- */

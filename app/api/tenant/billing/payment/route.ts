@@ -1,4 +1,3 @@
-export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import crypto from "crypto";

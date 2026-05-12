@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export const runtime = "nodejs";
 /**
  * ✅ POST /api/tenant/activeLease/verifyOtp
  * Body: { agreement_id: string, role: "tenant", otp_code: string }

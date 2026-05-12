@@ -3,8 +3,6 @@ import axios from "axios";
 import { db } from "@/lib/db";
 import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
-export const runtime = "nodejs";
-
 /* -------------------------------------------------------------------------- */
 /* CONFIG                                                                     */
 /* -------------------------------------------------------------------------- */

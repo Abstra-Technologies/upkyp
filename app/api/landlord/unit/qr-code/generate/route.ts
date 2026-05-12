@@ -3,8 +3,6 @@ import QRCode from "qrcode";
 import { uploadToS3 } from "@/lib/s3";
 import { db } from "@/lib/db";
 
-export const runtime = "nodejs";
-
 export async function POST(req: NextRequest) {
     try {
         const { property_id } = await req.json();

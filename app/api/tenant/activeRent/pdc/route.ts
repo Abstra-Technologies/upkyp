@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-export const runtime = "nodejs";
 /* ======================================================
    GET — Fetch Post-Dated Checks for a Lease
 ====================================================== */

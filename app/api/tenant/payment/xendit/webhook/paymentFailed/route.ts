@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 
-export const runtime = "nodejs";
-
 async function getDbConnection() {
     const { DB_HOST, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
     return mysql.createConnection({
