@@ -533,8 +533,7 @@ export default function PropertyLeasesPage() {
             }`}
           >
             <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="md:inline">Lease Details</span>
-            <span className="md:hidden">Leases</span>
+            <span>Lease</span>
           </button>
           <button
             onClick={() => setMode("billing")}
@@ -545,8 +544,7 @@ export default function PropertyLeasesPage() {
             }`}
           >
             <ReceiptText className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span className="md:inline">Billing Mode</span>
-            <span className="md:hidden">Billing</span>
+            <span>Billing</span>
           </button>
         </div>
 
@@ -930,50 +928,50 @@ export default function PropertyLeasesPage() {
 
             {/* ================= BILLING SUMMARY CARDS ================= */}
             <div className="grid grid-cols-3 gap-2 mb-3">
-              <div className="bg-white rounded-lg border border-gray-200 p-2.5 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
-                    <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className="w-7 h-7 rounded-md bg-emerald-100 flex items-center justify-center shrink-0">
+                    <Banknote className="w-4 h-4 text-emerald-600" />
                   </div>
-                  <span className="text-[10px] font-medium text-gray-500 truncate">Collected</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-gray-500 truncate">Collected</span>
                 </div>
-                <p className="text-base md:text-lg font-bold text-emerald-600 truncate">
+                <p className="text-sm sm:text-base md:text-lg font-bold text-emerald-600 truncate">
                   {formatCurrencyExact(
                     billing.bills
                       .filter((b: any) => b.billing_status?.toLowerCase() === "paid")
                       .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
                   )}
                 </p>
-                <p className="text-[9px] text-gray-400 mt-0.5">
+                <p className="text-[10px] text-gray-400 mt-0.5">
                   {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() === "paid").length} paid
                 </p>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-2.5 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
-                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className="w-7 h-7 rounded-md bg-amber-100 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-amber-600" />
                   </div>
-                  <span className="text-[10px] font-medium text-gray-500 truncate">Pending</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-gray-500 truncate">Pending</span>
                 </div>
-                <p className="text-base md:text-lg font-bold text-amber-600 truncate">
+                <p className="text-sm sm:text-base md:text-lg font-bold text-amber-600 truncate">
                   {formatCurrencyExact(
                     billing.bills
                       .filter((b: any) => b.billing_status?.toLowerCase() !== "paid")
                       .reduce((sum: number, b: any) => sum + Number(b.total_amount_due || 0), 0)
                   )}
                 </p>
-                <p className="text-[9px] text-gray-400 mt-0.5">
+                <p className="text-[10px] text-gray-400 mt-0.5">
                   {billing.bills.filter((b: any) => b.billing_status?.toLowerCase() !== "paid").length} pending
                 </p>
               </div>
 
-              <div className="bg-white rounded-lg border border-gray-200 p-2.5 shadow-sm">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center shrink-0">
-                    <Settings className="w-3.5 h-3.5 text-blue-600" />
+              <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-sm">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <div className="w-7 h-7 rounded-md bg-blue-100 flex items-center justify-center shrink-0">
+                    <Settings className="w-4 h-4 text-blue-600" />
                   </div>
-                  <span className="text-[10px] font-medium text-gray-500 truncate">Rates</span>
+                  <span className="text-[11px] sm:text-xs font-semibold text-gray-500 truncate">Rates</span>
                 </div>
                 <div className="flex flex-col gap-1 mt-1">
                   <BillingRateStatus
@@ -986,7 +984,7 @@ export default function PropertyLeasesPage() {
                     billing.propertyDetails?.electricity_billing_type === "submetered") && (
                     <button
                       onClick={() => setBulkMeterOpen(true)}
-                      className="inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-semibold text-[9px] shadow-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white transition-all active:scale-95 truncate"
+                      className="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-md font-semibold text-[9px] shadow-sm bg-gradient-to-r from-amber-500 to-orange-500 text-white transition-all active:scale-95"
                     >
                       <Gauge className="w-2.5 h-2.5 shrink-0" />
                       Bulk
