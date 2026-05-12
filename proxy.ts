@@ -52,21 +52,17 @@ const SYSTEM_ADMIN_ROLES = ["super-admin", "superadmin", "co-admin"];
 const AUTH_PAGES = [
     "/auth/login",
     "/auth/register",
-    "/auth/selectRole",
-    "/pages/auth/login",
-    "/pages/auth/register",
-    "/pages/auth/selectRole",
+    "/selectRole",
 ];
 
 // Pages that should always be accessible even when logged in
 const PUBLIC_AUTH_PAGES = [
     "/auth/verify-email",
-    "/pages/auth/verify-email",
+    "/auth/verify-email",
 ];
 
 const ADMIN_LOGIN_PAGES = [
     "/admin_login",
-    "/pages/admin_login",
 ];
 
 // Public pages that should be accessible even when logged in
@@ -352,11 +348,6 @@ export const config = {
         "/system_admin/:path*",
         "/find-rent/:path*",
         "/public/:path*",
-        "/pages/auth/:path*",
-        "/pages/admin_login",
-        "/pages/tenant/:path*",
-        "/pages/landlord/:path*",
-        "/pages/commons/:path*",
         "/api/webhook/:path*",
         "/error/:path*",
     ],

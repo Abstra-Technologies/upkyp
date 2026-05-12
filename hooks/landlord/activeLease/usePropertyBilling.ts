@@ -148,7 +148,7 @@ export function usePropertyBilling(propertyId: string) {
                 icon: "warning",
                 confirmButtonText: "Set Up Now",
             }).then((result) => {
-                if (result.isConfirmed) router.push("/pages/commons/landlord/payoutDetails");
+                if (result.isConfirmed) router.push("/commons/landlord/payoutDetails");
             });
             return;
         }
