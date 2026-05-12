@@ -10,7 +10,7 @@ let swalShown = false;
 
 export function useSessionMonitor() {
     const { signOut, signOutAdmin, user, admin } = useAuthStore();
-    const lastActivityRef = useRef(Date.now());
+    const lastActivityRef = useRef(0);
     const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
