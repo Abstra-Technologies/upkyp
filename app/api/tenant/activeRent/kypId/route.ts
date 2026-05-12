@@ -4,8 +4,6 @@ import { getSessionUser } from "@/lib/auth/auth";
 import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export async function GET() {
     try {
         /* ===============================

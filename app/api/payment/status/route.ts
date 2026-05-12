@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import mysql, { RowDataPacket } from "mysql2/promise";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 type SubscriptionRow = RowDataPacket & {
     subscription_id: number;
     payment_status: string;

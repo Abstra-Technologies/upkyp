@@ -2,8 +2,6 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/auth";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(req: NextRequest) {
     try {
         const sessionUser = await getSessionUser();

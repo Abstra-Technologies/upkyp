@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 //  use in the pendingLeaseWidger
 /*  penidng signature is nonly applicable when there is a data in LeaseSignature Table */
 

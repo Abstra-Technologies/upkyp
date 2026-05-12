@@ -8,8 +8,6 @@ import { encryptData, decryptData } from "@/crypto/encrypt";
 import { v4 as uuidv4 } from "uuid";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 // AWS S3 client
 const s3Client = new S3Client({
     region: process.env.NEXT_AWS_REGION!,

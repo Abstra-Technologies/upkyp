@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
 import { safeDecrypt } from "@/utils/decrypt/safeDecrypt";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(req: NextRequest) {
     try {
         const session = await getSessionUser();

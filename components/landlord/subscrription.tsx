@@ -134,148 +134,100 @@ export default function LandlordSubscriptionPlanComponent({ landlord_id }) {
     /* ===============================
        Active Subscription UI
     =============================== */
+    const isActive = subscription.is_active;
+
     return (
-        <div className="bg-white border border-gray-300 rounded-lg overflow-hidden shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_2px_rgba(0,0,0,0.05)] hover:border-gray-400 hover:shadow-[inset_0_1px_0_rgba(255,255,255,1),0_2px_4px_rgba(0,0,0,0.08)] transition-all">
-            <div className="p-3 space-y-3">
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+            <div className="p-2.5 space-y-2.5">
 
                 {/* Header */}
                 <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-                            <Crown className="w-3.5 h-3.5 text-white" />
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-emerald-500 rounded flex items-center justify-center shrink-0">
+                            <Crown className="w-3 h-3 text-white" />
                         </div>
-                        <h3 className="text-base font-bold text-gray-900">
+                        <h3 className="text-xs font-bold text-gray-900 truncate">
                             {subscription.plan_name}
                         </h3>
                     </div>
 
                     <span
-                        className={`px-2 py-0.5 text-xs font-semibold rounded-md border ${
+                        className={`shrink-0 px-1.5 py-0.5 text-[9px] font-semibold rounded border ${
                             isCancelled
                                 ? "bg-amber-50 text-amber-700 border-amber-300"
-                                : subscription.is_active
+                                : isActive
                                     ? "bg-emerald-50 text-emerald-700 border-emerald-300"
                                     : "bg-red-50 text-red-700 border-red-300"
                         }`}
                     >
                         {isCancelled
                             ? "Cancels Soon"
-                            : subscription.is_active
+                            : isActive
                                 ? "Active"
                                 : "Expired"}
                     </span>
                 </div>
 
-                {/* Dates */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <InfoCard
-                        icon={<Calendar className="w-3.5 h-3.5 text-blue-600" />}
-                        label="Start Date"
-                        value={subscription.start_date}
-                    />
-                    <InfoCard
-                        icon={<Clock className="w-3.5 h-3.5 text-emerald-600" />}
-                        label="End Date"
-                        value={subscription.end_date}
-                        suffix=" at 11:59 PM"
-                    />
-                </div>
-
-                {/* Payment Status */}
-                <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-md border border-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-                    <span className="text-xs font-medium text-gray-600">
-                        Payment Status
-                    </span>
-                    <span className="px-2 py-0.5 text-xs font-semibold rounded-md bg-gray-100 text-gray-700 border border-gray-300">
+                {/* Start Date + Payment Status row */}
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <Calendar className="w-3 h-3 text-blue-600 shrink-0" />
+                        <span className="text-[10px] text-gray-500">Started</span>
+                        <span className="text-[10px] font-semibold text-gray-900 truncate">
+                            {subscription.start_date
+                                ? new Date(subscription.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                                : "N/A"}
+                        </span>
+                    </div>
+                    <span className="shrink-0 px-1.5 py-0.5 text-[9px] font-semibold rounded bg-gray-100 text-gray-600 border border-gray-200">
                         {subscription.payment_status}
                     </span>
                 </div>
 
                 {/* Cancelled Banner */}
                 {isCancelled && (
-                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-md shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-                        <div className="flex items-start gap-2">
-                            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5" />
-                            <div>
-                                <p className="text-xs font-semibold text-amber-800">
-                                    Subscription Cancelled
-                                </p>
-                                <p className="text-xs text-amber-700 mt-0.5">
-                                    Your subscription remains active until{" "}
-                                    <strong>
-                                        {new Date(subscription.end_date).toLocaleDateString(
-                                            "en-US",
-                                            { year: "numeric", month: "long", day: "numeric" }
-                                        )}
-                                    </strong>
-                                    .
-                                </p>
-                            </div>
+                    <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-start gap-1.5">
+                            <AlertTriangle className="w-3 h-3 text-amber-600 mt-0.5 shrink-0" />
+                            <p className="text-[10px] text-amber-800">
+                                Active until <strong>{new Date(subscription.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</strong>
+                            </p>
                         </div>
                     </div>
                 )}
 
                 {/* Trial Banner */}
                 {subscription.is_trial === 1 && (
-                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-                        <div className="flex items-start gap-2">
-                            <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5" />
-                            <p className="text-xs text-emerald-800">
-                                Free trial until{" "}
-                                <strong>
-                                    {new Date(subscription.end_date).toLocaleDateString()}
-                                </strong>
+                    <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+                        <div className="flex items-start gap-1.5">
+                            <CheckCircle className="w-3 h-3 text-emerald-600 mt-0.5 shrink-0" />
+                            <p className="text-[10px] text-emerald-800">
+                                Free trial until <strong>{new Date(subscription.end_date).toLocaleDateString()}</strong>
                             </p>
                         </div>
                     </div>
                 )}
 
                 {/* Actions */}
-                {subscription.is_active && subscription.is_trial === 0 && (
-                    <div className="space-y-2">
+                {isActive && subscription.is_trial === 0 && (
+                    <div className="flex gap-1.5 pt-1">
                         <Link
                             href="/public/pricing"
-                            className="block bg-blue-600 text-white text-xs font-semibold py-2.5 px-4 rounded-md text-center hover:bg-blue-700 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] transition-all"
+                            className="flex-1 text-center bg-blue-600 text-white text-[10px] font-semibold py-2 rounded-lg active:bg-blue-700 transition-all"
                         >
-                            {isCancelled ? "Reactivate / Upgrade Plan" : "Upgrade Plan"}
+                            {isCancelled ? "Reactivate" : "Upgrade"}
                         </Link>
-
                         {!isCancelled && (
                             <button
                                 onClick={handleCancelSubscription}
-                                className="w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-4 rounded-md border border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 transition-all"
+                                className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold py-2 rounded-lg border border-red-200 text-red-600 active:bg-red-50 transition-all"
                             >
-                                <XCircle className="w-3.5 h-3.5" />
-                                Cancel Subscription
+                                <XCircle className="w-3 h-3" />
+                                Cancel
                             </button>
                         )}
                     </div>
                 )}
-            </div>
-        </div>
-    );
-}
-
-/* ===============================
-   Info Card
-=============================== */
-function InfoCard({ icon, label, value, suffix = "" }) {
-    return (
-        <div className="flex items-start gap-2 p-2.5 bg-gray-50 rounded-md border border-gray-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-gray-400 transition-all">
-            {icon}
-            <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">
-                    {label}
-                </p>
-                <p className="text-xs text-gray-900 mt-0.5">
-                    {value
-                        ? `${new Date(value).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                        })}${suffix}`
-                        : "N/A"}
-                </p>
             </div>
         </div>
     );

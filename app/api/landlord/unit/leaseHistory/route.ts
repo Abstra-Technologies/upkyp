@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 /**
  * Get Lease History by Unit (Landlord)
  * GET /api/landlord/unit/leaseHistory?unit_id=UNIT123

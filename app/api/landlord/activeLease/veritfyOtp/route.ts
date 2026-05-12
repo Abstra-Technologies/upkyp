@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export async function POST(req: NextRequest) {
     try {
         const { agreement_id, role, otp_code} = await req.json();

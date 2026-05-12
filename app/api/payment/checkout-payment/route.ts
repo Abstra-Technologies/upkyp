@@ -11,8 +11,6 @@
 /* -------------------------------------------------------------------------- */
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 import { NextRequest, NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import { createXenditCustomer } from "@/lib/payments/xenditCustomer";

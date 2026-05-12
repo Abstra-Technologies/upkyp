@@ -4,8 +4,6 @@ import moment from "moment-timezone";
 import { sendLeaseOtpEmail } from "@/lib/email/sendLeaseOtpEmail";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 /**
  * ✅ POST /api/tenant/activeLease/sendOtp
  * Body:

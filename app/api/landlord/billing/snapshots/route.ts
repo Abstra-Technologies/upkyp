@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/auth";
 //  for platform subscription
 
-export const dynamic = "force-dynamic";
-
 export async function GET(req: NextRequest) {
     try {
         const sessionUser = await getSessionUser();

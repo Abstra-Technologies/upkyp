@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export async function GET(req: NextRequest) {
     try {
         const agreement_id = req.nextUrl.searchParams.get("agreement_id");

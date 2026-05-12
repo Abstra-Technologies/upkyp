@@ -20,6 +20,10 @@ const baseConfig: NextConfig = {
    */
   turbopack: {},
 
+  cacheComponents: true,
+
+
+
   /**
    * 🔓 Allowed Dev Origins (for ngrok, etc.)
    */

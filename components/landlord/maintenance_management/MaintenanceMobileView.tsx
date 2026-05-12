@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Clock,
@@ -105,39 +106,62 @@ export default function MaintenanceMobileView({
     const activeColumn = columns[activeColumnIndex];
     const activeRequests = getColRequests(activeColumn);
 
+    const [showAllTabs, setShowAllTabs] = useState(false);
+    const visibleColumns = showAllTabs ? columns : columns.slice(0, 3);
+    const hiddenCount = columns.length - 3;
+
     return (
         <div className="w-full flex flex-col">
-            {/* Tab Bar - Scrollable */}
-            <div className="flex gap-1.5 overflow-x-auto px-4 py-2 scrollbar-hide">
-                {columns.map((col, idx) => {
-                    const count = getColRequests(col).length;
-                    const active = activeColumnIndex === idx;
-                    const Icon = col.Icon;
+            {/* Tab Bar - Grid Layout */}
+            <div className="px-4 py-2">
+                <div className="grid grid-cols-3 gap-1.5">
+                    {visibleColumns.map((col, idx) => {
+                        const originalIdx = columns.indexOf(col);
+                        const count = getColRequests(col).length;
+                        const active = activeColumnIndex === originalIdx;
+                        const Icon = col.Icon;
 
-                    return (
-                        <button
-                            key={col.id}
-                            onClick={() => onTabChange(idx)}
-                            className={`relative flex items-center justify-center gap-1 px-3 py-2 text-[10px] font-semibold transition-all rounded-lg whitespace-nowrap flex-shrink-0 ${
-                                active
-                                    ? `bg-gradient-to-r ${col.gradient} text-white shadow-md`
-                                    : `bg-gradient-to-r ${col.gradient} text-white/70`
-                            }`}
-                        >
-                            <Icon className="w-3 h-3" />
-                            <span className="truncate">{col.mobileLabel}</span>
-                            <span
-                                className={`min-w-[16px] h-4 flex items-center justify-center text-[9px] font-bold rounded-full ${
+                        return (
+                            <button
+                                key={col.id}
+                                onClick={() => onTabChange(originalIdx)}
+                                className={`flex items-center justify-center gap-1 px-1.5 py-1.5 text-[9px] font-semibold transition-all rounded-lg ${
                                     active
-                                        ? "bg-white/25 text-white"
-                                        : "bg-white/15 text-white/80"
+                                        ? `bg-gradient-to-r ${col.gradient} text-white shadow-md`
+                                        : "bg-gray-100 text-gray-600"
                                 }`}
                             >
-                                {count}
-                            </span>
+                                <Icon className="w-2.5 h-2.5" />
+                                <span className="truncate">{col.mobileLabel}</span>
+                                <span
+                                    className={`min-w-[14px] h-3.5 flex items-center justify-center text-[8px] font-bold rounded-full ${
+                                        active
+                                            ? "bg-white/25 text-white"
+                                            : "bg-gray-200 text-gray-500"
+                                    }`}
+                                >
+                                    {count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                    {hiddenCount > 0 && !showAllTabs && (
+                        <button
+                            onClick={() => setShowAllTabs(true)}
+                            className="flex items-center justify-center gap-1 px-1.5 py-1.5 text-[9px] font-semibold rounded-lg bg-gray-100 text-gray-500"
+                        >
+                            +{hiddenCount} more
                         </button>
-                    );
-                })}
+                    )}
+                    {showAllTabs && (
+                        <button
+                            onClick={() => setShowAllTabs(false)}
+                            className="flex items-center justify-center gap-1 px-1.5 py-1.5 text-[9px] font-semibold rounded-lg bg-red-50 text-red-500"
+                        >
+                            Less
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Tab Content */}

@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { generateLeaseId } from "@/utils/id_generator";
 import webpush from "web-push";
 
-export const dynamic = "force-dynamic";
-
 // ✅ Setup Web Push
 webpush.setVapidDetails(
     "mailto:support@upkyp.com",

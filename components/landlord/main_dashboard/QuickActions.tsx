@@ -19,11 +19,6 @@ import {
     DollarSign,
 } from "lucide-react";
 
-import {
-    GRADIENT_DOT,
-    SECTION_HEADER,
-    SECTION_TITLE,
-} from "@/constant/design-constants";
 
 import ScanUnitModal from "@/components/landlord/properties/units/ScanUnitModal";
 import ExpenseModal from "@/components/landlord/main_dashboard/ExpenseModal";

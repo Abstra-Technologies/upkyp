@@ -3,8 +3,6 @@ import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { db } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
     try {
         // ✅ cookies() IS ASYNC

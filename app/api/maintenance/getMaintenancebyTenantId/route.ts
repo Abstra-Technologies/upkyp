@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db"; // adjust to your actual DB import path
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 // use in the tenant feeds maintenance widget.
 
 export async function GET(req: NextRequest) {

@@ -4,8 +4,6 @@ import { db } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/utils/formatter/formatters";
 import { getSessionUser } from "@/lib/auth/auth";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(req: Request) {
     const session = await getSessionUser();
     if (!session || session.userType !== "landlord") {

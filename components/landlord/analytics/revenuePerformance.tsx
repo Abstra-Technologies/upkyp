@@ -18,7 +18,7 @@ import {
 const Chart = dynamic(() => import("react-apexcharts"), {
     ssr: false,
     loading: () => (
-        <div className="h-[260px] md:h-[320px] bg-gray-100 rounded-lg animate-pulse" />
+        <div className="h-[200px] md:h-[320px] bg-gray-100 rounded-lg animate-pulse" />
     ),
 });
 
@@ -143,62 +143,56 @@ export default function RevenuePerformanceChart() {
             onClick={() =>
                 router.push("/landlord/analytics/detailed/revenue")
             }
-            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 sm:p-5 hover:shadow-md transition-shadow cursor-pointer"
+            className="bg-white rounded-2xl border border-gray-100 shadow-sm p-2.5 sm:p-5 hover:shadow-md transition-shadow cursor-pointer"
         >
             {/* ================= HEADER ================= */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-2 sm:mb-4 gap-1.5 sm:gap-2">
                 <div className="min-w-0">
-                    <h2 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                        Overall Revenue Performance
+                    <h2 className="text-xs sm:text-base font-semibold text-gray-900 truncate">
+                        Revenue Performance
                     </h2>
-                    <p className="text-sm sm:text-lg font-semibold text-gray-700 truncate">
+                    <p className="text-[11px] sm:text-lg font-semibold text-gray-500 truncate">
                         {selectedPropertyName} · {selectedYear ?? ""}
                     </p>
                 </div>
 
-                <div className="flex flex-row items-center gap-2">
-                    {/* Property Selector */}
+                <div className="flex items-center gap-1.5">
                     {propertiesData && propertiesData.length > 0 && (
                         <div
-                            className="relative flex-1 sm:flex-none min-w-[120px]"
+                            className="relative flex-1 sm:flex-none"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <select
                                 value={selectedPropertyId}
                                 onChange={(e) => setSelectedPropertyId(e.target.value)}
-                                className="appearance-none w-full text-xs sm:text-sm font-medium text-gray-700 bg-gray-50 border rounded-lg pl-2 pr-8 py-1.5 sm:py-2 cursor-pointer focus:outline-none truncate"
+                                className="appearance-none w-full text-[10px] sm:text-sm font-medium text-gray-700 bg-gray-50 border rounded-lg pl-1.5 pr-6 py-1 sm:py-2 cursor-pointer focus:outline-none truncate max-w-[110px] sm:max-w-none"
                             >
-                                <option value="all">All Properties</option>
+                                <option value="all">All</option>
                                 {propertiesData.map((property) => (
                                     <option key={property.property_id} value={property.property_id}>
                                         {property.property_name}
                                     </option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400 pointer-events-none" />
+                            <ChevronDown className="absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-400 pointer-events-none" />
                         </div>
                     )}
 
-                    {/* Year Selector */}
                     {years.length > 0 && selectedYear && (
                         <div
-                            className="relative flex-1 sm:flex-none min-w-[80px]"
+                            className="relative flex-none"
                             onClick={(e) => e.stopPropagation()}
                         >
                             <select
                                 value={selectedYear}
-                                onChange={(e) =>
-                                    setSelectedYear(Number(e.target.value))
-                                }
-                                className="appearance-none w-full text-xs sm:text-sm font-medium text-gray-700 bg-gray-50 border rounded-lg pl-2 pr-8 py-1.5 sm:py-2 cursor-pointer focus:outline-none"
+                                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                className="appearance-none text-[10px] sm:text-sm font-medium text-gray-700 bg-gray-50 border rounded-lg pl-1.5 pr-6 py-1 sm:py-2 cursor-pointer focus:outline-none"
                             >
                                 {years.map((year) => (
-                                    <option key={year} value={year}>
-                                        {year}
-                                    </option>
+                                    <option key={year} value={year}>{year}</option>
                                 ))}
                             </select>
-                            <ChevronDown className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 text-gray-400 pointer-events-none" />
+                            <ChevronDown className="absolute right-1.5 sm:right-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-4 sm:h-4 text-gray-400 pointer-events-none" />
                         </div>
                     )}
                 </div>
@@ -208,16 +202,16 @@ export default function RevenuePerformanceChart() {
             <div className="relative">
                 <Chart
                     type="bar"
-                    height={240}
+                    height={180}
                     series={series}
                     options={{
                         ...baseOptions,
                         plotOptions: {
-                            bar: { columnWidth: "50%", borderRadius: 8 },
+                            bar: { columnWidth: "60%", borderRadius: 6 },
                         },
                         xaxis: {
                             categories: ALL_MONTHS,
-                            labels: { style: { fontSize: "10px", colors: "#6b7280" } },
+                            labels: { style: { fontSize: "9px", colors: "#6b7280" } },
                         },
                     }}
                 />
@@ -225,11 +219,11 @@ export default function RevenuePerformanceChart() {
                 {/* ================= EMPTY OVERLAY ================= */}
                 {!hasValidData && !isLoading && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px] rounded-lg">
-                        <DollarSign className="w-10 h-10 text-emerald-600 mb-2" />
-                        <p className="text-sm font-medium text-gray-700">
+                        <DollarSign className="w-8 h-8 text-emerald-600 mb-1.5" />
+                        <p className="text-xs font-medium text-gray-700">
                             No revenue recorded yet
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-[10px] text-gray-500 mt-0.5 px-4 text-center">
                             Revenue will appear once tenants start making payments.
                         </p>
                     </div>

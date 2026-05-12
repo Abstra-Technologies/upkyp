@@ -8,8 +8,6 @@ import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 // use only for uploading lease agreement
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
 /* ---------------------------------------

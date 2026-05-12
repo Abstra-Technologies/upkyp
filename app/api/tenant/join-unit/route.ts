@@ -3,8 +3,6 @@ import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
 import { generateLeaseId } from "@/utils/id_generator";
 
-export const dynamic = "force-dynamic";
-
 export async function POST(req: NextRequest) {
     try {
         const session = await getSessionUser();

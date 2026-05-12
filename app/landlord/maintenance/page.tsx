@@ -10,7 +10,6 @@ import {
     CheckCircle,
     Play,
     CalendarClock,
-    SlidersHorizontal,
     Check,
     Calendar,
     Ban,

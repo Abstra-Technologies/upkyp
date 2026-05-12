@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 
-export const dynamic = "force-dynamic";
-
 const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
 /**

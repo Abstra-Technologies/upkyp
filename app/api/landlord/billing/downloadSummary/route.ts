@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { db } from "@/lib/db";
 
-export const dynamic = "force-dynamic"; // ensure fresh data
+// ensure fresh data
 
 export async function GET(req: NextRequest) {
     try {

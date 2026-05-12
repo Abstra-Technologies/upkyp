@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { db } from "@/lib/db";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs"; // ← Important for raw body in Vercel/edge cases
 
 // ────────────────────────────────────────────────

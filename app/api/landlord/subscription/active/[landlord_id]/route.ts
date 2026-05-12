@@ -5,8 +5,6 @@ import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionUser } from "@/lib/auth/auth";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(
     req: NextRequest,
     context: { params: Promise<{ landlord_id?: string }> }

@@ -7,8 +7,6 @@ import { jwtVerify } from "jose";
 
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
 export async function POST(req: NextRequest) {
     const connection = await db.getConnection();
 
