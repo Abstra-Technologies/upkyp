@@ -136,7 +136,7 @@ export default function QuickActions({
         },
         {
             label: "Work Orders",
-            tag: "Request a repair",
+            tag: "Log repairs",
             icon: List,
             onClick: () => handleAction(onWorkOrder),
             gradient: "from-orange-500 to-orange-600",
@@ -161,7 +161,7 @@ export default function QuickActions({
         },
         {
             label: "Disbursements",
-            tag: "Payouts & earnings",
+            tag: "View Earnings",
             href: "/landlord/payouts",
             icon: Wallet,
             gradient: "from-cyan-500 to-blue-500",
@@ -175,14 +175,14 @@ export default function QuickActions({
         },
         {
             label: "Calendar",
-            tag: "Schedule & events",
+            tag: "Schedule & Tasks",
             href: "/landlord/calendar",
             icon: Calendar,
             gradient: "from-rose-500 to-pink-500",
         },
         {
             label: "Maintenance",
-            tag: "Work order requests",
+            tag: "View Request",
             href: "/landlord/maintenance",
             icon: Construction,
             gradient: "from-yellow-500 to-amber-500",
