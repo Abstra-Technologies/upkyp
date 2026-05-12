@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
 
 export async function GET(req: NextRequest) {
+    'use cache';
+    cacheLife('hours');
+    cacheTag('payment-years');
+
     try {
         const session = await getSessionUser();
         if (!session || session.userType !== "landlord") {
@@ -33,8 +38,6 @@ export async function GET(req: NextRequest) {
         );
 
         const firstYear = rows?.[0]?.first_year;
-
-        console.log('firstYear: ', firstYear);
 
         return NextResponse.json({
             firstYear,

@@ -1,9 +1,13 @@
-
 import { NextRequest, NextResponse } from "next/server";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 
 export async function GET(req: NextRequest) {
+  'use cache';
+  cacheLife('minutes');
+  cacheTag('occupancy-rate');
+
   const { searchParams } = new URL(req.url);
   const landlord_id = searchParams.get("landlord_id");
   const property_id = searchParams.get("property_id");
@@ -23,7 +27,6 @@ export async function GET(req: NextRequest) {
       params.push(property_id);
     }
 
-    /* Current occupancy */
     const [rows] = await db.execute<RowDataPacket[]>(
         `
       SELECT 
@@ -38,7 +41,6 @@ export async function GET(req: NextRequest) {
         params
     );
 
-    /* Previous period occupancy (30 days ago snapshot via lease history) */
     const [prevRows] = await db.execute<RowDataPacket[]>(
         `
       SELECT 

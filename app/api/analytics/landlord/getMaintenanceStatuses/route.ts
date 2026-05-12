@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
+import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/auth";
 
 export async function GET(req: Request) {
+    'use cache';
+    cacheLife('minutes');
+    cacheTag('maintenance-statuses');
+
     try {
         const session = await getSessionUser();
         if (!session || session.userType !== "landlord") {
@@ -19,7 +24,6 @@ export async function GET(req: Request) {
             params.push(propertyId);
         }
 
-        /* Current maintenance statuses */
         const [rows]: any = await db.query(
             `
             SELECT mr.status, COUNT(*) as count
@@ -47,11 +51,8 @@ export async function GET(req: Request) {
                     counts[status] = Number(row.count);
                 }
             });
-
             return counts;
-
         };
-
 
         return NextResponse.json({
             success: true,
