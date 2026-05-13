@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { cacheLife, cacheTag } from "next/cache";
 
-//  use in the payment pages scorecard grids.
+async function getCachedPaymentSummary(landlord_id: string) {
+    "use cache";
+    cacheLife("hours");
+    cacheTag(`payment-summary-${landlord_id}`);
 
-export async function GET(req: NextRequest) {
-    try {
-        const { searchParams } = new URL(req.url);
-        const landlord_id = searchParams.get("landlord_id");
-
-        if (!landlord_id) {
-            return NextResponse.json(
-                { error: "landlord_id is required" },
-                { status: 400 }
-            );
-        }
-
-        /* ===============================
-           TOTAL COLLECTED (YTD)
-           → USE NET AMOUNT (FALLBACK TO AMOUNT_PAID)
-        ================================ */
-        const [[collected]]: any = await db.query(
-            `
+    const [[collected]]: any = await db.query(
+        `
       SELECT COALESCE(SUM(COALESCE(NULLIF(p.net_amount, 0), p.amount_paid)), 0) AS totalCollected
       FROM Payment p
       INNER JOIN LeaseAgreement la ON la.agreement_id = p.agreement_id
@@ -30,30 +18,21 @@ export async function GET(req: NextRequest) {
         AND p.payment_status = 'confirmed'
         AND YEAR(p.created_at) = YEAR(CURDATE())
       `,
-            [landlord_id]
-        );
+        [landlord_id]
+    );
 
-        /* ===============================
-           TOTAL DISBURSED (SUCCEEDED)
-           → ACTUAL TRANSFERRED AMOUNT
-        ================================ */
-        const [[disbursed]]: any = await db.query(
-            `
+    const [[disbursed]]: any = await db.query(
+        `
       SELECT COALESCE(SUM(amount), 0) AS totalDisbursed
       FROM LandlordPayoutHistory
       WHERE landlord_id = ?
         AND status = 'SUCCEEDED'
       `,
-            [landlord_id]
-        );
+        [landlord_id]
+    );
 
-        /* ===============================
-           PENDING DISBURSEMENTS
-           → CONFIRMED + NOT YET PAID
-           → USE NET AMOUNT (FALLBACK TO AMOUNT_PAID)
-        ================================ */
-        const [[pending]]: any = await db.query(
-            `
+    const [[pending]]: any = await db.query(
+        `
       SELECT COALESCE(SUM(COALESCE(NULLIF(p.net_amount, 0), p.amount_paid)), 0) AS pendingPayouts
       FROM Payment p
       INNER JOIN LeaseAgreement la ON la.agreement_id = p.agreement_id
@@ -63,15 +42,30 @@ export async function GET(req: NextRequest) {
         AND p.payment_status = 'confirmed'
         AND p.payout_status IN ('unpaid', 'in_payout')
       `,
-            [landlord_id]
-        );
+        [landlord_id]
+    );
 
-        return NextResponse.json({
-            success: true,
-            totalCollected: Number(collected.totalCollected),
-            totalDisbursed: Number(disbursed.totalDisbursed),
-            pendingPayouts: Number(pending.pendingPayouts),
-        });
+    return {
+        success: true,
+        totalCollected: Number(collected.totalCollected),
+        totalDisbursed: Number(disbursed.totalDisbursed),
+        pendingPayouts: Number(pending.pendingPayouts),
+    };
+}
+
+export async function GET(req: NextRequest) {
+    try {
+        const landlord_id = req.nextUrl.searchParams.get("landlord_id");
+
+        if (!landlord_id) {
+            return NextResponse.json(
+                { error: "landlord_id is required" },
+                { status: 400 }
+            );
+        }
+
+        const result = await getCachedPaymentSummary(landlord_id);
+        return NextResponse.json(result);
     } catch (err) {
         console.error("❌ [PAYMENT SUMMARY] ERROR:", err);
         return NextResponse.json(

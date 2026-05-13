@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db"; // mysql2/promise instance
 import { cacheLife, cacheTag } from "next/cache";
 
-const getCachedData = (landlordId: string) => {
+async function getCachedData(landlordId: string) {
     "use cache";
     cacheLife("hours");
     cacheTag(`maintenance-today-${landlordId}`);
 
     const today = new Date().toISOString().split("T")[0];
 
-    const [scheduledToday] = db.execute(
+    const [scheduledToday] = await db.execute(
         `
         SELECT 
             mr.request_id,
@@ -31,7 +31,7 @@ const getCachedData = (landlordId: string) => {
         [landlordId, today]
     );
 
-    const [createdToday] = db.execute(
+    const [createdToday] = await db.execute(
         `
         SELECT 
             mr.request_id,
@@ -53,7 +53,7 @@ const getCachedData = (landlordId: string) => {
         [landlordId, today]
     );
 
-    const [summary] = db.execute(
+    const [summary] = await db.execute(
         `
         SELECT
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
@@ -70,10 +70,9 @@ const getCachedData = (landlordId: string) => {
     return { scheduledToday, createdToday, summary };
 };
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const landlordId = searchParams.get("landlord_id");
+        const landlordId = req.nextUrl.searchParams.get("landlord_id");
 
         if (!landlordId) {
             return NextResponse.json(

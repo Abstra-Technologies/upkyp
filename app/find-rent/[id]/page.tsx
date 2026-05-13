@@ -1,6 +1,5 @@
-
 import { Metadata } from "next";
-import PropertyDetails from "@/components/find-rent/PropertyDetails";
+import PropertyDetailsWrapper from "./PropertyDetailsWrapper";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const res = await fetch(
@@ -53,6 +52,5 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 }
 
 export default function PropertyPage({ params }: { params: { id: string } }) {
-  // @ts-ignore
-  return <PropertyDetails id={params.id} />;
+  return <PropertyDetailsWrapper id={params.id} />;
 }

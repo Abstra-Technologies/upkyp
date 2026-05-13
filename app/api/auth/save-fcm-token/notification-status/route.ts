@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { cacheLife, cacheTag } from "next/cache";
 
-const getCachedFCMStatus = (userId: string, platform: string) => {
+async function getCachedFCMStatus(userId: string, platform: string) {
     "use cache";
     cacheLife("minutes");
     cacheTag(`fcm-status-${userId}-${platform}`);
@@ -14,7 +14,7 @@ const getCachedFCMStatus = (userId: string, platform: string) => {
       LIMIT 1
     `;
 
-    const [rows]: any = db.execute(sql, [userId, platform]);
+    const [rows]: any = await db.execute(sql, [userId, platform]);
 
     if (!rows.length) {
         return { status: false, token: null };
@@ -24,7 +24,7 @@ const getCachedFCMStatus = (userId: string, platform: string) => {
     const token = rows[0].token;
 
     return { status, token };
-};
+}
 
 export async function GET(req: NextRequest) {
     try {

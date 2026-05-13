@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import useForgotPasswordStore from "@/zustand/forgotStore";
 
-const ResetPassword = () => {
+function ResetPasswordForm() {
   const {
     resetToken,
     setResetToken,
@@ -21,7 +21,6 @@ const ResetPassword = () => {
   const router = useRouter();
 
   useEffect(() => {
-    // Get the reset token from the URL query params
     const token = searchParams.get("token");
     if (token) {
       setResetToken(token);
@@ -69,10 +68,7 @@ const ResetPassword = () => {
         </p>
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               New Password
             </label>
             <input
@@ -86,10 +82,7 @@ const ResetPassword = () => {
             />
           </div>
           <div>
-            <label
-              htmlFor="confirm-password"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
               Confirm New Password
             </label>
             <input
@@ -103,30 +96,28 @@ const ResetPassword = () => {
             />
           </div>
           {message && (
-            <p
-              className={`text-center text-sm mt-2 ${
-                message.includes("successfully")
-                  ? "text-green-500"
-                  : "text-red-500"
-              }`}
-            >
+            <p className={`text-center text-sm mt-2 ${message.includes("successfully") ? "text-green-500" : "text-red-500"}`}>
               {message}
             </p>
           )}
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-2 px-4 text-white font-medium rounded-md transition ${
-              isLoading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
+            className={`w-full py-2 px-4 text-white font-medium rounded-md transition ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
           >
             {isLoading ? "Resetting..." : "Reset Password"}
           </button>
         </form>
       </div>
     </div>
+  );
+}
+
+const ResetPassword = () => {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 };
 

@@ -95,7 +95,12 @@ const getAdmin = async (adminId: string) => {
 
 export async function GET() {
     try {
-        const cookieStore = await cookies();
+        let cookieStore;
+        try {
+            cookieStore = await cookies();
+        } catch {
+            return NextResponse.json({ error: "No active session found" }, { status: 401 });
+        }
 
         const userToken = cookieStore.get("token")?.value;
         const adminToken = cookieStore.get("admin_token")?.value;

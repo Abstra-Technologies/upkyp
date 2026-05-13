@@ -259,7 +259,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <Suspense fallback={<div className="h-16" />}>
                 <Navbar />
             </Suspense>
-            {children}
+            <Suspense fallback={<div className="min-h-screen" />}>
+                {children}
+            </Suspense>
         </>
     );
 }

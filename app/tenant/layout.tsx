@@ -207,7 +207,7 @@ export default function TenantLayout({ children }) {
   // BROWSING MODE - Just render children (Navbar handles nav)
   // =====================================================
   if (!isInPortalMode) {
-    return <>{children}</>;
+    return <Suspense fallback={<LoadingScreen />}>{children}</Suspense>;
   }
 
   // =====================================================
@@ -486,7 +486,9 @@ export default function TenantLayout({ children }) {
       {/* Main Layout */}
         <div className="min-h-screen bg-gray-50">
             <main className="lg:pl-64 pt-12 lg:pt-0 pb-16 lg:pb-0">
-                {children}
+                <Suspense fallback={<LoadingScreen />}>
+                    {children}
+                </Suspense>
             </main>
         </div>
     </>

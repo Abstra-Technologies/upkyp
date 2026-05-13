@@ -5,13 +5,13 @@ import { cacheLife, cacheTag } from "next/cache";
 
 const encryptionSecret = process.env.ENCRYPTION_SECRET!;
 
-const getCachedAnnouncements = (user_id: string, agreement_id: string | null) => {
+async function getCachedAnnouncements(user_id: string, agreement_id: string | null) {
     "use cache";
     cacheLife("minutes");
     cacheTag(`announcements-${user_id}-${agreement_id || "no-agreement"}`);
 
     return { user_id, agreement_id };
-};
+}
 
 async function fetchAnnouncements(user_id: string, agreement_id: string | null) {
     let property_id: string | null = null;
@@ -187,9 +187,8 @@ async function fetchAnnouncements(user_id: string, agreement_id: string | null) 
 
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const user_id = searchParams.get("user_id");
-        const agreement_id = searchParams.get("agreement_id");
+        const user_id = req.nextUrl.searchParams.get("user_id");
+        const agreement_id = req.nextUrl.searchParams.get("agreement_id");
 
         if (!user_id) {
             return NextResponse.json(

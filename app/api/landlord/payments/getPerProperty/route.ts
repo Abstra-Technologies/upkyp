@@ -1,42 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
+import { cacheLife, cacheTag } from "next/cache";
 
-export async function GET(req: NextRequest) {
-    try {
-        const { searchParams } = new URL(req.url);
+async function getCachedPayments(property_id: string, landlord_id: string) {
+    "use cache";
+    cacheLife("hours");
+    cacheTag(`property-payments-${property_id}-${landlord_id}`);
 
-        const landlord_id = searchParams.get("landlord_id");
-        const property_id = searchParams.get("property_id");
-
-        if (!landlord_id || !property_id) {
-            return NextResponse.json(
-                { message: "landlord_id and property_id are required" },
-                { status: 400 }
-            );
-        }
-
-        const [ownership]: any = await db.query(
-            `
+    const [ownership]: any = await db.query(
+        `
       SELECT property_id
       FROM Property
       WHERE property_id = ?
         AND landlord_id = ?
       LIMIT 1
       `,
-            [property_id, landlord_id]
-        );
+        [property_id, landlord_id]
+    );
 
-        if (!ownership.length) {
-            return NextResponse.json(
-                { message: "Unauthorized property access" },
-                { status: 403 }
-            );
-        }
+    if (!ownership.length) {
+        return { error: "Unauthorized property access" };
+    }
 
-
-        const [rows]: any = await db.query(
-            `
+    const [rows]: any = await db.query(
+        `
       SELECT
         p.payment_id,
         p.payment_type,
@@ -75,46 +63,67 @@ export async function GET(req: NextRequest) {
       WHERE pr.property_id = ?
       ORDER BY p.payment_date DESC
       `,
-            [property_id]
-        );
+        [property_id]
+    );
 
-        /* =========================================
-           🔓 DECRYPT TENANT NAMES
-        ========================================= */
-        const payments = rows.map((row: any) => {
-            let firstName = "";
-            let lastName = "";
+    const payments = rows.map((row: any) => {
+        let firstName = "";
+        let lastName = "";
 
-            try {
-                if (row.firstName?.startsWith("{")) {
-                    firstName = decryptData(
-                        JSON.parse(row.firstName),
-                        process.env.ENCRYPTION_SECRET!
-                    );
-                }
-
-                if (row.lastName?.startsWith("{")) {
-                    lastName = decryptData(
-                        JSON.parse(row.lastName),
-                        process.env.ENCRYPTION_SECRET!
-                    );
-                }
-            } catch (err) {
-                console.warn("Name decryption failed:", err);
+        try {
+            if (row.firstName?.startsWith("{")) {
+                firstName = decryptData(
+                    JSON.parse(row.firstName),
+                    process.env.ENCRYPTION_SECRET!
+                );
             }
 
-            return {
-                ...row,
-                tenant_name:
-                    firstName || lastName
-                        ? `${firstName} ${lastName}`.trim()
-                        : "—",
-            };
-        });
+            if (row.lastName?.startsWith("{")) {
+                lastName = decryptData(
+                    JSON.parse(row.lastName),
+                    process.env.ENCRYPTION_SECRET!
+                );
+            }
+        } catch (err) {
+            console.warn("Name decryption failed:", err);
+        }
+
+        return {
+            ...row,
+            tenant_name:
+                firstName || lastName
+                    ? `${firstName} ${lastName}`.trim()
+                    : "—",
+        };
+    });
+
+    return { payments, total: payments.length };
+}
+
+export async function GET(req: NextRequest) {
+    try {
+        const landlord_id = req.nextUrl.searchParams.get("landlord_id");
+        const property_id = req.nextUrl.searchParams.get("property_id");
+
+        if (!landlord_id || !property_id) {
+            return NextResponse.json(
+                { message: "landlord_id and property_id are required" },
+                { status: 400 }
+            );
+        }
+
+        const result = await getCachedPayments(property_id, landlord_id);
+
+        if (result.error) {
+            return NextResponse.json(
+                { message: result.error },
+                { status: 403 }
+            );
+        }
 
         return NextResponse.json({
-            payments,
-            total: payments.length,
+            payments: result.payments,
+            total: result.total,
         });
     } catch (error) {
         console.error("PROPERTY PAYMENTS ERROR:", error);

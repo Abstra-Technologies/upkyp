@@ -1,31 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { db } from "@/lib/db";
+import { cacheLife, cacheTag } from "next/cache";
 
-// ensure fresh data
+async function getCachedBillingSummary(property_id: string, currentMonth: number, currentYear: number) {
+    "use cache";
+    cacheLife("hours");
+    cacheTag(`billing-summary-${property_id}`);
 
-export async function GET(req: NextRequest) {
-    try {
-        const { searchParams } = new URL(req.url);
-        const property_id = searchParams.get("property_id");
-
-        console.log('property id', property_id);
-
-        if (!property_id) {
-            return NextResponse.json(
-                { error: "Missing property_id" },
-                { status: 400 }
-            );
-        }
-
-        // 🗓 Get current month and year
-        const now = new Date();
-        const currentMonth = now.getMonth() + 1;
-        const currentYear = now.getFullYear();
-
-        // 📦 Fetch billing data for this property (current month)
-        const [rows]: any = await db.query(
-            `
+    const [rows]: any = await db.query(
+        `
       SELECT 
         b.billing_id,
         u.unit_name,
@@ -41,8 +25,28 @@ export async function GET(req: NextRequest) {
         AND YEAR(b.created_at) = ?
       ORDER BY b.created_at DESC
       `,
-            [property_id, currentMonth, currentYear]
-        );
+        [property_id, currentMonth, currentYear]
+    );
+
+    return rows;
+}
+
+export async function GET(req: NextRequest) {
+    try {
+        const property_id = req.nextUrl.searchParams.get("property_id");
+
+        if (!property_id) {
+            return NextResponse.json(
+                { error: "Missing property_id" },
+                { status: 400 }
+            );
+        }
+
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        const rows = await getCachedBillingSummary(property_id, currentMonth, currentYear);
 
         if (!rows.length) {
             return NextResponse.json(
@@ -51,7 +55,6 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        // 🧾 Generate HTML table for Puppeteer
         const html = `
 <html>
   <head>
@@ -64,7 +67,6 @@ export async function GET(req: NextRequest) {
         background-color: #ffffff;
       }
 
-      /* Header */
       header {
         background: linear-gradient(90deg, #10b981, #2563eb);
         color: white;
@@ -82,7 +84,6 @@ export async function GET(req: NextRequest) {
         height: 28px;
       }
 
-      /* Content */
       .content {
         padding: 16px 24px;
       }
@@ -98,7 +99,6 @@ export async function GET(req: NextRequest) {
         margin-bottom: 20px;
       }
 
-      /* Table */
       table {
         width: 100%;
         border-collapse: collapse;
@@ -118,7 +118,6 @@ export async function GET(req: NextRequest) {
         background-color: #fafafa;
       }
 
-      /* Info section */
       .summary-info {
         background-color: #f9fafb;
         border: 1px solid #e5e7eb;
@@ -132,7 +131,6 @@ export async function GET(req: NextRequest) {
         color: #2563eb;
       }
 
-      /* Footer */
       footer {
         margin-top: 32px;
         padding: 10px 0;
@@ -207,7 +205,6 @@ export async function GET(req: NextRequest) {
 </html>
 `;
 
-        // 🧠 Launch Puppeteer and render PDF
         const browser = await puppeteer.launch({
             headless: "new",
             args: ["--no-sandbox", "--disable-setuid-sandbox"],
@@ -224,7 +221,6 @@ export async function GET(req: NextRequest) {
 
         await browser.close();
 
-        // 📤 Return PDF file
         return new NextResponse(pdfBuffer, {
             status: 200,
             headers: {

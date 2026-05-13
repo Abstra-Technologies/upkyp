@@ -1,139 +1,121 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { cacheLife, cacheTag } from "next/cache";
 import { decryptData } from "@/crypto/encrypt";
 
-/**
- * @route   GET /api/billing/non_submetered/getByUnit?unit_id=UPKYUxxxx
- * @desc    Fetch current month non-submetered billing data by unit.
- *          Includes active lease info, property configuration (late fees, due day),
- *          and any existing additional charges/discounts.
- * @usedBy  Landlord → Billing → ReviewBillingPage
- */
-export async function GET(req: NextRequest) {
-    try {
-        const { searchParams } = new URL(req.url);
-        const unit_id = searchParams.get("unit_id");
+async function getCachedNonSubmeteredBilling(unit_id: string) {
+    "use cache";
+    cacheLife("hours");
+    cacheTag(`non-submetered-${unit_id}`);
 
-        if (!unit_id)
-            return NextResponse.json({ error: "Missing unit_id" }, { status: 400 });
+    const [rows]: any = await db.query(
+        `
+        SELECT
+            la.agreement_id,
+            la.unit_id,
+            la.tenant_id,
+            la.security_deposit_amount,
+            la.advance_payment_amount,
+            un.unit_name,
+            us.firstName,
+            us.lastName,
+            p.property_id,
+            p.property_name,
+            un.rent_amount AS base_rent,
+            CURDATE() AS billing_period
+        FROM LeaseAgreement la
+                 JOIN Unit un ON la.unit_id = un.unit_id
+                 JOIN Tenant t ON la.tenant_id = t.tenant_id
+                 JOIN User us ON t.user_id = us.user_id
+                 JOIN Property p ON un.property_id = p.property_id
+        WHERE la.status = 'active'
+          AND la.unit_id = ?
+          AND (p.water_billing_type != 'submetered' OR p.electricity_billing_type != 'submetered')
+        LIMIT 1
+        `,
+        [unit_id]
+    );
 
-        // 1️⃣ Get active lease and property info
-        const [rows]: any = await db.query(
+    if (!rows.length) {
+        return null;
+    }
+
+    const row = rows[0];
+
+    const [configRows]: any = await db.query(
+        `
+        SELECT billingDueDay AS billing_due_day,
+               lateFeeAmount AS late_fee_amount,
+               lateFeeType
+        FROM PropertyConfiguration
+        WHERE property_id = ?
+        LIMIT 1
+        `,
+        [row.property_id]
+    );
+
+    const propertyConfig = configRows?.[0] || {
+        billing_due_day: null,
+        late_fee_amount: 0,
+        lateFeeType: "fixed",
+    };
+
+    const firstName = row.firstName
+        ? await decryptData(JSON.parse(row.firstName), process.env.ENCRYPTION_SECRET!)
+        : "";
+    const lastName = row.lastName
+        ? await decryptData(JSON.parse(row.lastName), process.env.ENCRYPTION_SECRET!)
+        : "";
+    const tenant_name = `${firstName} ${lastName}`.trim();
+
+    const [billingRows]: any = await db.query(
+        `
+        SELECT billing_id, total_amount_due, status, billing_period
+        FROM Billing
+        WHERE unit_id = ?
+          AND MONTH(billing_period) = MONTH(CURDATE())
+          AND YEAR(billing_period) = YEAR(CURDATE())
+        LIMIT 1
+        `,
+        [unit_id]
+    );
+
+    const billing = billingRows?.[0] || null;
+    const billing_id = billing?.billing_id || null;
+
+    let additional_charges: any[] = [];
+    let discounts: any[] = [];
+
+    if (billing_id) {
+        const [charges]: any = await db.query(
             `
-                SELECT
-                    la.agreement_id,
-                    la.unit_id,
-                    la.tenant_id,
-                    la.security_deposit_amount,
-                    la.advance_payment_amount,
-                    un.unit_name,
-                    us.firstName,
-                    us.lastName,
-                    p.property_id,
-                    p.property_name,
-                    un.rent_amount AS base_rent,
-                    CURDATE() AS billing_period
-                FROM LeaseAgreement la
-                         JOIN Unit un ON la.unit_id = un.unit_id
-                         JOIN Tenant t ON la.tenant_id = t.tenant_id
-                         JOIN User us ON t.user_id = us.user_id
-                         JOIN Property p ON un.property_id = p.property_id
-                WHERE la.status = 'active'
-                  AND la.unit_id = ?
-                  AND (p.water_billing_type != 'submetered' OR p.electricity_billing_type != 'submetered')
-                LIMIT 1
+            SELECT id AS charge_id, charge_category, charge_type, amount
+            FROM BillingAdditionalCharge
+            WHERE billing_id = ?
             `,
-            [unit_id]
+            [billing_id]
         );
 
-        if (!rows.length)
-            return NextResponse.json(
-                { message: "No active lease or non-submetered configuration found for this unit." },
-                { status: 404 }
-            );
-
-        const row = rows[0];
-
-        // 2️⃣ Fetch PropertyConfiguration (for late fee + billingDueDay)
-        const [configRows]: any = await db.query(
-            `
-                SELECT billingDueDay AS billing_due_day,
-                       lateFeeAmount AS late_fee_amount,
-                       lateFeeType
-                FROM PropertyConfiguration
-                WHERE property_id = ?
-                LIMIT 1
-            `,
-            [row.property_id]
+        additional_charges = charges.filter(
+            (c: any) => c.charge_category === "additional"
         );
-
-        const propertyConfig = configRows?.[0] || {
-            billing_due_day: null,
-            late_fee_amount: 0,
-            lateFeeType: "fixed",
-        };
-
-        // 3️⃣ Decrypt tenant name
-        const firstName = row.firstName
-            ? await decryptData(JSON.parse(row.firstName), process.env.ENCRYPTION_SECRET!)
-            : "";
-        const lastName = row.lastName
-            ? await decryptData(JSON.parse(row.lastName), process.env.ENCRYPTION_SECRET!)
-            : "";
-        const tenant_name = `${firstName} ${lastName}`.trim();
-
-        // 4️⃣ Check for existing billing record
-        const [billingRows]: any = await db.query(
-            `
-                SELECT billing_id, total_amount_due, status, billing_period
-                FROM Billing
-                WHERE unit_id = ?
-                  AND MONTH(billing_period) = MONTH(CURDATE())
-                  AND YEAR(billing_period) = YEAR(CURDATE())
-                LIMIT 1
-            `,
-            [unit_id]
+        discounts = charges.filter(
+            (c: any) => c.charge_category === "discount"
         );
+    }
 
-        const billing = billingRows?.[0] || null;
-        const billing_id = billing?.billing_id || null;
+    if (!Array.isArray(additional_charges)) additional_charges = [];
+    if (!Array.isArray(discounts)) discounts = [];
 
-        // 5️⃣ Load charges if billing exists
-        let additional_charges: any[] = [];
-        let discounts: any[] = [];
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const dueDate = propertyConfig.billing_due_day
+        ? new Date(year, month, propertyConfig.billing_due_day)
+        : null;
 
-        if (billing_id) {
-            const [charges]: any = await db.query(
-                `
-                    SELECT id AS charge_id, charge_category, charge_type, amount
-                    FROM BillingAdditionalCharge
-                    WHERE billing_id = ?
-                `,
-                [billing_id]
-            );
-
-            additional_charges = charges.filter(
-                (c: any) => c.charge_category === "additional"
-            );
-            discounts = charges.filter(
-                (c: any) => c.charge_category === "discount"
-            );
-        }
-
-        // ✅ Fallback: ensure these are arrays for frontend form fields
-        if (!Array.isArray(additional_charges)) additional_charges = [];
-        if (!Array.isArray(discounts)) discounts = [];
-
-        // 6️⃣ Compute due date from billingDueDay
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = today.getMonth();
-        const dueDate = propertyConfig.billing_due_day
-            ? new Date(year, month, propertyConfig.billing_due_day)
-            : null;
-
-        // 7️⃣ Build final bill object (always consistent)
-        const bill = {
+    return {
+        bills: [{
             ...row,
             tenant_name,
             billing_id,
@@ -146,10 +128,28 @@ export async function GET(req: NextRequest) {
             due_date: dueDate,
             additional_charges,
             discounts,
-        };
+        }],
+    };
+}
 
-        // 8️⃣ Return response
-        return NextResponse.json({ bills: [bill] });
+export async function GET(req: NextRequest) {
+    try {
+        const unit_id = req.nextUrl.searchParams.get("unit_id");
+
+        if (!unit_id) {
+            return NextResponse.json({ error: "Missing unit_id" }, { status: 400 });
+        }
+
+        const data = await getCachedNonSubmeteredBilling(unit_id);
+
+        if (!data) {
+            return NextResponse.json(
+                { message: "No active lease or non-submetered configuration found for this unit." },
+                { status: 404 }
+            );
+        }
+
+        return NextResponse.json(data);
     } catch (error: any) {
         console.error("❌ Error fetching non-submetered billing by unit:", error);
         return NextResponse.json(

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./clientLayout";
@@ -65,12 +66,14 @@ export default function RootLayout({
             <link rel="apple-touch-icon" href="/Hestia-logo-b.svg"/>
         </Head>
         <body className="bg-white text-gray-900 antialiased">
-        <ClientLayout>
-            <SpeedInsights/>
-            <Analytics/>
-            {children}
-            <CookiesPermission />
-        </ClientLayout>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-500">Loading...</div>}>
+            <ClientLayout>
+                <SpeedInsights/>
+                <Analytics/>
+                {children}
+                <CookiesPermission />
+            </ClientLayout>
+        </Suspense>
         <InstallPrompt />
         </body>
         </html>

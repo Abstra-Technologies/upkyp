@@ -2,26 +2,19 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { db } from "@/lib/db";
-import { cacheLife, cacheTag } from "next/cache";
-
-export const dynamic = "force-dynamic";
-
-const getCachedAdminSession = (adminId: string) => {
-    "use cache";
-    cacheLife("minutes");
-    cacheTag(`admin-session-${adminId}`);
-
-    const [rows]: any = db.query(
-        "SELECT admin_id, username, email, role, status FROM Admin WHERE admin_id = ?",
-        [adminId]
-    );
-
-    return rows?.[0] || null;
-};
 
 export async function GET() {
     try {
-        const cookieStore = await cookies();
+        let cookieStore;
+        try {
+            cookieStore = await cookies();
+        } catch {
+            return NextResponse.json(
+                { error: "Unauthenticated" },
+                { status: 401 }
+            );
+        }
+
         const token = cookieStore.get("token")?.value;
 
         if (!token) {
@@ -41,16 +34,19 @@ export async function GET() {
             );
         }
 
-        const admin = await getCachedAdminSession(payload.admin_id);
+        const [rows]: any = await db.query(
+            "SELECT admin_id, username, email, role, status FROM Admin WHERE admin_id = ?",
+            [payload.admin_id]
+        );
 
-        if (!admin) {
+        if (!rows || rows.length === 0) {
             return NextResponse.json(
                 { error: "Admin not found" },
                 { status: 401 }
             );
         }
 
-        return NextResponse.json({ admin });
+        return NextResponse.json({ admin: rows[0] });
     } catch (err) {
         console.error("[systemadmin/session]", err);
         return NextResponse.json(
