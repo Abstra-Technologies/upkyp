@@ -2,17 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const user_id = searchParams.get("user_id");
+
+    if (!user_id) {
+        return NextResponse.json(
+            { error: "user_id is required" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const user_id = searchParams.get("user_id");
-
-        if (!user_id) {
-            return NextResponse.json(
-                { error: "user_id is required" },
-                { status: 400 }
-            );
-        }
-
         const [landlordRows]: any = await db.execute(
             `SELECT landlord_id FROM Landlord WHERE user_id = ?`,
             [user_id]

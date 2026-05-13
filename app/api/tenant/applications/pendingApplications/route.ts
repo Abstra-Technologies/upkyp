@@ -3,17 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const tenant_id = searchParams.get("tenant_id");
+
+    if (!tenant_id) {
+        return NextResponse.json(
+            { error: "tenant_id is required" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const tenant_id = searchParams.get("tenant_id");
-
-        if (!tenant_id) {
-            return NextResponse.json(
-                { error: "tenant_id is required" },
-                { status: 400 }
-            );
-        }
-
         // Count undecided applications:
         // landlord approved, tenant has not proceeded yet
         const [rows] = await db.query(

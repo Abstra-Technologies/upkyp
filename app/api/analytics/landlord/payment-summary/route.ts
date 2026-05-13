@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+
 //  use in the payment pages scorecard grids.
 
 export async function GET(req: NextRequest) {

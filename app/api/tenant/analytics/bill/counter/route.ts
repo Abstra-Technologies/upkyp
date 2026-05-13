@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
-    try {
-        const { searchParams } = new URL(req.url);
-        const tenantId = searchParams.get("tenantId");
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenantId");
 
-        if (!tenantId) {
-            return NextResponse.json(
-                { error: "Missing tenantId" },
-                { status: 400 }
-            );
-        }
+    if (!tenantId) {
+        return NextResponse.json(
+            { error: "Missing tenantId" },
+            { status: 400 }
+        );
+    }
+
+    try {
         const [rows]: any = await db.query(
             `
       SELECT 

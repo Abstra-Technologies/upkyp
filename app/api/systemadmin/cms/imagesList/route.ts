@@ -8,20 +8,20 @@ import cloudinary from "@/lib/cloudinary";
 export async function GET(req: Request) {
     const requestTime = new Date().toISOString();
 
+    const { searchParams } = new URL(req.url);
+    const folder = searchParams.get("folder");
+
+    console.log(`[${requestTime}] [CMS:ImageList] Incoming request → folder:`, folder);
+
+    if (!folder) {
+        console.warn(`[${requestTime}] [CMS:ImageList] ❌ Missing folder query parameter`);
+        return NextResponse.json(
+            { success: false, error: "Missing 'folder' query parameter." },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const folder = searchParams.get("folder");
-
-        console.log(`[${requestTime}] [CMS:ImageList] Incoming request → folder:`, folder);
-
-        if (!folder) {
-            console.warn(`[${requestTime}] [CMS:ImageList] ❌ Missing folder query parameter`);
-            return NextResponse.json(
-                { success: false, error: "Missing 'folder' query parameter." },
-                { status: 400 }
-            );
-        }
-
         // Test connection if first call
         if (!cloudinary.config().cloud_name) {
             console.error(`[${requestTime}] [CMS:ImageList] ❌ Cloudinary not configured properly.`);

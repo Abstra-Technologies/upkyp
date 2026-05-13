@@ -209,7 +209,7 @@ export default function CMSHeadersPage() {
 
             {/* Page_footer */}
             <div className="text-center text-sm text-gray-500 mt-10">
-                © {new Date().getFullYear()} UPKYP CMS · Cloudinary Headers Manager
+                © 2026 UPKYP CMS · Cloudinary Headers Manager
             </div>
         </div>
     );

@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    let agreementId = searchParams.get("agreement_id");
+    const userId = searchParams.get("user_id");
+
+    if (!userId) {
+        return NextResponse.json(
+            { error: "user_id is required" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        let agreementId = searchParams.get("agreement_id");
-        const userId = searchParams.get("user_id");
-
-        if (!userId) {
-            return NextResponse.json(
-                { error: "user_id is required" },
-                { status: 400 }
-            );
-        }
-
         /* ------------------ 1️⃣ TENANT LOOKUP ------------------ */
         const [tenantRows]: any = await db.query(
             `SELECT tenant_id FROM Tenant WHERE user_id = ? LIMIT 1`,

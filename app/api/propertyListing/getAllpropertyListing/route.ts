@@ -3,17 +3,17 @@ import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = req.nextUrl;
+    const landlordId = searchParams.get("landlord_id");
+
+    if (!landlordId) {
+        return NextResponse.json(
+            { error: "landlord_id is required" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = req.nextUrl;
-        const landlordId = searchParams.get("landlord_id");
-
-        if (!landlordId) {
-            return NextResponse.json(
-                { error: "landlord_id is required" },
-                { status: 400 }
-            );
-        }
-
         /* -------------------------------------------------------
            REDIS CACHE KEY (scoped per landlord)
         ------------------------------------------------------- */

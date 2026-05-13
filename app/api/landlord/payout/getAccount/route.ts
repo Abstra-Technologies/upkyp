@@ -4,19 +4,19 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
     let connection: any;
 
+    const { searchParams } = new URL(req.url);
+    const landlord_id = searchParams.get("landlord_id");
+
+    console.log("landlord_id payout >> ", landlord_id);
+
+    if (!landlord_id) {
+        return NextResponse.json(
+            { error: "Missing landlord_id" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const landlord_id = searchParams.get("landlord_id");
-
-        console.log("landlord_id payout >> ", landlord_id);
-
-        if (!landlord_id) {
-            return NextResponse.json(
-                { error: "Missing landlord_id" },
-                { status: 400 }
-            );
-        }
-
         connection = await db.getConnection();
 
         const [rows]: any = await connection.query(

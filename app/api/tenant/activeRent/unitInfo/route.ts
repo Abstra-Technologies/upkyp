@@ -6,40 +6,40 @@ import { jwtVerify } from "jose";
 //  used in inner rental portal page.
 
 export async function GET(req: NextRequest) {
+    /* ---------------- AUTH ---------------- */
+    const cookieHeader = req.headers.get("cookie");
+    const cookies = cookieHeader ? parse(cookieHeader) : null;
+
+    if (!cookies?.token) {
+        return NextResponse.json(
+            { message: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
+    const { payload } = await jwtVerify(cookies.token, secretKey);
+
+    const userId = payload.user_id as string;
+    if (!userId) {
+        return NextResponse.json(
+            { message: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
+    /* ---------------- PARAM ---------------- */
+    const { searchParams } = new URL(req.url);
+    const agreementId = searchParams.get("agreement_id");
+
+    if (!agreementId) {
+        return NextResponse.json(
+            { message: "Missing agreement_id" },
+            { status: 400 }
+        );
+    }
+
     try {
-        /* ---------------- AUTH ---------------- */
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
-
-        if (!cookies?.token) {
-            return NextResponse.json(
-                { message: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
-        const { payload } = await jwtVerify(cookies.token, secretKey);
-
-        const userId = payload.user_id as string;
-        if (!userId) {
-            return NextResponse.json(
-                { message: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        /* ---------------- PARAM ---------------- */
-        const { searchParams } = new URL(req.url);
-        const agreementId = searchParams.get("agreement_id");
-
-        if (!agreementId) {
-            return NextResponse.json(
-                { message: "Missing agreement_id" },
-                { status: 400 }
-            );
-        }
-
         /* ---------------- OWNERSHIP + STATUS ---------------- */
         const [rows]: any = await db.query(
             `

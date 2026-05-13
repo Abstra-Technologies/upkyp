@@ -2,42 +2,27 @@ import { NextResponse } from "next/server";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 
-export async function GET(req: Request) {
+async function getReceivables(landlordId: string, propertyId: string | null, month: number | undefined, year: number | undefined) {
     'use cache';
     cacheLife('minutes');
     cacheTag('receivables-summary');
 
-    const { searchParams } = new URL(req.url);
+    const params: any[] = [landlordId];
 
-    const landlord_id = searchParams.get("landlord_id");
-    const property_id = searchParams.get("property_id");
-    const month = searchParams.get("month") ? parseInt(searchParams.get("month")!) : undefined;
-    const year = searchParams.get("year") ? parseInt(searchParams.get("year")!) : undefined;
-
-    if (!landlord_id) {
-        return NextResponse.json(
-            { message: "Missing landlord_id parameter" },
-            { status: 400 }
-        );
+    let propertyFilter = "";
+    if (propertyId) {
+        propertyFilter = "AND pr.property_id = ?";
+        params.push(propertyId);
     }
 
-    try {
-        const params: any[] = [landlord_id];
+    let dateFilter = "";
+    if (month && year) {
+        dateFilter = "AND MONTH(b.due_date) = ? AND YEAR(b.due_date) = ?";
+        params.push(month, year);
+    }
 
-        let propertyFilter = "";
-        if (property_id) {
-            propertyFilter = "AND pr.property_id = ?";
-            params.push(property_id);
-        }
-
-        let dateFilter = "";
-        if (month && year) {
-            dateFilter = "AND MONTH(b.due_date) = ? AND YEAR(b.due_date) = ?";
-            params.push(month, year);
-        }
-
-        const [rows]: any = await db.query(
-            `
+    const [rows]: any = await db.query(
+        `
       SELECT 
         COALESCE(
           SUM(
@@ -78,21 +63,38 @@ export async function GET(req: Request) {
       ${propertyFilter}
       ${dateFilter}
       `,
-            params
-        );
+        params
+    );
 
-        const result = (
-            rows?.[0] || {
-                total_collected: 0,
-                total_pending: 0,
-                total_overdue: 0,
-            }
-        );
+    return (
+        rows?.[0] || {
+            total_collected: 0,
+            total_pending: 0,
+            total_overdue: 0,
+        }
+    );
+}
 
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+
+    const landlord_id = searchParams.get("landlord_id");
+    const property_id = searchParams.get("property_id");
+    const month = searchParams.get("month") ? parseInt(searchParams.get("month")!) : undefined;
+    const year = searchParams.get("year") ? parseInt(searchParams.get("year")!) : undefined;
+
+    if (!landlord_id) {
+        return NextResponse.json(
+            { message: "Missing landlord_id parameter" },
+            { status: 400 }
+        );
+    }
+
+    try {
+        const result = await getReceivables(landlord_id, property_id, month, year);
         return NextResponse.json(result, { status: 200 });
     } catch (error) {
         console.error("[RECEIVABLES_ERROR]", error);
-
         return NextResponse.json(
             { message: "Internal Server Error" },
             { status: 500 }

@@ -5,17 +5,17 @@ import { db } from "@/lib/db";
    GET — Fetch Post-Dated Checks for a Lease
 ====================================================== */
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const agreement_id = searchParams.get("agreement_id");
+
+    if (!agreement_id) {
+        return NextResponse.json(
+            { error: "Missing agreement_id" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const agreement_id = searchParams.get("agreement_id");
-
-        if (!agreement_id) {
-            return NextResponse.json(
-                { error: "Missing agreement_id" },
-                { status: 400 }
-            );
-        }
-
         const [rows]: any = await db.query(
             `
             SELECT

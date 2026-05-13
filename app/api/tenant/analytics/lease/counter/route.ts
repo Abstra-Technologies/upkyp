@@ -2,14 +2,14 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenantId");
+
+    if (!tenantId) {
+        return NextResponse.json({ error: "tenantId is required" }, { status: 400 });
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const tenantId = searchParams.get("tenantId");
-
-        if (!tenantId) {
-            return NextResponse.json({ error: "tenantId is required" }, { status: 400 });
-        }
-
         const [rows]: any = await db.execute(
             `
       SELECT 

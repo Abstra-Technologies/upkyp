@@ -156,7 +156,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
         /* ===============================
            1. Read JWT from cookie
         ================================ */
-        const cookieStore = await cookies();
+        let cookieStore;
+        try {
+            cookieStore = await cookies();
+        } catch {
+            return null;
+        }
         const token = cookieStore.get("token")?.value;
 
         if (!token) return null;

@@ -23,7 +23,6 @@ const baseConfig: NextConfig = {
   cacheComponents: true,
 
 
-
   /**
    * 🔓 Allowed Dev Origins (for ngrok, etc.)
    */

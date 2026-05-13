@@ -3,11 +3,11 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-    try {
-        const tenant_id = req.nextUrl.searchParams.get("tenant_id");
-        if (!tenant_id)
-            return NextResponse.json({ error: "Missing tenant_id" }, { status: 400 });
+    const tenant_id = req.nextUrl.searchParams.get("tenant_id");
+    if (!tenant_id)
+        return NextResponse.json({ error: "Missing tenant_id" }, { status: 400 });
 
+    try {
         const [rows]: any = await db.query(
             `
         SELECT 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     FileText,
     Image as ImageIcon,
@@ -14,6 +14,11 @@ import {
 export default function AdminCMSPage() {
     const router = useRouter();
     const [isNavigating, setIsNavigating] = useState(false);
+    const [year, setYear] = useState<number>(new Date().getFullYear());
+
+    useEffect(() => {
+        setYear(new Date().getFullYear());
+    }, []);
 
     const navigateTo = (path: string) => {
         setIsNavigating(true);
@@ -127,7 +132,7 @@ export default function AdminCMSPage() {
 
             {/* FOOTER */}
             <div className="mt-10 text-center text-gray-500 text-sm">
-                © {new Date().getFullYear()} UPKYP Admin CMS · Powered by Cloudinary & Next.js
+                © {year} UPKYP Admin CMS · Powered by Cloudinary & Next.js
             </div>
         </div>
     );

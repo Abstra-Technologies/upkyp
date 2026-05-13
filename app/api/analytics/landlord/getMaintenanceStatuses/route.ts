@@ -58,7 +58,7 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const propertyId = searchParams.get("property_id");
 
-        const data = await getMaintenanceStatuses(session.landlord_id, propertyId);
+        const data = await getMaintenanceStatuses(session.landlord_id!, propertyId);
 
         return NextResponse.json({
             success: true,

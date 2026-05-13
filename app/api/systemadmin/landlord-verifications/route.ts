@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
       SELECT
         landlord_id,
         status,
-        reviewed_by,
         review_date,
         message
       FROM LandlordVerification
@@ -30,7 +29,6 @@ export async function GET(req: NextRequest) {
 interface LandlordVerificationRow {
   landlord_id: string;
   status: string;
-  reviewed_by: string | null;
   review_date: string | null;
   message: string | null;
 }

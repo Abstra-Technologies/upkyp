@@ -20,29 +20,29 @@ async function safeDecrypt(value: string | null) {
 }
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const paymentIdsParam = searchParams.get("payment_ids");
+
+    if (!paymentIdsParam) {
+        return NextResponse.json(
+            { error: "payment_ids is required" },
+            { status: 400 }
+        );
+    }
+
+    const paymentIds = paymentIdsParam
+        .split(",")
+        .map((id) => Number(id.trim()))
+        .filter(Boolean);
+
+    if (paymentIds.length === 0) {
+        return NextResponse.json({ success: true, landlords: [] });
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const paymentIdsParam = searchParams.get("payment_ids");
-
-        if (!paymentIdsParam) {
-            return NextResponse.json(
-                { error: "payment_ids is required" },
-                { status: 400 }
-            );
-        }
-
-        const paymentIds = paymentIdsParam
-            .split(",")
-            .map((id) => Number(id.trim()))
-            .filter(Boolean);
-
-        if (paymentIds.length === 0) {
-            return NextResponse.json({ success: true, landlords: [] });
-        }
-
         /* =====================================
-           PAYMENT-CENTRIC REVIEW QUERY
-           (1 ROW = 1 PAYMENT, GUARANTEED)
+            PAYMENT-CENTRIC REVIEW QUERY
+            (1 ROW = 1 PAYMENT, GUARANTEED)
         ====================================== */
         const sql = `
         SELECT

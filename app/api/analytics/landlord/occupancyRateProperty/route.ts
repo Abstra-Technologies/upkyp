@@ -3,28 +3,16 @@ import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
 import { RowDataPacket } from "mysql2";
 
-export async function GET(req: NextRequest) {
-  'use cache';
-  cacheLife('minutes');
-  cacheTag('occupancy-rate');
+async function getOccupancyRate(landlordId: string, propertyId: string | null) {
+    'use cache';
+    cacheLife('minutes');
+    cacheTag('occupancy-rate');
 
-  const { searchParams } = new URL(req.url);
-  const landlord_id = searchParams.get("landlord_id");
-  const property_id = searchParams.get("property_id");
-
-  if (!landlord_id) {
-    return NextResponse.json(
-        { error: "Missing landlord_id parameter" },
-        { status: 400 }
-    );
-  }
-
-  try {
-    const params: any[] = [landlord_id];
+    const params: any[] = [landlordId];
     let propertyFilter = "";
-    if (property_id) {
-      propertyFilter = "AND U.property_id = ?";
-      params.push(property_id);
+    if (propertyId) {
+        propertyFilter = "AND U.property_id = ?";
+        params.push(propertyId);
     }
 
     const [rows] = await db.execute<RowDataPacket[]>(
@@ -63,17 +51,34 @@ export async function GET(req: NextRequest) {
         ? (Number(prevData.prev_occupied) / Number(prevData.prev_total)) * 100 
         : 0;
 
-    return NextResponse.json({
-      occupiedUnits: data.occupied_units,
-      totalUnits: data.total_units,
-      occupancyRate: Number(data.occupancy_rate) || 0,
-      prevOccupancyRate: Math.round(prevOccupancyRate * 10) / 10,
-    });
-  } catch (error: any) {
-    console.error("Database error:", error);
-    return NextResponse.json(
-        { error: "Internal Server Error" },
-        { status: 500 }
-    );
-  }
+    return {
+        occupiedUnits: data.occupied_units,
+        totalUnits: data.total_units,
+        occupancyRate: Number(data.occupancy_rate) || 0,
+        prevOccupancyRate: Math.round(prevOccupancyRate * 10) / 10,
+    };
+}
+
+export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const landlord_id = searchParams.get("landlord_id");
+    const property_id = searchParams.get("property_id");
+
+    if (!landlord_id) {
+        return NextResponse.json(
+            { error: "Missing landlord_id parameter" },
+            { status: 400 }
+        );
+    }
+
+    try {
+        const data = await getOccupancyRate(landlord_id, property_id);
+        return NextResponse.json(data);
+    } catch (error: any) {
+        console.error("Database error:", error);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
+    }
 }

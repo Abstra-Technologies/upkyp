@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { useEffect, useState, Suspense } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import useAuthStore from "@/zustand/authStore";
 import axios from "axios";
@@ -11,8 +10,6 @@ import LoadingScreen from "@/components/loadingScreen";
 import NotificationSection from "@/components/notification/notifCenter";
 
 import {
-  Menu,
-  X,
   Settings,
   LogOut,
   AlertCircle,
@@ -21,14 +18,12 @@ import {
   FileText,
   Building2,
   ChevronRight,
-  Sparkles,
   CreditCard,
   Wrench,
   Megaphone,
   MessageSquare,
   ArrowLeft,
   MoreHorizontal,
-  Bell,
 } from "lucide-react";
 
 export default function TenantLayout({ children }) {

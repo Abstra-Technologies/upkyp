@@ -4,17 +4,17 @@ import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const tenantId = searchParams.get("tenantId");
+
+    if (!tenantId) {
+        return NextResponse.json(
+            { message: "tenantId is required" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const tenantId = searchParams.get("tenantId");
-
-        if (!tenantId) {
-            return NextResponse.json(
-                { message: "tenantId is required" },
-                { status: 400 }
-            );
-        }
-
         const [rows]: any = await db.query(
             `SELECT 
           SUM(status = 'pending')       AS pending_count,

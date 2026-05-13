@@ -4,16 +4,16 @@ import { db } from "@/lib/db";
 export async function GET(req: NextRequest) {
     let connection;
 
+    const billing_id = req.nextUrl.searchParams.get("billing_id");
+
+    if (!billing_id) {
+        return NextResponse.json(
+            { error: "Missing billing_id" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const billing_id = req.nextUrl.searchParams.get("billing_id");
-
-        if (!billing_id) {
-            return NextResponse.json(
-                { error: "Missing billing_id" },
-                { status: 400 }
-            );
-        }
-
         connection = await db.getConnection();
 
         const [rows]: any = await connection.query(

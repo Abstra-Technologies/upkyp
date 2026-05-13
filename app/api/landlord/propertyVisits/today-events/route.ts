@@ -2,20 +2,22 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db"; // mysql2/promise instance
 
 export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const landlordId = searchParams.get("landlord_id");
+
+    if (!landlordId) {
+        return NextResponse.json(
+            { error: "Missing landlord_id" },
+            { status: 400 }
+        );
+    }
+
+    // Today's date only (yyyy-mm-dd)
+    const today = new Date().toISOString().split("T")[0];
+
     try {
-        const { searchParams } = new URL(req.url);
-        const landlordId = searchParams.get("landlord_id");
-
-        if (!landlordId) {
-            return NextResponse.json(
-                { error: "Missing landlord_id" },
-                { status: 400 }
-            );
-        }
-
-        // Today’s date only (yyyy-mm-dd)
-        const today = new Date().toISOString().split("T")[0];
-
+        // ============================
+        // 1️⃣ Today's Property Visits
         // ============================
         // 1️⃣ Today’s Property Visits
         // ============================

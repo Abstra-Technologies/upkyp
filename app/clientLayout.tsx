@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Script from "next/script";
 import Navbar from "../components/navigation/navbar";
 import useAuthStore from "../zustand/authStore";
@@ -256,7 +256,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
             <div id="fb-root"></div>
 
 
-            <Navbar />
+            <Suspense fallback={<div className="h-16" />}>
+                <Navbar />
+            </Suspense>
             {children}
         </>
     );

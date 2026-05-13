@@ -24,17 +24,17 @@ async function safeDecrypt(value: string | null) {
    GET PAYMENTS (Admin)
 ===================================================== */
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+
+    const search = searchParams.get("search") || "";
+    const paymentStatus = searchParams.get("status");
+    const payoutStatus = searchParams.get("payoutStatus");
+
+    const page = Number(searchParams.get("page") || 1);
+    const limit = Number(searchParams.get("limit") || 20);
+    const offset = (page - 1) * limit;
+
     try {
-        const { searchParams } = new URL(req.url);
-
-        const search = searchParams.get("search") || "";
-        const paymentStatus = searchParams.get("status");
-        const payoutStatus = searchParams.get("payoutStatus");
-
-        const page = Number(searchParams.get("page") || 1);
-        const limit = Number(searchParams.get("limit") || 20);
-        const offset = (page - 1) * limit;
-
         /* =====================================================
            DEFAULT: Only confirmed + unpaid (disbursement ready)
         ===================================================== */

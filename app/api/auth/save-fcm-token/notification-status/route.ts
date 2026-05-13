@@ -1,5 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { cacheLife, cacheTag } from "next/cache";
+
+const getCachedFCMStatus = (userId: string, platform: string) => {
+    "use cache";
+    cacheLife("minutes");
+    cacheTag(`fcm-status-${userId}-${platform}`);
+
+    const sql = `
+      SELECT token, active
+      FROM FCM_Token
+      WHERE user_id = ? AND platform = ?
+      LIMIT 1
+    `;
+
+    const [rows]: any = db.execute(sql, [userId, platform]);
+
+    if (!rows.length) {
+        return { status: false, token: null };
+    }
+
+    const status = rows[0].active === 1;
+    const token = rows[0].token;
+
+    return { status, token };
+};
 
 export async function GET(req: NextRequest) {
     try {
@@ -13,21 +38,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Missing platform" }, { status: 400 });
         }
 
-        const sql = `
-      SELECT token, active
-      FROM FCM_Token
-      WHERE user_id = ? AND platform = ?
-      LIMIT 1
-    `;
-
-        const [rows]: any = await db.execute(sql, [userId, platform]);
-
-        if (!rows.length) {
-            return NextResponse.json({ status: false });
-        }
-
-        const status = rows[0].active === 1;
-        const token = rows[0].token;
+        const { status, token } = await getCachedFCMStatus(userId, platform);
 
         return NextResponse.json({ status, token });
     } catch (err) {

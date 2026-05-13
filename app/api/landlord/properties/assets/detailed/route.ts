@@ -5,17 +5,17 @@ import { db } from "@/lib/db";
  * GET /api/landlord/properties/assets/detailed?asset_id=ASSET123
  */
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const asset_id = searchParams.get("asset_id");
+
+    if (!asset_id) {
+        return NextResponse.json(
+            { error: "Missing asset_id parameter" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const asset_id = searchParams.get("asset_id");
-
-        if (!asset_id) {
-            return NextResponse.json(
-                { error: "Missing asset_id parameter" },
-                { status: 400 }
-            );
-        }
-
         // ✅ Fetch asset details + linked unit
         const [rows]: any = await db.query(
             `

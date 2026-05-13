@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "../../../../lib/db";
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const landlordId = searchParams.get("landlordId");
+
+    if (!landlordId) {
+        return NextResponse.json({ error: "Missing landlord_id" }, { status: 400 });
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const landlordId = searchParams.get("landlordId");
-
-        if (!landlordId) {
-            return NextResponse.json({ error: "Missing landlord_id" }, { status: 400 });
-        }
-
         // 1. Pending property visits
         const [visits] = await db.query(
             `

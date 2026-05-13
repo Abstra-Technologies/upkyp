@@ -2,24 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
+    const agreement_id = req.nextUrl.searchParams.get("agreement_id");
+    const type = req.nextUrl.searchParams.get("type");
+
+    if (!agreement_id) {
+        return NextResponse.json(
+            { error: "Missing agreement_id" },
+            { status: 400 }
+        );
+    }
+
+    if (type && !["advance", "deposit"].includes(type)) {
+        return NextResponse.json(
+            { error: "Invalid type. Must be 'advance' or 'deposit'." },
+            { status: 400 }
+        );
+    }
+
     try {
-        const agreement_id = req.nextUrl.searchParams.get("agreement_id");
-        const type = req.nextUrl.searchParams.get("type");
-
-        if (!agreement_id) {
-            return NextResponse.json(
-                { error: "Missing agreement_id" },
-                { status: 400 }
-            );
-        }
-
-        if (type && !["advance", "deposit"].includes(type)) {
-            return NextResponse.json(
-                { error: "Invalid type. Must be 'advance' or 'deposit'." },
-                { status: 400 }
-            );
-        }
-
         const connection = await db.getConnection();
 
         /* ------------------------------------------------------------------

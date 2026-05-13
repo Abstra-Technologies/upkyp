@@ -5,35 +5,35 @@ import { jwtVerify } from "jose";
 import { decryptData } from "@/crypto/encrypt";
 
 export async function GET(req: NextRequest) {
-    try {
-        console.log("Fetching all admins except the logged-in user...");
+    console.log("Fetching all admins except the logged-in user...");
 
-        /* ================= AUTH ================= */
-        const cookieHeader = req.headers.get("cookie");
-        const cookies = cookieHeader ? parse(cookieHeader) : null;
+    /* ================= AUTH ================= */
+    const cookieHeader = req.headers.get("cookie");
+    const cookies = cookieHeader ? parse(cookieHeader) : null;
 
-        if (!cookies?.token) {
-            return NextResponse.json(
-                { success: false, message: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        const { payload } = await jwtVerify(
-            cookies.token,
-            new TextEncoder().encode(process.env.JWT_SECRET!)
+    if (!cookies?.token) {
+        return NextResponse.json(
+            { success: false, message: "Unauthorized" },
+            { status: 401 }
         );
+    }
 
-        if (!payload?.admin_id) {
-            return NextResponse.json(
-                { success: false, message: "Invalid token data" },
-                { status: 401 }
-            );
-        }
+    const { payload } = await jwtVerify(
+        cookies.token,
+        new TextEncoder().encode(process.env.JWT_SECRET!)
+    );
 
-        const currentAdminId = payload.admin_id;
-        const encryptionKey = process.env.ENCRYPTION_SECRET!;
+    if (!payload?.admin_id) {
+        return NextResponse.json(
+            { success: false, message: "Invalid token data" },
+            { status: 401 }
+        );
+    }
 
+    const currentAdminId = payload.admin_id;
+    const encryptionKey = process.env.ENCRYPTION_SECRET!;
+
+    try {
         /* ================= QUERY ================= */
         const [rows]: any = await db.query(
             `

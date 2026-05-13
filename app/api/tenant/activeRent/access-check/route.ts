@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+
 /**
  * Sample health check endpoint
  *
@@ -10,17 +11,17 @@ import { NextRequest, NextResponse } from "next/server";
  */
 
 export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const agreementId = searchParams.get("agreement_id");
+
+    if (!agreementId) {
+        return NextResponse.json(
+            { message: "agreement_id is required" },
+            { status: 400 }
+        );
+    }
+
     try {
-        const { searchParams } = new URL(req.url);
-        const agreementId = searchParams.get("agreement_id");
-
-        if (!agreementId) {
-            return NextResponse.json(
-                { message: "agreement_id is required" },
-                { status: 400 }
-            );
-        }
-
         const reasons: string[] = [];
 
         /* -------------------------------------------------
