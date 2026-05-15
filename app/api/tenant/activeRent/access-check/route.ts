@@ -154,13 +154,19 @@ export async function GET(req: NextRequest) {
             }
         }
 
+/* -------------------------------------------------
+            6. CHECK IF SIGNATURE IS REQUIRED
+        ------------------------------------------------- */
+        const signatureRequired = signatures && signatures.length > 0;
+
         /* -------------------------------------------------
-           FINAL DECISION
+            FINAL DECISION
         ------------------------------------------------- */
         return NextResponse.json(
             {
                 allowed: reasons.length === 0,
                 reasons,
+                signature_required: signatureRequired,
             },
             { status: 200 }
         );

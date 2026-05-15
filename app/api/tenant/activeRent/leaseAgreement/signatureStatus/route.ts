@@ -2,15 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
 import { getSessionUser } from "@/lib/auth/auth";
-import { cacheLife, cacheTag } from "next/cache";
 
 const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
-async function getCachedSignatureStatus(agreement_id: string, user_id: number) {
-    "use cache";
-    cacheLife("minutes");
-    cacheTag(`signature-status-${agreement_id}-${user_id}`);
-
+async function getSignatureStatus(agreement_id: string, user_id: number) {
     const [rows]: any = await db.query(
         `
         SELECT 
@@ -135,7 +130,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const result = await getCachedSignatureStatus(agreement_id, Number(session.user_id));
+        const result = await getSignatureStatus(agreement_id, Number(session.user_id));
 
         if (result.error) {
             const status = result.status || 404;

@@ -26,6 +26,7 @@ export default function PortalAccessGate({
     const [status, setStatus] = useState<GateStatus | null>(null);
     const [loading, setLoading] = useState(true);
     const [otpCode, setOtpCode] = useState("");
+    const [signatureRequired, setSignatureRequired] = useState(false);
 
     const {
         needsSignature,
@@ -34,7 +35,7 @@ export default function PortalAccessGate({
         verifying,
         sendOtp,
         verifyOtp,
-    } = useLeaseAuthentication(agreementId);
+    } = useLeaseAuthentication(signatureRequired ? agreementId : undefined);
 
     /* =====================================================
        CHECK ACCESS GATE
@@ -56,6 +57,7 @@ export default function PortalAccessGate({
             );
 
             setStatus(res.data);
+            setSignatureRequired(res.data?.signature_required ?? false);
 
             if (res.data?.allowed === true) {
                 localStorage.setItem(cacheKey, "true");
