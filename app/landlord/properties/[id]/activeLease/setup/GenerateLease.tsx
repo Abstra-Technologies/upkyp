@@ -31,6 +31,7 @@ export default function GenerateLease({
     const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
     const [config, setConfig] = useState<any>(null);
     const [leaseFileUrl, setLeaseFileUrl] = useState("");
+    const [generating, setGenerating] = useState(false);
 
     const [form, setForm] = useState<any>({
         rent_amount: "",
@@ -54,10 +55,11 @@ export default function GenerateLease({
         resendOtp,
         cooldown,
         resending,
+        sending,
     } = useOtpHandler({
         agreement_id,
         email: leaseDetails?.landlord_email,
-        role: user?.userType,
+        role: (user?.userType as "landlord" | "tenant") || "landlord",
     });
 
     /* 🧭 ONBOARDING */
@@ -126,6 +128,7 @@ export default function GenerateLease({
             return;
         }
 
+        setGenerating(true);
         try {
             const payload = {
                 ...form,
@@ -151,6 +154,8 @@ export default function GenerateLease({
             }
         } catch {
             Swal.fire("Error", "Failed to generate lease.", "error");
+        } finally {
+            setGenerating(false);
         }
     };
 
@@ -197,6 +202,7 @@ export default function GenerateLease({
                     form={form}
                     leaseDetails={leaseDetails}
                     rentChanged={rentChanged}
+                    generating={generating}
                     onBack={() => setStep(2)}
                     onConfirm={handleGenerate}
                     onAttest={(v) =>
@@ -214,6 +220,7 @@ export default function GenerateLease({
                     otpCode={otpCode}
                     cooldown={cooldown}
                     resending={resending}
+                    sending={sending}
                     onSendOtp={sendOtp}
                     onVerify={() => verifyOtp(() => setStep(5))}
                     onResend={resendOtp}

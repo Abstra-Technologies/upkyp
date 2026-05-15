@@ -2,42 +2,70 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import moment from "moment-timezone";
 import { sendLeaseOtpEmail } from "@/lib/email/sendLeaseOtpEmail";
+import { getSessionUser } from "@/lib/auth/auth";
+import { decryptData } from "@/crypto/encrypt";
+
+const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
 /**
- * ✅ POST /api/tenant/activeLease/sendOtp
+ * ✅ POST /api/tenant/activeRent/leaseAgreement/sendOtp
  * Body:
  * {
  *   agreement_id: string,
  *   role: "tenant",
- *   email: string
+ *   email: string (encrypted)
  * }
  */
 export async function POST(req: NextRequest) {
+    const connection = await db.getConnection();
+
     try {
+        const session = await getSessionUser();
+
+        if (!session || !session.user_id) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const body = await req.json();
         const { agreement_id, role, email } = body;
 
-        /* -------------------------------------------------
-           VALIDATION
-        ------------------------------------------------- */
-        if (!agreement_id || role !== "tenant" || !email) {
+        if (!agreement_id || !role || !email) {
             return NextResponse.json(
                 { error: "Missing agreement_id, role, or email." },
                 { status: 400 }
             );
         }
 
-        /* -------------------------------------------------
-           VERIFY LEASE + FETCH CONTEXT (NO EMAIL)
-        ------------------------------------------------- */
-        const [rows]: any = await db.query(
+        let decryptedEmail: string;
+        try {
+            const parsedEmail = JSON.parse(email);
+            decryptedEmail = decryptData(parsedEmail, SECRET_KEY) || email;
+        } catch {
+            decryptedEmail = email;
+        }
+
+        if (!decryptedEmail) {
+            return NextResponse.json(
+                { error: "Invalid email address." },
+                { status: 400 }
+            );
+        }
+
+        await connection.beginTransaction();
+
+        const [rows]: any = await connection.query(
             `
             SELECT
                 la.agreement_id,
+                la.tenant_id,
                 p.property_name,
                 u.unit_name,
                 CONCAT(ut.firstName, ' ', ut.lastName) AS tenant_name,
-                CONCAT(ul.firstName, ' ', ul.lastName) AS landlord_name
+                CONCAT(ul.firstName, ' ', ul.lastName) AS landlord_name,
+                ut.user_id AS tenant_user_id
             FROM LeaseAgreement la
             JOIN Unit u ON la.unit_id = u.unit_id
             JOIN Property p ON u.property_id = p.property_id
@@ -52,9 +80,18 @@ export async function POST(req: NextRequest) {
         );
 
         if (!rows?.length) {
+            await connection.rollback();
             return NextResponse.json(
                 { error: "Lease not found." },
                 { status: 404 }
+            );
+        }
+
+        if (rows[0].tenant_user_id !== session.user_id) {
+            await connection.rollback();
+            return NextResponse.json(
+                { error: "Unauthorized - not your lease." },
+                { status: 403 }
             );
         }
 
@@ -65,10 +102,7 @@ export async function POST(req: NextRequest) {
             landlord_name,
         } = rows[0];
 
-        /* -------------------------------------------------
-           ENSURE LEASE SIGNATURE EXISTS
-        ------------------------------------------------- */
-        const [sigRows]: any = await db.query(
+        const [sigRows]: any = await connection.query(
             `
             SELECT id
             FROM LeaseSignature
@@ -80,30 +114,25 @@ export async function POST(req: NextRequest) {
         );
 
         if (!sigRows?.length) {
+            await connection.rollback();
             return NextResponse.json(
                 { error: "No lease signature record found for tenant." },
                 { status: 404 }
             );
         }
 
-        /* -------------------------------------------------
-           TIMEZONE (DEFAULT)
-        ------------------------------------------------- */
         const timezone = "Asia/Manila";
-
-        /* -------------------------------------------------
-           OTP GENERATION
-        ------------------------------------------------- */
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiryUTC = moment.utc().add(10, "minutes").toDate();
         const expiryLocal = moment(expiryUTC)
             .tz(timezone)
             .format("MMMM D, YYYY h:mm A");
 
-        const [updateResult]: any = await db.query(
+        const [updateResult]: any = await connection.query(
             `
             UPDATE LeaseSignature
             SET
+                email = ?,
                 otp_code = ?,
                 otp_sent_at = UTC_TIMESTAMP(),
                 otp_expires_at = ?,
@@ -111,21 +140,21 @@ export async function POST(req: NextRequest) {
             WHERE agreement_id = ?
               AND role = 'tenant'
             `,
-            [otp, expiryUTC, agreement_id]
+            [decryptedEmail, otp, expiryUTC, agreement_id]
         );
 
         if (updateResult.affectedRows === 0) {
+            await connection.rollback();
             return NextResponse.json(
                 { error: "Failed to update OTP." },
                 { status: 500 }
             );
         }
 
-        /* -------------------------------------------------
-           SEND EMAIL (REQUEST EMAIL ONLY)
-        ------------------------------------------------- */
+        await connection.commit();
+
         await sendLeaseOtpEmail({
-            email, // 👈 FROM REQUEST BODY
+            email: decryptedEmail,
             otp,
             expiryLocal,
             timezone,
@@ -137,15 +166,18 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `OTP sent to ${email}`,
+            message: `OTP sent to ${decryptedEmail}`,
             expiry_local: expiryLocal,
             timezone,
         });
     } catch (error: any) {
+        await connection.rollback();
         console.error("❌ Tenant sendOtp error:", error);
         return NextResponse.json(
             { error: "Failed to send OTP. " + (error.message || "") },
             { status: 500 }
         );
+    } finally {
+        connection.release();
     }
 }

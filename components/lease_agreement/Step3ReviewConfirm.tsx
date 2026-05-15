@@ -1,22 +1,26 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { CheckCircle2, AlertTriangle, ArrowLeft, Loader2 } from "lucide-react";
 
 interface Props {
     form: any;
     leaseDetails: any;
+    rentChanged?: boolean;
+    generating?: boolean;
     onBack: () => void;
     onConfirm: () => void;
     onAttest: (checked: boolean) => void;
 }
 
 export default function Step3ReviewConfirm({
-                                               form,
-                                               leaseDetails,
-                                               onBack,
-                                               onConfirm,
-                                               onAttest,
-                                           }: Props) {
+                                                form,
+                                                leaseDetails,
+                                                rentChanged,
+                                                generating = false,
+                                                onBack,
+                                                onConfirm,
+                                                onAttest,
+                                            }: Props) {
     return (
         <div className="bg-white border rounded-2xl shadow-sm p-5 max-w-3xl mx-auto">
             <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
@@ -99,17 +103,24 @@ export default function Step3ReviewConfirm({
             <div className="flex justify-between gap-3">
                 <button
                     onClick={onBack}
-                    className="px-5 py-2.5 border rounded-lg text-gray-600 flex items-center gap-2"
+                    disabled={generating}
+                    className="px-5 py-2.5 border rounded-lg text-gray-600 flex items-center gap-2 disabled:opacity-50"
                 >
                     <ArrowLeft className="w-4 h-4" /> Back
                 </button>
 
                 <button
-                    disabled={!form.attestation}
+                    disabled={!form.attestation || generating}
                     onClick={onConfirm}
-                    className="px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-emerald-600 disabled:bg-gray-300"
+                    className="px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-700 hover:to-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2 min-w-[180px] justify-center"
                 >
-                    Confirm & Generate Lease
+                    {generating ? (
+                        <>
+                            <Loader2 className="w-4 h-4 animate-spin" /> Generating...
+                        </>
+                    ) : (
+                        "Confirm & Generate Lease"
+                    )}
                 </button>
             </div>
         </div>

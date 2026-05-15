@@ -18,6 +18,7 @@ export default function useOtpHandler({
     const [otpCode, setOtpCode] = useState("");
     const [cooldown, setCooldown] = useState(0);
     const [resending, setResending] = useState(false);
+    const [sending, setSending] = useState(false);
     const [alreadySigned, setAlreadySigned] = useState(false);
 
     // 🔹 Cooldown timer
@@ -60,6 +61,7 @@ export default function useOtpHandler({
         if (await checkSignatureStatus()) return;
 
         try {
+            setSending(true);
             const res = await axios.post("/api/landlord/activeLease/sendOtp", {
                 agreement_id,
                 role,
@@ -75,6 +77,8 @@ export default function useOtpHandler({
             }
         } catch (error: any) {
             Swal.fire("Error", error.response?.data?.error || "Failed to send OTP.", "error");
+        } finally {
+            setSending(false);
         }
     };
 
@@ -146,6 +150,7 @@ export default function useOtpHandler({
         resendOtp,
         cooldown,
         resending,
+        sending,
         alreadySigned,
         checkSignatureStatus,
     };

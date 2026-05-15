@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
+import { getSessionUser } from "@/lib/auth/auth";
 import { cacheLife, cacheTag } from "next/cache";
 
-async function getCachedSignatureStatus(agreement_id: string) {
+const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
+
+async function getCachedSignatureStatus(agreement_id: string, user_id: number) {
     "use cache";
     cacheLife("minutes");
-    cacheTag(`signature-status-${agreement_id}`);
+    cacheTag(`signature-status-${agreement_id}-${user_id}`);
 
     const [rows]: any = await db.query(
         `
@@ -32,6 +35,7 @@ async function getCachedSignatureStatus(agreement_id: string) {
             ls.signed_at,
 
             u.email AS tenant_email_enc,
+            t.user_id AS tenant_user_id,
 
             p.property_name,
             un.unit_name
@@ -54,24 +58,30 @@ async function getCachedSignatureStatus(agreement_id: string) {
         return { error: "Lease not found" };
     }
 
+    if (rows[0].tenant_user_id !== user_id) {
+        return { error: "Unauthorized", status: 403 };
+    }
+
     const data = rows[0];
 
     let tenantEmail: string | null = null;
     try {
-        tenantEmail = data.tenant_email_enc
-            ? decryptData(JSON.parse(data.tenant_email_enc), process.env.ENCRYPTION_SECRET!)
-            : null;
+        if (data.tenant_email_enc) {
+            const decrypted = decryptData(JSON.parse(data.tenant_email_enc), SECRET_KEY);
+            tenantEmail = decrypted ? String(decrypted) : null;
+        }
     } catch {
         tenantEmail = null;
     }
 
     let leaseUrl: string | null = null;
     try {
-        leaseUrl = data.agreement_url
-            ? decryptData(JSON.parse(data.agreement_url), process.env.ENCRYPTION_SECRET!)
-            : null;
+        if (data.agreement_url) {
+            const decrypted = decryptData(JSON.parse(data.agreement_url), SECRET_KEY);
+            leaseUrl = decrypted ? String(decrypted) : (typeof data.agreement_url === 'string' ? data.agreement_url : null);
+        }
     } catch {
-        leaseUrl = data.agreement_url;
+        leaseUrl = typeof data.agreement_url === 'string' ? data.agreement_url : null;
     }
 
     const tenantSignature = data.signature_id
@@ -107,6 +117,15 @@ async function getCachedSignatureStatus(agreement_id: string) {
 
 export async function GET(req: NextRequest) {
     try {
+        const session = await getSessionUser();
+
+        if (!session || !session.user_id) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const agreement_id = req.nextUrl.searchParams.get("agreement_id");
 
         if (!agreement_id) {
@@ -116,12 +135,13 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const result = await getCachedSignatureStatus(agreement_id);
+        const result = await getCachedSignatureStatus(agreement_id, Number(session.user_id));
 
         if (result.error) {
+            const status = result.status || 404;
             return NextResponse.json(
                 { error: result.error },
-                { status: 404 }
+                { status }
             );
         }
 

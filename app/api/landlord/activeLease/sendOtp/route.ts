@@ -2,12 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import moment from "moment-timezone";
 import { sendLeaseOtpEmail } from "@/lib/email/sendLeaseOtpEmail";
+import { getSessionUser } from "@/lib/auth/auth";
+import { decryptData } from "@/crypto/encrypt";
+
+const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
 /**
  * POST /api/landlord/activeLease/sendOtp
  */
 export async function POST(req: NextRequest) {
     try {
+        const session = await getSessionUser();
+
+        if (!session || !session.landlord_id) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const { agreement_id, role, email } = await req.json();
 
         if (!agreement_id || !role || !email) {
@@ -24,6 +37,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        let decryptedEmail: string;
+        try {
+            const parsedEmail = JSON.parse(email);
+            decryptedEmail = decryptData(parsedEmail, SECRET_KEY) || email;
+        } catch {
+            decryptedEmail = email;
+        }
+
+        if (!decryptedEmail) {
+            return NextResponse.json(
+                { error: "Invalid email address." },
+                { status: 400 }
+            );
+        }
+
         /* --------------------------------------------------
          * 1️⃣ Resolve user timezone (plain email)
          * -------------------------------------------------- */
@@ -34,7 +62,7 @@ export async function POST(req: NextRequest) {
             WHERE email = ?
             LIMIT 1
             `,
-            [email]
+            [decryptedEmail]
         );
 
         const timezone = userRows?.[0]?.timezone || "Asia/Manila";
@@ -74,7 +102,7 @@ export async function POST(req: NextRequest) {
                     status = 'pending'
                 WHERE agreement_id = ? AND role = ?
                 `,
-                [email, otp, expiryUTC, agreement_id, role]
+                [decryptedEmail, otp, expiryUTC, agreement_id, role]
             );
         } else {
             // INSERT ONLY IF NOT EXISTS
@@ -91,7 +119,7 @@ export async function POST(req: NextRequest) {
                 )
                 VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, 'pending')
                 `,
-                [agreement_id, email, role, otp, expiryUTC]
+                [agreement_id, decryptedEmail, role, otp, expiryUTC]
             );
         }
 
@@ -140,6 +168,23 @@ export async function POST(req: NextRequest) {
         const landlordName = `${lease.landlord_first} ${lease.landlord_last}`;
         const tenantName = `${lease.tenant_first} ${lease.tenant_last}`;
 
+        let landlordEmailDecrypted = lease.landlord_email;
+        let tenantEmailDecrypted = lease.tenant_email;
+
+        try {
+            if (lease.landlord_email) {
+                const parsed = JSON.parse(lease.landlord_email);
+                landlordEmailDecrypted = decryptData(parsed, SECRET_KEY) || lease.landlord_email;
+            }
+        } catch {}
+
+        try {
+            if (lease.tenant_email) {
+                const parsed = JSON.parse(lease.tenant_email);
+                tenantEmailDecrypted = decryptData(parsed, SECRET_KEY) || lease.tenant_email;
+            }
+        } catch {}
+
         /* --------------------------------------------------
          * 5️⃣ Ensure TENANT signature exists (if landlord action)
          * -------------------------------------------------- */
@@ -166,7 +211,7 @@ export async function POST(req: NextRequest) {
                         otp_expires_at = NULL
                     WHERE agreement_id = ? AND role = 'tenant'
                     `,
-                    [lease.tenant_email, agreement_id]
+                    [tenantEmailDecrypted, agreement_id]
                 );
             } else {
                 await db.query(
@@ -174,7 +219,7 @@ export async function POST(req: NextRequest) {
                     INSERT INTO LeaseSignature (agreement_id, email, role, status)
                     VALUES (?, ?, 'tenant', 'pending')
                     `,
-                    [agreement_id, lease.tenant_email]
+                    [agreement_id, tenantEmailDecrypted]
                 );
             }
         }
@@ -183,7 +228,7 @@ export async function POST(req: NextRequest) {
          * 6️⃣ Send OTP Email (RESEND + REACT TEMPLATE)
          * -------------------------------------------------- */
         await sendLeaseOtpEmail({
-            email,
+            email: decryptedEmail,
             otp,
             expiryLocal,
             timezone,
@@ -195,7 +240,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: `OTP sent successfully to ${email}.`,
+            message: `OTP sent successfully to ${decryptedEmail}.`,
             expiry_local: expiryLocal,
             timezone,
         });

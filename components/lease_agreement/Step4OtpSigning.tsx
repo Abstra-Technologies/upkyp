@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Mail, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Mail, ShieldCheck, Loader2 } from "lucide-react";
 
 interface Props {
     leaseFileUrl: string;
@@ -9,6 +9,7 @@ interface Props {
     otpCode: string;
     cooldown: number;
     resending: boolean;
+    sending?: boolean;
     onSendOtp: () => void;
     onVerify: () => void;
     onResend: () => void;
@@ -22,6 +23,7 @@ export default function Step4OtpSigning({
                                             otpCode,
                                             cooldown,
                                             resending,
+                                            sending = false,
                                             onSendOtp,
                                             onVerify,
                                             onResend,
@@ -59,12 +61,20 @@ export default function Step4OtpSigning({
 
                     <button
                         onClick={onSendOtp}
+                        disabled={sending}
                         className="px-6 py-3 rounded-lg font-semibold text-white
                                    bg-gradient-to-r from-blue-600 to-emerald-600
                                    hover:from-blue-700 hover:to-emerald-700
-                                   transition"
+                                   disabled:from-gray-400 disabled:to-gray-500
+                                   transition flex items-center gap-2 min-w-[140px] justify-center"
                     >
-                        Send OTP
+                        {sending ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" /> Sending...
+                            </>
+                        ) : (
+                            "Send OTP"
+                        )}
                     </button>
                 </div>
             ) : (

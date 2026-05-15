@@ -16,7 +16,6 @@ import Pagination from "@/components/Commons/Pagination";
 import EmptyState from "@/components/Commons/EmptyStateUnitSearch";
 import RenewalRequestForm from "@/components/tenant/currentRent/RenewalRequestForm";
 import JoinUnitModal from "@/components/tenant/currentRent/JoinUnitModal";
-import { mutate } from "swr";
 
 export default function MyUnit() {
     const router = useRouter();
