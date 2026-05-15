@@ -14,12 +14,14 @@ import { getSessionUser } from "@/lib/auth/auth";
 export async function GET(req: NextRequest) {
     const session = await getSessionUser();
 
-    if (!session || !session.user_id) {
+    if (!session || !session.tenant_id) {
         return NextResponse.json(
             { error: "Unauthorized" },
             { status: 401 }
         );
     }
+
+    const sessionTenantId = session.tenant_id;
 
     const { searchParams } = new URL(req.url);
     const agreementId = searchParams.get("agreement_id");
@@ -39,9 +41,8 @@ export async function GET(req: NextRequest) {
         ------------------------------------------------- */
         const [[lease]]: any = await db.query(
             `
-            SELECT la.agreement_id, la.status, t.user_id AS tenant_user_id
+            SELECT la.agreement_id, la.status, la.tenant_id
             FROM LeaseAgreement la
-            JOIN Tenant t ON la.tenant_id = t.tenant_id
             WHERE la.agreement_id = ?
             LIMIT 1
             `,
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        if (lease.tenant_user_id !== session.user_id) {
+        if (lease.tenant_id !== sessionTenantId) {
             return NextResponse.json(
                 { error: "Unauthorized - not your lease." },
                 { status: 403 }

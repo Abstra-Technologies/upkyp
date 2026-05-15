@@ -42,6 +42,14 @@ export default function PortalAccessGate({
     const checkGate = async () => {
         if (!agreementId) return;
 
+        const cacheKey = `portal_access_ok_${agreementId}`;
+
+        if (localStorage.getItem(cacheKey) === "true") {
+            setStatus({ allowed: true, reasons: [] });
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await axios.get(
                 `/api/tenant/activeRent/access-check?agreement_id=${agreementId}`
@@ -50,10 +58,7 @@ export default function PortalAccessGate({
             setStatus(res.data);
 
             if (res.data?.allowed === true) {
-                sessionStorage.setItem(
-                    `portal_access_ok_${agreementId}`,
-                    "true"
-                );
+                localStorage.setItem(cacheKey, "true");
             }
         } catch {
             setStatus({
@@ -67,23 +72,17 @@ export default function PortalAccessGate({
 
     useEffect(() => {
         if (!agreementId) return;
-
-        const cacheKey = `portal_access_ok_${agreementId}`;
-
-        if (sessionStorage.getItem(cacheKey) === "true") {
-            setStatus({ allowed: true, reasons: [] });
-            setLoading(false);
-            return;
-        }
-
         checkGate();
     }, [agreementId]);
 
     useEffect(() => {
-        if (isSigned) {
-            checkGate();
+        if (isSigned && agreementId) {
+            const cacheKey = `portal_access_ok_${agreementId}`;
+            if (localStorage.getItem(cacheKey) !== "true") {
+                checkGate();
+            }
         }
-    }, [isSigned]);
+    }, [isSigned, agreementId]);
 
     /* =====================================================
        RENDER LOGIC
