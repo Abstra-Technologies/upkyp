@@ -70,7 +70,6 @@ export default function PortalAccessGate({
 
         const cacheKey = `portal_access_ok_${agreementId}`;
 
-        // ✅ Fast path
         if (sessionStorage.getItem(cacheKey) === "true") {
             setStatus({ allowed: true, reasons: [] });
             setLoading(false);
@@ -80,7 +79,6 @@ export default function PortalAccessGate({
         checkGate();
     }, [agreementId]);
 
-    /* 🔄 Re-check gate automatically after signing */
     useEffect(() => {
         if (isSigned) {
             checkGate();

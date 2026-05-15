@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { getSessionUser } from "@/lib/auth/auth";
 
 /**
  * Sample health check endpoint
@@ -11,6 +12,15 @@ import { NextRequest, NextResponse } from "next/server";
  */
 
 export async function GET(req: NextRequest) {
+    const session = await getSessionUser();
+
+    if (!session || !session.user_id) {
+        return NextResponse.json(
+            { error: "Unauthorized" },
+            { status: 401 }
+        );
+    }
+
     const { searchParams } = new URL(req.url);
     const agreementId = searchParams.get("agreement_id");
 
@@ -29,9 +39,10 @@ export async function GET(req: NextRequest) {
         ------------------------------------------------- */
         const [[lease]]: any = await db.query(
             `
-            SELECT agreement_id, status
-            FROM LeaseAgreement
-            WHERE agreement_id = ?
+            SELECT la.agreement_id, la.status, t.user_id AS tenant_user_id
+            FROM LeaseAgreement la
+            JOIN Tenant t ON la.tenant_id = t.tenant_id
+            WHERE la.agreement_id = ?
             LIMIT 1
             `,
             [agreementId]
@@ -44,6 +55,13 @@ export async function GET(req: NextRequest) {
                     reasons: ["Lease agreement not found"],
                 },
                 { status: 200 }
+            );
+        }
+
+        if (lease.tenant_user_id !== session.user_id) {
+            return NextResponse.json(
+                { error: "Unauthorized - not your lease." },
+                { status: 403 }
             );
         }
 
