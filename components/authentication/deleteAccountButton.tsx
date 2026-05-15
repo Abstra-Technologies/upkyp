@@ -29,7 +29,7 @@ export default function DeleteAccountButton({ user_id, userType }: Props) {
             await Swal.fire({
                 icon: "success",
                 title: "Account Deactivated",
-                text: "Your account has been successfully deactivated.",
+                html: 'Your account has been deactivated. It will remain retrievable for <strong>90 days</strong>, after which it will be archived and permanently deleted after <strong>1 year</strong>.',
                 confirmButtonColor: "#10b981",
             });
 
@@ -40,10 +40,8 @@ export default function DeleteAccountButton({ user_id, userType }: Props) {
 
             await Swal.fire({
                 icon: "error",
-                title: "Deletion Failed",
-                text:
-                    error?.response?.data?.error ||
-                    "You cannot deactivate your account because you still have active leases.",
+                title: "Deactivation Failed",
+                text: error?.response?.data?.error || "Failed to deactivate account.",
                 confirmButtonColor: "#ef4444",
             });
         } finally {
@@ -54,10 +52,7 @@ export default function DeleteAccountButton({ user_id, userType }: Props) {
     const confirmDelete = async () => {
         const result = await Swal.fire({
             title: "Are you sure?",
-            text:
-                userType === "landlord"
-                    ? "You cannot deactivate your account if you still have active leases."
-                    : "This action is irreversible once completed.",
+            html: `Your account will be deactivated immediately. It will remain retrievable for <strong>90 days</strong>, after which it will be archived and permanently deleted after <strong>1 year</strong>.`,
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#dc2626",
