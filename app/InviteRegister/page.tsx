@@ -3,6 +3,7 @@
 import useAuthStore from '@/zustand/authStore';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
+import { mutate } from 'swr';
 
 function TenantInviteJoinPage() {
     const searchParams = useSearchParams();
@@ -59,6 +60,11 @@ function TenantInviteJoinPage() {
             const data = await res.json();
 
             if (res.ok) {
+                if (inviteDetails?.property_id) {
+                    mutate(`/api/unitListing/getUnitListings?property_id=${inviteDetails.property_id}`);
+                    mutate(`/api/unitListing/getUnitListings?property_id=${inviteDetails.property_id}`, null, { revalidate: true });
+                    mutate(`/api/unitListing/getUnitListings`, null, { revalidate: true });
+                }
                 router.push('/tenant/my-unit');
             } else {
                 alert(data.error || 'Failed to join unit.');

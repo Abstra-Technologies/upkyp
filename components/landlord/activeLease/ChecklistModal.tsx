@@ -10,12 +10,14 @@ import {
     LogOut,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import Swal from "sweetalert2";
 
 interface Props {
     open: boolean;
     lease: any;
+    propertyId: string | undefined;
     onClose: () => void;
     onContinue: (data: any) => void;
 }
@@ -24,11 +26,13 @@ const formatDateForInput = (date?: string | null) =>
     date ? new Date(date).toISOString().split("T")[0] : "";
 
 export default function ChecklistSetupModal({
-                                                  open,
-                                                  lease,
-                                                  onClose,
-                                                  onContinue,
-                                              }: Props) {
+                                                   open,
+                                                   lease,
+                                                   propertyId,
+                                                   onClose,
+                                                   onContinue,
+                                               }: Props) {
+    const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [showDecision, setShowDecision] = useState(false);
     const [showOptions, setShowOptions] = useState<"agreement" | "dates" | null>(null);
@@ -149,15 +153,20 @@ export default function ChecklistSetupModal({
             }
 
             Swal.close();
-            
+
             if (isDatesOnly) {
                 await Swal.fire({
                     icon: "success",
                     title: "Dates saved",
                     text: "Lease dates have been updated.",
                 });
+                onClose();
+            } else {
+                onClose();
+                router.push(
+                    `/landlord/properties/${propertyId}/activeLease/setup?agreement_id=${agreement_id}`
+                );
             }
-            onClose();
         } catch (error: any) {
             console.error("Save error:", error);
             Swal.close();

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 /**
  * @route   PUT /api/unitListing/publish
@@ -19,23 +20,29 @@ export async function PUT(req: NextRequest) {
             );
         }
 
+        /* ---------- GET PROPERTY ID ---------- */
+        const [unitRows]: any = await db.execute(
+            `SELECT property_id FROM rentalley_db.Unit WHERE unit_id = ?`,
+            [unit_id]
+        );
+
+        if (!unitRows.length) {
+            return NextResponse.json(
+                { success: false, message: "Unit not found." },
+                { status: 404 }
+            );
+        }
+
+        const property_id = unitRows[0].property_id;
+
         /* ---------- CHECK PROPERTY VERIFICATION ---------- */
         if (publish) {
-            const [unitRows]: any = await db.execute(
-                `SELECT p.property_id, p.landlord_id FROM rentalley_db.Unit u 
-                 JOIN rentalley_db.Property p ON u.property_id = p.property_id 
-                 WHERE u.unit_id = ?`,
-                [unit_id]
+            const [propRows]: any = await db.execute(
+                `SELECT p.landlord_id FROM rentalley_db.Property p WHERE p.property_id = ?`,
+                [property_id]
             );
 
-            if (!unitRows.length) {
-                return NextResponse.json(
-                    { success: false, message: "Unit not found." },
-                    { status: 404 }
-                );
-            }
-
-            const { property_id, landlord_id } = unitRows[0];
+            const landlord_id = propRows[0]?.landlord_id;
 
             // Check if property is verified
             const [verificationRows]: any = await db.execute(
@@ -93,6 +100,9 @@ export async function PUT(req: NextRequest) {
                 { status: 404 }
             );
         }
+
+        revalidateTag(`units-${property_id}`);
+        revalidateTag("units-all");
 
         return NextResponse.json({
             success: true,

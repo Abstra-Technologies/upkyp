@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { generateLeaseId } from "@/utils/id_generator";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 import { getSessionUser } from "@/lib/auth/auth";
+import { revalidateTag } from "next/cache";
 
 //  TENANT: invitation accept. process with lease draft.
 
@@ -137,17 +138,26 @@ export async function POST(req: Request) {
             }
         }
 
-        /* ===============================
-           4️⃣ Mark invite as USED
-        =============================== */
+/* ===============================
+            4️⃣ Mark invite as USED
+         =============================== */
         await conn.query(
             `UPDATE InviteCode SET status = 'USED' WHERE code = ?`,
             [inviteCode]
         );
 
         /* ===============================
-           5️⃣ Mark unit as OCCUPIED
-        =============================== */
+            4b️⃣ Get property_id for cache purging
+         =============================== */
+        const [unitRows]: any = await conn.query(
+            `SELECT property_id FROM Unit WHERE unit_id = ?`,
+            [invite.unitId]
+        );
+        const property_id = unitRows[0]?.property_id;
+
+        /* ===============================
+            5️⃣ Mark unit as OCCUPIED
+         =============================== */
         await conn.query(
             `
             UPDATE Unit
@@ -189,6 +199,11 @@ export async function POST(req: Request) {
         }
 
         await conn.commit();
+
+        if (property_id) {
+            revalidateTag(`units-${property_id}`);
+            revalidateTag("units-all");
+        }
 
         return NextResponse.json({
             success: true,

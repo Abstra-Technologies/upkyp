@@ -30,6 +30,7 @@ export async function GET(
                    i.email,
                    i.expiresAt,
                    u.unit_name AS unit_name,
+                   u.property_id AS property_id,
                    p.property_name AS property_name,
                    (
                        SELECT pp.photo_url

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { revalidateTag } from "next/cache";
 
 export async function DELETE(req: NextRequest) {
     const { searchParams } = new URL(req.url);
@@ -13,13 +14,15 @@ export async function DELETE(req: NextRequest) {
     try {
 
         const [unitRows]: any = await connection.execute(
-            `SELECT * FROM Unit WHERE unit_id = ?`,
+            `SELECT unit_id, property_id FROM Unit WHERE unit_id = ?`,
             [unit_id]
         );
 
         if (unitRows.length === 0) {
             return NextResponse.json({ error: "Unit not found" }, { status: 404 });
         }
+
+        const property_id = unitRows[0].property_id;
 
         // Check if the unit has active lease agreements
         const [activeLeases]: any = await connection.execute(
@@ -39,6 +42,9 @@ export async function DELETE(req: NextRequest) {
         await connection.beginTransaction();
         await connection.execute(`DELETE FROM Unit WHERE unit_id = ?`, [unit_id]);
         await connection.commit();
+
+        revalidateTag(`units-${property_id}`);
+        revalidateTag(`units-all`);
 
         return NextResponse.json({
             success: true,

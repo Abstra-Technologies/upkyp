@@ -36,7 +36,8 @@ export async function POST(req: NextRequest) {
         const security_deposit = toSafeNumber(formData.get("security_deposit"));
         const advance_payment = toSafeNumber(formData.get("advance_payment"));
         const start_date = formData.get("start_date") as string | null;
-        const end_date = formData.get("end_date") as string | null;
+        const end_date_raw = formData.get("end_date") as string | null;
+        const end_date = (end_date_raw && end_date_raw !== "Nov 30, 1899" && end_date_raw.trim() !== "") ? end_date_raw : null;
 
         if (!agreement_id || !tenant_id || !landlord_id || !leaseFile) {
             return NextResponse.json(

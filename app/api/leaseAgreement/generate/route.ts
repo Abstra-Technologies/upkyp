@@ -38,12 +38,14 @@ export async function POST(req: NextRequest) {
             content,
         } = await req.json();
 
-        if (!unitId || !startDate || !endDate || !content) {
+        if (!unitId || !startDate || !content) {
             return NextResponse.json(
-                { error: "unitId, startDate, endDate, and content are required" },
+                { error: "unitId, startDate, and content are required" },
                 { status: 400 }
             );
         }
+
+        const parsedEndDate = endDate && endDate !== "Nov 30, 1899" ? endDate : null;
 
         await connection.beginTransaction();
 
@@ -153,7 +155,7 @@ export async function POST(req: NextRequest) {
                 [
                     encryptedUrl,
                     startDate,
-                    endDate,
+                    parsedEndDate,
                     Number(depositAmount) || 0,
                     Number(advanceAmount) || 0,
                     Number(gracePeriod) || 3,
@@ -174,7 +176,7 @@ export async function POST(req: NextRequest) {
                     tenant_id,
                     unitId,
                     startDate,
-                    endDate,
+                    parsedEndDate,
                     encryptedUrl,
                     Number(depositAmount) || 0,
                     Number(advanceAmount) || 0,

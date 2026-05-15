@@ -907,6 +907,7 @@ export default function PropertyLeasesPage() {
             <ChecklistModal
               open={checklistOpen && !!selectedLease}
               lease={selectedLease}
+              propertyId={id}
               onClose={() => {
                 setChecklistOpen(false);
                 setSelectedLease(null);

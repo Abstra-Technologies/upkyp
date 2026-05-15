@@ -4,6 +4,7 @@ import { uploadToS3 } from "@/lib/s3";
 import { encryptData } from "@/crypto/encrypt";
 import { generateUnitId } from "@/utils/id_generator";
 import { getSessionUser } from "@/lib/auth/auth";
+import { revalidateTag } from "next/cache";
 
 function sanitizeFilename(filename: string): string {
     return filename.replace(/[^a-zA-Z0-9.]/g, "_").replace(/\s+/g, "_");
@@ -105,6 +106,9 @@ export async function POST(req: Request) {
 
 
         await connection.commit();
+
+        revalidateTag(`units-${property_id}`);
+        revalidateTag("units-all");
 
         return NextResponse.json(
             {

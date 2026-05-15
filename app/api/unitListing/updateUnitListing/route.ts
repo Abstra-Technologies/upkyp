@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { uploadToS3 } from "@/lib/s3";
 import { encryptData } from "@/crypto/encrypt";
 import { getSessionUser } from "@/lib/auth/auth";
+import { revalidateTag } from "next/cache";
 
 function sanitizeFilename(filename: string): string {
     return filename
@@ -100,6 +101,9 @@ export async function PUT(req: Request) {
         }
 
         await connection.commit();
+
+        revalidateTag(`units-${property_id}`);
+        revalidateTag("units-all");
 
         return NextResponse.json(
             {

@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
         const signatureOption = formData.get("signatureOption") as string;
         const leaseFile = formData.get("leaseFile") as File | null;
         const startDate = formData.get("startDate") as string;
-        const endDate = formData.get("endDate") as string;
+        const endDateRaw = formData.get("endDate") as string;
+        const parsedEndDate = endDateRaw && endDateRaw !== "Nov 30, 1899" ? endDateRaw : null;
         const securityDepositAmount = Number(formData.get("securityDepositAmount") || 0);
         const advancePaymentAmount = Number(formData.get("advancePaymentAmount") || 0);
 
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
             `,
             [
                 startDate,
-                endDate,
+                parsedEndDate,
                 encryptedUrl,
                 securityDepositAmount,
                 advancePaymentAmount,

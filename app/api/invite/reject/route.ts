@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { sendUserNotification } from "@/lib/notifications/sendUserNotification";
 import { getSessionUser } from "@/lib/auth/auth";
+import { revalidateTag } from "next/cache";
 
 export async function POST(req: NextRequest) {
     const session = await getSessionUser();
@@ -51,17 +52,26 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        /* ===============================
-           2️⃣ Delete draft lease agreement if one exists
-        =============================== */
+/* ===============================
+            2️⃣ Delete draft lease agreement if one exists
+         =============================== */
         await conn.query(
             `DELETE FROM LeaseAgreement WHERE unit_id = ? AND status = 'draft'`,
             [invite.unitId]
         );
 
         /* ===============================
-           3️⃣ Release unit (rent_amount stays unchanged)
-        =============================== */
+            2b️⃣ Get property_id for cache purging
+         =============================== */
+        const [unitRows]: any = await conn.query(
+            `SELECT property_id FROM Unit WHERE unit_id = ?`,
+            [invite.unitId]
+        );
+        const property_id = unitRows[0]?.property_id;
+
+        /* ===============================
+            3️⃣ Release unit (rent_amount stays unchanged)
+         =============================== */
         await conn.query(
             `UPDATE Unit SET status = 'unoccupied', updated_at = CURRENT_TIMESTAMP WHERE unit_id = ?`,
             [invite.unitId]
@@ -106,6 +116,11 @@ export async function POST(req: NextRequest) {
         }
 
         await conn.commit();
+
+        if (property_id) {
+            revalidateTag(`units-${property_id}`);
+            revalidateTag("units-all");
+        }
 
         return NextResponse.json({
             success: true,

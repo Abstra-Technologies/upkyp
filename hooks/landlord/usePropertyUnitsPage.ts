@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import axios from "axios";
@@ -40,7 +40,12 @@ export function usePropertyUnitsPage() {
         units = [],
         error,
         isLoading,
-    } = usePropertyData(property_id!, landlord_id);
+    } = usePropertyData(property_id!, landlord_id, {
+        dedupingInterval: 30_000,
+        keepPreviousData: true,
+        revalidateOnFocus: true,
+        refreshInterval: 60_000,
+    });
 
     /* ---------------- STATE ---------------- */
 
@@ -52,6 +57,18 @@ export function usePropertyUnitsPage() {
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [bulkImportModal, setBulkImportModal] = useState(false);
     const [addUnitModalOpen, setAddUnitModalOpen] = useState(false);
+
+    /* ---------------- REVALIDATION ---------------- */
+
+    const revalidateAll = useCallback(() => {
+        const unitKey = `/api/unitListing/getUnitListings?property_id=${property_id}`;
+        const propertyKey = `/api/propertyListing/viewDetailedProperty/${property_id}`;
+        mutate(unitKey);
+        mutate(propertyKey);
+        if (landlord_id) {
+            mutate(`/api/landlord/subscription/active/${landlord_id}`);
+        }
+    }, [property_id, landlord_id]);
 
     /* ---------------- SEARCH ---------------- */
 
@@ -98,7 +115,7 @@ export function usePropertyUnitsPage() {
         if (units.length >= subscription.listingLimits?.maxUnits) {
             Swal.fire(
                 "Limit Reached",
-                "You’ve reached your unit limit.",
+                "You've reached your unit limit.",
                 "error"
             );
             return;
@@ -123,18 +140,22 @@ export function usePropertyUnitsPage() {
 
         if (!confirm.isConfirmed) return;
 
+        const unitKey = `/api/unitListing/getUnitListings?property_id=${property_id}`;
+
+        mutate(unitKey, (current: any[] | undefined) =>
+            (current || []).filter((u: any) => u.unit_id !== unitId),
+            false
+        );
+
         await axios.delete(`/api/unitListing/deleteUnit?id=${unitId}`);
 
-        // 🔥 instant list update
-        mutate(
-            `/api/unitListing/getUnitListings?property_id=${property_id}`
-        );
+        revalidateAll();
     };
 
     return {
         property_id,
         subscription,
-        units,              // 👈 ADD THIS (source of truth)
+        units,
         error,
         isLoading,
 
@@ -151,6 +172,8 @@ export function usePropertyUnitsPage() {
         handleAddUnitClick,
         handleEditUnit,
         handleDeleteUnit,
+
+        revalidateAll,
 
         isAIGeneratorOpen,
         setIsAIGeneratorOpen,

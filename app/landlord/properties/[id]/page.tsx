@@ -46,6 +46,7 @@ export default function ViewPropertyDetailedPage() {
     handleAddUnitClick,
     handleEditUnit,
     handleDeleteUnit,
+    revalidateAll,
 
     isAIGeneratorOpen,
     setIsAIGeneratorOpen,
@@ -289,7 +290,10 @@ export default function ViewPropertyDetailedPage() {
         <AddUnitModal
           property_id={property_id}
           landlord_id={landlordId || ""}
-          onClose={() => setAddUnitModalOpen(false)}
+          onClose={() => {
+            setAddUnitModalOpen(false);
+            revalidateAll();
+          }}
         />
       )}
     </div>

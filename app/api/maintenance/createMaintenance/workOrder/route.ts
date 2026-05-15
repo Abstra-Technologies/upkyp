@@ -32,7 +32,7 @@ export async function POST(req: Request) {
             description,
             property_id,
             unit_id,
-            lease_id,
+            lease_id: providedLeaseId,
             asset_id,
             assigned_to,
             photo_urls,
@@ -47,6 +47,20 @@ export async function POST(req: Request) {
         }
 
         await connection.beginTransaction();
+
+        let lease_id = providedLeaseId || null;
+
+        if (unit_id && !lease_id) {
+            const [[activeLease]]: any = await connection.query(
+                `SELECT agreement_id FROM LeaseAgreement
+                 WHERE unit_id = ? AND status = 'active'
+                 LIMIT 1`,
+                [unit_id]
+            );
+            if (activeLease?.agreement_id) {
+                lease_id = activeLease.agreement_id;
+            }
+        }
 
         const request_id = generateMaintenanceId();
 
