@@ -22,6 +22,7 @@ import {
   Trash2,
   ArrowUpDown,
   Calendar,
+  MoreHorizontal,
 } from "lucide-react";
 
 import LeaseStack from "@/components/landlord/activeLease/LeaseStack";
@@ -75,6 +76,7 @@ export default function PropertyLeasesPage() {
   const [selectedLease, setSelectedLease] = useState<any>(null);
   const [bulkMeterOpen, setBulkMeterOpen] = useState(false);
   const [selectedBillForDetail, setSelectedBillForDetail] = useState<any>(null);
+  const [openMenuLeaseId, setOpenMenuLeaseId] = useState<string | null>(null);
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -109,6 +111,16 @@ export default function PropertyLeasesPage() {
   useEffect(() => {
     billing.setSelectedPeriod({ month: billingMonth, year: billingYear });
   }, [billingMonth, billingYear, billing.setSelectedPeriod]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (openMenuLeaseId && !(e.target as HTMLElement).closest('.lease-menu-container')) {
+        setOpenMenuLeaseId(null);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [openMenuLeaseId]);
 
   const handlePrimaryAction = (lease: any) => {
     if (!lease) return;
@@ -773,25 +785,48 @@ export default function PropertyLeasesPage() {
                                 <>
                                   <button
                                     onClick={() => handlePrimaryAction(lease)}
-                                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                    title="View Details"
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-emerald-600 rounded-lg hover:from-blue-700 hover:to-emerald-700 transition-all active:scale-95"
                                   >
-                                    <Eye className="w-4 h-4" />
+                                    <Eye className="w-3.5 h-3.5" />
+                                    View Lease
                                   </button>
-                                  <button
-                                    onClick={() => handleExtendLease(lease)}
-                                    className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                                    title="Extend Lease"
-                                  >
-                                    <Pencil className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleEndLease(lease)}
-                                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="End Lease"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                  <div className="relative lease-menu-container">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenMenuLeaseId(openMenuLeaseId === lease.lease_id ? null : lease.lease_id);
+                                      }}
+                                      className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                    >
+                                      <MoreHorizontal className="w-5 h-5" />
+                                    </button>
+                                    {openMenuLeaseId === lease.lease_id && (
+                                      <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1">
+                                        {lease.end_date && (
+                                          <button
+                                            onClick={() => {
+                                              handleExtendLease(lease);
+                                              setOpenMenuLeaseId(null);
+                                            }}
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                          >
+                                            <Pencil className="w-4 h-4" />
+                                            Extend Lease
+                                          </button>
+                                        )}
+                                        <button
+                                          onClick={() => {
+                                            handleEndLease(lease);
+                                            setOpenMenuLeaseId(null);
+                                          }}
+                                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                                        >
+                                          <Trash2 className="w-4 h-4" />
+                                          End Lease
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
                                 </>
                               )}
                             </div>

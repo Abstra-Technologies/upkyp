@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth/auth";
 
 /* ======================================================
    GET — Fetch checklist + computed setup status
@@ -69,13 +70,45 @@ export async function GET(req: NextRequest) {
    - Checklist = UPSERT
 ====================================================== */
 export async function POST(req: NextRequest) {
+    const connection = await db.getConnection();
+
     try {
+        const session = await getSessionUser();
+
+        if (!session || !session.landlord_id) {
+            return NextResponse.json(
+                { error: "Unauthorized" },
+                { status: 401 }
+            );
+        }
+
         const body = await req.json();
         const { agreement_id } = body;
 
         if (!agreement_id) {
             return NextResponse.json({ error: "Missing agreement_id" }, { status: 400 });
         }
+
+        const [ownershipCheck]: any = await connection.query(
+            `
+            SELECT la.agreement_id
+            FROM rentalley_db.LeaseAgreement la
+            JOIN rentalley_db.Unit u ON la.unit_id = u.unit_id
+            JOIN rentalley_db.Property p ON u.property_id = p.property_id
+            WHERE la.agreement_id = ? AND p.landlord_id = ?
+            LIMIT 1
+            `,
+            [agreement_id, session.landlord_id]
+        );
+
+        if (!ownershipCheck.length) {
+            return NextResponse.json(
+                { error: "Unauthorized - not your lease." },
+                { status: 403 }
+            );
+        }
+
+        await connection.beginTransaction();
 
         /* -----------------------------------------------
            1️⃣ Update lease dates (NO side effects)
@@ -84,7 +117,6 @@ export async function POST(req: NextRequest) {
         const endDate = body.lease_end_date && body.lease_end_date !== "" ? body.lease_end_date : null;
 
         if (startDate || endDate) {
-            // Build dynamic update query based on what's provided
             const updates: string[] = [];
             const values: any[] = [];
 
@@ -99,7 +131,7 @@ export async function POST(req: NextRequest) {
 
             if (updates.length > 0) {
                 values.push(agreement_id);
-                await db.query(
+                await connection.query(
                     `UPDATE rentalley_db.LeaseAgreement SET ${updates.join(", ")} WHERE agreement_id = ?`,
                     values
                 );
@@ -107,7 +139,7 @@ export async function POST(req: NextRequest) {
         }
 
         /* -----------------------------------------------
-           2️⃣ Checklist UPSERT (only if any flag exists)
+           2️⃣ Checklist STRICT UPSERT (1 record per lease)
         ----------------------------------------------- */
         const checklistKeys = [
             "lease_agreement",
@@ -121,38 +153,48 @@ export async function POST(req: NextRequest) {
         const hasChecklist = checklistKeys.some((key) => key in body);
 
         if (hasChecklist) {
-            await db.query(
-                `
-                INSERT INTO rentalley_db.LeaseSetupRequirements (
-                    agreement_id,
-                    lease_agreement,
-                    move_in_checklist,
-                    move_out_checklist
-            
-                )
-                VALUES (?, ?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    lease_agreement    = VALUES(lease_agreement),
-                    move_in_checklist  = VALUES(move_in_checklist),
-                    move_out_checklist = VALUES(move_out_checklist)
-        
-                `,
-                [
-                    agreement_id,
-                    body.lease_agreement ? 1 : 0,
-                    body.move_in_checklist ? 1 : 0,
-                    body.move_out_checklist ? 1 : 0,
-                ]
+            const [existing]: any = await connection.query(
+                `SELECT id FROM rentalley_db.LeaseSetupRequirements WHERE agreement_id = ? LIMIT 1`,
+                [agreement_id]
             );
+
+            if (existing.length > 0) {
+                await connection.query(
+                    `UPDATE rentalley_db.LeaseSetupRequirements 
+                     SET lease_agreement = ?, move_in_checklist = ?, move_out_checklist = ? 
+                     WHERE agreement_id = ?`,
+                    [
+                        body.lease_agreement ? 1 : 0,
+                        body.move_in_checklist ? 1 : 0,
+                        body.move_out_checklist ? 1 : 0,
+                        agreement_id
+                    ]
+                );
+            } else {
+                await connection.query(
+                    `INSERT INTO rentalley_db.LeaseSetupRequirements 
+                     (agreement_id, lease_agreement, move_in_checklist, move_out_checklist) 
+                     VALUES (?, ?, ?, ?)`,
+                    [
+                        agreement_id,
+                        body.lease_agreement ? 1 : 0,
+                        body.move_in_checklist ? 1 : 0,
+                        body.move_out_checklist ? 1 : 0,
+                    ]
+                );
+            }
         }
 
-        await maybeActivateLease(agreement_id);
+        await maybeActivateLease(connection, agreement_id);
+
+        await connection.commit();
 
         return NextResponse.json({
             success: true,
             message: "Lease setup saved successfully",
         });
     } catch (error) {
+        await connection.rollback();
         console.error("❌ POST lease setup failed:", error);
         return NextResponse.json(
             { error: "Failed to save lease setup" },
@@ -171,8 +213,8 @@ export async function PUT(req: NextRequest) {
 /* ======================================================
    HELPER — Activate lease safely (NO side effects)
 ====================================================== */
-async function maybeActivateLease(agreement_id: string) {
-    const [[lease]]: any = await db.query(
+async function maybeActivateLease(connection: any, agreement_id: string) {
+    const [lease]: any = await connection.query(
         `
         SELECT start_date, agreement_url, status
         FROM rentalley_db.LeaseAgreement
@@ -182,9 +224,11 @@ async function maybeActivateLease(agreement_id: string) {
         [agreement_id]
     );
 
-    if (!lease || lease.status === "active") return;
+    if (!lease.length || lease[0].status === "active") return;
 
-    const [[requirements]]: any = await db.query(
+    const leaseData = lease[0];
+
+    const [requirements]: any = await connection.query(
         `
         SELECT *
         FROM rentalley_db.LeaseSetupRequirements
@@ -195,12 +239,11 @@ async function maybeActivateLease(agreement_id: string) {
     );
 
     const document_uploaded =
-        !!lease.agreement_url && lease.agreement_url !== "null";
+        !!leaseData.agreement_url && leaseData.agreement_url !== "null";
 
-    /* Dates-only activation */
-    if (!requirements) {
-        if (lease.start_date) {
-            await db.query(
+    if (!requirements.length) {
+        if (leaseData.start_date) {
+            await connection.query(
                 `
                 UPDATE rentalley_db.LeaseAgreement
                 SET status = 'active'
@@ -212,15 +255,16 @@ async function maybeActivateLease(agreement_id: string) {
         return;
     }
 
-    /* Checklist-based activation */
+    const reqData = requirements[0];
+
     const setup_completed =
-        (!requirements.lease_agreement || document_uploaded) &&
-        (!requirements.move_in_checklist || lease.start_date) &&
-        (!requirements.security_deposit || true) &&
-        (!requirements.advance_payment || true);
+        (!reqData.lease_agreement || document_uploaded) &&
+        (!reqData.move_in_checklist || leaseData.start_date) &&
+        (!reqData.security_deposit || true) &&
+        (!reqData.advance_payment || true);
 
     if (setup_completed) {
-        await db.query(
+        await connection.query(
             `
             UPDATE rentalley_db.LeaseAgreement
             SET status = 'active'

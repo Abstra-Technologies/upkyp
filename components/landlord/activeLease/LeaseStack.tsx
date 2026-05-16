@@ -1,6 +1,7 @@
 "use client";
 
-import { User2, QrCode, ArrowRight, Calendar, Clock, AlertCircle, CheckCircle2, FileSignature, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User2, QrCode, ArrowRight, Calendar, Clock, AlertCircle, CheckCircle2, FileSignature, ChevronRight, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
 import { StatusBadge } from "./LeaseStatusBadge";
 
 const getStatus = (lease: any) =>
@@ -38,6 +39,19 @@ export default function LeaseStack({
     onCancel,
     onKyp,
 }: Props) {
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+    const toggleMenu = (e: React.MouseEvent, leaseId: string) => {
+        e.stopPropagation();
+        setOpenMenuId(openMenuId === leaseId ? null : leaseId);
+    };
+
+    useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null);
+        document.addEventListener("click", handleClickOutside);
+        return () => document.removeEventListener("click", handleClickOutside);
+    }, []);
+
     return (
         <div id="units-list-section-mobile" className="block md:hidden space-y-2 mb-4">
             {leases.map((lease) => {
@@ -138,20 +152,50 @@ export default function LeaseStack({
                                     )}
 
                                     {isActive && (
-                                        <>
+                                        <div className="relative">
                                             <button
-                                                onClick={() => onPrimary(lease)}
-                                                className="px-2.5 py-1.5 bg-slate-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1"
+                                                onClick={(e) => toggleMenu(e, lease.lease_id)}
+                                                className="p-1.5 bg-gray-100 text-gray-600 rounded-lg"
                                             >
-                                                View <ArrowRight className="w-3 h-3" />
+                                                <MoreHorizontal className="w-4 h-4" />
                                             </button>
-                                            <button
-                                                onClick={() => onKyp(lease)}
-                                                className="p-1.5 bg-indigo-600 text-white rounded-lg"
-                                            >
-                                                <QrCode className="w-3.5 h-3.5" />
-                                            </button>
-                                        </>
+                                            {openMenuId === lease.lease_id && (
+                                                <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1">
+                                                    <button
+                                                        onClick={() => {
+                                                            onPrimary(lease);
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                        View Details
+                                                    </button>
+                                                    {lease.end_date && (
+                                                        <button
+                                                            onClick={() => {
+                                                                onExtend(lease);
+                                                                setOpenMenuId(null);
+                                                            }}
+                                                            className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-700 hover:bg-gray-50"
+                                                        >
+                                                            <Pencil className="w-3.5 h-3.5" />
+                                                            Extend Lease
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            onEnd(lease);
+                                                            setOpenMenuId(null);
+                                                        }}
+                                                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        End Lease
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
 
                                     {!["draft", "expired", "active"].includes(status) && (

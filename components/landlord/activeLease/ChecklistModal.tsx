@@ -6,8 +6,9 @@ import {
     CheckCircle2,
     ArrowRight,
     X,
-    KeyRound,
-    LogOut,
+    Eye,
+    Pencil,
+    Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -38,41 +39,48 @@ export default function ChecklistSetupModal({
     const [showOptions, setShowOptions] = useState<"agreement" | "dates" | null>(null);
 
     const agreement_id = lease?.agreement_id || lease?.lease_id || lease?.agreementId;
+    const leaseStatus = (lease?.status ?? lease?.lease_status)?.toLowerCase();
+    const isActive = leaseStatus === "active";
+    const hasEndDate = !!lease?.end_date;
 
     const [form, setForm] = useState({
         lease_agreement: false,
         set_lease_dates: false,
         lease_start_date: "",
         lease_end_date: "",
-        // include_move_in: false,
-        // include_move_out: false,
     });
 
 
     useEffect(() => {
         if (!agreement_id) return;
+
+        setShowDecision(false);
+        setShowOptions(null);
+        setForm({
+            lease_agreement: false,
+            set_lease_dates: false,
+            lease_start_date: "",
+            lease_end_date: "",
+        });
         
         axios
             .get(
                 `/api/landlord/activeLease/saveChecklistRequirements?agreement_id=${agreement_id}`
             )
             .then((res) => {
-                const r = res.data?.requirements || {};
+                const r = res.data?.requirements;
 
-                const loadedForm = {
-                    lease_agreement: r.lease_agreement === 1,
-                    set_lease_dates: !!(
-                        res.data?.lease_start_date || res.data?.lease_end_date
-                    ),
-                    lease_start_date: formatDateForInput(res.data?.lease_start_date),
-                    lease_end_date: formatDateForInput(res.data?.lease_end_date),
-                    // include_move_in: r.move_in_checklist === 1,
-                    // include_move_out: r.move_out_checklist === 1,
-                };
+                if (r) {
+                    const loadedForm = {
+                        lease_agreement: r.lease_agreement === 1,
+                        set_lease_dates: !!(
+                            res.data?.lease_start_date || res.data?.lease_end_date
+                        ),
+                        lease_start_date: formatDateForInput(res.data?.lease_start_date),
+                        lease_end_date: formatDateForInput(res.data?.lease_end_date),
+                    };
 
-                setForm(loadedForm);
-
-                if (loadedForm.lease_agreement || loadedForm.set_lease_dates) {
+                    setForm(loadedForm);
                     setShowDecision(true);
                 }
             })
@@ -184,12 +192,14 @@ export default function ChecklistSetupModal({
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 sm:p-6">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
 
-                <div className="bg-gradient-to-r from-blue-600 to-emerald-600 px-6 py-5">
+                <div className={`px-6 py-5 ${isActive ? "bg-gradient-to-r from-emerald-600 to-teal-600" : "bg-gradient-to-r from-blue-600 to-emerald-600"}`}>
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-bold text-white">Checklist Setup</h2>
+                            <h2 className="text-xl font-bold text-white">
+                                {isActive ? "Lease Actions" : "Checklist Setup"}
+                            </h2>
                             <p className="text-sm text-white/80 mt-1">
-                                Select options to configure
+                                {isActive ? "Manage your active lease" : "Select options to configure"}
                             </p>
                         </div>
                         <button
@@ -202,7 +212,103 @@ export default function ChecklistSetupModal({
                 </div>
 
                 <div className="p-6">
-                    {showDecision ? (
+                    {isActive ? (
+                        <div className="space-y-4">
+                            <div className="bg-gray-50 rounded-xl p-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                                    </div>
+                                    <div>
+                                        <p className="font-semibold text-gray-900">{lease?.tenant_name || "Tenant"}</p>
+                                        <p className="text-sm text-gray-500">{lease?.unit_name || "Unit"}</p>
+                                    </div>
+                                </div>
+                                <div className="text-sm text-gray-600">
+                                    <p>Lease Term: {lease?.start_date ? new Date(lease.start_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"} - {lease?.end_date ? new Date(lease.end_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Ongoing"}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <button
+                                    onClick={() => {
+                                        onClose();
+                                        window.location.href = `/landlord/properties/${propertyId}/activeLease/leaseDetails/${agreement_id}`;
+                                    }}
+                                    className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                        <Eye className="w-5 h-5 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-semibold text-gray-900">View Lease Details</p>
+                                        <p className="text-xs text-gray-500">View full lease information</p>
+                                    </div>
+                                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                                </button>
+
+                                {hasEndDate && (
+                                    <button
+                                        onClick={() => {
+                                            onClose();
+                                            window.location.href = `/landlord/properties/${propertyId}/activeLease/extend/${agreement_id}`;
+                                        }}
+                                        className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-all"
+                                    >
+                                        <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                                            <Pencil className="w-5 h-5 text-amber-600" />
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <p className="font-semibold text-gray-900">Extend Lease</p>
+                                            <p className="text-xs text-gray-500">Extend the lease period</p>
+                                        </div>
+                                        <ArrowRight className="w-4 h-4 text-gray-400" />
+                                    </button>
+                                )}
+
+                                <button
+                                    onClick={async () => {
+                                        const result = await Swal.fire({
+                                            icon: "warning",
+                                            title: "End Lease",
+                                            text: "Are you sure you want to end this lease? This action cannot be undone.",
+                                            showCancelButton: true,
+                                            confirmButtonText: "Yes, End Lease",
+                                            cancelButtonText: "Cancel",
+                                            confirmButtonColor: "#dc2626",
+                                        });
+                                        if (result.isConfirmed) {
+                                            try {
+                                                await axios.put(`/api/leaseAgreement/end?agreement_id=${agreement_id}`);
+                                                Swal.fire("Success", "Lease has been ended.", "success");
+                                                onClose();
+                                                window.location.reload();
+                                            } catch (error: any) {
+                                                Swal.fire("Error", error.response?.data?.error || "Failed to end lease", "error");
+                                            }
+                                        }
+                                    }}
+                                    className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-red-300 hover:bg-red-50 transition-all"
+                                >
+                                    <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                                        <Trash2 className="w-5 h-5 text-red-600" />
+                                    </div>
+                                    <div className="flex-1 text-left">
+                                        <p className="font-semibold text-gray-900">End Lease</p>
+                                        <p className="text-xs text-gray-500">Terminate this lease</p>
+                                    </div>
+                                    <ArrowRight className="w-4 h-4 text-gray-400" />
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={onClose}
+                                className="w-full py-3 rounded-xl border border-gray-300 font-medium text-gray-700 mt-4"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    ) : showDecision ? (
                         <div className="text-center py-4">
                             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <CheckCircle2 className="w-8 h-8 text-green-600" />
@@ -212,6 +318,7 @@ export default function ChecklistSetupModal({
                             </h3>
                             <p className="text-sm text-gray-600 mb-6">
                                 This lease already has existing setup. You can continue editing or modify the setup.
+                                lease id: {lease.lease_id}
                             </p>
                             <div className="flex flex-col gap-3">
                                 <button
@@ -299,6 +406,11 @@ export default function ChecklistSetupModal({
                                             </div>
                                         </button>
                                     </div>
+                                    {lease?.lease_id && (
+                                        <p className="text-xs text-gray-400 mt-2">
+                                            Lease ID: {lease.lease_id}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* <div>

@@ -372,9 +372,7 @@ create table PropertyVerification
     property_id     varchar(12)                                                    not null,
     doc_type        enum ('business_permit', 'occupancy_permit', 'property_title') not null,
     submitted_doc   text                                                           not null,
-    gov_id          text                                                           not null,
-    outdoor_photo   text                                                           not null,
-    indoor_photo    text                                                           not null,
+    tin_number      varchar(10)                                                    null,
     status          enum ('Pending', 'Verified', 'Rejected')                       null,
     admin_message   text                                                           null,
     reviewed_by     varchar(20)                                                    null,
@@ -478,7 +476,7 @@ create table MaintenanceRequest
 (
     request_id      varchar(20)                                              not null
         primary key,
-    lease_id        varchar(20)                                              not null,
+    lease_id        varchar(20)                                              null,
     unit_id         varchar(12)                                              null,
     asset_id        varchar(20)                                              null,
     subject         varchar(50)                                              null,
@@ -799,6 +797,54 @@ create index idx_log_apikey
 
 create index idx_log_created
     on ApiRequestLog (created_at);
+
+create table CalendarItem
+(
+    item_id      int auto_increment
+        primary key,
+    landlord_id  varchar(20)                                                                                      not null,
+    property_id  varchar(12)                                                                                      null,
+    unit_id      varchar(12)                                                                                      null,
+    title        varchar(255)                                                                                     not null,
+    description  text                                                                                             null,
+    item_type    enum ('task', 'event', 'reminder')                                     default 'task'            not null,
+    category     varchar(50)                                                                                      null,
+    item_date    date                                                                                             not null,
+    item_time    time                                                                                             null,
+    end_date     date                                                                                             null,
+    end_time     time                                                                                             null,
+    all_day      tinyint(1)                                                             default 0                 null,
+    status       enum ('pending', 'in_progress', 'completed', 'cancelled', 'dismissed') default 'pending'         not null,
+    priority     enum ('low', 'medium', 'high')                                         default 'medium'          not null,
+    reminder     enum ('none', '5min', '15min', '30min', '1hour', '1day', '1week')      default 'none'            not null,
+    repeat_rule  enum ('none', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly')      default 'none'            not null,
+    location     varchar(255)                                                                                     null,
+    meeting_link varchar(500)                                                                                     null,
+    color        varchar(7)                                                                                       null comment 'Hex color for calendar display',
+    created_at   timestamp                                                              default CURRENT_TIMESTAMP null,
+    updated_at   timestamp                                                              default CURRENT_TIMESTAMP null on update CURRENT_TIMESTAMP,
+    constraint CalendarItem_ibfk_landlord
+        foreign key (landlord_id) references Landlord (landlord_id)
+            on update cascade on delete cascade,
+    constraint CalendarItem_ibfk_property
+        foreign key (property_id) references Property (property_id)
+            on update cascade on delete set null,
+    constraint CalendarItem_ibfk_unit
+        foreign key (unit_id) references Unit (unit_id)
+            on update cascade on delete set null
+);
+
+create index idx_calendar_item_date
+    on CalendarItem (item_date);
+
+create index idx_calendar_item_landlord
+    on CalendarItem (landlord_id);
+
+create index idx_calendar_item_status
+    on CalendarItem (status);
+
+create index idx_calendar_item_type
+    on CalendarItem (item_type);
 
 create table Document
 (
