@@ -9,7 +9,7 @@ interface EmptyStateProps {
 
 export default function EmptyState({ filteredChats }: EmptyStateProps) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8">
+    <div className="flex-1 flex flex-col items-center justify-center bg-gray-50 p-8 w-full h-full">
       <div className="max-w-md text-center">
         <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-2xl flex items-center justify-center">
           <MessageCircle className="w-12 h-12 text-blue-600" />

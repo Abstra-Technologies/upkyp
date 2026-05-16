@@ -51,7 +51,7 @@ export async function GET(req: NextRequest) {
         const decryptedChatList = chatList.map((chat: any) => {
             let decryptedFirstName = "Unknown";
             let decryptedLastName = "Unknown";
-            let decryptedProfilePicture = "/default-avatar.png";
+            let decryptedProfilePicture = "https://res.cloudinary.com/dptmeluy0/image/upload/v1764120619/Portrait_Placeholder_hexdd5.png";
             let lastMessage = "No messages yet";
 
             // 🔐 Decrypt user info safely

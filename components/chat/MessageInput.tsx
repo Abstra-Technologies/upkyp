@@ -33,7 +33,7 @@ export default function MessageInput({
       {showEmojiPicker && (
         <div
           ref={emojiPickerRef}
-          className="absolute bottom-28 left-2 right-2 md:left-auto md:right-4 md:w-[350px] bg-white shadow-2xl rounded-2xl overflow-hidden z-50 border border-gray-200"
+          className="fixed bottom-0 left-0 right-0 md:relative md:bottom-full md:left-auto md:right-auto md:mb-2 md:w-[350px] md:rounded-2xl bg-white shadow-2xl overflow-hidden z-[60] border border-gray-200 md:border-b rounded-t-2xl"
         >
           <EmojiPicker
             onEmojiClick={onEmojiSelect}
@@ -41,14 +41,16 @@ export default function MessageInput({
             emojiStyle={"native" as any}
             lazyLoadEmojis={true}
             width="100%"
-            height={280}
+            height={350}
+            searchDisabled={false}
+            skinTonesDisabled={false}
           />
         </div>
       )}
 
-      <div className="px-3 pt-2 pb-2 md:pb-3">
-        <div className="flex items-center gap-2 max-w-3xl mx-auto">
-          <button className="p-2.5 hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors flex-shrink-0 hidden sm:flex">
+      <div className="px-2 md:px-3 pt-1.5 md:pt-2 pb-1.5 md:pb-2">
+        <div className="flex items-center gap-1.5 md:gap-2 max-w-3xl mx-auto">
+          <button className="p-2 md:p-2.5 hover:bg-gray-100 active:bg-gray-200 rounded-full transition-colors flex-shrink-0 hidden sm:flex">
             <Paperclip className="w-5 h-5 text-gray-500" />
           </button>
 
@@ -64,21 +66,21 @@ export default function MessageInput({
               onChange={(e) => onMessageChange(e.target.value)}
               onKeyDown={onKeyPress}
               placeholder="Type a message..."
-              className="w-full px-4 py-3 bg-transparent placeholder:text-gray-400 focus:outline-none min-w-0"
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-transparent placeholder:text-gray-400 focus:outline-none min-w-0"
               style={{ fontSize: "16px" }}
             />
             <button
               onClick={onToggleEmoji}
-              className={`p-2 mr-1 rounded-full transition-colors flex-shrink-0 ${
+              className={`p-1.5 md:p-2 mr-1 rounded-full transition-colors flex-shrink-0 ${
                 showEmojiPicker
                   ? "bg-blue-100 text-blue-600"
                   : "hover:bg-gray-200 active:bg-gray-300 text-gray-500"
               }`}
             >
               {showEmojiPicker ? (
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 md:w-5 md:h-5" />
               ) : (
-                <Smile className="w-5 h-5" />
+                <Smile className="w-4 h-4 md:w-5 md:h-5" />
               )}
             </button>
           </div>
@@ -87,7 +89,7 @@ export default function MessageInput({
             onClick={onSend}
             disabled={!message.trim() || isSending}
             className={`
-              p-3 rounded-full transition-all flex-shrink-0 active:scale-95
+              p-2.5 md:p-3 rounded-full transition-all flex-shrink-0 active:scale-95
               ${
                 message.trim()
                   ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white shadow-lg shadow-blue-500/25"

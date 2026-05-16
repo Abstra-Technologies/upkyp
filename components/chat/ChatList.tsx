@@ -27,9 +27,9 @@ export default function ChatList({
   if (loading) {
     return (
       <div className="w-full md:w-80 lg:w-96 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
-        <div className="p-4 border-b border-gray-100">
-          <div className="h-8 bg-gray-200 rounded-lg w-32 mb-4 animate-pulse" />
-          <div className="h-11 bg-gray-100 rounded-xl animate-pulse" />
+        <div className="p-3 md:p-4 border-b border-gray-100">
+          <div className="h-7 md:h-8 bg-gray-200 rounded-lg w-28 md:w-32 mb-3 md:mb-4 animate-pulse" />
+          <div className="h-10 md:h-11 bg-gray-100 rounded-xl animate-pulse" />
         </div>
         <div className="flex-1 p-2">
           {[...Array(6)].map((_, i) => (
@@ -54,12 +54,12 @@ export default function ChatList({
       className={`
         w-full md:w-80 lg:w-96
         bg-white border-r border-gray-200
-        flex-col flex-shrink-0
+        flex-col flex-shrink-0 h-full
         ${selectedChat ? "hidden md:flex" : "flex"}
       `}
     >
-      <div className="flex-shrink-0 p-4 bg-white border-b border-gray-100">
-        <h1 className="text-xl font-bold text-gray-900 mb-4">Messages</h1>
+      <div className="flex-shrink-0 p-3 md:p-4 bg-white border-b border-gray-100">
+        <h1 className="text-lg md:text-xl font-bold text-gray-900 mb-3 md:mb-4">Messages</h1>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
@@ -117,7 +117,7 @@ export default function ChatList({
                 `}
               >
                 <img
-                  src={chat.profilePicture || "/default-avatar.png"}
+                  src={chat.profilePicture || "https://res.cloudinary.com/dptmeluy0/image/upload/v1764120619/Portrait_Placeholder_hexdd5.png"}
                   alt={chat.name}
                   className="w-12 h-12 rounded-full object-cover flex-shrink-0"
                 />

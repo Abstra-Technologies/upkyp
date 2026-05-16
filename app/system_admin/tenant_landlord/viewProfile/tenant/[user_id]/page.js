@@ -77,7 +77,7 @@ export default function TenantDetails() {
                 <div className="flex flex-col items-center p-6 border-b border-gray-200 bg-gray-50">
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-100 shadow-md mb-4">
                         <img
-                            src={tenantInfo?.profilePicture || "/default-avatar.png"}
+                            src={tenantInfo?.profilePicture || "https://res.cloudinary.com/dptmeluy0/image/upload/v1764120619/Portrait_Placeholder_hexdd5.png"}
                             alt="Profile"
                             className="w-full h-full object-cover"
                         />

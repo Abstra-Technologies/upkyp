@@ -46,27 +46,23 @@ export default function ChatComponent({
 
   return (
     <div
-      className="flex w-full bg-gray-50 overflow-hidden touch-manipulation"
-      style={{
-        height:
-          variant === "tenant"
-            ? "calc(100dvh - 3.5rem)"
-            : "calc(100dvh - 3.5rem)",
-      }}
+      className="fixed top-14 left-0 right-0 bottom-0 flex flex-col w-full bg-gray-50 overflow-hidden touch-manipulation md:relative md:top-auto md:left-auto md:right-auto md:bottom-auto md:flex-row md:w-full md:h-[calc(100dvh-4rem)]"
     >
-      <ChatList
-        chats={filteredChats}
-        selectedChat={selectedChat}
-        searchQuery={searchQuery}
-        error={error}
-        loading={loading}
-        onSelectChat={setSelectedChat}
-        onSearchChange={setSearchQuery}
-        formatLastSeen={formatLastSeen}
-      />
+      <div className="w-full md:w-80 lg:w-96 flex-shrink-0 overflow-y-auto border-r border-gray-200 bg-white">
+        <ChatList
+          chats={filteredChats}
+          selectedChat={selectedChat}
+          searchQuery={searchQuery}
+          error={error}
+          loading={loading}
+          onSelectChat={setSelectedChat}
+          onSearchChange={setSearchQuery}
+          formatLastSeen={formatLastSeen}
+        />
+      </div>
 
       {selectedChat ? (
-        <div className="flex-1 flex-col bg-white relative flex">
+        <div className="flex-1 flex flex-col bg-white relative min-w-0 overflow-hidden">
           <ChatWindow
             selectedChat={selectedChat}
             messages={messages}
@@ -92,7 +88,9 @@ export default function ChatComponent({
           />
         </div>
       ) : (
-        <EmptyState filteredChats={filteredChats} />
+        <div className="flex-1 hidden md:flex items-center justify-center bg-gray-50">
+          <EmptyState filteredChats={filteredChats} />
+        </div>
       )}
 
       <style jsx global>{`
