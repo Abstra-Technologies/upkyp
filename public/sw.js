@@ -1,4 +1,4 @@
-// Minimal Web Push service worker (no Workbox, no Firebase)
+// Minimal Web Push service worker
 
 self.addEventListener("push", (event) => {
     let data = {};
@@ -23,14 +23,31 @@ self.addEventListener("push", (event) => {
     const title = data.title || "New Notification";
     const options = {
         body: data.body || "",
-        icon: data.icon || "/icon-192.png",
-        badge: data.badge || "/icon-72.png",
+        icon: data.icon || "/upkyp_violet.png",
+        badge: data.badge || "/upkyp_violet.png",
+        image: data.image || null,
         data: { url: data.url || "/" },
+        tag: data.tag || "default",
+        renotify: true,
+        requireInteraction: true,
+        actions: data.actions || [
+            { action: "view", title: "View", icon: "/icon-192.png" },
+        ],
     };
 
     event.waitUntil(
         self.registration.showNotification(title, options)
     );
+});
+
+// 🔔 Play notification sound
+self.addEventListener("notificationshow", (event) => {
+    try {
+        const audioUrl = event.notification?.data?.audio || "/notification.mp3";
+        const audio = new Audio(audioUrl);
+        audio.volume = 0.5;
+        audio.play().catch(() => {});
+    } catch (_) {}
 });
 
 
