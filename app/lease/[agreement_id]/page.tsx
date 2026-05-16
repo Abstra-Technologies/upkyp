@@ -13,7 +13,6 @@ import {
 import { BackButton } from "@/components/navigation/backButton";
 import LoadingScreen from "@/components/loadingScreen";
 
-import LeaseInfo from "@/components/landlord/activeLease/leaseInfo";
 import LeasePayments from "@/components/landlord/activeLease/leasePayments";
 // import LeaseBilling from "./LeaseBilling";
 // import LeasePayments from "./LeasePayments";
