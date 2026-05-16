@@ -74,7 +74,7 @@ const baseConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.openstreetmap.org https://res.cloudinary.com https://*.cloudinary.com https://lh3.googleusercontent.com https://upload.wikimedia.org https://encrypted-tbn0.gstatic.com https://mir-s3-cdn-cf.behance.net https://cdn-icons-png.flaticon.com https://rentalley-bucket.s3.ap-southeast-1.amazonaws.com https://rentahanbucket.s3.us-east-1.amazonaws.com https://www.google-analytics.com https://www.googletagmanager.com",
 
               // ✅ API / WS (UNCHANGED)
-              "connect-src 'self' https://*.openstreetmap.org https://*.tile.openstreetmap.org https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.supabase.co wss://*.supabase.co https://upkyp-chatserver.onrender.com wss://upkyp-chatserver.onrender.com http://localhost:3000 ws://localhost:3000",
+              "connect-src  https://*.openstreetmap.org https://*.tile.openstreetmap.org https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com https://*.supabase.co wss://*.supabase.co https://upkyp-chat.onrender.com wss://upkyp-chat.onrender.com http://localhost:3000 ws://localhost:3000",
               "font-src 'self' data:",
 
               // ✅ UPDATED: allow PDF iframe
