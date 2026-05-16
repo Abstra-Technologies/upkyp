@@ -10,6 +10,13 @@ import {
     Loader2,
     RefreshCcw,
     FileText,
+    Building2,
+    User,
+    DoorOpen,
+    CalendarRange,
+    Banknote,
+    AlertCircle,
+    CheckCircle2,
 } from "lucide-react";
 
 export default function ExtendOrRenewLeasePage() {
@@ -28,22 +35,17 @@ export default function ExtendOrRenewLeasePage() {
     const [newEndDate, setNewEndDate] = useState("");
     const [newRent, setNewRent] = useState("");
 
-    /* ===============================
-       GUARD
-    ================================ */
     if (!agreement_id) {
         return (
-            <div className="flex items-center justify-center h-[70vh]">
-                <p className="text-red-600 text-sm">
-                    Invalid lease reference.
-                </p>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+                <div className="text-center">
+                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                    <p className="text-red-600 text-sm font-medium">Invalid lease reference.</p>
+                </div>
             </div>
         );
     }
 
-    /* ===============================
-       FETCH LEASE (API-ALIGNED)
-    ================================ */
     useEffect(() => {
         const fetchLease = async () => {
             try {
@@ -69,9 +71,6 @@ export default function ExtendOrRenewLeasePage() {
         fetchLease();
     }, [agreement_id]);
 
-    /* ===============================
-       MODE (FROM lease_status)
-    ================================ */
     const mode = useMemo<"extend" | "renew" | "blocked">(() => {
         if (!lease?.lease_status) return "blocked";
 
@@ -83,9 +82,6 @@ export default function ExtendOrRenewLeasePage() {
         return "blocked";
     }, [lease]);
 
-    /* ===============================
-       SUBMIT
-    ================================ */
     const handleSubmit = async () => {
         if (!newEndDate) {
             Swal.fire("Missing field", "Select a new end date.", "warning");
@@ -115,132 +111,236 @@ export default function ExtendOrRenewLeasePage() {
         }
     };
 
-    /* ===============================
-       LOADING
-    ================================ */
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[70vh]">
+            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
                 <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-3" />
                 <p className="text-gray-600 text-sm">Loading lease details…</p>
             </div>
         );
     }
 
-    /* ===============================
-       BLOCKED STATE
-    ================================ */
     if (mode === "blocked") {
         return (
-            <div className="flex items-center justify-center h-[70vh]">
-                <p className="text-gray-600 text-sm">
-                    This lease cannot be extended or renewed.
-                </p>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+                <div className="text-center">
+                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-600 text-sm font-medium">This lease cannot be extended or renewed.</p>
+                </div>
             </div>
         );
     }
 
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat("en-PH", {
+            style: "currency",
+            currency: "PHP",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        }).format(amount);
+    };
+
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return "—";
+        return new Date(dateStr).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+        });
+    };
+
+    const isRenew = mode === "renew";
+
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-4 py-8">
-            <div className="max-w-lg mx-auto bg-white border rounded-2xl shadow-lg p-6">
+        <div className="min-h-screen bg-gray-50 pt-16 md:pt-6">
+            {/* HEADER BAR */}
+            <div className={`px-4 py-4 ${isRenew ? "bg-gradient-to-r from-indigo-600 to-purple-600" : "bg-gradient-to-r from-emerald-600 to-teal-600"}`}>
+                <div className="max-w-2xl mx-auto flex items-center gap-3">
+                    <button
+                        onClick={() => router.push(`/landlord/properties/${id}/activeLease`)}
+                        className="flex items-center gap-2 text-white/80 hover:text-white text-sm font-medium transition-colors shrink-0"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back
+                    </button>
+                    <div className="w-px h-6 bg-white/20" />
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                            {isRenew ? (
+                                <RefreshCcw className="w-5 h-5 text-white" />
+                            ) : (
+                                <CalendarDays className="w-5 h-5 text-white" />
+                            )}
+                        </div>
+                        <div>
+                            <h1 className="text-lg md:text-2xl font-bold text-white">
+                                {isRenew ? "Renew Lease" : "Extend Lease"}
+                            </h1>
+                            <p className="text-xs md:text-sm text-white/70">
+                                {isRenew ? "Create a new lease term" : "Extend the current lease"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                {/* BACK */}
-                <button
-                    onClick={() =>
-                        router.push(`/landlord/properties/${id}/activeLease`)
-                    }
-                    className="flex items-center text-sm text-gray-600 mb-4 hover:text-gray-900"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    Back to Leases
-                </button>
+            <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
+                {/* LEASE SUMMARY CARD */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                        <h2 className="text-sm font-semibold text-gray-900">Lease Summary</h2>
+                    </div>
+                    <div className="p-4">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="flex items-start gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                                    <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] text-gray-500">Property</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{lease.property_name}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
+                                    <DoorOpen className="w-3.5 h-3.5 text-emerald-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] text-gray-500">Unit</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{lease.unit_name}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
+                                    <User className="w-3.5 h-3.5 text-purple-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] text-gray-500">Tenant</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{lease.tenant_name}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
+                                    <Banknote className="w-3.5 h-3.5 text-amber-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[11px] text-gray-500">Current Rent</p>
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{formatCurrency(Number(lease.rent_amount || 0))}/mo</p>
+                                </div>
+                            </div>
+                        </div>
 
-                {/* HEADER */}
-                <div className="flex items-center gap-2 mb-6">
-                    {mode === "renew" ? (
-                        <RefreshCcw className="w-6 h-6 text-indigo-600" />
-                    ) : (
-                        <CalendarDays className="w-6 h-6 text-emerald-600" />
-                    )}
-                    <h1 className="text-xl md:text-2xl font-bold">
-                        {mode === "renew" ? "Renew Lease" : "Extend Lease"}
-                    </h1>
+                        <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
+                                <CalendarRange className="w-3.5 h-3.5 text-gray-600" />
+                            </div>
+                            <div>
+                                <p className="text-[11px] text-gray-500">Current End Date</p>
+                                <p className="text-sm font-semibold text-gray-900">{formatDate(lease.end_date)}</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* SUMMARY (API FIELDS) */}
-                <div className="bg-gray-50 border rounded-xl p-4 text-sm mb-6 space-y-1">
-                    <p><strong>Property:</strong> {lease.property_name}</p>
-                    <p><strong>Unit:</strong> {lease.unit_name}</p>
-                    <p><strong>Tenant:</strong> {lease.tenant_name}</p>
-                    <p>
-                        <strong>Current End Date:</strong>{" "}
-                        {lease.end_date?.split("T")[0]}
-                    </p>
-                    <p>
-                        <strong>Rent:</strong> ₱
-                        {Number(lease.rent_amount || 0).toLocaleString()}
-                    </p>
-                </div>
-
-                {/* DOCUMENT */}
+                {/* LEASE DOCUMENT LINK */}
                 {lease.agreement_url && (
                     <a
                         href={lease.agreement_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm text-blue-600 mb-6 hover:underline"
+                        className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:bg-blue-50/50 transition-all group"
                     >
-                        <FileText className="w-4 h-4" />
-                        View Lease Document
+                        <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center shrink-0 group-hover:bg-blue-200 transition-colors">
+                            <FileText className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-900">View Lease Document</p>
+                            <p className="text-xs text-gray-500 truncate">Open the original lease agreement</p>
+                        </div>
+                        <svg className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
                     </a>
                 )}
 
-                {/* FORM */}
-                <div className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            New End Date
-                        </label>
-                        <input
-                            type="date"
-                            value={newEndDate}
-                            onChange={(e) => setNewEndDate(e.target.value)}
-                            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500"
-                        />
+                {/* FORM CARD */}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                        <h2 className="text-sm font-semibold text-gray-900">
+                            {isRenew ? "New Lease Terms" : "Extension Details"}
+                        </h2>
                     </div>
+                    <div className="p-4 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                New End Date <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                value={newEndDate}
+                                onChange={(e) => setNewEndDate(e.target.value)}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                            />
+                            {newEndDate && lease.end_date && (
+                                <p className="text-xs text-gray-500 mt-1.5">
+                                    {formatDate(lease.end_date)} → {formatDate(newEndDate)}
+                                </p>
+                            )}
+                        </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-1">
-                            New Rent (optional)
-                        </label>
-                        <input
-                            type="number"
-                            value={newRent}
-                            onChange={(e) => setNewRent(e.target.value)}
-                            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500"
-                        />
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                New Monthly Rent <span className="text-gray-400 font-normal">(optional)</span>
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">₱</span>
+                                <input
+                                    type="number"
+                                    value={newRent}
+                                    onChange={(e) => setNewRent(e.target.value)}
+                                    placeholder={Number(lease.rent_amount || 0).toLocaleString()}
+                                    className="w-full border border-gray-300 rounded-lg pl-8 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                />
+                            </div>
+                            {newRent && Number(newRent) !== Number(lease.rent_amount || 0) && (
+                                <p className="text-xs text-emerald-600 mt-1.5 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                    {formatCurrency(Number(lease.rent_amount || 0))} → {formatCurrency(Number(newRent))}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 </div>
 
                 {/* ACTIONS */}
-                <div className="mt-6 flex flex-col gap-3">
+                <div className="flex flex-col gap-3 pb-4">
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting}
-                        className="w-full px-6 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700"
+                        disabled={submitting || !newEndDate}
+                        className={`w-full px-6 py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
+                            submitting || !newEndDate
+                                ? "bg-gray-300 cursor-not-allowed"
+                                : isRenew
+                                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/25"
+                                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg shadow-emerald-500/25"
+                        }`}
                     >
-                        {submitting
-                            ? "Processing…"
-                            : mode === "renew"
-                                ? "Confirm Renewal"
-                                : "Confirm Extension"}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Processing…
+                            </>
+                        ) : (
+                            <>
+                                {isRenew ? <RefreshCcw className="w-5 h-5" /> : <CalendarDays className="w-5 h-5" />}
+                                {isRenew ? "Confirm Renewal" : "Confirm Extension"}
+                            </>
+                        )}
                     </button>
 
                     <button
-                        onClick={() =>
-                            router.push(`/landlord/properties/${id}/activeLease`)
-                        }
-                        className="w-full px-6 py-3 border rounded-lg text-gray-700 hover:bg-gray-100"
+                        onClick={() => router.push(`/landlord/properties/${id}/activeLease`)}
+                        className="w-full px-6 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                     >
                         Cancel
                     </button>
