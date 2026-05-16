@@ -613,17 +613,6 @@ export default function PropertyLeasesPage() {
                 <table className="min-w-full divide-y divide-gray-100">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="px-4 py-3.5 text-left w-12">
-                        <input
-                          type="checkbox"
-                          checked={
-                            selectedRows.size === paginatedLeases.length &&
-                            paginatedLeases.length > 0
-                          }
-                          onChange={toggleAllSelection}
-                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                      </th>
                       <th
                         className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700"
                         onClick={() => handleSort("tenant")}
@@ -679,28 +668,13 @@ export default function PropertyLeasesPage() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {paginatedLeases.map((lease: any) => {
-                      const isSelected = selectedRows.has(lease.lease_id);
                       const leaseStatus = (lease.status ?? lease.lease_status)?.toLowerCase();
                       const isDraft = leaseStatus === "draft";
                       return (
                         <tr
                           key={lease.lease_id}
-                          className={`transition-colors ${
-                            isSelected
-                              ? "bg-blue-50/50"
-                              : "hover:bg-gray-50/50"
-                          }`}
+                          className="hover:bg-gray-50/50 transition-colors"
                         >
-                          {/* Checkbox */}
-                          <td className="px-4 py-3">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => toggleRowSelection(lease.lease_id)}
-                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                            />
-                          </td>
-
                           {/* Tenant */}
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
@@ -854,7 +828,7 @@ export default function PropertyLeasesPage() {
               </div>
 
               {/* ================= MOBILE VIEW ================= */}
-              <div className="md:hidden">
+              <div className="md:hidden -mx-2">
                 <LeaseStack
                   leases={paginatedLeases}
                   onPrimary={handlePrimaryAction}
@@ -1099,9 +1073,6 @@ export default function PropertyLeasesPage() {
                 <table className="min-w-full divide-y divide-gray-100">
                   <thead className="bg-gray-50/50">
                     <tr>
-                      <th className="px-4 py-3.5 text-left w-12">
-                        <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                      </th>
                       <th className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700" onClick={() => handleBillingSort("tenant")}>
                         <div className="flex items-center gap-1.5">Tenant <BillingSortIcon column="tenant" /></div>
                       </th>
@@ -1137,9 +1108,6 @@ export default function PropertyLeasesPage() {
 
                       return (
                         <tr key={bill.bill_id || bill.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="px-4 py-3">
-                            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
-                          </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold ${getAvatarColor(bill.tenant_name || "Unknown")}`}>

@@ -47,10 +47,14 @@ export default function LeaseStack({
     };
 
     useEffect(() => {
-        const handleClickOutside = () => setOpenMenuId(null);
+        const handleClickOutside = (e: MouseEvent) => {
+            if (openMenuId && !(e.target as HTMLElement).closest('.lease-menu-container')) {
+                setOpenMenuId(null);
+            }
+        };
         document.addEventListener("click", handleClickOutside);
         return () => document.removeEventListener("click", handleClickOutside);
-    }, []);
+    }, [openMenuId]);
 
     return (
         <div id="units-list-section-mobile" className="block md:hidden space-y-2 mb-4">
@@ -77,7 +81,7 @@ export default function LeaseStack({
                 return (
                     <div
                         key={lease.agreement_id || lease.lease_id}
-                        className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden active:scale-[0.99] transition-transform"
+                        className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-visible active:scale-[0.99] transition-transform"
                     >
                         <div className="flex items-stretch">
                             {/* Color dot + Unit info */}
@@ -152,7 +156,7 @@ export default function LeaseStack({
                                     )}
 
                                     {isActive && (
-                                        <div className="relative">
+                                        <div className="relative lease-menu-container">
                                             <button
                                                 onClick={(e) => toggleMenu(e, lease.lease_id)}
                                                 className="p-1.5 bg-gray-100 text-gray-600 rounded-lg"

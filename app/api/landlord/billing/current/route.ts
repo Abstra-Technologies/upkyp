@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { decryptData } from "@/crypto/encrypt";
+import { getSessionUser } from "@/lib/auth/auth";
 
 const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
 
@@ -13,6 +14,12 @@ const SECRET_KEY = process.env.ENCRYPTION_SECRET!;
  */
 export async function GET(req: NextRequest) {
     try {
+        const session = await getSessionUser();
+
+        if (!session || !session.landlord_id) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const property_id = req.nextUrl.searchParams.get("property_id");
         const monthParam = req.nextUrl.searchParams.get("month");
         const month = monthParam !== null ? parseInt(monthParam) + 1 : new Date().getMonth() + 1;
@@ -20,6 +27,15 @@ export async function GET(req: NextRequest) {
 
         if (!property_id) {
             return NextResponse.json({ error: "Missing property_id" }, { status: 400 });
+        }
+
+        const [propCheck]: any = await db.query(
+            `SELECT property_id FROM Property WHERE property_id = ? AND landlord_id = ? LIMIT 1`,
+            [property_id, session.landlord_id]
+        );
+
+        if (!propCheck.length) {
+            return NextResponse.json({ error: "Unauthorized - not your property" }, { status: 403 });
         }
 
         const periodStart = `${year}-${String(month).padStart(2, '0')}-01`;
@@ -62,7 +78,7 @@ export async function GET(req: NextRequest) {
                                        AND YEAR(b.billing_period) = ?
 
                 WHERE u.property_id = ?
-                  AND la.status = 'active'
+                  AND la.status IN ('active', 'expired')
                   AND la.start_date <= ?
                   AND (la.end_date IS NULL OR la.end_date >= ?)
                 ORDER BY u.unit_name ASC;
