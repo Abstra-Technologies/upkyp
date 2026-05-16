@@ -535,29 +535,31 @@ export default function PropertyLeasesPage() {
         </div>
 
         {/* ================= TAB SWITCHER ================= */}
-        <div className="flex gap-1 mb-4 md:mb-6 bg-gray-100 rounded-xl p-1 w-full md:w-fit">
-          <button
-            onClick={() => setMode("lease")}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${
-              mode === "lease"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span>Lease</span>
-          </button>
-          <button
-            onClick={() => setMode("billing")}
-            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${
-              mode === "billing"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            <ReceiptText className="w-3.5 h-3.5 md:w-4 md:h-4" />
-            <span>Billing</span>
-          </button>
+        <div className="relative mb-4 md:mb-6">
+          <div className="flex items-end border-b-2 border-gray-200">
+            <button
+              onClick={() => setMode("lease")}
+              className={`relative flex items-center gap-2 px-5 md:px-6 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 transition-all ${
+                mode === "lease"
+                  ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white border-blue-600 rounded-t-xl -mb-[2px] border-b-transparent"
+                  : "text-gray-600 bg-white border-gray-300 rounded-t-xl -mb-[2px]"
+              }`}
+            >
+              <FileText className={`w-4 h-4 md:w-4.5 md:h-4.5 ${mode === "lease" ? "text-white" : "text-gray-400"}`} />
+              <span>Lease</span>
+            </button>
+            <button
+              onClick={() => setMode("billing")}
+              className={`relative flex items-center gap-2 px-5 md:px-6 py-3 md:py-3.5 text-sm md:text-base font-bold border-2 transition-all ${
+                mode === "billing"
+                  ? "bg-gradient-to-r from-blue-600 to-emerald-600 text-white border-blue-600 rounded-t-xl -mb-[2px] border-b-transparent"
+                  : "text-gray-600 bg-white border-gray-300 rounded-t-xl -mb-[2px]"
+              }`}
+            >
+              <ReceiptText className={`w-4 h-4 md:w-4.5 md:h-4.5 ${mode === "billing" ? "text-white" : "text-gray-400"}`} />
+              <span>Billing</span>
+            </button>
+          </div>
         </div>
 
         {mode === "lease" && (
