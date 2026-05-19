@@ -18,10 +18,12 @@ export async function POST(req: NextRequest) {
             unitId,
             unitName,
             email,
-            inviteMethod = "email",
+            inviteMethod = "link",
             startDate,
             endDate,
             datesDeferred = false,
+            rentAmount,
+            securityDepositAmount,
         } = await req.json();
 
         if (!unitId || !unitName) {
@@ -119,6 +121,18 @@ export async function POST(req: NextRequest) {
                     inviteCode,
                     datesDeferred,
                 });
+            } else {
+                await conn.query(
+                    `UPDATE Unit SET status = 'reserved' WHERE unit_id = ?`,
+                    [unitId]
+                );
+            }
+
+            if (rentAmount && parseFloat(rentAmount) > 0) {
+                await conn.query(
+                    `UPDATE Unit SET rent_amount = ? WHERE unit_id = ?`,
+                    [parseFloat(rentAmount), unitId]
+                );
             }
 
             await conn.commit();
@@ -127,10 +141,11 @@ export async function POST(req: NextRequest) {
                 success: true,
                 code: inviteCode,
                 expiresAt: expiresAt.toISOString(),
+                timeLeft: 600,
                 email: email || null,
                 message: inviteMethod === "email" 
                     ? "Invite sent and unit reserved." 
-                    : "Invite code generated.",
+                    : "Invite link created.",
             });
         } catch (err) {
             await conn.rollback();

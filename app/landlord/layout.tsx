@@ -186,12 +186,6 @@ export default function LandlordLayout({
       ]
     },
     {
-      section: "Insights",
-      items: [
-        { id: "nav-analytics", label: "Analytics", href: "/landlord/analytics/performance", icon: IoAnalytics },
-      ]
-    },
-    {
       section: "Resources",
       items: [
         { id: "nav-docs", label: "Documents", href: "/landlord/documents", icon: IoFolderOpen },

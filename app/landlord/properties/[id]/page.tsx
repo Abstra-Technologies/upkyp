@@ -32,7 +32,6 @@ export default function ViewPropertyDetailedPage() {
     property_id,
     error,
     isLoading,
-
     page,
     setPage,
     itemsPerPage,
